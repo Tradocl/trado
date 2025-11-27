@@ -3,14 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface Profile {
   full_name: string;
   reputation_score: number;
   total_transactions: number;
+  is_verified: boolean;
+  verification_status: string;
 }
 
 interface WalletData {
@@ -98,12 +101,25 @@ const Dashboard = () => {
         {/* Welcome Card */}
         <Card className="border-0 shadow-xl bg-gradient-to-br from-primary to-primary-light text-primary-foreground">
           <CardHeader>
-            <CardTitle className="text-2xl">
-              ¡Hola, {profile?.full_name || "Usuario"}!
-            </CardTitle>
-            <CardDescription className="text-primary-foreground/80">
-              Bienvenido a tu panel de control seguro
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  ¡Hola, {profile?.full_name || "Usuario"}!
+                  {profile?.is_verified && (
+                    <CheckCircle className="h-6 w-6" />
+                  )}
+                </CardTitle>
+                <CardDescription className="text-primary-foreground/80">
+                  Bienvenido a tu panel de control seguro
+                </CardDescription>
+              </div>
+              {profile?.verification_status === 'approved' && (
+                <Badge className="bg-white/20 text-white border-white/30">
+                  <Shield className="w-4 h-4 mr-1" />
+                  Verificado
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="flex gap-6">
             <div className="flex items-center gap-2">
@@ -203,6 +219,27 @@ const Dashboard = () => {
                 Depositar
               </Button>
             </div>
+            
+            {profile?.verification_status !== 'approved' && (
+              <div className="mt-4 p-4 bg-info/10 border border-info/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-info mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-sm mb-1">Aumenta tu reputación</h4>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Verifica tu identidad para ganar más confianza
+                    </p>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => navigate("/verification")}
+                    >
+                      Verificar ahora
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
