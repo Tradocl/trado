@@ -187,7 +187,7 @@ export default function Admin() {
       // Get the movement details first
       const { data: movement, error: fetchError } = await supabase
         .from("wallet_movements")
-        .select("*, wallets(*)")
+        .select("*, wallets(*, profiles(*))")
         .eq("id", movementId)
         .single();
 
@@ -220,6 +220,23 @@ export default function Admin() {
 
       if (movementError) throw movementError;
 
+      // Send email notification
+      try {
+        await supabase.functions.invoke("send-movement-notification", {
+          body: {
+            userEmail: movement.wallets.profiles.email,
+            userName: movement.wallets.profiles.full_name,
+            movementType: movement.type,
+            amount: movement.amount,
+            status: "approved",
+            description: movement.description,
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending email:", emailError);
+        // Don't fail the approval if email fails
+      }
+
       toast.success(`${movement.type === "deposit" ? "Depósito" : "Retiro"} aprobado exitosamente`);
       loadAdminData();
     } catch (error) {
@@ -230,6 +247,13 @@ export default function Admin() {
 
   const handleRejectMovement = async (movementId: string) => {
     try {
+      // Get movement details for email
+      const { data: movement } = await supabase
+        .from("wallet_movements")
+        .select("*, wallets(*, profiles(*))")
+        .eq("id", movementId)
+        .single();
+
       const { error } = await supabase
         .from("wallet_movements")
         .update({
@@ -240,6 +264,25 @@ export default function Admin() {
         .eq("id", movementId);
 
       if (error) throw error;
+
+      // Send email notification
+      if (movement) {
+        try {
+          await supabase.functions.invoke("send-movement-notification", {
+            body: {
+              userEmail: movement.wallets.profiles.email,
+              userName: movement.wallets.profiles.full_name,
+              movementType: movement.type,
+              amount: movement.amount,
+              status: "rejected",
+              description: movement.description,
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending email:", emailError);
+        }
+      }
+
       toast.success("Movimiento rechazado");
       loadAdminData();
     } catch (error) {

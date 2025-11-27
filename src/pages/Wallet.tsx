@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock } from "lucide-react";
+import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -314,8 +314,20 @@ const Wallet = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Movimientos Recientes</CardTitle>
-            <CardDescription>Historial de movimientos aprobados</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Movimientos Recientes</CardTitle>
+                <CardDescription>Historial de movimientos aprobados</CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate("/movement-history")}
+              >
+                <History className="mr-2 h-4 w-4" />
+                Ver Historial Completo
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {movements.length === 0 ? (
