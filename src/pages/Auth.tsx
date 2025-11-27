@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { signIn, signUp } from "@/lib/supabase";
 import { Shield, Lock } from "lucide-react";
+import { validateRUT, formatRUT, validateChileanPhone, formatChileanPhone } from "@/lib/validators";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -44,6 +45,20 @@ const Auth = () => {
     const phone = formData.get("phone") as string;
     const rut = formData.get("rut") as string;
     const address = formData.get("address") as string;
+
+    // Validar RUT
+    if (!validateRUT(rut)) {
+      toast.error("RUT inválido. Verifica el formato y dígito verificador.");
+      setLoading(false);
+      return;
+    }
+
+    // Validar teléfono
+    if (!validateChileanPhone(phone)) {
+      toast.error("Teléfono inválido. Debe ser un número chileno válido.");
+      setLoading(false);
+      return;
+    }
 
     const { error } = await signUp(email, password, fullName, phone, rut, address);
 
