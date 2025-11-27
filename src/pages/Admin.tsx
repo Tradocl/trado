@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -45,6 +45,30 @@ interface VerificationRequest {
   verification_submitted_at: string | null;
 }
 
+interface Transaction {
+  id: string;
+  product_name: string;
+  amount: number;
+  state: string;
+  seller_id: string;
+  buyer_id: string | null;
+  created_at: string;
+  completed_at: string | null;
+  seller?: { full_name: string; email: string };
+  buyer?: { full_name: string; email: string };
+}
+
+const stateLabels: Record<string, { label: string; color: string }> = {
+  created: { label: "Creada", color: "secondary" },
+  invited: { label: "Invitado", color: "default" },
+  awaiting_deposit: { label: "Esperando depósito", color: "secondary" },
+  funds_secured: { label: "Fondos asegurados", color: "default" },
+  in_delivery: { label: "En entrega", color: "default" },
+  completed: { label: "Completada", color: "default" },
+  cancelled: { label: "Cancelada", color: "destructive" },
+  in_dispute: { label: "En disputa", color: "destructive" },
+};
+
 export default function Admin() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -52,6 +76,7 @@ export default function Admin() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [movements, setMovements] = useState<WalletMovement[]>([]);
   const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -130,10 +155,18 @@ export default function Admin() {
       if (verificationsError) throw verificationsError;
       setVerifications(verificationsData || []);
 
-      // Calculate stats
-      const { data: transactionsData } = await supabase
+      // Load all transactions with seller and buyer info
+      const { data: transactionsData, error: transactionsError } = await supabase
         .from("transactions")
-        .select("id", { count: "exact" });
+        .select(`
+          *,
+          seller:profiles!transactions_seller_id_fkey(full_name, email),
+          buyer:profiles!transactions_buyer_id_fkey(full_name, email)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (transactionsError) throw transactionsError;
+      setTransactions(transactionsData || []);
 
       setStats({
         totalUsers: profilesData?.length || 0,
@@ -151,17 +184,43 @@ export default function Admin() {
 
   const handleApproveMovement = async (movementId: string) => {
     try {
-      const { error } = await supabase
+      // Get the movement details first
+      const { data: movement, error: fetchError } = await supabase
+        .from("wallet_movements")
+        .select("*, wallets(*)")
+        .eq("id", movementId)
+        .single();
+
+      if (fetchError || !movement) throw fetchError || new Error("Movimiento no encontrado");
+
+      // Update the wallet balance
+      const currentBalance = movement.wallets.balance || 0;
+      const newBalance = movement.type === "deposit" 
+        ? currentBalance + movement.amount 
+        : currentBalance - movement.amount;
+
+      // Update wallet balance
+      const { error: walletError } = await supabase
+        .from("wallets")
+        .update({ balance: newBalance })
+        .eq("id", movement.wallet_id);
+
+      if (walletError) throw walletError;
+
+      // Update movement status
+      const { error: movementError } = await supabase
         .from("wallet_movements")
         .update({
           status: "approved",
           reviewed_by: user?.id,
           reviewed_at: new Date().toISOString(),
+          balance_after: newBalance,
         })
         .eq("id", movementId);
 
-      if (error) throw error;
-      toast.success("Movimiento aprobado exitosamente");
+      if (movementError) throw movementError;
+
+      toast.success(`${movement.type === "deposit" ? "Depósito" : "Retiro"} aprobado exitosamente`);
       loadAdminData();
     } catch (error) {
       console.error("Error approving movement:", error);
@@ -293,9 +352,19 @@ export default function Admin() {
         </Card>
       </div>
 
-      <Tabs defaultValue="users" className="space-y-4">
+      <Tabs defaultValue="movements" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="users">Usuarios</TabsTrigger>
+          <TabsTrigger value="movements">
+            Movimientos de Saldo
+            {stats.pendingMovements > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {stats.pendingMovements}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="transactions">
+            Transacciones
+          </TabsTrigger>
           <TabsTrigger value="verifications">
             Verificaciones
             {stats.pendingVerifications > 0 && (
@@ -304,14 +373,7 @@ export default function Admin() {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="movements">
-            Movimientos
-            {stats.pendingMovements > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {stats.pendingMovements}
-              </Badge>
-            )}
-          </TabsTrigger>
+          <TabsTrigger value="users">Usuarios</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
@@ -446,10 +508,10 @@ export default function Admin() {
                   <TableRow>
                     <TableHead>Usuario</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Monto</TableHead>
+                    <TableHead className="text-right">Monto</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead>Fecha</TableHead>
-                    <TableHead>Acciones</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -468,15 +530,15 @@ export default function Admin() {
                           {movement.type === "deposit" ? "Depósito" : "Retiro"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">
-                        ${movement.amount.toLocaleString()}
+                      <TableCell className="font-bold text-right text-lg">
+                        ${movement.amount.toLocaleString("es-CL")}
                       </TableCell>
                       <TableCell>{movement.description}</TableCell>
                       <TableCell>
                         {new Date(movement.created_at).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
                           <Button
                             size="sm"
                             variant="default"
@@ -501,6 +563,84 @@ export default function Admin() {
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-muted-foreground">
                         No hay movimientos pendientes
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="transactions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Todas las Transacciones</CardTitle>
+              <CardDescription>Salas de venta activas y finalizadas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead>Vendedor</TableHead>
+                    <TableHead>Comprador</TableHead>
+                    <TableHead className="text-right">Monto</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Fecha Creación</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell className="font-medium">{transaction.product_name}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{transaction.seller?.full_name || "N/A"}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {transaction.seller?.email || ""}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {transaction.buyer ? (
+                          <div>
+                            <div className="font-medium">{transaction.buyer.full_name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {transaction.buyer.email}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">Sin comprador</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-bold text-right">
+                        ${transaction.amount.toLocaleString("es-CL")}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={stateLabels[transaction.state]?.color as any || "secondary"}>
+                          {stateLabels[transaction.state]?.label || transaction.state}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(transaction.created_at).toLocaleDateString("es-CL")}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`/transaction/${transaction.id}`, '_blank')}
+                        >
+                          Ver Detalles
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {transactions.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                        No hay transacciones registradas
                       </TableCell>
                     </TableRow>
                   )}
