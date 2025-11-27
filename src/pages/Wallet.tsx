@@ -142,7 +142,7 @@ const Wallet = () => {
       await supabase.from("wallet_movements").insert({
         wallet_id: wallet.id,
         type: "withdrawal",
-        amount: -withdrawAmount,
+        amount: withdrawAmount, // Store as positive, type determines if it's subtracted
         balance_after: wallet.balance, // Balance doesn't change until approved
         description: "Retiro pendiente de aprobación",
         status: "pending",
@@ -180,35 +180,38 @@ const Wallet = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-6">
+        {/* Action Buttons at the Top */}
+        <div className="grid grid-cols-2 gap-4">
+          <Button
+            size="lg"
+            className="bg-success hover:bg-success/90 h-16"
+            onClick={() => setDepositOpen(true)}
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Depositar Dinero
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="h-16 border-2"
+            onClick={() => setWithdrawOpen(true)}
+          >
+            <ArrowUpRight className="mr-2 h-5 w-5" />
+            Retirar Dinero
+          </Button>
+        </div>
+
         <Card className="border-0 shadow-xl bg-gradient-to-br from-primary to-primary-light text-primary-foreground">
           <CardHeader>
             <CardTitle className="text-3xl">Mi Billetera</CardTitle>
             <CardDescription className="text-primary-foreground/80">
-              Administra tu saldo virtual
+              Saldo actual disponible
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-6">
+            <div>
               <p className="text-sm opacity-80 mb-2">Saldo disponible</p>
               <p className="text-5xl font-bold">${balance.toFixed(2)}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Button
-                variant="secondary"
-                className="bg-white/20 hover:bg-white/30"
-                onClick={() => setDepositOpen(true)}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Depositar
-              </Button>
-              <Button
-                variant="secondary"
-                className="bg-white/20 hover:bg-white/30"
-                onClick={() => setWithdrawOpen(true)}
-              >
-                <ArrowUpRight className="mr-2 h-4 w-4" />
-                Retirar
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -216,55 +219,61 @@ const Wallet = () => {
         <Card>
           <CardHeader>
             <CardTitle>Movimientos Recientes</CardTitle>
-            <CardDescription>Historial de transacciones</CardDescription>
+            <CardDescription>Solo se muestran movimientos aprobados por el administrador</CardDescription>
           </CardHeader>
           <CardContent>
             {movements.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No hay movimientos aún
-              </p>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-2">No hay movimientos aprobados aún</p>
+                <p className="text-sm text-muted-foreground">
+                  Los depósitos y retiros requieren aprobación del administrador
+                </p>
+              </div>
             ) : (
               <div className="space-y-4">
-                {movements.map((movement) => (
-                  <div
-                    key={movement.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`p-2 rounded-full ${
-                          movement.amount > 0
-                            ? "bg-success/10 text-success"
-                            : "bg-destructive/10 text-destructive"
-                        }`}
-                      >
-                        {movement.amount > 0 ? (
-                          <ArrowDownRight className="h-5 w-5" />
-                        ) : (
-                          <ArrowUpRight className="h-5 w-5" />
-                        )}
+                {movements.map((movement) => {
+                  const isDeposit = movement.type === "deposit";
+                  return (
+                    <div
+                      key={movement.id}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`p-2 rounded-full ${
+                            isDeposit
+                              ? "bg-success/10 text-success"
+                              : "bg-destructive/10 text-destructive"
+                          }`}
+                        >
+                          {isDeposit ? (
+                            <ArrowDownRight className="h-5 w-5" />
+                          ) : (
+                            <ArrowUpRight className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium">{movement.description}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(movement.created_at).toLocaleDateString("es-CL")}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{movement.description}</p>
+                      <div className="text-right">
+                        <p
+                          className={`text-lg font-bold ${
+                            isDeposit ? "text-success" : "text-destructive"
+                          }`}
+                        >
+                          {isDeposit ? "+" : "-"}${Math.abs(movement.amount)}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(movement.created_at).toLocaleDateString("es-CL")}
+                          Saldo: ${movement.balance_after}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p
-                        className={`text-lg font-bold ${
-                          movement.amount > 0 ? "text-success" : "text-destructive"
-                        }`}
-                      >
-                        {movement.amount > 0 ? "+" : ""}${Math.abs(movement.amount)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Saldo: ${movement.balance_after}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -277,22 +286,28 @@ const Wallet = () => {
           <DialogHeader>
             <DialogTitle>Depositar Fondos</DialogTitle>
             <DialogDescription>
-              Simula un depósito a tu billetera virtual
+              El depósito quedará pendiente hasta que un administrador lo apruebe
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="deposit-amount">Monto</Label>
+              <Label htmlFor="deposit-amount">Monto a depositar</Label>
               <Input
                 id="deposit-amount"
                 type="number"
-                placeholder="1000"
+                placeholder="10000"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                min="1"
               />
             </div>
-            <Button onClick={handleDeposit} className="w-full">
-              Depositar
+            <div className="p-3 bg-info/10 border border-info/20 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                ℹ️ Tu solicitud será revisada por un administrador. Te notificaremos cuando sea aprobada.
+              </p>
+            </div>
+            <Button onClick={handleDeposit} className="w-full bg-success hover:bg-success/90">
+              Solicitar Depósito
             </Button>
           </div>
         </DialogContent>
@@ -304,23 +319,32 @@ const Wallet = () => {
           <DialogHeader>
             <DialogTitle>Retirar Fondos</DialogTitle>
             <DialogDescription>
-              Retira dinero de tu billetera (saldo: ${balance})
+              Solicita un retiro de tu billetera (saldo disponible: ${balance})
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="withdraw-amount">Monto</Label>
+              <Label htmlFor="withdraw-amount">Monto a retirar</Label>
               <Input
                 id="withdraw-amount"
                 type="number"
-                placeholder="1000"
+                placeholder="5000"
                 max={balance}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                min="1"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Máximo disponible: ${balance}
+              </p>
+            </div>
+            <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                ⚠️ Tu solicitud será revisada por un administrador. Los fondos no se descontarán hasta que sea aprobada.
+              </p>
             </div>
             <Button onClick={handleWithdraw} className="w-full">
-              Retirar
+              Solicitar Retiro
             </Button>
           </div>
         </DialogContent>
