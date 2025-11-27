@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -17,6 +17,7 @@ interface Movement {
   balance_after: number;
   description: string;
   created_at: string;
+  status: string;
 }
 
 const Wallet = () => {
@@ -25,6 +26,7 @@ const Wallet = () => {
   const [searchParams] = useSearchParams();
   const [balance, setBalance] = useState(0);
   const [movements, setMovements] = useState<Movement[]>([]);
+  const [pendingMovements, setPendingMovements] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(true);
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
@@ -38,6 +40,39 @@ const Wallet = () => {
 
     if (user) {
       loadWalletData();
+      
+      // Set up realtime subscription for movement status changes
+      const channel = supabase
+        .channel('wallet_movements_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'wallet_movements',
+          },
+          (payload: any) => {
+            const updatedMovement = payload.new;
+            
+            // Show notification based on status
+            if (updatedMovement.status === 'approved') {
+              toast.success(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} aprobado por $${updatedMovement.amount}`, {
+                duration: 5000,
+              });
+              loadWalletData(); // Reload to show updated balance
+            } else if (updatedMovement.status === 'rejected') {
+              toast.error(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} rechazado por $${updatedMovement.amount}`, {
+                duration: 5000,
+              });
+              loadWalletData();
+            }
+          }
+        )
+        .subscribe();
+      
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
 
     // Check if we should open deposit dialog
@@ -60,17 +95,28 @@ const Wallet = () => {
 
       setBalance(wallet.balance);
 
+      // Load approved movements
       const { data: movementsData, error: movementsError } = await supabase
         .from("wallet_movements")
         .select("*")
         .eq("wallet_id", wallet.id)
-        .eq("status", "approved") // Only show approved movements
+        .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(20);
 
       if (movementsError) throw movementsError;
-
       setMovements(movementsData || []);
+
+      // Load pending movements
+      const { data: pendingData, error: pendingError } = await supabase
+        .from("wallet_movements")
+        .select("*")
+        .eq("wallet_id", wallet.id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+
+      if (pendingError) throw pendingError;
+      setPendingMovements(pendingData || []);
     } catch (error: any) {
       toast.error("Error al cargar billetera: " + error.message);
     } finally {
@@ -216,10 +262,60 @@ const Wallet = () => {
           </CardContent>
         </Card>
 
+        {/* Pending Movements */}
+        {pendingMovements.length > 0 && (
+          <Card className="border-warning/50 bg-warning/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-warning">
+                <Clock className="h-5 w-5" />
+                Movimientos Pendientes de Aprobación
+              </CardTitle>
+              <CardDescription>
+                Estos movimientos están esperando revisión del administrador
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {pendingMovements.map((movement) => {
+                  const isDeposit = movement.type === "deposit";
+                  return (
+                    <div
+                      key={movement.id}
+                      className="flex items-center justify-between p-4 border border-warning/30 rounded-lg bg-background"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 rounded-full bg-warning/10 text-warning">
+                          <Clock className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {isDeposit ? "Depósito" : "Retiro"} Pendiente
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(movement.created_at).toLocaleDateString("es-CL")} - {new Date(movement.created_at).toLocaleTimeString("es-CL")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-warning">
+                          {isDeposit ? "+" : "-"}${Math.abs(movement.amount)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          En revisión
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Movimientos Recientes</CardTitle>
-            <CardDescription>Solo se muestran movimientos aprobados por el administrador</CardDescription>
+            <CardDescription>Historial de movimientos aprobados</CardDescription>
           </CardHeader>
           <CardContent>
             {movements.length === 0 ? (
