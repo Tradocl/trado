@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -21,12 +21,34 @@ interface WalletData {
   balance: number;
 }
 
+interface Transaction {
+  id: string;
+  product_name: string;
+  amount: number;
+  state: string;
+  seller_id: string;
+  buyer_id: string | null;
+  created_at: string;
+}
+
+const stateLabels: Record<string, { label: string; color: string }> = {
+  created: { label: "Creada", color: "bg-gray-500" },
+  invited: { label: "Invitado", color: "bg-blue-500" },
+  awaiting_deposit: { label: "Esperando depósito", color: "bg-yellow-500" },
+  funds_secured: { label: "Fondos asegurados", color: "bg-green-500" },
+  in_delivery: { label: "En entrega", color: "bg-purple-500" },
+  completed: { label: "Completada", color: "bg-emerald-500" },
+  cancelled: { label: "Cancelada", color: "bg-red-500" },
+  in_dispute: { label: "En disputa", color: "bg-orange-500" },
+};
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,9 +66,15 @@ const Dashboard = () => {
     if (!user) return;
 
     try {
-      const [profileRes, walletRes] = await Promise.all([
+      const [profileRes, walletRes, transactionsRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).single(),
         supabase.from("wallets").select("*").eq("user_id", user.id).single(),
+        supabase
+          .from("transactions")
+          .select("*")
+          .or(`seller_id.eq.${user.id},buyer_id.eq.${user.id}`)
+          .not("state", "in", '("completed","cancelled")')
+          .order("created_at", { ascending: false }),
       ]);
 
       if (profileRes.error) throw profileRes.error;
@@ -54,6 +82,10 @@ const Dashboard = () => {
 
       setProfile(profileRes.data);
       setWallet(walletRes.data);
+      
+      if (transactionsRes.data) {
+        setTransactions(transactionsRes.data);
+      }
     } catch (error: any) {
       toast.error("Error al cargar datos: " + error.message);
     } finally {
@@ -154,6 +186,50 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Transactions in Progress */}
+        {transactions.length > 0 && (
+          <Card className="border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingBag className="h-6 w-6 text-primary" />
+                Transacciones en Curso
+              </CardTitle>
+              <CardDescription>
+                Tus transacciones activas como vendedor o comprador
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {transactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    onClick={() => navigate(`/transaction/${transaction.id}`)}
+                    className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold">{transaction.product_name}</h4>
+                          <Badge className={stateLabels[transaction.state]?.color || "bg-gray-500"}>
+                            {stateLabels[transaction.state]?.label || transaction.state}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">${transaction.amount}</span>
+                          <span>
+                            {transaction.seller_id === user?.id ? "Vendedor" : "Comprador"}
+                          </span>
+                        </div>
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Action Cards */}
         <div className="grid md:grid-cols-2 gap-6">
