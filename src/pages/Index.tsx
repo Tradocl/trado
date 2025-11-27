@@ -35,9 +35,8 @@ const Index = () => {
             </Button>
             <Button
               size="lg"
-              variant="outline"
               onClick={() => navigate("/auth")}
-              className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 h-auto"
+              className="bg-primary-foreground/20 backdrop-blur-md border-2 border-white text-white hover:bg-primary-foreground/30 shadow-xl text-lg px-8 py-6 h-auto"
             >
               Iniciar Sesión
               <Lock className="ml-2 h-5 w-5" />
