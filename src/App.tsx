@@ -12,6 +12,7 @@ import CreateSale from "./pages/CreateSale";
 import JoinTransaction from "./pages/JoinTransaction";
 import Transaction from "./pages/Transaction";
 import Verification from "./pages/Verification";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/join-transaction" element={<JoinTransaction />} />
             <Route path="/transaction/:id" element={<Transaction />} />
             <Route path="/verification" element={<Verification />} />
+            <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

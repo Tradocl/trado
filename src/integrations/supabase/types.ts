@@ -189,6 +189,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallet_movements: {
         Row: {
           amount: number
@@ -196,6 +217,9 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
           transaction_id: string | null
           type: string
           wallet_id: string
@@ -206,6 +230,9 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
           transaction_id?: string | null
           type: string
           wallet_id: string
@@ -216,6 +243,9 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
           transaction_id?: string | null
           type?: string
           wallet_id?: string
@@ -278,8 +308,16 @@ export type Database = {
     }
     Functions: {
       generate_invite_code: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       transaction_state:
         | "created"
         | "invited"
@@ -416,6 +454,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       transaction_state: [
         "created",
         "invited",
