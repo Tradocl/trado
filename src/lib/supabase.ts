@@ -2,7 +2,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 export { supabase };
 
-export const signUp = async (email: string, password: string, fullName: string) => {
+export const signUp = async (
+  email: string, 
+  password: string, 
+  fullName: string,
+  phone: string,
+  rut: string,
+  address: string
+) => {
   const redirectUrl = `${window.location.origin}/`;
   
   const { data, error } = await supabase.auth.signUp({
@@ -11,7 +18,10 @@ export const signUp = async (email: string, password: string, fullName: string) 
     options: {
       emailRedirectTo: redirectUrl,
       data: {
-        full_name: fullName
+        full_name: fullName,
+        phone,
+        rut,
+        address
       }
     }
   });
