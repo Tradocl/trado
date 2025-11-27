@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ interface WalletData {
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<WalletData | null>(null);
@@ -90,10 +92,18 @@ const Dashboard = () => {
             </div>
             <h1 className="text-2xl font-bold">Trado</h1>
           </div>
-          <Button variant="ghost" onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Salir
-          </Button>
+          <div className="flex gap-2">
+            {isAdmin && (
+              <Button variant="outline" onClick={() => navigate("/admin")}>
+                <Settings className="mr-2 h-4 w-4" />
+                Admin
+              </Button>
+            )}
+            <Button variant="ghost" onClick={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Salir
+            </Button>
+          </div>
         </div>
       </header>
 

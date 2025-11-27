@@ -64,6 +64,7 @@ const Wallet = () => {
         .from("wallet_movements")
         .select("*")
         .eq("wallet_id", wallet.id)
+        .eq("status", "approved") // Only show approved movements
         .order("created_at", { ascending: false })
         .limit(20);
 
@@ -95,22 +96,17 @@ const Wallet = () => {
 
       if (!wallet) throw new Error("Billetera no encontrada");
 
-      const newBalance = wallet.balance + depositAmount;
-
-      await supabase
-        .from("wallets")
-        .update({ balance: newBalance })
-        .eq("id", wallet.id);
-
+      // Create pending movement (requires admin approval)
       await supabase.from("wallet_movements").insert({
         wallet_id: wallet.id,
         type: "deposit",
         amount: depositAmount,
-        balance_after: newBalance,
-        description: "Depósito simulado",
+        balance_after: wallet.balance, // Balance doesn't change until approved
+        description: "Depósito pendiente de aprobación",
+        status: "pending",
       });
 
-      toast.success(`Depositaste $${depositAmount} exitosamente`);
+      toast.success("Depósito enviado para aprobación");
       setDepositOpen(false);
       setAmount("");
       loadWalletData();
@@ -142,22 +138,17 @@ const Wallet = () => {
 
       if (!wallet) throw new Error("Billetera no encontrada");
 
-      const newBalance = wallet.balance - withdrawAmount;
-
-      await supabase
-        .from("wallets")
-        .update({ balance: newBalance })
-        .eq("id", wallet.id);
-
+      // Create pending movement (requires admin approval)
       await supabase.from("wallet_movements").insert({
         wallet_id: wallet.id,
         type: "withdrawal",
         amount: -withdrawAmount,
-        balance_after: newBalance,
-        description: "Retiro simulado",
+        balance_after: wallet.balance, // Balance doesn't change until approved
+        description: "Retiro pendiente de aprobación",
+        status: "pending",
       });
 
-      toast.success(`Retiraste $${withdrawAmount} exitosamente`);
+      toast.success("Retiro enviado para aprobación");
       setWithdrawOpen(false);
       setAmount("");
       loadWalletData();
