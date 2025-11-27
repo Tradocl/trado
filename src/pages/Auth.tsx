@@ -41,8 +41,11 @@ const Auth = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const fullName = formData.get("fullName") as string;
+    const phone = formData.get("phone") as string;
+    const rut = formData.get("rut") as string;
+    const address = formData.get("address") as string;
 
-    const { error } = await signUp(email, password, fullName);
+    const { error } = await signUp(email, password, fullName, phone, rut, address);
 
     if (error) {
       toast.error(error.message);
@@ -113,6 +116,36 @@ const Auth = () => {
                     name="fullName"
                     type="text"
                     placeholder="Juan Pérez"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-rut">RUT</Label>
+                  <Input
+                    id="signup-rut"
+                    name="rut"
+                    type="text"
+                    placeholder="12.345.678-9"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-phone">Teléfono</Label>
+                  <Input
+                    id="signup-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="+56 9 1234 5678"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-address">Dirección</Label>
+                  <Input
+                    id="signup-address"
+                    name="address"
+                    type="text"
+                    placeholder="Av. Principal 123, Santiago"
                     required
                   />
                 </div>
