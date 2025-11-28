@@ -30,6 +30,16 @@ export function generateReferenceCode(): string {
  * @param transactionAmount - Precio del producto en CLP (sin decimales)
  * @returns Objeto con desglose financiero y código de referencia
  */
+/**
+ * Formatea un monto en CLP con separadores de miles y sin decimales
+ * 
+ * @param amount - Monto en CLP
+ * @returns String formateado (ej: 12.500 para 12500)
+ */
+export function formatCLP(amount: number): string {
+  return Math.round(amount).toLocaleString('es-CL');
+}
+
 export function calculateOrderDetails(transactionAmount: number): {
   buyerPays: number;
   appFee: number;

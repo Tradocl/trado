@@ -16,6 +16,7 @@ import { Store as StoreIcon } from "lucide-react";
 import { TransactionChat } from "@/components/TransactionChat";
 import { RatingDialog } from "@/components/RatingDialog";
 import { UserRatings } from "@/components/UserRatings";
+import { formatCLP } from "@/lib/utils";
 
 interface Transaction {
   id: string;
@@ -414,7 +415,7 @@ const Transaction = () => {
               <div className="relative flex justify-between items-center p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
                 <span className="text-lg font-semibold">Monto Total</span>
                 <span className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  ${transaction.amount.toLocaleString('es-CL')}
+                  ${formatCLP(transaction.amount)}
                 </span>
               </div>
             </div>
@@ -641,7 +642,7 @@ const Transaction = () => {
                   onClick={() => setDepositDialogOpen(true)}
                 >
                   <DollarSign className="mr-2 h-6 w-6" />
-                  Depositar ${transaction.amount.toLocaleString('es-CL')} en Escrow
+                  Depositar ${formatCLP(transaction.amount)} en Escrow
                 </Button>
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
                   🔒 Tus fondos estarán protegidos hasta que confirmes la entrega
@@ -852,7 +853,7 @@ const Transaction = () => {
           <DialogHeader>
             <DialogTitle>Confirmar Depósito</DialogTitle>
             <DialogDescription>
-              Se bloquearán ${transaction.amount} de tu billetera hasta que confirmes la entrega
+              Se bloquearán ${formatCLP(transaction.amount)} de tu billetera hasta que confirmes la entrega
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ArrowLeft, Store, Info, AlertCircle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { calculateOrderDetails } from "@/lib/utils";
+import { calculateOrderDetails, formatCLP } from "@/lib/utils";
 
 const CreateSale = () => {
   const { user } = useAuth();
@@ -210,24 +210,24 @@ const CreateSale = () => {
                       <div className="flex justify-between items-center py-2">
                         <span className="text-muted-foreground">Precio del producto:</span>
                         <span className="font-bold text-foreground text-lg">
-                          ${orderDetails.buyerPays.toLocaleString("es-CL")}
+                          ${formatCLP(orderDetails.buyerPays)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center py-2 bg-warning/5 rounded px-2">
                         <div className="flex flex-col">
                           <span className="text-muted-foreground">Comisión Trado (5%):</span>
                           <span className="text-xs text-muted-foreground/70">
-                            {((orderDetails.appFee / orderDetails.buyerPays) * 100).toFixed(2)}% del total
+                            {Math.round((orderDetails.appFee / orderDetails.buyerPays) * 100)}% del total
                           </span>
                         </div>
                         <span className="font-bold text-warning text-lg">
-                          -${orderDetails.appFee.toLocaleString("es-CL")}
+                          -${formatCLP(orderDetails.appFee)}
                         </span>
                       </div>
                       <div className="pt-3 border-t-2 border-success/30 flex justify-between items-center">
                         <span className="font-bold text-foreground">Total que recibirás:</span>
                         <span className="font-bold text-success text-2xl">
-                          ${orderDetails.sellerReceives.toLocaleString("es-CL")}
+                          ${formatCLP(orderDetails.sellerReceives)}
                         </span>
                       </div>
                     </div>
@@ -247,12 +247,12 @@ const CreateSale = () => {
                       >
                         Acepto que Trado cobrará una comisión de{" "}
                         <span className="font-bold text-warning">
-                          ${orderDetails.appFee.toLocaleString("es-CL")} CLP
+                          ${formatCLP(orderDetails.appFee)}
                         </span>{" "}
-                        ({((orderDetails.appFee / orderDetails.buyerPays) * 100).toFixed(2)}%) sobre esta
+                        ({Math.round((orderDetails.appFee / orderDetails.buyerPays) * 100)}%) sobre esta
                         transacción, y que recibiré{" "}
                         <span className="font-bold text-success">
-                          ${orderDetails.sellerReceives.toLocaleString("es-CL")} CLP
+                          ${formatCLP(orderDetails.sellerReceives)}
                         </span>{" "}
                         al completarse la venta.
                       </label>
@@ -325,7 +325,7 @@ const CreateSale = () => {
                 <div className="flex justify-between items-center py-2">
                   <span className="text-sm text-muted-foreground">Precio del producto:</span>
                   <span className="font-bold text-lg">
-                    ${orderDetails.buyerPays.toLocaleString("es-CL")} CLP
+                    ${formatCLP(orderDetails.buyerPays)}
                   </span>
                 </div>
 
@@ -333,18 +333,18 @@ const CreateSale = () => {
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-warning">Comisión Trado:</span>
                     <span className="text-xs text-muted-foreground">
-                      {((orderDetails.appFee / orderDetails.buyerPays) * 100).toFixed(2)}% del total
+                      {Math.round((orderDetails.appFee / orderDetails.buyerPays) * 100)}% del total
                     </span>
                   </div>
                   <span className="font-bold text-warning">
-                    -${orderDetails.appFee.toLocaleString("es-CL")} CLP
+                    -${formatCLP(orderDetails.appFee)}
                   </span>
                 </div>
 
                 <div className="pt-3 border-t-2 border-success/30 flex justify-between items-center">
                   <span className="font-bold">Recibirás:</span>
                   <span className="font-bold text-success text-2xl">
-                    ${orderDetails.sellerReceives.toLocaleString("es-CL")} CLP
+                    ${formatCLP(orderDetails.sellerReceives)}
                   </span>
                 </div>
               </div>
@@ -354,10 +354,10 @@ const CreateSale = () => {
                 <h4 className="font-semibold text-info mb-2 text-sm">Términos del Escrow</h4>
                 <ul className="text-xs space-y-1 text-muted-foreground list-disc list-inside">
                   <li>Compartirás el código de invitación con el comprador</li>
-                  <li>El comprador depositará ${orderDetails.buyerPays.toLocaleString("es-CL")} CLP</li>
+                  <li>El comprador depositará ${formatCLP(orderDetails.buyerPays)}</li>
                   <li>Coordinarás la entrega del producto</li>
-                  <li>Al confirmar entrega, recibirás ${orderDetails.sellerReceives.toLocaleString("es-CL")} CLP</li>
-                  <li>Comisión de Trado: ${orderDetails.appFee.toLocaleString("es-CL")} CLP</li>
+                  <li>Al confirmar entrega, recibirás ${formatCLP(orderDetails.sellerReceives)}</li>
+                  <li>Comisión de Trado: ${formatCLP(orderDetails.appFee)}</li>
                 </ul>
               </div>
             </div>
