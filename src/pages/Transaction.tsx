@@ -280,6 +280,8 @@ const Transaction = () => {
       toast.error("Error al abrir disputa: " + error.message);
     }
   };
+
+  const handleSubmitRating = async () => {
     if (!user || !transaction) return;
 
     try {
