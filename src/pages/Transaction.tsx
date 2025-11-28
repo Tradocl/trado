@@ -61,6 +61,7 @@ const Transaction = () => {
   const [ratingComment, setRatingComment] = useState("");
   const [disputeReason, setDisputeReason] = useState("");
   const [joiningTransaction, setJoiningTransaction] = useState(false);
+  const [confirmingDelivery, setConfirmingDelivery] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -197,8 +198,9 @@ const Transaction = () => {
   };
 
   const handleConfirmDelivery = async () => {
-    if (!user || !transaction) return;
+    if (!user || !transaction || confirmingDelivery) return;
 
+    setConfirmingDelivery(true);
     try {
       const { data, error } = await supabase.functions.invoke("confirm-delivery", {
         body: { transactionId: transaction.id },
@@ -214,10 +216,12 @@ const Transaction = () => {
 
       toast.success("¡Pago liberado al vendedor!");
       setRatingDialogOpen(true);
-      loadTransaction();
+      await loadTransaction();
     } catch (error: any) {
       console.error("Error al confirmar entrega:", error);
       toast.error("Error al confirmar entrega: " + (error.message || "Intenta nuevamente"));
+    } finally {
+      setConfirmingDelivery(false);
     }
   };
 
@@ -623,9 +627,10 @@ const Transaction = () => {
                   size="lg"
                   className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
                   onClick={handleConfirmDelivery}
+                  disabled={confirmingDelivery}
                 >
                   <Check className="mr-2 h-6 w-6" />
-                  Confirmar que Recibí el Producto
+                  {confirmingDelivery ? "Procesando..." : "Confirmar que Recibí el Producto"}
                 </Button>
                 <Button 
                   size="lg"

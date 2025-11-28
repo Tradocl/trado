@@ -94,10 +94,16 @@ const Dashboard = () => {
   };
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error(error.message);
-    } else {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error && error.message !== "Session not found") {
+        toast.error("Error al cerrar sesión");
+        return;
+      }
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      // Even if there's an error, navigate to auth page
       navigate("/auth");
     }
   };
