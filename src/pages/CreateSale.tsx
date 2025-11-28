@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Store, Info, AlertCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, Store, Info, AlertCircle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails } from "@/lib/utils";
@@ -19,6 +20,12 @@ const CreateSale = () => {
   const [amount, setAmount] = useState<number>(0);
   const [orderDetails, setOrderDetails] = useState<ReturnType<typeof calculateOrderDetails> | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [formData, setFormData] = useState<{
+    productName: string;
+    productDescription: string;
+    amount: number;
+  } | null>(null);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
@@ -38,42 +45,49 @@ const CreateSale = () => {
     e.preventDefault();
     if (!user) return;
 
-    setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const productName = formData.get("productName") as string;
-    const productDescription = formData.get("productDescription") as string;
-    const amount = parseFloat(formData.get("amount") as string);
+    const form = new FormData(e.currentTarget);
+    const productName = form.get("productName") as string;
+    const productDescription = form.get("productDescription") as string;
+    const amount = parseFloat(form.get("amount") as string);
 
     if (!productName || !amount || amount <= 0) {
       toast.error("Por favor completa todos los campos correctamente");
-      setLoading(false);
       return;
     }
 
     if (!termsAccepted) {
       toast.error("Debes aceptar los términos de comisión para continuar");
-      setLoading(false);
       return;
     }
+
+    // Store form data and show confirmation modal
+    setFormData({
+      productName,
+      productDescription,
+      amount,
+    });
+    setShowConfirmModal(true);
+  };
+
+  const confirmCreateSale = async () => {
+    if (!user || !formData || !orderDetails) return;
+
+    setLoading(true);
 
     try {
       // Generate invite code
       const { data: codeData } = await supabase.rpc("generate_invite_code");
       const inviteCode = codeData;
 
-      // Calculate commission with new logic
-      const details = calculateOrderDetails(amount);
-
       // Create transaction
       const { data: transaction, error } = await supabase
         .from("transactions")
         .insert({
           seller_id: user.id,
-          product_name: productName,
-          product_description: productDescription,
-          amount: amount,
-          commission: details.appFee,
+          product_name: formData.productName,
+          product_description: formData.productDescription,
+          amount: formData.amount,
+          commission: orderDetails.appFee,
           state: "created",
           invite_code: inviteCode,
         })
@@ -83,6 +97,7 @@ const CreateSale = () => {
       if (error) throw error;
 
       toast.success("¡Sala de venta creada exitosamente!");
+      setShowConfirmModal(false);
       navigate(`/transaction/${transaction.id}`);
     } catch (error: any) {
       toast.error("Error al crear venta: " + error.message);
@@ -247,6 +262,99 @@ const CreateSale = () => {
           </CardContent>
         </Card>
       </main>
+
+      {/* Confirmation Modal */}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-success/10 rounded-xl">
+                <CheckCircle2 className="h-6 w-6 text-success" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">Confirmar Creación de Venta</DialogTitle>
+                <DialogDescription>
+                  Revisa los detalles antes de continuar
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {formData && orderDetails && (
+            <div className="space-y-4 py-4">
+              {/* Product Info */}
+              <div className="p-4 bg-muted/30 rounded-lg space-y-2">
+                <h4 className="font-semibold text-sm text-muted-foreground">Producto</h4>
+                <p className="font-bold text-lg">{formData.productName}</p>
+                {formData.productDescription && (
+                  <p className="text-sm text-muted-foreground">{formData.productDescription}</p>
+                )}
+              </div>
+
+              {/* Financial Breakdown */}
+              <div className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20 space-y-3">
+                <h4 className="font-semibold text-primary mb-3">Resumen Financiero</h4>
+                
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-muted-foreground">Precio del producto:</span>
+                  <span className="font-bold text-lg">
+                    ${orderDetails.buyerPays.toLocaleString("es-CL")} CLP
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center py-2 bg-warning/10 rounded px-3">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-warning">Comisión Trado:</span>
+                    <span className="text-xs text-muted-foreground">
+                      {((orderDetails.appFee / orderDetails.buyerPays) * 100).toFixed(2)}% del total
+                    </span>
+                  </div>
+                  <span className="font-bold text-warning">
+                    -${orderDetails.appFee.toLocaleString("es-CL")} CLP
+                  </span>
+                </div>
+
+                <div className="pt-3 border-t-2 border-success/30 flex justify-between items-center">
+                  <span className="font-bold">Recibirás:</span>
+                  <span className="font-bold text-success text-2xl">
+                    ${orderDetails.sellerReceives.toLocaleString("es-CL")} CLP
+                  </span>
+                </div>
+              </div>
+
+              {/* Terms Summary */}
+              <div className="p-4 bg-info/10 rounded-lg border border-info/20">
+                <h4 className="font-semibold text-info mb-2 text-sm">Términos del Escrow</h4>
+                <ul className="text-xs space-y-1 text-muted-foreground list-disc list-inside">
+                  <li>Compartirás el código de invitación con el comprador</li>
+                  <li>El comprador depositará ${orderDetails.buyerPays.toLocaleString("es-CL")} CLP</li>
+                  <li>Coordinarás la entrega del producto</li>
+                  <li>Al confirmar entrega, recibirás ${orderDetails.sellerReceives.toLocaleString("es-CL")} CLP</li>
+                  <li>Comisión de Trado: ${orderDetails.appFee.toLocaleString("es-CL")} CLP</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmCreateSale}
+              disabled={loading}
+              className="gap-2"
+            >
+              <Store className="h-4 w-4" />
+              {loading ? "Creando..." : "Confirmar y Crear Venta"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
