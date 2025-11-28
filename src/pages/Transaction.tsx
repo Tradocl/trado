@@ -201,12 +201,13 @@ const Transaction = () => {
 
     try {
       // Get seller wallet
-      const { data: sellerWallet } = await supabase
+      const { data: sellerWallet, error: walletError } = await supabase
         .from("wallets")
         .select("*")
         .eq("user_id", transaction.seller_id)
-        .single();
+        .maybeSingle();
 
+      if (walletError) throw walletError;
       if (!sellerWallet) throw new Error("Billetera del vendedor no encontrada");
 
       const amountAfterCommission = transaction.amount - transaction.commission;
@@ -444,7 +445,7 @@ const Transaction = () => {
                     <Check className="h-6 w-6 text-success" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-success">✅ ¡Comprador Unido!</h4>
+                    <h4 className="font-bold text-lg text-success">✅ El comprador se ha unido</h4>
                     <p className="text-sm text-muted-foreground">
                       {buyerProfile?.full_name} se ha unido a la transacción
                     </p>
