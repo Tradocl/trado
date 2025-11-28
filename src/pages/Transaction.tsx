@@ -241,6 +241,22 @@ const Transaction = () => {
     }
   };
 
+  const handleCancelTransaction = async () => {
+    if (!user || !transaction || !isSeller || transaction.buyer_id) return;
+
+    try {
+      await supabase
+        .from("transactions")
+        .update({ state: "cancelled", cancelled_at: new Date().toISOString() })
+        .eq("id", transaction.id);
+
+      toast.success("Transacción cancelada correctamente");
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error("Error al cancelar la transacción: " + error.message);
+    }
+  };
+
   const handleOpenDispute = async () => {
     if (!user || !transaction || !disputeReason.trim()) {
       toast.error("Por favor describe el motivo de la disputa");
@@ -250,9 +266,9 @@ const Transaction = () => {
     try {
       await supabase
         .from("transactions")
-        .update({ 
+        .update({
           state: "in_dispute",
-          dispute_opened_at: new Date().toISOString()
+          dispute_opened_at: new Date().toISOString(),
         })
         .eq("id", transaction.id);
 
@@ -264,8 +280,6 @@ const Transaction = () => {
       toast.error("Error al abrir disputa: " + error.message);
     }
   };
-
-  const handleSubmitRating = async () => {
     if (!user || !transaction) return;
 
     try {
@@ -378,7 +392,7 @@ const Transaction = () => {
               </div>
             </div>
 
-            {isSeller && !transaction.buyer_id && (
+            {isSeller && !transaction.buyer_id && transaction.state === "created" && (
               <div className="p-6 bg-gradient-to-br from-info/20 to-info/5 rounded-xl border-2 border-info/30 shadow-lg animate-scale-in">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-info rounded-lg animate-pulse">
@@ -386,22 +400,31 @@ const Transaction = () => {
                   </div>
                   <h4 className="font-bold text-info text-lg">⏳ Esperando Comprador</h4>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col md:flex-row gap-2">
                   <Input
                     value={transaction.invite_code}
                     readOnly
-                    className="text-center text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30"
+                    className="text-center text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30 flex-1"
                   />
-                  <Button 
-                    onClick={copyInviteCode} 
-                    variant="outline"
-                    className="border-2 border-info/30 hover:bg-info/20 transition-all"
-                  >
-                    {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={copyInviteCode} 
+                      variant="outline"
+                      className="border-2 border-info/30 hover:bg-info/20 transition-all"
+                    >
+                      {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="font-semibold"
+                      onClick={handleCancelTransaction}
+                    >
+                      Cancelar sala
+                    </Button>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-3 text-center">
-                  📱 Comparte este código con el comprador para que se una a la transacción
+                  📱 Comparte este código con el comprador o cancela la sala si ya no la necesitas
                 </p>
               </div>
             )}
