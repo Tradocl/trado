@@ -5,7 +5,7 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase, signOut } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -95,15 +95,14 @@ const Dashboard = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error && error.message !== "Session not found") {
+      const { error } = await signOut();
+      if (error && error.message && error.message !== "Auth session missing" && error.message !== "Session not found") {
         toast.error("Error al cerrar sesión");
-        return;
+        console.error("Sign out error:", error);
       }
       navigate("/auth");
     } catch (error) {
       console.error("Error signing out:", error);
-      // Even if there's an error, navigate to auth page
       navigate("/auth");
     }
   };
