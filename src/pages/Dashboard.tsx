@@ -8,6 +8,7 @@ import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Se
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { formatCLP } from "@/lib/utils";
 
 interface Profile {
   full_name: string;
@@ -195,7 +196,7 @@ const Dashboard = () => {
               <Wallet className="h-5 w-5" />
               <div>
                 <p className="text-sm opacity-80">Saldo</p>
-                <p className="text-2xl font-bold">${wallet?.balance || 0}</p>
+                <p className="text-2xl font-bold">${formatCLP(wallet?.balance || 0)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -243,7 +244,7 @@ const Dashboard = () => {
                           </Badge>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="font-medium text-foreground">${transaction.amount}</span>
+                          <span className="font-medium text-foreground">${formatCLP(transaction.amount)}</span>
                           <span>
                             {transaction.seller_id === user?.id ? "Vendedor" : "Comprador"}
                           </span>
@@ -345,7 +346,7 @@ const Dashboard = () => {
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
               <span className="text-sm font-medium">Saldo disponible</span>
-              <span className="text-2xl font-bold">${wallet?.balance || 0}</span>
+              <span className="text-2xl font-bold">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Button variant="outline" onClick={() => navigate("/wallet")}>

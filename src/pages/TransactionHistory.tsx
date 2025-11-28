@@ -10,6 +10,7 @@ import { ArrowLeft, ShoppingBag, Store, Calendar, DollarSign, User, Package } fr
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { formatCLP } from "@/lib/utils";
 
 interface Transaction {
   id: string;
@@ -109,7 +110,7 @@ export default function TransactionHistory() {
             </div>
             <Badge variant="default" className="ml-4">
               <DollarSign className="h-3 w-3 mr-1" />
-              ${netAmount.toLocaleString("es-CL")}
+              ${formatCLP(netAmount)}
             </Badge>
           </div>
 
@@ -139,9 +140,9 @@ export default function TransactionHistory() {
 
             {isSale && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
-                <span>Comisión: ${Number(transaction.commission).toLocaleString("es-CL")}</span>
+                <span>Comisión: ${formatCLP(Number(transaction.commission))}</span>
                 <span>•</span>
-                <span>Recibido: ${netAmount.toLocaleString("es-CL")}</span>
+                <span>Recibido: ${formatCLP(netAmount)}</span>
               </div>
             )}
           </div>

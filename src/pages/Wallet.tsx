@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { formatCLP } from "@/lib/utils";
 
 interface Movement {
   id: string;
@@ -79,12 +80,12 @@ const Wallet = () => {
             const updatedMovement = payload.new;
             
             if (updatedMovement.status === 'approved') {
-              toast.success(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} aprobado por $${updatedMovement.amount}`, {
+              toast.success(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} aprobado por $${formatCLP(updatedMovement.amount)}`, {
                 duration: 5000,
               });
               loadWalletData();
             } else if (updatedMovement.status === 'rejected') {
-              toast.error(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} rechazado por $${updatedMovement.amount}`, {
+              toast.error(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} rechazado por $${formatCLP(updatedMovement.amount)}`, {
                 duration: 5000,
               });
               loadWalletData();
@@ -467,7 +468,7 @@ const Wallet = () => {
           <CardContent>
             <div>
               <p className="text-sm opacity-80 mb-2">Saldo disponible</p>
-              <p className="text-5xl font-bold">${balance.toFixed(2)}</p>
+              <p className="text-5xl font-bold">${formatCLP(balance)}</p>
             </div>
           </CardContent>
         </Card>
@@ -508,7 +509,7 @@ const Wallet = () => {
                       <div className="flex items-center gap-3">
                         <div className="text-right">
                           <p className="text-lg font-bold text-warning">
-                            {isDeposit ? "+" : "-"}${Math.abs(movement.amount)}
+                            {isDeposit ? "+" : "-"}${formatCLP(Math.abs(movement.amount))}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             En revisión
@@ -600,10 +601,10 @@ const Wallet = () => {
                             isDeposit ? "text-success" : "text-destructive"
                           }`}
                         >
-                          {isDeposit ? "+" : "-"}${Math.abs(movement.amount)}
+                          {isDeposit ? "+" : "-"}${formatCLP(Math.abs(movement.amount))}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Saldo: ${movement.balance_after}
+                          Saldo: ${formatCLP(movement.balance_after)}
                         </p>
                       </div>
                     </div>
@@ -721,7 +722,7 @@ const Wallet = () => {
           <DialogHeader>
             <DialogTitle>Retirar Fondos</DialogTitle>
             <DialogDescription>
-              Solicita un retiro a tu cuenta bancaria (saldo disponible: ${balance})
+              Solicita un retiro a tu cuenta bancaria (saldo disponible: ${formatCLP(balance)})
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -737,7 +738,7 @@ const Wallet = () => {
                 min="1"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Máximo disponible: ${balance}
+                Máximo disponible: ${formatCLP(balance)}
               </p>
             </div>
 

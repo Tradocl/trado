@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag } from "lucide-react";
+import { formatCLP } from "@/lib/utils";
 
 interface Profile {
   id: string;
@@ -590,7 +591,7 @@ export default function Admin() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-semibold">
-                        ${movement.amount.toLocaleString("es-CL")}
+                        ${formatCLP(movement.amount)}
                       </TableCell>
                       <TableCell>
                         {movement.type === "withdrawal" && (
@@ -690,7 +691,7 @@ export default function Admin() {
                         )}
                       </TableCell>
                       <TableCell className="font-bold text-right">
-                        ${transaction.amount.toLocaleString("es-CL")}
+                        ${formatCLP(transaction.amount)}
                       </TableCell>
                       <TableCell>
                         <Badge variant={stateLabels[transaction.state]?.color as any || "secondary"}>

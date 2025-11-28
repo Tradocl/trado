@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ArrowLeft, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { toast } from "sonner";
+import { formatCLP } from "@/lib/utils";
 
 interface Movement {
   id: string;
@@ -253,7 +254,7 @@ export default function MovementHistory() {
                       </TableCell>
                       <TableCell>{getTypeBadge(movement.type)}</TableCell>
                       <TableCell className="font-medium">
-                        ${movement.amount.toLocaleString("es-CL")}
+                        ${formatCLP(movement.amount)}
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
                         {movement.description || "-"}
