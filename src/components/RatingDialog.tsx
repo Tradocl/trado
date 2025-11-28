@@ -42,11 +42,6 @@ export const RatingDialog = ({
       return;
     }
 
-    if (comment.trim().length < 10) {
-      toast.error("El comentario debe tener al menos 10 caracteres");
-      return;
-    }
-
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -133,12 +128,12 @@ export const RatingDialog = ({
           {/* Comment */}
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Cuéntanos más sobre tu experiencia
+              Cuéntanos más sobre tu experiencia <span className="text-muted-foreground">(opcional)</span>
             </label>
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Describe tu experiencia con este usuario (mínimo 10 caracteres)..."
+              placeholder="Describe tu experiencia con este usuario (opcional)..."
               className="min-h-[100px] resize-none"
               maxLength={500}
             />
