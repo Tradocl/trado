@@ -219,7 +219,7 @@ const Transaction = () => {
         type: "escrow_lock",
         amount: -transaction.amount,
         balance_after: newBalance,
-        description: `Fondos bloqueados - ${transaction.product_name}`,
+        description: `Compra "${transaction.product_name}"`,
       });
 
       await supabase

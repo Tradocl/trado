@@ -103,7 +103,7 @@ serve(async (req: Request): Promise<Response> => {
       type: "escrow_release",
       amount: amountAfterCommission,
       balance_after: newSellerBalance,
-      description: `Pago liberado - ${tx.product_name}`,
+      description: `Venta "${tx.product_name}"`,
     });
 
     if (movementError) {

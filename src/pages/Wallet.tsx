@@ -190,7 +190,7 @@ const Wallet = () => {
           type: "deposit",
           amount: depositAmount,
           balance_after: wallet.balance,
-          description: "Depósito pendiente de aprobación",
+          description: "Depósito",
           status: "pending",
         })
         .select()
@@ -265,7 +265,7 @@ const Wallet = () => {
           type: "withdrawal",
           amount: withdrawAmount,
           balance_after: wallet.balance,
-          description: "Retiro pendiente de aprobación",
+          description: "Retiro",
           status: "pending",
           bank_holder_name: bankHolderName,
           bank_holder_rut: bankHolderRut,
