@@ -19,6 +19,11 @@ interface Movement {
   description: string;
   created_at: string;
   status: string;
+  bank_holder_name?: string;
+  bank_holder_rut?: string;
+  bank_name?: string;
+  bank_account_type?: string;
+  bank_account_number?: string;
 }
 
 const Wallet = () => {
@@ -31,6 +36,8 @@ const Wallet = () => {
   const [loading, setLoading] = useState(true);
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [editMovementOpen, setEditMovementOpen] = useState(false);
+  const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
   const [amount, setAmount] = useState("");
   const [copied, setCopied] = useState(false);
   
@@ -319,6 +326,94 @@ const Wallet = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleEditMovement = (movement: Movement) => {
+    setSelectedMovement(movement);
+    setAmount(movement.amount.toString());
+    if (movement.type === "withdrawal") {
+      // Pre-fill withdrawal form fields
+      setBankHolderName(movement.bank_holder_name || "");
+      setBankHolderRut(movement.bank_holder_rut || "");
+      setBankName(movement.bank_name || "");
+      setBankAccountType(movement.bank_account_type || "");
+      setBankAccountNumber(movement.bank_account_number || "");
+    }
+    setEditMovementOpen(true);
+  };
+
+  const handleUpdateMovement = async () => {
+    if (!selectedMovement || !amount) return;
+
+    const newAmount = parseFloat(amount);
+    if (isNaN(newAmount) || newAmount <= 0) {
+      toast.error("Ingresa un monto válido");
+      return;
+    }
+
+    if (selectedMovement.type === "withdrawal" && newAmount > balance) {
+      toast.error("Saldo insuficiente");
+      return;
+    }
+
+    if (selectedMovement.type === "withdrawal") {
+      if (!bankHolderName || !bankHolderRut || !bankName || !bankAccountType || !bankAccountNumber) {
+        toast.error("Por favor completa todos los datos bancarios");
+        return;
+      }
+    }
+
+    try {
+      const updateData: any = {
+        amount: newAmount,
+      };
+
+      if (selectedMovement.type === "withdrawal") {
+        updateData.bank_holder_name = bankHolderName;
+        updateData.bank_holder_rut = bankHolderRut;
+        updateData.bank_name = bankName;
+        updateData.bank_account_type = bankAccountType;
+        updateData.bank_account_number = bankAccountNumber;
+      }
+
+      const { error } = await supabase
+        .from("wallet_movements")
+        .update(updateData)
+        .eq("id", selectedMovement.id)
+        .eq("status", "pending"); // Only allow editing pending movements
+
+      if (error) throw error;
+
+      toast.success("Movimiento actualizado correctamente");
+      setEditMovementOpen(false);
+      setSelectedMovement(null);
+      setAmount("");
+      setBankHolderName("");
+      setBankHolderRut("");
+      setBankName("");
+      setBankAccountType("");
+      setBankAccountNumber("");
+      loadWalletData();
+    } catch (error: any) {
+      toast.error("Error al actualizar movimiento: " + error.message);
+    }
+  };
+
+  const handleCancelMovement = async (movementId: string) => {
+    try {
+      const { error } = await supabase
+        .from("wallet_movements")
+        .update({ status: "cancelled" })
+        .eq("id", movementId)
+        .eq("status", "pending");
+
+      if (error) throw error;
+
+      toast.success("Movimiento cancelado");
+      loadWalletData();
+    } catch (error: any) {
+      toast.error("Error al cancelar movimiento: " + error.message);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -410,13 +505,31 @@ const Wallet = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-warning">
-                          {isDeposit ? "+" : "-"}${Math.abs(movement.amount)}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          En revisión
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-warning">
+                            {isDeposit ? "+" : "-"}${Math.abs(movement.amount)}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            En revisión
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditMovement(movement)}
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleCancelMovement(movement.id)}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -706,6 +819,108 @@ const Wallet = () => {
             
             <Button onClick={handleWithdraw} className="w-full">
               Solicitar Retiro
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Movement Dialog */}
+      <Dialog open={editMovementOpen} onOpenChange={setEditMovementOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar {selectedMovement?.type === "deposit" ? "Depósito" : "Retiro"}</DialogTitle>
+            <DialogDescription>
+              Modifica los datos de tu solicitud pendiente
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-amount">Monto</Label>
+              <Input
+                id="edit-amount"
+                type="number"
+                placeholder="10000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                min="1"
+                max={selectedMovement?.type === "withdrawal" ? balance : undefined}
+              />
+            </div>
+
+            {selectedMovement?.type === "withdrawal" && (
+              <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                <p className="font-semibold text-sm">Datos de tu cuenta bancaria</p>
+                
+                <div>
+                  <Label htmlFor="edit-bank-holder-name">Nombre del titular</Label>
+                  <Input
+                    id="edit-bank-holder-name"
+                    value={bankHolderName}
+                    onChange={(e) => setBankHolderName(e.target.value)}
+                    placeholder="Juan Pérez"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-bank-holder-rut">RUT del titular</Label>
+                  <Input
+                    id="edit-bank-holder-rut"
+                    value={bankHolderRut}
+                    onChange={(e) => setBankHolderRut(e.target.value)}
+                    placeholder="12.345.678-9"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-bank-name">Banco</Label>
+                  <Select value={bankName} onValueChange={setBankName}>
+                    <SelectTrigger id="edit-bank-name">
+                      <SelectValue placeholder="Selecciona tu banco" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Banco de Chile">Banco de Chile</SelectItem>
+                      <SelectItem value="Banco Estado">Banco Estado</SelectItem>
+                      <SelectItem value="Banco Santander">Banco Santander</SelectItem>
+                      <SelectItem value="BCI">BCI</SelectItem>
+                      <SelectItem value="Scotiabank">Scotiabank</SelectItem>
+                      <SelectItem value="Banco Security">Banco Security</SelectItem>
+                      <SelectItem value="Banco Falabella">Banco Falabella</SelectItem>
+                      <SelectItem value="Banco Itaú">Banco Itaú</SelectItem>
+                      <SelectItem value="Banco Bice">Banco Bice</SelectItem>
+                      <SelectItem value="Banco Consorcio">Banco Consorcio</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-bank-account-type">Tipo de cuenta</Label>
+                  <Select value={bankAccountType} onValueChange={setBankAccountType}>
+                    <SelectTrigger id="edit-bank-account-type">
+                      <SelectValue placeholder="Selecciona el tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cuenta Corriente">Cuenta Corriente</SelectItem>
+                      <SelectItem value="Cuenta Vista">Cuenta Vista</SelectItem>
+                      <SelectItem value="Cuenta de Ahorro">Cuenta de Ahorro</SelectItem>
+                      <SelectItem value="Cuenta RUT">Cuenta RUT</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-bank-account-number">Número de cuenta</Label>
+                  <Input
+                    id="edit-bank-account-number"
+                    value={bankAccountNumber}
+                    onChange={(e) => setBankAccountNumber(e.target.value)}
+                    placeholder="1234567890"
+                  />
+                </div>
+              </div>
+            )}
+
+            <Button onClick={handleUpdateMovement} className="w-full">
+              Actualizar {selectedMovement?.type === "deposit" ? "Depósito" : "Retiro"}
             </Button>
           </div>
         </DialogContent>
