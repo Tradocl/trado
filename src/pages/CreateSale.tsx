@@ -6,14 +6,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Store } from "lucide-react";
+import { ArrowLeft, Store, Info } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { calculateOrderDetails } from "@/lib/utils";
 
 const CreateSale = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [amount, setAmount] = useState<number>(0);
+  const [orderDetails, setOrderDetails] = useState<ReturnType<typeof calculateOrderDetails> | null>(null);
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (value > 0) {
+      setAmount(value);
+      const details = calculateOrderDetails(value);
+      setOrderDetails(details);
+    } else {
+      setAmount(0);
+      setOrderDetails(null);
+    }
+  };
 
   const handleCreateSale = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,8 +52,8 @@ const CreateSale = () => {
       const { data: codeData } = await supabase.rpc("generate_invite_code");
       const inviteCode = codeData;
 
-      // Calculate commission (3%)
-      const commission = amount * 0.03;
+      // Calculate commission with new logic
+      const details = calculateOrderDetails(amount);
 
       // Create transaction
       const { data: transaction, error } = await supabase
@@ -48,7 +63,7 @@ const CreateSale = () => {
           product_name: productName,
           product_description: productDescription,
           amount: amount,
-          commission: commission,
+          commission: details.appFee,
           state: "created",
           invite_code: inviteCode,
         })
@@ -124,11 +139,42 @@ const CreateSale = () => {
                   min="1"
                   step="1"
                   required
+                  onChange={handleAmountChange}
                 />
-                <p className="text-sm text-muted-foreground">
-                  Comisión Trado: 3% (se descuenta al finalizar)
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Comisión dinámica: 5% (mín $1.000, máx $20.000)
                 </p>
               </div>
+
+              {orderDetails && (
+                <div className="p-4 bg-gradient-to-br from-success/10 to-success/5 rounded-lg border border-success/20 space-y-2">
+                  <h4 className="font-semibold text-success mb-3 flex items-center gap-2">
+                    <Store className="h-4 w-4" />
+                    Desglose de la transacción
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Comprador paga:</span>
+                      <span className="font-bold text-foreground">
+                        ${orderDetails.buyerPays.toLocaleString("es-CL")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Comisión Trado:</span>
+                      <span className="font-semibold text-warning">
+                        -${orderDetails.appFee.toLocaleString("es-CL")}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-success/20 flex justify-between">
+                      <span className="font-semibold">Tú recibes:</span>
+                      <span className="font-bold text-success text-lg">
+                        ${orderDetails.sellerReceives.toLocaleString("es-CL")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="p-4 bg-info/10 rounded-lg border border-info/20">
                 <h4 className="font-semibold text-info mb-2">¿Cómo funciona?</h4>

@@ -73,7 +73,15 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("Billetera del vendedor no encontrada");
     }
 
-    const amountAfterCommission = Number(tx.amount) - Number(tx.commission ?? 0);
+    // Recalculate commission using the same logic as frontend
+    // This ensures consistency even if the stored commission is outdated
+    const transactionAmount = Number(tx.amount);
+    const baseFee = transactionAmount * 0.05;
+    const roundedFee = Math.round(baseFee / 10) * 10;
+    const feeWithFloor = Math.max(roundedFee, 1000);
+    const calculatedCommission = Math.min(feeWithFloor, 20000);
+
+    const amountAfterCommission = transactionAmount - calculatedCommission;
     const currentBalance = Number(sellerWallet.balance ?? 0);
     const newSellerBalance = currentBalance + amountAfterCommission;
 
