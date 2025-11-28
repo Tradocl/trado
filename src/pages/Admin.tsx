@@ -34,6 +34,11 @@ interface WalletMovement {
   status: string;
   user_name?: string;
   user_email?: string;
+  bank_holder_name?: string;
+  bank_holder_rut?: string;
+  bank_name?: string;
+  bank_account_type?: string;
+  bank_account_number?: string;
 }
 
 interface VerificationRequest {
@@ -558,52 +563,62 @@ export default function Admin() {
         <TabsContent value="movements" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Movimientos de Billetera Pendientes</CardTitle>
-              <CardDescription>Aprueba o rechaza depósitos y retiros</CardDescription>
+              <CardTitle>Movimientos Pendientes de Aprobación</CardTitle>
+              <CardDescription>Revisa y aprueba depósitos y retiros</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Usuario</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Monto</TableHead>
-                    <TableHead>Descripción</TableHead>
+                    <TableHead>Monto</TableHead>
+                    <TableHead>Datos Bancarios</TableHead>
                     <TableHead>Fecha</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {movements.map((movement) => (
                     <TableRow key={movement.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{movement.user_name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {movement.user_email}
-                          </div>
-                        </div>
-                      </TableCell>
+                      <TableCell className="font-medium">{movement.user_name}</TableCell>
+                      <TableCell>{movement.user_email}</TableCell>
                       <TableCell>
                         <Badge variant={movement.type === "deposit" ? "default" : "secondary"}>
                           {movement.type === "deposit" ? "Depósito" : "Retiro"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-bold text-right text-lg">
+                      <TableCell className="font-semibold">
                         ${movement.amount.toLocaleString("es-CL")}
                       </TableCell>
-                      <TableCell>{movement.description}</TableCell>
                       <TableCell>
-                        {new Date(movement.created_at).toLocaleDateString()}
+                        {movement.type === "withdrawal" && (
+                          <div className="text-xs space-y-1">
+                            <p><strong>Titular:</strong> {movement.bank_holder_name}</p>
+                            <p><strong>RUT:</strong> {movement.bank_holder_rut}</p>
+                            <p><strong>Banco:</strong> {movement.bank_name}</p>
+                            <p><strong>Tipo:</strong> {movement.bank_account_type}</p>
+                            <p><strong>N° Cuenta:</strong> {movement.bank_account_number}</p>
+                          </div>
+                        )}
+                        {movement.type === "deposit" && (
+                          <span className="text-xs text-muted-foreground">
+                            Depósito a cuenta Trado
+                          </span>
+                        )}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(movement.created_at).toLocaleDateString("es-CL")}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
                           <Button
                             size="sm"
                             variant="default"
                             onClick={() => handleApproveMovement(movement.id)}
                           >
-                            <CheckCircle className="h-4 w-4 mr-1" />
+                            <CheckCircle className="mr-1 h-4 w-4" />
                             Aprobar
                           </Button>
                           <Button
@@ -611,7 +626,7 @@ export default function Admin() {
                             variant="destructive"
                             onClick={() => handleRejectMovement(movement.id)}
                           >
-                            <XCircle className="h-4 w-4 mr-1" />
+                            <XCircle className="mr-1 h-4 w-4" />
                             Rechazar
                           </Button>
                         </div>
@@ -620,7 +635,7 @@ export default function Admin() {
                   ))}
                   {movements.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center text-muted-foreground">
                         No hay movimientos pendientes
                       </TableCell>
                     </TableRow>

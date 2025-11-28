@@ -253,6 +253,11 @@ export type Database = {
         Row: {
           amount: number
           balance_after: number
+          bank_account_number: string | null
+          bank_account_type: string | null
+          bank_holder_name: string | null
+          bank_holder_rut: string | null
+          bank_name: string | null
           created_at: string | null
           description: string | null
           id: string
@@ -266,6 +271,11 @@ export type Database = {
         Insert: {
           amount: number
           balance_after: number
+          bank_account_number?: string | null
+          bank_account_type?: string | null
+          bank_holder_name?: string | null
+          bank_holder_rut?: string | null
+          bank_name?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -279,6 +289,11 @@ export type Database = {
         Update: {
           amount?: number
           balance_after?: number
+          bank_account_number?: string | null
+          bank_account_type?: string | null
+          bank_holder_name?: string | null
+          bank_holder_rut?: string | null
+          bank_name?: string | null
           created_at?: string | null
           description?: string | null
           id?: string

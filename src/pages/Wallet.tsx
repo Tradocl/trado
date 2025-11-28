@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -31,6 +32,23 @@ const Wallet = () => {
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [amount, setAmount] = useState("");
+  const [copied, setCopied] = useState(false);
+  
+  // Withdrawal form fields
+  const [bankHolderName, setBankHolderName] = useState("");
+  const [bankHolderRut, setBankHolderRut] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [bankAccountType, setBankAccountType] = useState("");
+  const [bankAccountNumber, setBankAccountNumber] = useState("");
+
+  // Company bank details for deposits
+  const companyBankDetails = {
+    name: "Trado SpA",
+    rut: "76.XXX.XXX-X",
+    bank: "Banco de Chile",
+    accountType: "Cuenta Corriente",
+    accountNumber: "XXXX-XXXX-XXXX",
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -41,7 +59,6 @@ const Wallet = () => {
     if (user) {
       loadWalletData();
       
-      // Set up realtime subscription for movement status changes
       const movementsChannel = supabase
         .channel('wallet_movements_changes')
         .on(
@@ -54,12 +71,11 @@ const Wallet = () => {
           (payload: any) => {
             const updatedMovement = payload.new;
             
-            // Show notification based on status
             if (updatedMovement.status === 'approved') {
               toast.success(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} aprobado por $${updatedMovement.amount}`, {
                 duration: 5000,
               });
-              loadWalletData(); // Reload to show updated balance
+              loadWalletData();
             } else if (updatedMovement.status === 'rejected') {
               toast.error(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} rechazado por $${updatedMovement.amount}`, {
                 duration: 5000,
@@ -70,7 +86,6 @@ const Wallet = () => {
         )
         .subscribe();
 
-      // Set up realtime subscription for wallet balance changes
       const walletChannel = supabase
         .channel('wallet_balance_changes')
         .on(
@@ -82,8 +97,7 @@ const Wallet = () => {
             filter: `user_id=eq.${user.id}`
           },
           (payload: any) => {
-            console.log('Wallet balance updated:', payload.new.balance);
-            // Update balance immediately
+            console.log('Balance actualizado:', payload.new.balance);
             setBalance(payload.new.balance);
           }
         )
@@ -95,7 +109,6 @@ const Wallet = () => {
       };
     }
 
-    // Check if we should open deposit dialog
     if (searchParams.get("action") === "deposit") {
       setDepositOpen(true);
     }
@@ -115,7 +128,6 @@ const Wallet = () => {
 
       setBalance(wallet.balance);
 
-      // Load approved movements
       const { data: movementsData, error: movementsError } = await supabase
         .from("wallet_movements")
         .select("*")
@@ -127,7 +139,6 @@ const Wallet = () => {
       if (movementsError) throw movementsError;
       setMovements(movementsData || []);
 
-      // Load pending movements
       const { data: pendingData, error: pendingError } = await supabase
         .from("wallet_movements")
         .select("*")
@@ -162,22 +173,21 @@ const Wallet = () => {
 
       if (!wallet) throw new Error("Billetera no encontrada");
 
-      // Create pending movement (requires admin approval)
       await supabase.from("wallet_movements").insert({
         wallet_id: wallet.id,
         type: "deposit",
         amount: depositAmount,
-        balance_after: wallet.balance, // Balance doesn't change until approved
+        balance_after: wallet.balance,
         description: "Depósito pendiente de aprobación",
         status: "pending",
       });
 
-      toast.success("Depósito enviado para aprobación");
+      toast.success("Solicitud de depósito enviada. Por favor realiza la transferencia a la cuenta indicada.");
       setDepositOpen(false);
       setAmount("");
       loadWalletData();
     } catch (error: any) {
-      toast.error("Error al depositar: " + error.message);
+      toast.error("Error al solicitar depósito: " + error.message);
     }
   };
 
@@ -195,6 +205,11 @@ const Wallet = () => {
       return;
     }
 
+    if (!bankHolderName || !bankHolderRut || !bankName || !bankAccountType || !bankAccountNumber) {
+      toast.error("Por favor completa todos los datos bancarios");
+      return;
+    }
+
     try {
       const { data: wallet } = await supabase
         .from("wallets")
@@ -204,23 +219,39 @@ const Wallet = () => {
 
       if (!wallet) throw new Error("Billetera no encontrada");
 
-      // Create pending movement (requires admin approval)
       await supabase.from("wallet_movements").insert({
         wallet_id: wallet.id,
         type: "withdrawal",
-        amount: withdrawAmount, // Store as positive, type determines if it's subtracted
-        balance_after: wallet.balance, // Balance doesn't change until approved
+        amount: withdrawAmount,
+        balance_after: wallet.balance,
         description: "Retiro pendiente de aprobación",
         status: "pending",
+        bank_holder_name: bankHolderName,
+        bank_holder_rut: bankHolderRut,
+        bank_name: bankName,
+        bank_account_type: bankAccountType,
+        bank_account_number: bankAccountNumber,
       });
 
-      toast.success("Retiro enviado para aprobación");
+      toast.success("Solicitud de retiro enviada para aprobación");
       setWithdrawOpen(false);
       setAmount("");
+      setBankHolderName("");
+      setBankHolderRut("");
+      setBankName("");
+      setBankAccountType("");
+      setBankAccountNumber("");
       loadWalletData();
     } catch (error: any) {
-      toast.error("Error al retirar: " + error.message);
+      toast.error("Error al solicitar retiro: " + error.message);
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success("Copiado al portapapeles");
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (authLoading || loading) {
@@ -246,7 +277,6 @@ const Wallet = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-6">
-        {/* Action Buttons at the Top */}
         <div className="grid grid-cols-2 gap-4">
           <Button
             size="lg"
@@ -282,7 +312,6 @@ const Wallet = () => {
           </CardContent>
         </Card>
 
-        {/* Pending Movements */}
         {pendingMovements.length > 0 && (
           <Card className="border-warning/50 bg-warning/5">
             <CardHeader>
@@ -410,11 +439,11 @@ const Wallet = () => {
 
       {/* Deposit Dialog */}
       <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Depositar Fondos</DialogTitle>
             <DialogDescription>
-              El depósito quedará pendiente hasta que un administrador lo apruebe
+              Realiza una transferencia a nuestra cuenta bancaria
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -429,13 +458,80 @@ const Wallet = () => {
                 min="1"
               />
             </div>
-            <div className="p-3 bg-info/10 border border-info/20 rounded-lg">
+
+            <div className="p-4 bg-info/10 border border-info/20 rounded-lg space-y-3">
+              <p className="font-semibold text-sm">📋 Datos de la cuenta de Trado</p>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Titular:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{companyBankDetails.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => copyToClipboard(companyBankDetails.name)}
+                    >
+                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">RUT:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{companyBankDetails.rut}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => copyToClipboard(companyBankDetails.rut)}
+                    >
+                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Banco:</span>
+                  <span className="font-medium">{companyBankDetails.bank}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Tipo:</span>
+                  <span className="font-medium">{companyBankDetails.accountType}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Número de cuenta:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{companyBankDetails.accountNumber}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => copyToClipboard(companyBankDetails.accountNumber)}
+                    >
+                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
               <p className="text-sm text-muted-foreground">
-                ℹ️ Tu solicitud será revisada por un administrador. Te notificaremos cuando sea aprobada.
+                ⚠️ <strong>Instrucciones importantes:</strong><br/>
+                1. Realiza la transferencia por el monto exacto indicado<br/>
+                2. Usa como referencia tu nombre completo<br/>
+                3. Una vez realizada la transferencia, presiona "Confirmar Depósito"<br/>
+                4. Tu saldo se actualizará una vez que el administrador apruebe el depósito
               </p>
             </div>
+
             <Button onClick={handleDeposit} className="w-full bg-success hover:bg-success/90">
-              Solicitar Depósito
+              Confirmar Depósito
             </Button>
           </div>
         </DialogContent>
@@ -443,11 +539,11 @@ const Wallet = () => {
 
       {/* Withdraw Dialog */}
       <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Retirar Fondos</DialogTitle>
             <DialogDescription>
-              Solicita un retiro de tu billetera (saldo disponible: ${balance})
+              Solicita un retiro a tu cuenta bancaria (saldo disponible: ${balance})
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -466,11 +562,83 @@ const Wallet = () => {
                 Máximo disponible: ${balance}
               </p>
             </div>
+
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              <p className="font-semibold text-sm">Datos de tu cuenta bancaria</p>
+              
+              <div>
+                <Label htmlFor="bank-holder-name">Nombre del titular</Label>
+                <Input
+                  id="bank-holder-name"
+                  value={bankHolderName}
+                  onChange={(e) => setBankHolderName(e.target.value)}
+                  placeholder="Juan Pérez"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="bank-holder-rut">RUT del titular</Label>
+                <Input
+                  id="bank-holder-rut"
+                  value={bankHolderRut}
+                  onChange={(e) => setBankHolderRut(e.target.value)}
+                  placeholder="12.345.678-9"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="bank-name">Banco</Label>
+                <Select value={bankName} onValueChange={setBankName}>
+                  <SelectTrigger id="bank-name">
+                    <SelectValue placeholder="Selecciona tu banco" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Banco de Chile">Banco de Chile</SelectItem>
+                    <SelectItem value="Banco Estado">Banco Estado</SelectItem>
+                    <SelectItem value="Banco Santander">Banco Santander</SelectItem>
+                    <SelectItem value="BCI">BCI</SelectItem>
+                    <SelectItem value="Scotiabank">Scotiabank</SelectItem>
+                    <SelectItem value="Banco Security">Banco Security</SelectItem>
+                    <SelectItem value="Banco Falabella">Banco Falabella</SelectItem>
+                    <SelectItem value="Banco Itaú">Banco Itaú</SelectItem>
+                    <SelectItem value="Banco Bice">Banco Bice</SelectItem>
+                    <SelectItem value="Banco Consorcio">Banco Consorcio</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="bank-account-type">Tipo de cuenta</Label>
+                <Select value={bankAccountType} onValueChange={setBankAccountType}>
+                  <SelectTrigger id="bank-account-type">
+                    <SelectValue placeholder="Selecciona el tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cuenta Corriente">Cuenta Corriente</SelectItem>
+                    <SelectItem value="Cuenta Vista">Cuenta Vista</SelectItem>
+                    <SelectItem value="Cuenta de Ahorro">Cuenta de Ahorro</SelectItem>
+                    <SelectItem value="Cuenta RUT">Cuenta RUT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="bank-account-number">Número de cuenta</Label>
+                <Input
+                  id="bank-account-number"
+                  value={bankAccountNumber}
+                  onChange={(e) => setBankAccountNumber(e.target.value)}
+                  placeholder="1234567890"
+                />
+              </div>
+            </div>
+
             <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
               <p className="text-sm text-muted-foreground">
-                ⚠️ Tu solicitud será revisada por un administrador. Los fondos no se descontarán hasta que sea aprobada.
+                ⚠️ Tu solicitud será revisada por un administrador. Los fondos se transferirán a la cuenta bancaria que proporcionaste una vez aprobada.
               </p>
             </div>
+            
             <Button onClick={handleWithdraw} className="w-full">
               Solicitar Retiro
             </Button>
