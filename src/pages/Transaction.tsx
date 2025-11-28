@@ -200,59 +200,24 @@ const Transaction = () => {
     if (!user || !transaction) return;
 
     try {
-      // Get seller wallet
-      const { data: sellerWallet, error: walletError } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("user_id", transaction.seller_id)
-        .maybeSingle();
-
-      if (walletError) throw walletError;
-      if (!sellerWallet) throw new Error("Billetera del vendedor no encontrada");
-
-      const amountAfterCommission = transaction.amount - transaction.commission;
-      const newSellerBalance = sellerWallet.balance + amountAfterCommission;
-
-      // Release funds to seller
-      await supabase
-        .from("wallets")
-        .update({ balance: newSellerBalance })
-        .eq("id", sellerWallet.id);
-
-      await supabase.from("wallet_movements").insert({
-        wallet_id: sellerWallet.id,
-        transaction_id: transaction.id,
-        type: "escrow_release",
-        amount: amountAfterCommission,
-        balance_after: newSellerBalance,
-        description: `Pago liberado - ${transaction.product_name}`,
+      const { data, error } = await supabase.functions.invoke("confirm-delivery", {
+        body: { transactionId: transaction.id },
       });
 
-      // Update transaction
-      await supabase
-        .from("transactions")
-        .update({ state: "completed", completed_at: new Date().toISOString() })
-        .eq("id", transaction.id);
+      if (error) {
+        throw error;
+      }
 
-      // Update seller stats
-      const { data: sellerProfileData } = await supabase
-        .from("profiles")
-        .select("total_transactions")
-        .eq("id", transaction.seller_id)
-        .single();
-
-      if (sellerProfileData) {
-        await supabase
-          .from("profiles")
-          .update({ total_transactions: sellerProfileData.total_transactions + 1 })
-          .eq("id", transaction.seller_id);
+      if (!data || !(data as any).success) {
+        throw new Error("No se pudo completar la transacción");
       }
 
       toast.success("¡Pago liberado al vendedor!");
       setRatingDialogOpen(true);
       loadTransaction();
     } catch (error: any) {
-      toast.error("Error al confirmar entrega: " + error.message);
+      console.error("Error al confirmar entrega:", error);
+      toast.error("Error al confirmar entrega: " + (error.message || "Intenta nuevamente"));
     }
   };
 
