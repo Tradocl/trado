@@ -18,11 +18,13 @@ interface Message {
 
 interface TransactionChatProps {
   transactionId: string;
+  sellerId: string;
   sellerName: string;
+  buyerId?: string;
   buyerName?: string;
 }
 
-export const TransactionChat = ({ transactionId, sellerName, buyerName }: TransactionChatProps) => {
+export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName }: TransactionChatProps) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -102,9 +104,16 @@ export const TransactionChat = ({ transactionId, sellerName, buyerName }: Transa
   };
 
   const getSenderName = (userId: string) => {
-    // This would ideally come from the profiles table
-    // For now, we'll use a simple check
-    return userId === user?.id ? "Tú" : sellerName || buyerName || "Usuario";
+    if (userId === user?.id) {
+      return "Tú";
+    }
+    if (userId === sellerId) {
+      return sellerName;
+    }
+    if (userId === buyerId) {
+      return buyerName || "Comprador";
+    }
+    return "Usuario";
   };
 
   return (

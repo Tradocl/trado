@@ -726,7 +726,9 @@ const Transaction = () => {
           <div className="animate-fade-in">
             <TransactionChat
               transactionId={transaction.id}
+              sellerId={transaction.seller_id}
               sellerName={sellerProfile?.full_name || "Vendedor"}
+              buyerId={transaction.buyer_id || undefined}
               buyerName={buyerProfile?.full_name}
             />
           </div>
