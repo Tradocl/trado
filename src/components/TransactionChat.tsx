@@ -143,7 +143,7 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
       const fileName = `${transactionId}/${user.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError, data } = await supabase.storage
-        .from('chat-files')
+        .from('chat-images')
         .upload(fileName, selectedFile, {
           cacheControl: '3600',
           upsert: false
@@ -152,7 +152,7 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('chat-files')
+        .from('chat-images')
         .getPublicUrl(fileName);
 
       return publicUrl;
