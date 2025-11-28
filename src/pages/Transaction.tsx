@@ -60,6 +60,7 @@ const Transaction = () => {
   const [rating, setRating] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
   const [disputeReason, setDisputeReason] = useState("");
+  const [joiningTransaction, setJoiningTransaction] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -345,8 +346,9 @@ const Transaction = () => {
   console.log("User ID:", user?.id);
 
   const handleJoinAsBuyer = async () => {
-    if (!user || !transaction) return;
+    if (!user || !transaction || joiningTransaction) return;
 
+    setJoiningTransaction(true);
     try {
       const { error: updateError } = await supabase
         .from("transactions")
@@ -358,10 +360,13 @@ const Transaction = () => {
 
       if (updateError) throw updateError;
 
-      toast.success("¡Te uniste a la transacción!");
-      loadTransaction();
+      toast.success("¡Te uniste a la transacción exitosamente!");
+      await loadTransaction();
     } catch (error: any) {
+      console.error("Error joining transaction:", error);
       toast.error("Error al unirse: " + error.message);
+    } finally {
+      setJoiningTransaction(false);
     }
   };
 
@@ -590,9 +595,10 @@ const Transaction = () => {
                   size="lg"
                   className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
                   onClick={handleJoinAsBuyer}
+                  disabled={joiningTransaction}
                 >
                   <Users className="mr-2 h-6 w-6" />
-                  Unirme como Comprador
+                  {joiningTransaction ? "Uniéndose..." : "Unirme como Comprador"}
                 </Button>
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
                   🔒 Tu compra estará 100% protegida
