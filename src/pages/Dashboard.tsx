@@ -5,7 +5,7 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight } from "lucide-react";
-import { supabase, signOut } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -95,17 +95,29 @@ const Dashboard = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await signOut();
+      // Intentar cerrar sesión usando el cliente oficial
+      const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Sign out error:", error);
       }
     } catch (error) {
       console.error("Error signing out:", error);
     } finally {
-      navigate("/auth");
+      // Como respaldo, limpiar cualquier sesión local del backend
+      try {
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith("sb-")) {
+            localStorage.removeItem(key);
+          }
+        });
+      } catch (e) {
+        console.error("Error limpiando sesión local:", e);
+      }
+
+      // Forzar recarga en la pantalla de auth para evitar estados inconsistentes
+      window.location.href = "/auth";
     }
   };
-
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
