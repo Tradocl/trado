@@ -134,6 +134,26 @@ serve(async (req: Request): Promise<Response> => {
       }
     }
 
+    // Update buyer profile stats
+    const { data: buyerProfile, error: buyerProfileError } = await supabaseClient
+      .from("profiles")
+      .select("total_transactions")
+      .eq("id", tx.buyer_id)
+      .single();
+
+    if (!buyerProfileError && buyerProfile) {
+      const totalTransactionsBuyer = Number(buyerProfile.total_transactions ?? 0) + 1;
+
+      const { error: buyerProfileUpdateError } = await supabaseClient
+        .from("profiles")
+        .update({ total_transactions: totalTransactionsBuyer })
+        .eq("id", tx.buyer_id);
+
+      if (buyerProfileUpdateError) {
+        console.error("Error updating buyer profile stats", buyerProfileUpdateError);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
