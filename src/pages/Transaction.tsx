@@ -59,7 +59,8 @@ const Transaction = () => {
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
-  const [hasUserRated, setHasUserRated] = useState(false);
+  const [hasRatedBuyer, setHasRatedBuyer] = useState(false);
+  const [hasRatedSeller, setHasRatedSeller] = useState(false);
   const [ratedUserId, setRatedUserId] = useState<string>("");
   const [ratedUserName, setRatedUserName] = useState<string>("");
   const [isRatingSeller, setIsRatingSeller] = useState(false);
@@ -69,18 +70,30 @@ const Transaction = () => {
   const [disputeReason, setDisputeReason] = useState("");
 
   const checkIfUserHasRated = async () => {
-    if (!user || !id) return;
+    if (!user || !id || !transaction) return;
 
     try {
-      const { data, error } = await supabase
+      // Check if user rated the buyer
+      if (transaction.buyer_id) {
+        const { data: buyerRating } = await supabase
+          .from("ratings")
+          .select("id")
+          .eq("rater_id", user.id)
+          .eq("rated_id", transaction.buyer_id)
+          .eq("transaction_id", id)
+          .maybeSingle();
+        setHasRatedBuyer(!!buyerRating);
+      }
+
+      // Check if user rated the seller
+      const { data: sellerRating } = await supabase
         .from("ratings")
         .select("id")
         .eq("rater_id", user.id)
+        .eq("rated_id", transaction.seller_id)
         .eq("transaction_id", id)
         .maybeSingle();
-
-      if (error) throw error;
-      setHasUserRated(!!data);
+      setHasRatedSeller(!!sellerRating);
     } catch (error: any) {
       console.error("Error checking rating:", error);
     }
@@ -733,7 +746,7 @@ const Transaction = () => {
                   </p>
                 </div>
 
-                {!hasUserRated && (isSeller || isBuyer) && (
+                {((isSeller && !hasRatedBuyer && transaction.buyer_id) || (isBuyer && !hasRatedSeller)) && (
                   <div className="mt-6 p-6 bg-gradient-to-br from-warning/10 to-warning/5 rounded-xl border-2 border-warning/30 animate-scale-in">
                     <div className="flex items-start gap-4 mb-4">
                       <div className="p-3 bg-warning/20 rounded-full">
@@ -742,30 +755,62 @@ const Transaction = () => {
                       <div className="flex-1">
                         <p className="font-bold text-xl mb-2">¡Ayúdanos a crecer la confianza!</p>
                         <p className="text-muted-foreground text-sm">
-                          Tu opinión es muy importante. Califica tu experiencia con {isSeller ? "el comprador" : "el vendedor"} para ayudar a otros usuarios a tomar mejores decisiones.
+                          Tu opinión es muy importante. Califica tu experiencia para ayudar a otros usuarios a tomar mejores decisiones.
                         </p>
                       </div>
                     </div>
-                    <Button
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
-                      onClick={() => {
-                        const otherUserId = isSeller ? transaction.buyer_id! : transaction.seller_id;
-                        const otherUserName = isSeller ? buyerProfile?.full_name || "Comprador" : sellerProfile?.full_name || "Vendedor";
-                        handleOpenRatingDialog(otherUserId, otherUserName, !isSeller);
-                      }}
-                    >
-                      <Star className="mr-2 h-6 w-6" />
-                      Calificar {isSeller ? "Comprador" : "Vendedor"}
-                    </Button>
+                    <div className="space-y-3">
+                      {isSeller && !hasRatedBuyer && transaction.buyer_id && (
+                        <Button
+                          size="lg"
+                          className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
+                          onClick={() => {
+                            handleOpenRatingDialog(transaction.buyer_id!, buyerProfile?.full_name || "Comprador", false);
+                          }}
+                        >
+                          <Star className="mr-2 h-6 w-6" />
+                          Calificar al Comprador
+                        </Button>
+                      )}
+                      {isBuyer && !hasRatedSeller && (
+                        <Button
+                          size="lg"
+                          className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
+                          onClick={() => {
+                            handleOpenRatingDialog(transaction.seller_id, sellerProfile?.full_name || "Vendedor", true);
+                          }}
+                        >
+                          <Star className="mr-2 h-6 w-6" />
+                          Calificar al Vendedor
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
 
-                {hasUserRated && (
+                {isSeller && hasRatedBuyer && isBuyer && hasRatedSeller && (
                   <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
                     <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
                       <Check className="h-4 w-4 text-success" />
                       Ya has calificado esta transacción
+                    </p>
+                  </div>
+                )}
+                
+                {isSeller && hasRatedBuyer && !isBuyer && (
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                      <Check className="h-4 w-4 text-success" />
+                      Ya has calificado al comprador
+                    </p>
+                  </div>
+                )}
+                
+                {isBuyer && hasRatedSeller && !isSeller && (
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                      <Check className="h-4 w-4 text-success" />
+                      Ya has calificado al vendedor
                     </p>
                   </div>
                 )}
