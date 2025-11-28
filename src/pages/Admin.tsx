@@ -187,22 +187,38 @@ export default function Admin() {
       // Get the movement details first
       const { data: movement, error: fetchError } = await supabase
         .from("wallet_movements")
-        .select("*, wallets(*, profiles(*))")
+        .select("*, wallets!inner(*, profiles(*))")
         .eq("id", movementId)
         .single();
 
       if (fetchError || !movement) throw fetchError || new Error("Movimiento no encontrado");
+      
+      if (!movement.wallets) throw new Error("Wallet no encontrado");
 
-      // Update the wallet balance
-      const currentBalance = movement.wallets.balance || 0;
+      // Get current wallet balance directly to ensure we have the latest value
+      const { data: currentWallet, error: walletFetchError } = await supabase
+        .from("wallets")
+        .select("balance")
+        .eq("id", movement.wallet_id)
+        .single();
+
+      if (walletFetchError || !currentWallet) throw walletFetchError || new Error("No se pudo obtener el wallet");
+
+      // Calculate new balance
+      const currentBalance = currentWallet.balance || 0;
       const newBalance = movement.type === "deposit" 
         ? currentBalance + movement.amount 
         : currentBalance - movement.amount;
 
+      console.log(`Aprobando movimiento: ${movement.type}, cantidad: ${movement.amount}, balance actual: ${currentBalance}, nuevo balance: ${newBalance}`);
+
       // Update wallet balance
       const { error: walletError } = await supabase
         .from("wallets")
-        .update({ balance: newBalance })
+        .update({ 
+          balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
         .eq("id", movement.wallet_id);
 
       if (walletError) throw walletError;
