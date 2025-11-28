@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Store as StoreIcon } from "lucide-react";
 import { TransactionChat } from "@/components/TransactionChat";
+import { RatingDialog } from "@/components/RatingDialog";
 
 interface Transaction {
   id: string;
@@ -57,11 +58,32 @@ const Transaction = () => {
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
-  const [rating, setRating] = useState(5);
-  const [ratingComment, setRatingComment] = useState("");
-  const [disputeReason, setDisputeReason] = useState("");
+  const [hasUserRated, setHasUserRated] = useState(false);
+  const [ratedUserId, setRatedUserId] = useState<string>("");
+  const [ratedUserName, setRatedUserName] = useState<string>("");
+  const [isRatingSeller, setIsRatingSeller] = useState(false);
   const [joiningTransaction, setJoiningTransaction] = useState(false);
   const [confirmingDelivery, setConfirmingDelivery] = useState(false);
+
+  const [disputeReason, setDisputeReason] = useState("");
+
+  const checkIfUserHasRated = async () => {
+    if (!user || !id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("ratings")
+        .select("id")
+        .eq("rater_id", user.id)
+        .eq("transaction_id", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setHasUserRated(!!data);
+    } catch (error: any) {
+      console.error("Error checking rating:", error);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -117,6 +139,7 @@ const Transaction = () => {
       if (txError) throw txError;
 
       setTransaction(txData);
+      checkIfUserHasRated();
 
       // Load seller profile
       const { data: sellerData } = await supabase
@@ -281,28 +304,16 @@ const Transaction = () => {
     }
   };
 
-  const handleSubmitRating = async () => {
-    if (!user || !transaction) return;
+  const handleOpenRatingDialog = (otherUserId: string, otherUserName: string, ratingSeller: boolean) => {
+    setRatedUserId(otherUserId);
+    setRatedUserName(otherUserName);
+    setIsRatingSeller(ratingSeller);
+    setRatingDialogOpen(true);
+  };
 
-    try {
-      const ratedId = user.id === transaction.seller_id ? transaction.buyer_id : transaction.seller_id;
-
-      if (!ratedId) return;
-
-      await supabase.from("ratings").insert({
-        transaction_id: transaction.id,
-        rater_id: user.id,
-        rated_id: ratedId,
-        stars: rating,
-        comment: ratingComment,
-      });
-
-      toast.success("¡Calificación enviada!");
-      setRatingDialogOpen(false);
-      navigate("/dashboard");
-    } catch (error: any) {
-      toast.error("Error al enviar calificación: " + error.message);
-    }
+  const handleRatingComplete = async () => {
+    await checkIfUserHasRated();
+    await loadTransaction();
   };
 
   if (loading) {
@@ -706,17 +717,56 @@ const Transaction = () => {
             )}
 
             {transaction.state === "completed" && (
-              <div className="p-8 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border-2 border-success/30 text-center animate-scale-in">
-                <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-success/20 rounded-full">
-                    <Check className="h-16 w-16 text-success" />
+              <>
+                <div className="p-8 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border-2 border-success/30 text-center animate-scale-in">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-4 bg-success/20 rounded-full">
+                      <Check className="h-16 w-16 text-success" />
+                    </div>
                   </div>
+                  <p className="font-bold text-2xl text-success mb-2">🎉 ¡Transacción Completada!</p>
+                  <p className="text-muted-foreground">
+                    Gracias por usar Trado. Los fondos han sido liberados exitosamente.
+                  </p>
                 </div>
-                <p className="font-bold text-2xl text-success mb-2">🎉 ¡Transacción Completada!</p>
-                <p className="text-muted-foreground">
-                  Gracias por usar SafeTransaction. Los fondos han sido liberados exitosamente.
-                </p>
-              </div>
+
+                {!hasUserRated && (isSeller || isBuyer) && (
+                  <div className="mt-6 p-6 bg-gradient-to-br from-warning/10 to-warning/5 rounded-xl border-2 border-warning/30 animate-scale-in">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="p-3 bg-warning/20 rounded-full">
+                        <Star className="h-8 w-8 text-warning" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-xl mb-2">¡Ayúdanos a crecer la confianza!</p>
+                        <p className="text-muted-foreground text-sm">
+                          Tu opinión es muy importante. Califica tu experiencia con {isSeller ? "el comprador" : "el vendedor"} para ayudar a otros usuarios a tomar mejores decisiones.
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
+                      onClick={() => {
+                        const otherUserId = isSeller ? transaction.buyer_id! : transaction.seller_id;
+                        const otherUserName = isSeller ? buyerProfile?.full_name || "Comprador" : sellerProfile?.full_name || "Vendedor";
+                        handleOpenRatingDialog(otherUserId, otherUserName, !isSeller);
+                      }}
+                    >
+                      <Star className="mr-2 h-6 w-6" />
+                      Calificar {isSeller ? "Comprador" : "Vendedor"}
+                    </Button>
+                  </div>
+                )}
+
+                {hasUserRated && (
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
+                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                      <Check className="h-4 w-4 text-success" />
+                      Ya has calificado esta transacción
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -734,6 +784,19 @@ const Transaction = () => {
           </div>
         )}
       </main>
+
+      {/* Rating Dialog */}
+      {ratedUserId && (
+        <RatingDialog
+          open={ratingDialogOpen}
+          onOpenChange={setRatingDialogOpen}
+          transactionId={transaction.id}
+          ratedUserId={ratedUserId}
+          ratedUserName={ratedUserName}
+          isRatingSeller={isRatingSeller}
+          onRatingComplete={handleRatingComplete}
+        />
+      )}
 
       {/* Deposit Confirmation Dialog */}
       <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
@@ -753,50 +816,6 @@ const Transaction = () => {
             </div>
             <Button onClick={handleDeposit} className="w-full">
               Confirmar Depósito
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Rating Dialog */}
-      <Dialog open={ratingDialogOpen} onOpenChange={setRatingDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Calificar {isSeller ? "Comprador" : "Vendedor"}</DialogTitle>
-            <DialogDescription>Comparte tu experiencia con la transacción</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Calificación</Label>
-              <div className="flex gap-2 mt-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setRating(star)}
-                    className="transition-transform hover:scale-110"
-                  >
-                    <Star
-                      className={`h-8 w-8 ${
-                        star <= rating ? "text-warning fill-warning" : "text-muted"
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="comment">Comentario (opcional)</Label>
-              <Textarea
-                id="comment"
-                value={ratingComment}
-                onChange={(e) => setRatingComment(e.target.value)}
-                placeholder="Describe tu experiencia..."
-                rows={3}
-              />
-            </div>
-            <Button onClick={handleSubmitRating} className="w-full">
-              Enviar Calificación
             </Button>
           </div>
         </DialogContent>
