@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Store as StoreIcon } from "lucide-react";
+import { TransactionChat } from "@/components/TransactionChat";
 
 interface Transaction {
   id: string;
@@ -79,6 +80,18 @@ const Transaction = () => {
           filter: `id=eq.${id}`,
         },
         (payload) => {
+          console.log("Transaction updated:", payload);
+          
+          // Check if buyer just joined
+          if (payload.eventType === "UPDATE") {
+            const oldData = payload.old as any;
+            const newData = payload.new as any;
+            
+            if (!oldData.buyer_id && newData.buyer_id) {
+              toast.success("¡El comprador se ha unido a la transacción!");
+            }
+          }
+          
           loadTransaction();
         }
       )
@@ -323,6 +336,12 @@ const Transaction = () => {
   const isSeller = user?.id === transaction.seller_id;
   const isBuyer = user?.id === transaction.buyer_id;
 
+  console.log("Transaction state:", transaction.state);
+  console.log("Is seller:", isSeller);
+  console.log("Is buyer:", isBuyer);
+  console.log("Buyer ID:", transaction.buyer_id);
+  console.log("User ID:", user?.id);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/10">
       <header className="border-b bg-card/80 backdrop-blur-md shadow-sm">
@@ -364,10 +383,10 @@ const Transaction = () => {
             {isSeller && !transaction.buyer_id && (
               <div className="p-6 bg-gradient-to-br from-info/20 to-info/5 rounded-xl border-2 border-info/30 shadow-lg animate-scale-in">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-info rounded-lg">
+                  <div className="p-2 bg-info rounded-lg animate-pulse">
                     <Copy className="h-5 w-5 text-info-foreground" />
                   </div>
-                  <h4 className="font-bold text-info text-lg">Código de Invitación</h4>
+                  <h4 className="font-bold text-info text-lg">⏳ Esperando Comprador</h4>
                 </div>
                 <div className="flex gap-2">
                   <Input
@@ -386,6 +405,23 @@ const Transaction = () => {
                 <p className="text-sm text-muted-foreground mt-3 text-center">
                   📱 Comparte este código con el comprador para que se una a la transacción
                 </p>
+              </div>
+            )}
+
+            {/* Buyer joined notification */}
+            {transaction.buyer_id && !['completed', 'cancelled', 'in_dispute'].includes(transaction.state) && (
+              <div className="p-5 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border-2 border-success/30 shadow-lg animate-scale-in">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-success/20 rounded-full">
+                    <Check className="h-6 w-6 text-success" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg text-success">✅ ¡Comprador Unido!</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {buyerProfile?.full_name} se ha unido a la transacción
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -635,6 +671,17 @@ const Transaction = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Chat Section - Only show when buyer has joined */}
+        {transaction.buyer_id && (
+          <div className="animate-fade-in">
+            <TransactionChat
+              transactionId={transaction.id}
+              sellerName={sellerProfile?.full_name || "Vendedor"}
+              buyerName={buyerProfile?.full_name}
+            />
+          </div>
+        )}
       </main>
 
       {/* Deposit Confirmation Dialog */}
