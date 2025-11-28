@@ -17,24 +17,30 @@ export type Database = {
       chat_messages: {
         Row: {
           created_at: string | null
+          file_name: string | null
+          file_type: string | null
+          file_url: string | null
           id: string
-          image_url: string | null
           message: string
           transaction_id: string
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
-          image_url?: string | null
           message: string
           transaction_id: string
           user_id: string
         }
         Update: {
           created_at?: string | null
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
-          image_url?: string | null
           message?: string
           transaction_id?: string
           user_id?: string
