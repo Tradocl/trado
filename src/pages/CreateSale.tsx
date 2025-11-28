@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Store, Info } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Store, Info, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails } from "@/lib/utils";
@@ -17,6 +18,7 @@ const CreateSale = () => {
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState<number>(0);
   const [orderDetails, setOrderDetails] = useState<ReturnType<typeof calculateOrderDetails> | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
@@ -24,9 +26,11 @@ const CreateSale = () => {
       setAmount(value);
       const details = calculateOrderDetails(value);
       setOrderDetails(details);
+      setTermsAccepted(false); // Reset terms when amount changes
     } else {
       setAmount(0);
       setOrderDetails(null);
+      setTermsAccepted(false);
     }
   };
 
@@ -43,6 +47,12 @@ const CreateSale = () => {
 
     if (!productName || !amount || amount <= 0) {
       toast.error("Por favor completa todos los campos correctamente");
+      setLoading(false);
+      return;
+    }
+
+    if (!termsAccepted) {
+      toast.error("Debes aceptar los términos de comisión para continuar");
       setLoading(false);
       return;
     }
@@ -148,32 +158,65 @@ const CreateSale = () => {
               </div>
 
               {orderDetails && (
-                <div className="p-4 bg-gradient-to-br from-success/10 to-success/5 rounded-lg border border-success/20 space-y-2">
-                  <h4 className="font-semibold text-success mb-3 flex items-center gap-2">
-                    <Store className="h-4 w-4" />
-                    Desglose de la transacción
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Comprador paga:</span>
-                      <span className="font-bold text-foreground">
-                        ${orderDetails.buyerPays.toLocaleString("es-CL")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Comisión Trado:</span>
-                      <span className="font-semibold text-warning">
-                        -${orderDetails.appFee.toLocaleString("es-CL")}
-                      </span>
-                    </div>
-                    <div className="pt-2 border-t border-success/20 flex justify-between">
-                      <span className="font-semibold">Tú recibes:</span>
-                      <span className="font-bold text-success text-lg">
-                        ${orderDetails.sellerReceives.toLocaleString("es-CL")}
-                      </span>
+                <>
+                  <div className="p-5 bg-gradient-to-br from-warning/10 to-warning/5 rounded-lg border-2 border-warning/30 space-y-3">
+                    <h4 className="font-semibold text-warning mb-3 flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5" />
+                      Desglose de Comisión
+                    </h4>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-muted-foreground">Precio del producto:</span>
+                        <span className="font-bold text-foreground text-lg">
+                          ${orderDetails.buyerPays.toLocaleString("es-CL")}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 bg-warning/5 rounded px-2">
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">Comisión Trado (5%):</span>
+                          <span className="text-xs text-muted-foreground/70">
+                            {((orderDetails.appFee / orderDetails.buyerPays) * 100).toFixed(2)}% del total
+                          </span>
+                        </div>
+                        <span className="font-bold text-warning text-lg">
+                          -${orderDetails.appFee.toLocaleString("es-CL")}
+                        </span>
+                      </div>
+                      <div className="pt-3 border-t-2 border-success/30 flex justify-between items-center">
+                        <span className="font-bold text-foreground">Total que recibirás:</span>
+                        <span className="font-bold text-success text-2xl">
+                          ${orderDetails.sellerReceives.toLocaleString("es-CL")}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+
+                  <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg border border-border">
+                    <Checkbox
+                      id="termsAccepted"
+                      checked={termsAccepted}
+                      onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <label
+                        htmlFor="termsAccepted"
+                        className="text-sm font-medium leading-relaxed cursor-pointer"
+                      >
+                        Acepto que Trado cobrará una comisión de{" "}
+                        <span className="font-bold text-warning">
+                          ${orderDetails.appFee.toLocaleString("es-CL")} CLP
+                        </span>{" "}
+                        ({((orderDetails.appFee / orderDetails.buyerPays) * 100).toFixed(2)}%) sobre esta
+                        transacción, y que recibiré{" "}
+                        <span className="font-bold text-success">
+                          ${orderDetails.sellerReceives.toLocaleString("es-CL")} CLP
+                        </span>{" "}
+                        al completarse la venta.
+                      </label>
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="p-4 bg-info/10 rounded-lg border border-info/20">
@@ -187,10 +230,19 @@ const CreateSale = () => {
                 </ol>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={loading || !termsAccepted || !orderDetails}
+              >
                 <Store className="mr-2 h-4 w-4" />
                 {loading ? "Creando..." : "Crear Sala de Venta"}
               </Button>
+              {!termsAccepted && orderDetails && (
+                <p className="text-sm text-muted-foreground text-center">
+                  Debes aceptar los términos de comisión para continuar
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>
