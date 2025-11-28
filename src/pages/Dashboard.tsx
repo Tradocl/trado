@@ -96,13 +96,12 @@ const Dashboard = () => {
   const handleSignOut = async () => {
     try {
       const { error } = await signOut();
-      if (error && error.message && error.message !== "Auth session missing" && error.message !== "Session not found") {
-        toast.error("Error al cerrar sesión");
+      if (error) {
         console.error("Sign out error:", error);
       }
-      navigate("/auth");
     } catch (error) {
       console.error("Error signing out:", error);
+    } finally {
       navigate("/auth");
     }
   };
