@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -248,7 +248,7 @@ const Dashboard = () => {
         )}
 
         {/* Action Cards */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           <Card className="hover:shadow-xl transition-shadow cursor-pointer border-2 hover:border-primary"
                 onClick={() => navigate("/create-sale")}>
             <CardHeader>
@@ -293,6 +293,30 @@ const Dashboard = () => {
               <Button className="w-full bg-info hover:bg-info/90">
                 <ShoppingBag className="mr-2 h-4 w-4" />
                 Unirse a Compra
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-xl transition-shadow cursor-pointer border-2 hover:border-primary/50"
+                onClick={() => navigate("/transaction-history")}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <History className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Historial</CardTitle>
+                  <CardDescription>Revisa tus transacciones</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Ve todas tus compras y ventas completadas
+              </p>
+              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                <History className="mr-2 h-4 w-4" />
+                Ver Historial
               </Button>
             </CardContent>
           </Card>

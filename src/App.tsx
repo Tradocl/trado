@@ -14,6 +14,7 @@ import Transaction from "./pages/Transaction";
 import Verification from "./pages/Verification";
 import Admin from "./pages/Admin";
 import MovementHistory from "./pages/MovementHistory";
+import TransactionHistory from "./pages/TransactionHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/verification" element={<Verification />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/movement-history" element={<MovementHistory />} />
+            <Route path="/transaction-history" element={<TransactionHistory />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
