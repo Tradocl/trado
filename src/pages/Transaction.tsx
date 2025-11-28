@@ -335,12 +335,35 @@ const Transaction = () => {
 
   const isSeller = user?.id === transaction.seller_id;
   const isBuyer = user?.id === transaction.buyer_id;
+  const canJoinAsBuyer = !transaction.buyer_id && !isSeller;
 
   console.log("Transaction state:", transaction.state);
   console.log("Is seller:", isSeller);
   console.log("Is buyer:", isBuyer);
+  console.log("Can join as buyer:", canJoinAsBuyer);
   console.log("Buyer ID:", transaction.buyer_id);
   console.log("User ID:", user?.id);
+
+  const handleJoinAsBuyer = async () => {
+    if (!user || !transaction) return;
+
+    try {
+      const { error: updateError } = await supabase
+        .from("transactions")
+        .update({
+          buyer_id: user.id,
+          state: "invited",
+        })
+        .eq("id", transaction.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("¡Te uniste a la transacción!");
+      loadTransaction();
+    } catch (error: any) {
+      toast.error("Error al unirse: " + error.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/10">
@@ -552,6 +575,30 @@ const Transaction = () => {
             </div>
 
             <Separator className="my-6" />
+
+            {/* Join as buyer action - Show when no buyer and user is not seller */}
+            {canJoinAsBuyer && (
+              <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="h-6 w-6 text-info" />
+                  <h4 className="font-bold text-lg">¿Quieres comprar este producto?</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Únete a esta transacción para iniciar el proceso de compra protegida.
+                </p>
+                <Button
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
+                  onClick={handleJoinAsBuyer}
+                >
+                  <Users className="mr-2 h-6 w-6" />
+                  Unirme como Comprador
+                </Button>
+                <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
+                  🔒 Tu compra estará 100% protegida
+                </p>
+              </div>
+            )}
 
             {/* Actions based on role and state */}
             {isBuyer && transaction.state === "invited" && (
