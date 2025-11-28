@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Store as StoreIcon } from "lucide-react";
 
 interface Transaction {
   id: string;
@@ -323,236 +324,296 @@ const Transaction = () => {
   const isBuyer = user?.id === transaction.buyer_id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
-      <header className="border-b bg-card/50 backdrop-blur-sm">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/10">
+      <header className="border-b bg-card/80 backdrop-blur-md shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" onClick={() => navigate("/dashboard")} className="hover:bg-primary/10">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
+            Volver al Dashboard
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-6">
+      <main className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
         {/* Status Card */}
-        <Card className="border-0 shadow-xl">
-          <CardHeader>
+        <Card className="border-2 border-primary/20 shadow-2xl bg-gradient-to-br from-card to-card/80">
+          <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle className="text-2xl mb-2">{transaction.product_name}</CardTitle>
-                <CardDescription>{transaction.product_description}</CardDescription>
+                <CardTitle className="text-3xl mb-2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  {transaction.product_name}
+                </CardTitle>
+                <CardDescription className="text-base">{transaction.product_description}</CardDescription>
               </div>
-              <Badge className={stateLabels[transaction.state]?.color || "bg-secondary"}>
+              <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-base px-4 py-2 shadow-lg animate-pulse`}>
                 {stateLabels[transaction.state]?.label || transaction.state}
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-              <span className="text-sm font-medium">Monto</span>
-              <span className="text-2xl font-bold">${transaction.amount}</span>
+          <CardContent className="space-y-6 pt-6">
+            <div className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg blur-xl"></div>
+              <div className="relative flex justify-between items-center p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
+                <span className="text-lg font-semibold">Monto Total</span>
+                <span className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  ${transaction.amount.toLocaleString('es-CL')}
+                </span>
+              </div>
             </div>
 
             {isSeller && !transaction.buyer_id && (
-              <div className="p-4 bg-info/10 rounded-lg border border-info/20">
-                <h4 className="font-semibold text-info mb-2">Código de Invitación</h4>
+              <div className="p-6 bg-gradient-to-br from-info/20 to-info/5 rounded-xl border-2 border-info/30 shadow-lg animate-scale-in">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-info rounded-lg">
+                    <Copy className="h-5 w-5 text-info-foreground" />
+                  </div>
+                  <h4 className="font-bold text-info text-lg">Código de Invitación</h4>
+                </div>
                 <div className="flex gap-2">
                   <Input
                     value={transaction.invite_code}
                     readOnly
-                    className="text-center text-xl font-mono tracking-widest"
+                    className="text-center text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30"
                   />
-                  <Button onClick={copyInviteCode} variant="outline">
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  <Button 
+                    onClick={copyInviteCode} 
+                    variant="outline"
+                    className="border-2 border-info/30 hover:bg-info/20 transition-all"
+                  >
+                    {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Comparte este código con el comprador
+                <p className="text-sm text-muted-foreground mt-3 text-center">
+                  📱 Comparte este código con el comprador para que se una a la transacción
                 </p>
               </div>
             )}
 
             {/* Participants */}
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Vendedor</h4>
-                <p className="text-sm">{sellerProfile?.full_name}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <Star className="h-4 w-4 text-warning fill-warning" />
-                  <span className="text-sm">{sellerProfile?.reputation_score?.toFixed(1) || "0.0"}</span>
+              <div className="p-5 border-2 border-success/30 rounded-xl bg-gradient-to-br from-success/10 to-success/5 shadow-md hover-scale">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-success/20 rounded-lg">
+                    <StoreIcon className="h-5 w-5 text-success" />
+                  </div>
+                  <h4 className="font-bold text-lg">Vendedor</h4>
+                </div>
+                <p className="font-semibold text-lg">{sellerProfile?.full_name}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Star className="h-5 w-5 text-warning fill-warning" />
+                  <span className="font-bold">{sellerProfile?.reputation_score?.toFixed(1) || "0.0"}</span>
                 </div>
               </div>
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-2">Comprador</h4>
+              <div className="p-5 border-2 border-info/30 rounded-xl bg-gradient-to-br from-info/10 to-info/5 shadow-md hover-scale">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-info/20 rounded-lg">
+                    <Users className="h-5 w-5 text-info" />
+                  </div>
+                  <h4 className="font-bold text-lg">Comprador</h4>
+                </div>
                 {buyerProfile ? (
                   <>
-                    <p className="text-sm">{buyerProfile.full_name}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="h-4 w-4 text-warning fill-warning" />
-                      <span className="text-sm">{buyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
+                    <p className="font-semibold text-lg">{buyerProfile.full_name}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Star className="h-5 w-5 text-warning fill-warning" />
+                      <span className="font-bold">{buyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
                     </div>
                   </>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Esperando comprador...</p>
+                  <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+                    <div className="h-3 w-3 rounded-full bg-warning"></div>
+                    <p className="text-sm font-medium">Esperando comprador...</p>
+                  </div>
                 )}
               </div>
             </div>
 
-            <Separator />
+            <Separator className="my-6" />
 
             {/* Progress Timeline */}
-            <div className="space-y-3">
-              <h4 className="font-semibold">Progreso de la Transacción</h4>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    transaction.state !== 'created' ? 'bg-success text-success-foreground' : 'bg-muted'
+            <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
+              <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
+                <Package className="h-6 w-6 text-primary" />
+                Progreso de la Transacción
+              </h4>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
                   }`}>
-                    <Users className="h-4 w-4" />
+                    <Users className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">Comprador Unido</p>
-                    <p className="text-xs text-muted-foreground">
-                      {transaction.buyer_id ? '✓ Completado' : 'Esperando comprador...'}
+                    <p className="font-bold text-lg">Comprador Unido</p>
+                    <p className="text-sm text-muted-foreground">
+                      {transaction.buyer_id ? '✅ Comprador confirmado' : '⏳ Esperando comprador...'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                     ['funds_secured', 'in_delivery', 'completed'].includes(transaction.state) 
-                      ? 'bg-success text-success-foreground' 
+                      ? 'bg-success text-success-foreground scale-110' 
                       : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
-                      ? 'bg-warning text-warning-foreground'
+                      ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <DollarSign className="h-4 w-4" />
+                    <DollarSign className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">Pago en Escrow</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-bold text-lg">Pago en Escrow</p>
+                    <p className="text-sm text-muted-foreground">
                       {['funds_secured', 'in_delivery', 'completed'].includes(transaction.state)
-                        ? '✓ Fondos asegurados'
+                        ? '✅ Fondos asegurados y protegidos'
                         : transaction.state === 'invited'
-                        ? 'Esperando depósito...'
-                        : 'Pendiente'}
+                        ? '⏳ Esperando depósito del comprador...'
+                        : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                     ['in_delivery', 'completed'].includes(transaction.state)
-                      ? 'bg-success text-success-foreground'
+                      ? 'bg-success text-success-foreground scale-110'
                       : transaction.state === 'funds_secured'
-                      ? 'bg-warning text-warning-foreground'
+                      ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <Truck className="h-4 w-4" />
+                    <Truck className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">Entrega del Producto</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-bold text-lg">Entrega del Producto</p>
+                    <p className="text-sm text-muted-foreground">
                       {transaction.state === 'completed'
-                        ? '✓ Producto entregado'
+                        ? '✅ Producto entregado y confirmado'
                         : transaction.state === 'in_delivery'
-                        ? 'En camino...'
+                        ? '🚚 En camino al comprador...'
                         : transaction.state === 'funds_secured'
-                        ? 'Esperando envío...'
-                        : 'Pendiente'}
+                        ? '⏳ Esperando envío del vendedor...'
+                        : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                     transaction.state === 'completed'
-                      ? 'bg-success text-success-foreground'
+                      ? 'bg-success text-success-foreground scale-110'
                       : 'bg-muted'
                   }`}>
-                    <Check className="h-4 w-4" />
+                    <Check className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">Transacción Completada</p>
-                    <p className="text-xs text-muted-foreground">
-                      {transaction.state === 'completed' ? '✓ Finalizada' : 'Pendiente'}
+                    <p className="font-bold text-lg">Transacción Completada</p>
+                    <p className="text-sm text-muted-foreground">
+                      {transaction.state === 'completed' ? '✅ ¡Todo listo!' : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <Separator />
+            <Separator className="my-6" />
 
             {/* Actions based on role and state */}
             {isBuyer && transaction.state === "invited" && (
-              <div className="space-y-2">
+              <div className="space-y-3 p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-xl border-2 border-success/30 animate-scale-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-6 w-6 text-success" />
+                  <h4 className="font-bold text-lg">Acción Requerida</h4>
+                </div>
                 <Button
-                  className="w-full"
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale"
                   onClick={() => setDepositDialogOpen(true)}
                 >
-                  <DollarSign className="mr-2 h-4 w-4" />
-                  Depositar Fondos en Escrow
+                  <DollarSign className="mr-2 h-6 w-6" />
+                  Depositar ${transaction.amount.toLocaleString('es-CL')} en Escrow
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Tus fondos estarán protegidos hasta que confirmes la entrega
+                <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
+                  🔒 Tus fondos estarán protegidos hasta que confirmes la entrega
                 </p>
               </div>
             )}
 
             {isSeller && transaction.state === "funds_secured" && (
-              <div className="space-y-2">
-                <Button className="w-full bg-info hover:bg-info/90" onClick={handleMarkAsShipped}>
-                  <Truck className="mr-2 h-4 w-4" />
-                  Marcar como Enviado
+              <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <Truck className="h-6 w-6 text-info" />
+                  <h4 className="font-bold text-lg">Acción Requerida</h4>
+                </div>
+                <Button 
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
+                  onClick={handleMarkAsShipped}
+                >
+                  <Truck className="mr-2 h-6 w-6" />
+                  Marcar Producto como Enviado
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Marca cuando hayas enviado el producto al comprador
+                <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
+                  📦 Marca cuando hayas enviado el producto al comprador
                 </p>
               </div>
             )}
 
             {isBuyer && transaction.state === "in_delivery" && (
-              <div className="space-y-2">
-                <Button className="w-full bg-success hover:bg-success/90" onClick={handleConfirmDelivery}>
-                  <Package className="mr-2 h-4 w-4" />
+              <div className="space-y-3 p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-xl border-2 border-success/30 animate-scale-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <Package className="h-6 w-6 text-success" />
+                  <h4 className="font-bold text-lg">Producto en Camino</h4>
+                </div>
+                <Button 
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
+                  onClick={handleConfirmDelivery}
+                >
+                  <Check className="mr-2 h-6 w-6" />
                   Confirmar que Recibí el Producto
                 </Button>
                 <Button 
+                  size="lg"
                   variant="destructive" 
-                  className="w-full"
+                  className="w-full text-lg py-6 shadow-xl hover-scale"
                   onClick={() => setDisputeDialogOpen(true)}
                 >
-                  <AlertCircle className="mr-2 h-4 w-4" />
-                  Abrir Disputa
+                  <AlertCircle className="mr-2 h-6 w-6" />
+                  Reportar Problema / Abrir Disputa
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Solo confirma si recibiste el producto en buenas condiciones
+                <p className="text-sm text-muted-foreground text-center">
+                  ⚠️ Solo confirma si recibiste el producto en perfectas condiciones
                 </p>
               </div>
             )}
 
             {(isSeller || isBuyer) && ['funds_secured', 'in_delivery'].includes(transaction.state) && (
-              <div className="pt-2">
+              <div className="pt-3">
                 <Button 
+                  size="lg"
                   variant="outline" 
-                  className="w-full border-destructive text-destructive hover:bg-destructive/10"
+                  className="w-full border-2 border-destructive/30 text-destructive hover:bg-destructive/10 text-base py-5"
                   onClick={() => setDisputeDialogOpen(true)}
                 >
-                  <AlertCircle className="mr-2 h-4 w-4" />
-                  Reportar un Problema
+                  <AlertCircle className="mr-2 h-5 w-5" />
+                  ¿Hay un Problema? Reportar Incidencia
                 </Button>
               </div>
             )}
 
             {transaction.state === "in_dispute" && (
-              <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+              <div className="p-6 bg-gradient-to-br from-destructive/20 to-destructive/5 rounded-xl border-2 border-destructive/30 animate-scale-in">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-destructive/20 rounded-full">
+                    <AlertCircle className="h-8 w-8 text-destructive" />
+                  </div>
                   <div>
-                    <p className="font-semibold text-destructive">Disputa Abierta</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Un administrador está revisando esta transacción y se comunicará contigo pronto.
+                    <p className="font-bold text-xl text-destructive mb-2">⚠️ Disputa Abierta</p>
+                    <p className="text-muted-foreground">
+                      Un administrador está revisando esta transacción. Te contactaremos pronto para resolver el problema.
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-3">
+                      Tiempo estimado de respuesta: 24-48 horas
                     </p>
                   </div>
                 </div>
@@ -560,11 +621,15 @@ const Transaction = () => {
             )}
 
             {transaction.state === "completed" && (
-              <div className="p-4 bg-success/10 rounded-lg border border-success/20 text-center">
-                <Check className="h-12 w-12 text-success mx-auto mb-2" />
-                <p className="font-semibold text-success">¡Transacción Completada!</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Gracias por usar SafeTransaction
+              <div className="p-8 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border-2 border-success/30 text-center animate-scale-in">
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 bg-success/20 rounded-full">
+                    <Check className="h-16 w-16 text-success" />
+                  </div>
+                </div>
+                <p className="font-bold text-2xl text-success mb-2">🎉 ¡Transacción Completada!</p>
+                <p className="text-muted-foreground">
+                  Gracias por usar SafeTransaction. Los fondos han sido liberados exitosamente.
                 </p>
               </div>
             )}
