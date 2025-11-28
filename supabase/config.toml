@@ -1,1 +1,13 @@
 project_id = "uohlyccjugbqsxiwerrv"
+
+[functions.confirm-delivery]
+verify_jwt = true
+
+[functions.send-movement-notification]
+verify_jwt = true
+
+[functions.notify-wallet-movement]
+verify_jwt = false
+
+[functions.notify-transaction-created]
+verify_jwt = false

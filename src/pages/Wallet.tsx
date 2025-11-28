@@ -173,14 +173,43 @@ const Wallet = () => {
 
       if (!wallet) throw new Error("Billetera no encontrada");
 
-      await supabase.from("wallet_movements").insert({
-        wallet_id: wallet.id,
-        type: "deposit",
-        amount: depositAmount,
-        balance_after: wallet.balance,
-        description: "Depósito pendiente de aprobación",
-        status: "pending",
-      });
+      const { data: movement, error: movementError } = await supabase
+        .from("wallet_movements")
+        .insert({
+          wallet_id: wallet.id,
+          type: "deposit",
+          amount: depositAmount,
+          balance_after: wallet.balance,
+          description: "Depósito pendiente de aprobación",
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      if (movementError) throw movementError;
+
+      // Get user profile for email
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", user.id)
+        .single();
+
+      // Send notification email
+      try {
+        await supabase.functions.invoke("notify-wallet-movement", {
+          body: {
+            movementId: movement.id,
+            userEmail: profile?.email || user.email,
+            userName: profile?.full_name || "Usuario",
+            type: "deposit",
+            amount: depositAmount,
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending notification email:", emailError);
+        // Don't fail the deposit if email fails
+      }
 
       toast.success("Solicitud de depósito enviada. Por favor realiza la transferencia a la cuenta indicada.");
       setDepositOpen(false);
@@ -219,19 +248,55 @@ const Wallet = () => {
 
       if (!wallet) throw new Error("Billetera no encontrada");
 
-      await supabase.from("wallet_movements").insert({
-        wallet_id: wallet.id,
-        type: "withdrawal",
-        amount: withdrawAmount,
-        balance_after: wallet.balance,
-        description: "Retiro pendiente de aprobación",
-        status: "pending",
-        bank_holder_name: bankHolderName,
-        bank_holder_rut: bankHolderRut,
-        bank_name: bankName,
-        bank_account_type: bankAccountType,
-        bank_account_number: bankAccountNumber,
-      });
+      const { data: movement, error: movementError } = await supabase
+        .from("wallet_movements")
+        .insert({
+          wallet_id: wallet.id,
+          type: "withdrawal",
+          amount: withdrawAmount,
+          balance_after: wallet.balance,
+          description: "Retiro pendiente de aprobación",
+          status: "pending",
+          bank_holder_name: bankHolderName,
+          bank_holder_rut: bankHolderRut,
+          bank_name: bankName,
+          bank_account_type: bankAccountType,
+          bank_account_number: bankAccountNumber,
+        })
+        .select()
+        .single();
+
+      if (movementError) throw movementError;
+
+      // Get user profile for email
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", user.id)
+        .single();
+
+      // Send notification email
+      try {
+        await supabase.functions.invoke("notify-wallet-movement", {
+          body: {
+            movementId: movement.id,
+            userEmail: profile?.email || user.email,
+            userName: profile?.full_name || "Usuario",
+            type: "withdrawal",
+            amount: withdrawAmount,
+            bankDetails: {
+              holderName: bankHolderName,
+              holderRut: bankHolderRut,
+              bankName: bankName,
+              accountType: bankAccountType,
+              accountNumber: bankAccountNumber,
+            },
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending notification email:", emailError);
+        // Don't fail the withdrawal if email fails
+      }
 
       toast.success("Solicitud de retiro enviada para aprobación");
       setWithdrawOpen(false);

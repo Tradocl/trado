@@ -96,6 +96,33 @@ const CreateSale = () => {
 
       if (error) throw error;
 
+      // Get seller profile for email
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", user.id)
+        .single();
+
+      // Send notification email
+      try {
+        await supabase.functions.invoke("notify-transaction-created", {
+          body: {
+            transactionId: transaction.id,
+            sellerEmail: profile?.email || user.email || "",
+            sellerName: profile?.full_name || "Usuario",
+            productName: formData.productName,
+            productDescription: formData.productDescription,
+            amount: formData.amount,
+            commission: orderDetails.appFee,
+            sellerReceives: orderDetails.sellerReceives,
+            inviteCode: inviteCode,
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending notification email:", emailError);
+        // Don't fail the transaction creation if email fails
+      }
+
       toast.success("¡Sala de venta creada exitosamente!");
       setShowConfirmModal(false);
       navigate(`/transaction/${transaction.id}`);
