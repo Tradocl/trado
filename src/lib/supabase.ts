@@ -40,15 +40,7 @@ export const signIn = async (email: string, password: string) => {
 
 export const signOut = async () => {
   try {
-    // Check if there's an active session first
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      // No active session, just return success
-      return { error: null };
-    }
-    
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: "local" });
     return { error };
   } catch (error: any) {
     console.error("Error during signOut:", error);
