@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Store as StoreIcon } from "lucide-react";
 import { TransactionChat } from "@/components/TransactionChat";
 import { RatingDialog } from "@/components/RatingDialog";
+import { UserRatings } from "@/components/UserRatings";
 
 interface Transaction {
   id: string;
@@ -473,6 +474,7 @@ const Transaction = () => {
                   <Star className="h-5 w-5 text-warning fill-warning" />
                   <span className="font-bold">{sellerProfile?.reputation_score?.toFixed(1) || "0.0"}</span>
                 </div>
+                {sellerProfile && <UserRatings userId={sellerProfile.id} maxRatings={3} />}
               </div>
               <div className="p-5 border-2 border-info/30 rounded-xl bg-gradient-to-br from-info/10 to-info/5 shadow-md hover-scale">
                 <div className="flex items-center gap-2 mb-3">
@@ -488,6 +490,7 @@ const Transaction = () => {
                       <Star className="h-5 w-5 text-warning fill-warning" />
                       <span className="font-bold">{buyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
                     </div>
+                    <UserRatings userId={buyerProfile.id} maxRatings={3} />
                   </>
                 ) : (
                   <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
