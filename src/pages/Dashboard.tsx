@@ -66,7 +66,7 @@ const Dashboard = () => {
     if (!user) return;
 
     try {
-      const [profileRes, walletRes, transactionsRes] = await Promise.all([
+      const [profileRes, walletRes, transactionsRes, completedTransactionsRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).single(),
         supabase.from("wallets").select("*").eq("user_id", user.id).single(),
         supabase
@@ -75,12 +75,23 @@ const Dashboard = () => {
           .or(`seller_id.eq.${user.id},buyer_id.eq.${user.id}`)
           .not("state", "in", '("completed","cancelled")')
           .order("created_at", { ascending: false }),
+        supabase
+          .from("transactions")
+          .select("id")
+          .or(`seller_id.eq.${user.id},buyer_id.eq.${user.id}`)
+          .eq("state", "completed")
       ]);
 
       if (profileRes.error) throw profileRes.error;
       if (walletRes.error) throw walletRes.error;
 
-      setProfile(profileRes.data);
+      // Calculate total transactions dynamically from completed transactions
+      const totalTransactions = completedTransactionsRes.data?.length || 0;
+      
+      setProfile({
+        ...profileRes.data,
+        total_transactions: totalTransactions
+      });
       setWallet(walletRes.data);
       
       if (transactionsRes.data) {
