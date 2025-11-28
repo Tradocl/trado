@@ -42,7 +42,7 @@ const Wallet = () => {
       loadWalletData();
       
       // Set up realtime subscription for movement status changes
-      const channel = supabase
+      const movementsChannel = supabase
         .channel('wallet_movements_changes')
         .on(
           'postgres_changes',
@@ -69,9 +69,29 @@ const Wallet = () => {
           }
         )
         .subscribe();
+
+      // Set up realtime subscription for wallet balance changes
+      const walletChannel = supabase
+        .channel('wallet_balance_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'wallets',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload: any) => {
+            console.log('Wallet balance updated:', payload.new.balance);
+            // Update balance immediately
+            setBalance(payload.new.balance);
+          }
+        )
+        .subscribe();
       
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(movementsChannel);
+        supabase.removeChannel(walletChannel);
       };
     }
 
