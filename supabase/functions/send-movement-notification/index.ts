@@ -52,6 +52,10 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
+    // TESTING MODE: Send all emails to admin email until domain is verified
+    // TODO: Replace with actual userEmail once domain is verified at resend.com/domains
+    const testingEmail = "josepabloacevedoolivares@gmail.com";
+    
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -60,9 +64,9 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "SafeTransaction <onboarding@resend.dev>",
-        to: [userEmail],
-        subject: `${statusEmoji} ${typeText} ${statusText}`,
-        html: emailHtml,
+        to: [testingEmail], // Using testing email until domain is verified
+        subject: `[TEST - Para: ${userName}] ${statusEmoji} ${typeText} ${statusText}`,
+        html: emailHtml + `<p style="color: #666; font-size: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">📧 Email original destinado a: ${userEmail}</p>`,
       }),
     });
 
