@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 
 interface Transaction {
   id: string;
@@ -53,8 +54,10 @@ const Transaction = () => {
   const [copied, setCopied] = useState(false);
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [ratingComment, setRatingComment] = useState("");
+  const [disputeReason, setDisputeReason] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -237,6 +240,46 @@ const Transaction = () => {
     }
   };
 
+  const handleMarkAsShipped = async () => {
+    if (!user || !transaction || !isSeller) return;
+
+    try {
+      await supabase
+        .from("transactions")
+        .update({ state: "in_delivery" })
+        .eq("id", transaction.id);
+
+      toast.success("¡Marcado como enviado! El comprador será notificado.");
+      loadTransaction();
+    } catch (error: any) {
+      toast.error("Error al actualizar estado: " + error.message);
+    }
+  };
+
+  const handleOpenDispute = async () => {
+    if (!user || !transaction || !disputeReason.trim()) {
+      toast.error("Por favor describe el motivo de la disputa");
+      return;
+    }
+
+    try {
+      await supabase
+        .from("transactions")
+        .update({ 
+          state: "in_dispute",
+          dispute_opened_at: new Date().toISOString()
+        })
+        .eq("id", transaction.id);
+
+      // You could also create a disputes table to track dispute details
+      toast.success("Disputa abierta. Un administrador la revisará pronto.");
+      setDisputeDialogOpen(false);
+      loadTransaction();
+    } catch (error: any) {
+      toast.error("Error al abrir disputa: " + error.message);
+    }
+  };
+
   const handleSubmitRating = async () => {
     if (!user || !transaction) return;
 
@@ -355,27 +398,164 @@ const Transaction = () => {
               </div>
             </div>
 
-            {/* Actions */}
+            <Separator />
+
+            {/* Progress Timeline */}
+            <div className="space-y-3">
+              <h4 className="font-semibold">Progreso de la Transacción</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    transaction.state !== 'created' ? 'bg-success text-success-foreground' : 'bg-muted'
+                  }`}>
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">Comprador Unido</p>
+                    <p className="text-xs text-muted-foreground">
+                      {transaction.buyer_id ? '✓ Completado' : 'Esperando comprador...'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    ['funds_secured', 'in_delivery', 'completed'].includes(transaction.state) 
+                      ? 'bg-success text-success-foreground' 
+                      : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
+                      ? 'bg-warning text-warning-foreground'
+                      : 'bg-muted'
+                  }`}>
+                    <DollarSign className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">Pago en Escrow</p>
+                    <p className="text-xs text-muted-foreground">
+                      {['funds_secured', 'in_delivery', 'completed'].includes(transaction.state)
+                        ? '✓ Fondos asegurados'
+                        : transaction.state === 'invited'
+                        ? 'Esperando depósito...'
+                        : 'Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    ['in_delivery', 'completed'].includes(transaction.state)
+                      ? 'bg-success text-success-foreground'
+                      : transaction.state === 'funds_secured'
+                      ? 'bg-warning text-warning-foreground'
+                      : 'bg-muted'
+                  }`}>
+                    <Truck className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">Entrega del Producto</p>
+                    <p className="text-xs text-muted-foreground">
+                      {transaction.state === 'completed'
+                        ? '✓ Producto entregado'
+                        : transaction.state === 'in_delivery'
+                        ? 'En camino...'
+                        : transaction.state === 'funds_secured'
+                        ? 'Esperando envío...'
+                        : 'Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    transaction.state === 'completed'
+                      ? 'bg-success text-success-foreground'
+                      : 'bg-muted'
+                  }`}>
+                    <Check className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">Transacción Completada</p>
+                    <p className="text-xs text-muted-foreground">
+                      {transaction.state === 'completed' ? '✓ Finalizada' : 'Pendiente'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Actions based on role and state */}
             {isBuyer && transaction.state === "invited" && (
-              <Button
-                className="w-full"
-                onClick={() => setDepositDialogOpen(true)}
-              >
-                <DollarSign className="mr-2 h-4 w-4" />
-                Depositar Fondos en Escrow
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  className="w-full"
+                  onClick={() => setDepositDialogOpen(true)}
+                >
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Depositar Fondos en Escrow
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Tus fondos estarán protegidos hasta que confirmes la entrega
+                </p>
+              </div>
             )}
 
-            {isBuyer && transaction.state === "funds_secured" && (
+            {isSeller && transaction.state === "funds_secured" && (
+              <div className="space-y-2">
+                <Button className="w-full bg-info hover:bg-info/90" onClick={handleMarkAsShipped}>
+                  <Truck className="mr-2 h-4 w-4" />
+                  Marcar como Enviado
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Marca cuando hayas enviado el producto al comprador
+                </p>
+              </div>
+            )}
+
+            {isBuyer && transaction.state === "in_delivery" && (
               <div className="space-y-2">
                 <Button className="w-full bg-success hover:bg-success/90" onClick={handleConfirmDelivery}>
                   <Package className="mr-2 h-4 w-4" />
                   Confirmar que Recibí el Producto
                 </Button>
-                <Button variant="destructive" className="w-full">
+                <Button 
+                  variant="destructive" 
+                  className="w-full"
+                  onClick={() => setDisputeDialogOpen(true)}
+                >
                   <AlertCircle className="mr-2 h-4 w-4" />
                   Abrir Disputa
                 </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Solo confirma si recibiste el producto en buenas condiciones
+                </p>
+              </div>
+            )}
+
+            {(isSeller || isBuyer) && ['funds_secured', 'in_delivery'].includes(transaction.state) && (
+              <div className="pt-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-destructive text-destructive hover:bg-destructive/10"
+                  onClick={() => setDisputeDialogOpen(true)}
+                >
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Reportar un Problema
+                </Button>
+              </div>
+            )}
+
+            {transaction.state === "in_dispute" && (
+              <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-destructive">Disputa Abierta</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Un administrador está revisando esta transacción y se comunicará contigo pronto.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -383,6 +563,9 @@ const Transaction = () => {
               <div className="p-4 bg-success/10 rounded-lg border border-success/20 text-center">
                 <Check className="h-12 w-12 text-success mx-auto mb-2" />
                 <p className="font-semibold text-success">¡Transacción Completada!</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Gracias por usar SafeTransaction
+                </p>
               </div>
             )}
           </CardContent>
@@ -452,6 +635,53 @@ const Transaction = () => {
             <Button onClick={handleSubmitRating} className="w-full">
               Enviar Calificación
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dispute Dialog */}
+      <Dialog open={disputeDialogOpen} onOpenChange={setDisputeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Abrir Disputa</DialogTitle>
+            <DialogDescription>
+              Describe el problema con esta transacción. Un administrador lo revisará.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
+              <p className="text-sm">
+                <strong>Importante:</strong> Solo abre una disputa si hay un problema real. 
+                El uso indebido puede afectar tu reputación.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="disputeReason">Motivo de la Disputa</Label>
+              <Textarea
+                id="disputeReason"
+                value={disputeReason}
+                onChange={(e) => setDisputeReason(e.target.value)}
+                placeholder="Describe detalladamente el problema..."
+                rows={4}
+                required
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setDisputeDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                variant="destructive" 
+                className="flex-1"
+                onClick={handleOpenDispute}
+              >
+                Abrir Disputa
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
