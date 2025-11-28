@@ -119,6 +119,8 @@ const Wallet = () => {
 
     if (searchParams.get("action") === "deposit") {
       setDepositOpen(true);
+    } else if (searchParams.get("action") === "withdraw") {
+      setWithdrawOpen(true);
     }
   }, [user, authLoading, navigate, searchParams]);
 

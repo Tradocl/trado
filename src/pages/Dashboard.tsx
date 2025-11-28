@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -348,13 +348,18 @@ const Dashboard = () => {
               <span className="text-sm font-medium">Saldo disponible</span>
               <span className="text-2xl font-bold">${formatCLP(wallet?.balance || 0)}</span>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <Button variant="outline" onClick={() => navigate("/wallet")}>
-                Ver Movimientos
+                <History className="mr-2 h-4 w-4" />
+                Movimientos
               </Button>
               <Button onClick={() => navigate("/wallet?action=deposit")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Depositar
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/wallet?action=withdraw")}>
+                <ArrowUpRight className="mr-2 h-4 w-4" />
+                Retirar
               </Button>
             </div>
             
