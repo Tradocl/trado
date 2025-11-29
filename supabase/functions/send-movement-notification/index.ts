@@ -52,9 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    // TESTING MODE: Send all emails to admin email until domain is verified
-    // TODO: Replace with actual userEmail once domain is verified at resend.com/domains
-    const testingEmail = "josepabloacevedoolivares@gmail.com";
+    const adminEmail = "admin@trado.cl";
     
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -63,10 +61,10 @@ const handler = async (req: Request): Promise<Response> => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "SafeTransaction <onboarding@resend.dev>",
-        to: [testingEmail], // Using testing email until domain is verified
-        subject: `[TEST - Para: ${userName}] ${statusEmoji} ${typeText} ${statusText}`,
-        html: emailHtml + `<p style="color: #666; font-size: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">📧 Email original destinado a: ${userEmail}</p>`,
+        from: "Trado <onboarding@resend.dev>",
+        to: [adminEmail],
+        subject: `${statusEmoji} ${typeText} ${statusText} - ${userName}`,
+        html: emailHtml,
       }),
     });
 
