@@ -58,6 +58,36 @@ const JoinTransaction = () => {
 
       if (updateError) throw updateError;
 
+      // Get buyer and seller profiles
+      const { data: buyerProfile } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", user.id)
+        .single();
+
+      const { data: sellerProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", transaction.seller_id)
+        .single();
+
+      // Send payment instructions to buyer
+      try {
+        await supabase.functions.invoke("send-payment-instructions", {
+          body: {
+            buyerEmail: buyerProfile?.email || user.email || "",
+            buyerName: buyerProfile?.full_name || "Comprador",
+            referenceCode: transaction.invite_code,
+            totalAmount: transaction.amount + (transaction.commission || 0),
+            productName: transaction.product_name,
+            sellerName: sellerProfile?.full_name || "Vendedor",
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending payment instructions:", emailError);
+        // Don't fail the join if email fails
+      }
+
       toast.success("¡Te uniste a la transacción!");
       navigate(`/transaction/${transaction.id}`);
     } catch (error: any) {
