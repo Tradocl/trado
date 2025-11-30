@@ -162,7 +162,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "Trado <onboarding@resend.dev>",
+      from: "Trado Notificaciones <notificaciones@send.trado.cl>",
       to: ["josepabloacevedoolivares@gmail.com"],
       subject: subject,
       html: html,
