@@ -163,7 +163,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "Trado <onboarding@resend.dev>",
-      to: ["admin@trado.cl"], // Cambiar por el email real del administrador
+      to: ["josepabloacevedoolivares@gmail.com"],
       subject: subject,
       html: html,
     });
