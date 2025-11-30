@@ -32,6 +32,7 @@ interface WalletMovement {
   balance_after: number;
   description: string;
   created_at: string;
+  reviewed_at: string | null;
   status: string;
   user_name?: string;
   user_email?: string;
@@ -80,14 +81,18 @@ export default function Admin() {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: roleLoading } = useAdminRole();
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [movements, setMovements] = useState<WalletMovement[]>([]);
+  const [pendingDeposits, setPendingDeposits] = useState<WalletMovement[]>([]);
+  const [approvedDeposits, setApprovedDeposits] = useState<WalletMovement[]>([]);
+  const [pendingWithdrawals, setPendingWithdrawals] = useState<WalletMovement[]>([]);
+  const [approvedWithdrawals, setApprovedWithdrawals] = useState<WalletMovement[]>([]);
   const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
     pendingVerifications: 0,
-    pendingMovements: 0,
+    pendingDeposits: 0,
+    pendingWithdrawals: 0,
     totalTransactions: 0,
   });
 
@@ -123,33 +128,76 @@ export default function Admin() {
       if (profilesError) throw profilesError;
       setProfiles(profilesData || []);
 
-      // Load pending wallet movements
-      const { data: movementsData, error: movementsError } = await supabase
+      // Load pending deposits
+      const { data: pendingDepositsData, error: pendingDepositsError } = await supabase
         .from("wallet_movements")
         .select("*")
         .eq("status", "pending")
+        .eq("type", "deposit")
         .order("created_at", { ascending: false });
 
-      if (movementsError) throw movementsError;
+      if (pendingDepositsError) throw pendingDepositsError;
 
-      // Enrich movements with user data
-      const enrichedMovements = await Promise.all(
-        (movementsData || []).map(async (movement) => {
-          const { data: wallet } = await supabase
-            .from("wallets")
-            .select("user_id, profiles!wallets_user_id_fkey(full_name, email)")
-            .eq("id", movement.wallet_id)
-            .single();
-          
-          return {
-            ...movement,
-            user_name: wallet?.profiles?.full_name || "Usuario",
-            user_email: wallet?.profiles?.email || "",
-          };
-        })
-      );
+      // Load approved deposits (last 20)
+      const { data: approvedDepositsData, error: approvedDepositsError } = await supabase
+        .from("wallet_movements")
+        .select("*")
+        .eq("status", "approved")
+        .eq("type", "deposit")
+        .order("reviewed_at", { ascending: false })
+        .limit(20);
 
-      setMovements(enrichedMovements);
+      if (approvedDepositsError) throw approvedDepositsError;
+
+      // Load pending withdrawals
+      const { data: pendingWithdrawalsData, error: pendingWithdrawalsError } = await supabase
+        .from("wallet_movements")
+        .select("*")
+        .eq("status", "pending")
+        .eq("type", "withdrawal")
+        .order("created_at", { ascending: false });
+
+      if (pendingWithdrawalsError) throw pendingWithdrawalsError;
+
+      // Load approved withdrawals (last 20)
+      const { data: approvedWithdrawalsData, error: approvedWithdrawalsError } = await supabase
+        .from("wallet_movements")
+        .select("*")
+        .eq("status", "approved")
+        .eq("type", "withdrawal")
+        .order("reviewed_at", { ascending: false })
+        .limit(20);
+
+      if (approvedWithdrawalsError) throw approvedWithdrawalsError;
+
+      // Enrich all movements with user data
+      const enrichMovements = async (movements: any[]) => {
+        return await Promise.all(
+          (movements || []).map(async (movement) => {
+            const { data: wallet } = await supabase
+              .from("wallets")
+              .select("user_id, profiles!wallets_user_id_fkey(full_name, email)")
+              .eq("id", movement.wallet_id)
+              .single();
+            
+            return {
+              ...movement,
+              user_name: wallet?.profiles?.full_name || "Usuario",
+              user_email: wallet?.profiles?.email || "",
+            };
+          })
+        );
+      };
+
+      const enrichedPendingDeposits = await enrichMovements(pendingDepositsData);
+      const enrichedApprovedDeposits = await enrichMovements(approvedDepositsData);
+      const enrichedPendingWithdrawals = await enrichMovements(pendingWithdrawalsData);
+      const enrichedApprovedWithdrawals = await enrichMovements(approvedWithdrawalsData);
+
+      setPendingDeposits(enrichedPendingDeposits);
+      setApprovedDeposits(enrichedApprovedDeposits);
+      setPendingWithdrawals(enrichedPendingWithdrawals);
+      setApprovedWithdrawals(enrichedApprovedWithdrawals);
 
       // Load pending verifications
       const { data: verificationsData, error: verificationsError } = await supabase
@@ -177,7 +225,8 @@ export default function Admin() {
       setStats({
         totalUsers: profilesData?.length || 0,
         pendingVerifications: verificationsData?.length || 0,
-        pendingMovements: movementsData?.length || 0,
+        pendingDeposits: pendingDepositsData?.length || 0,
+        pendingWithdrawals: pendingWithdrawalsData?.length || 0,
         totalTransactions: transactionsData?.length || 0,
       });
     } catch (error) {
@@ -378,7 +427,7 @@ export default function Admin() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4 mb-6">
+      <div className="grid gap-4 md:grid-cols-5 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Usuarios</CardTitle>
@@ -399,11 +448,20 @@ export default function Admin() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Movimientos Pendientes</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Depósitos Pendientes</CardTitle>
+            <Wallet className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingMovements}</div>
+            <div className="text-2xl font-bold">{stats.pendingDeposits}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Retiros Pendientes</CardTitle>
+            <Wallet className="h-4 w-4 text-warning" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pendingWithdrawals}</div>
           </CardContent>
         </Card>
         <Card>
@@ -417,18 +475,26 @@ export default function Admin() {
         </Card>
       </div>
 
-      <Tabs defaultValue="movements" className="space-y-4">
+      <Tabs defaultValue="deposits" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="movements">
-            Movimientos de Saldo
-            {stats.pendingMovements > 0 && (
+          <TabsTrigger value="deposits">
+            Depósitos
+            {stats.pendingDeposits > 0 && (
               <Badge variant="destructive" className="ml-2">
-                {stats.pendingMovements}
+                {stats.pendingDeposits}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="withdrawals">
+            Retiros
+            {stats.pendingWithdrawals > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {stats.pendingWithdrawals}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="transactions">
-            Transacciones
+            Salas de Venta
           </TabsTrigger>
           <TabsTrigger value="verifications">
             Verificaciones
@@ -561,97 +627,304 @@ export default function Admin() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="movements" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Movimientos Pendientes de Aprobación</CardTitle>
-              <CardDescription>Revisa y aprueba depósitos y retiros</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuario</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Monto</TableHead>
-                    <TableHead>Datos Bancarios</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {movements.map((movement) => (
-                    <TableRow key={movement.id}>
-                      <TableCell className="font-medium">{movement.user_name}</TableCell>
-                      <TableCell>{movement.user_email}</TableCell>
-                      <TableCell>
-                        <Badge variant={movement.type === "deposit" ? "default" : "secondary"}>
-                          {movement.type === "deposit" ? "Depósito" : "Retiro"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-semibold">
-                        ${formatCLP(movement.amount)}
-                      </TableCell>
-                      <TableCell>
-                        {movement.type === "withdrawal" && (
-                          <div className="text-xs space-y-1">
-                            <p><strong>Titular:</strong> {movement.bank_holder_name}</p>
-                            <p><strong>RUT:</strong> {movement.bank_holder_rut}</p>
-                            <p><strong>Banco:</strong> {movement.bank_name}</p>
-                            <p><strong>Tipo:</strong> {movement.bank_account_type}</p>
-                            <p><strong>N° Cuenta:</strong> {movement.bank_account_number}</p>
-                          </div>
-                        )}
-                        {movement.type === "deposit" && (
-                          <span className="text-xs text-muted-foreground">
-                            Depósito a cuenta Trado
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(movement.created_at).toLocaleDateString("es-CL")}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => handleApproveMovement(movement.id)}
-                          >
-                            <CheckCircle className="mr-1 h-4 w-4" />
-                            Aprobar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleRejectMovement(movement.id)}
-                          >
-                            <XCircle className="mr-1 h-4 w-4" />
-                            Rechazar
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {movements.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground">
-                        No hay movimientos pendientes
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+        <TabsContent value="deposits" className="space-y-4">
+          <Tabs defaultValue="pending" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="pending">
+                Por Aprobar
+                {stats.pendingDeposits > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {stats.pendingDeposits}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="approved">Aprobados</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="pending">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Depósitos Pendientes de Aprobación</CardTitle>
+                  <CardDescription>Revisa y aprueba solicitudes de depósito</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Usuario</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Monto</TableHead>
+                        <TableHead>Fecha Solicitud</TableHead>
+                        <TableHead>Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingDeposits.map((deposit) => (
+                        <TableRow key={deposit.id}>
+                          <TableCell className="font-medium">{deposit.user_name}</TableCell>
+                          <TableCell>{deposit.user_email}</TableCell>
+                          <TableCell className="font-bold text-success">
+                            +${formatCLP(deposit.amount)}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(deposit.created_at).toLocaleDateString("es-CL", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            })}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleApproveMovement(deposit.id)}
+                              >
+                                <CheckCircle className="mr-1 h-4 w-4" />
+                                Aprobar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleRejectMovement(deposit.id)}
+                              >
+                                <XCircle className="mr-1 h-4 w-4" />
+                                Rechazar
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {pendingDeposits.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                            No hay depósitos pendientes
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="approved">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Depósitos Aprobados</CardTitle>
+                  <CardDescription>Últimos 20 depósitos aprobados</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Usuario</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Monto</TableHead>
+                        <TableHead>Fecha Aprobación</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {approvedDeposits.map((deposit) => (
+                        <TableRow key={deposit.id}>
+                          <TableCell className="font-medium">{deposit.user_name}</TableCell>
+                          <TableCell>{deposit.user_email}</TableCell>
+                          <TableCell className="font-bold text-success">
+                            +${formatCLP(deposit.amount)}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(deposit.reviewed_at || deposit.created_at).toLocaleDateString("es-CL", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {approvedDeposits.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                            No hay depósitos aprobados
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="withdrawals" className="space-y-4">
+          <Tabs defaultValue="pending" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="pending">
+                Por Aprobar
+                {stats.pendingWithdrawals > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {stats.pendingWithdrawals}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="approved">Aprobados</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="pending">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Retiros Pendientes de Aprobación</CardTitle>
+                  <CardDescription>Revisa datos bancarios y aprueba retiros</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Usuario</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Monto</TableHead>
+                        <TableHead>Datos Bancarios</TableHead>
+                        <TableHead>Fecha Solicitud</TableHead>
+                        <TableHead>Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingWithdrawals.map((withdrawal) => (
+                        <TableRow key={withdrawal.id}>
+                          <TableCell className="font-medium">{withdrawal.user_name}</TableCell>
+                          <TableCell>{withdrawal.user_email}</TableCell>
+                          <TableCell className="font-bold text-warning">
+                            -${formatCLP(withdrawal.amount)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-xs space-y-1">
+                              <p><strong>Titular:</strong> {withdrawal.bank_holder_name}</p>
+                              <p><strong>RUT:</strong> {withdrawal.bank_holder_rut}</p>
+                              <p><strong>Banco:</strong> {withdrawal.bank_name}</p>
+                              <p><strong>Tipo:</strong> {withdrawal.bank_account_type}</p>
+                              <p><strong>N° Cuenta:</strong> {withdrawal.bank_account_number}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(withdrawal.created_at).toLocaleDateString("es-CL", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            })}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleApproveMovement(withdrawal.id)}
+                              >
+                                <CheckCircle className="mr-1 h-4 w-4" />
+                                Aprobar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleRejectMovement(withdrawal.id)}
+                              >
+                                <XCircle className="mr-1 h-4 w-4" />
+                                Rechazar
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {pendingWithdrawals.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                            No hay retiros pendientes
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="approved">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Retiros Aprobados</CardTitle>
+                  <CardDescription>Últimos 20 retiros procesados</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Usuario</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Monto</TableHead>
+                        <TableHead>Datos Bancarios</TableHead>
+                        <TableHead>Fecha Aprobación</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {approvedWithdrawals.map((withdrawal) => (
+                        <TableRow key={withdrawal.id}>
+                          <TableCell className="font-medium">{withdrawal.user_name}</TableCell>
+                          <TableCell>{withdrawal.user_email}</TableCell>
+                          <TableCell className="font-bold text-warning">
+                            -${formatCLP(withdrawal.amount)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-xs space-y-1">
+                              <p><strong>Titular:</strong> {withdrawal.bank_holder_name}</p>
+                              <p><strong>RUT:</strong> {withdrawal.bank_holder_rut}</p>
+                              <p><strong>Banco:</strong> {withdrawal.bank_name}</p>
+                              <p><strong>Tipo:</strong> {withdrawal.bank_account_type}</p>
+                              <p><strong>N° Cuenta:</strong> {withdrawal.bank_account_number}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(withdrawal.reviewed_at || withdrawal.created_at).toLocaleDateString("es-CL", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {approvedWithdrawals.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                            No hay retiros aprobados
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="transactions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Todas las Transacciones</CardTitle>
-              <CardDescription>Salas de venta activas y finalizadas</CardDescription>
+              <CardTitle>
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="h-5 w-5" />
+                  Salas de Venta - Modo Consulta
+                </div>
+              </CardTitle>
+              <CardDescription>
+                Vista de todas las transacciones. Los usuarios gestionan sus propias salas de venta.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -663,7 +936,7 @@ export default function Admin() {
                     <TableHead className="text-right">Monto</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha Creación</TableHead>
-                    <TableHead>Acciones</TableHead>
+                    <TableHead>Ver</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -714,7 +987,7 @@ export default function Admin() {
                   ))}
                   {transactions.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                         No hay transacciones registradas
                       </TableCell>
                     </TableRow>
