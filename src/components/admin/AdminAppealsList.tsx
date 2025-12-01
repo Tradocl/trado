@@ -48,7 +48,7 @@ export function AdminAppealsList() {
             seller:profiles!transactions_seller_id_fkey(full_name),
             buyer:profiles!transactions_buyer_id_fkey(full_name)
           ),
-          initiator:profiles!appeals_initiator_id_fkey(full_name)
+          initiator:profiles(full_name)
         `)
         .order("created_at", { ascending: false });
 

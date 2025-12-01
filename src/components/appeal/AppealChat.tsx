@@ -54,7 +54,7 @@ export function AppealChat({ appealId, currentUserId }: AppealChatProps) {
         .from("appeal_messages")
         .select(`
           *,
-          user:profiles!appeal_messages_user_id_fkey(full_name)
+          user:profiles(full_name)
         `)
         .eq("appeal_id", appealId)
         .order("created_at", { ascending: true });
