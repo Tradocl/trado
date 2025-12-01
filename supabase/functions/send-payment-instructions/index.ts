@@ -108,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Trado Notificaciones <notificaciones@send.trado.cl>",
+        from: "Trado Notificaciones <notificaciones@trado.cl>",
         to: [buyerEmail],
         subject: `Instrucciones de Pago - Orden #${referenceCode}`,
         html: emailHtml,
