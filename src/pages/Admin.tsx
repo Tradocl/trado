@@ -49,6 +49,7 @@ interface VerificationRequest {
   email: string;
   verification_status: string;
   verification_document_url: string | null;
+  verification_selfie_url: string | null;
   verification_submitted_at: string | null;
 }
 
@@ -202,7 +203,7 @@ export default function Admin() {
       // Load pending verifications
       const { data: verificationsData, error: verificationsError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, verification_status, verification_document_url, verification_submitted_at")
+        .select("id, full_name, email, verification_status, verification_document_url, verification_selfie_url, verification_submitted_at")
         .in("verification_status", ["pending", "in_review"])
         .order("verification_submitted_at", { ascending: false });
 
@@ -562,7 +563,7 @@ export default function Admin() {
                     <TableHead>Email</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha Envío</TableHead>
-                    <TableHead>Documento</TableHead>
+                    <TableHead>Documentos</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -580,17 +581,30 @@ export default function Admin() {
                           : "-"}
                       </TableCell>
                       <TableCell>
-                        {verification.verification_document_url && (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            onClick={() =>
-                              window.open(verification.verification_document_url!, "_blank")
-                            }
-                          >
-                            Ver documento
-                          </Button>
-                        )}
+                        <div className="flex gap-2">
+                          {verification.verification_document_url && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={() =>
+                                window.open(verification.verification_document_url!, "_blank")
+                              }
+                            >
+                              Ver Carnet
+                            </Button>
+                          )}
+                          {verification.verification_selfie_url && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={() =>
+                                window.open(verification.verification_selfie_url!, "_blank")
+                              }
+                            >
+                              Ver Selfie
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

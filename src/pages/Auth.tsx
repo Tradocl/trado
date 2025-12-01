@@ -16,10 +16,13 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [verificationFile, setVerificationFile] = useState<File | null>(null);
+  const [verificationSelfie, setVerificationSelfie] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [previewSelfieUrl, setPreviewSelfieUrl] = useState<string>("");
   const [newUserId, setNewUserId] = useState<string>("");
 
   useEffect(() => {
@@ -106,18 +109,37 @@ const Auth = () => {
     }
   };
 
+  const handleSelfieChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type and size
+      if (!file.type.startsWith('image/')) {
+        toast.error("Por favor selecciona una imagen válida");
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) { // 5MB
+        toast.error("La imagen no debe superar 5MB");
+        return;
+      }
+
+      setVerificationSelfie(file);
+      setPreviewSelfieUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleUploadVerification = async () => {
-    if (!verificationFile || !newUserId) {
-      toast.error("Por favor selecciona una imagen");
+    if (!verificationFile || !verificationSelfie || !newUserId) {
+      toast.error("Por favor selecciona ambas imágenes");
       return;
     }
 
     setUploadingDoc(true);
 
     try {
-      // Upload to Supabase Storage
+      // Upload document to Supabase Storage
       const fileExt = verificationFile.name.split('.').pop();
-      const fileName = `${newUserId}-${Date.now()}.${fileExt}`;
+      const fileName = `${newUserId}-doc-${Date.now()}.${fileExt}`;
       const filePath = `${newUserId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -126,17 +148,33 @@ const Auth = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Upload selfie to Supabase Storage
+      const selfieExt = verificationSelfie.name.split('.').pop();
+      const selfieName = `${newUserId}-selfie-${Date.now()}.${selfieExt}`;
+      const selfiePath = `${newUserId}/${selfieName}`;
+
+      const { error: selfieUploadError } = await supabase.storage
+        .from('verification-documents')
+        .upload(selfiePath, verificationSelfie);
+
+      if (selfieUploadError) throw selfieUploadError;
+
+      // Get public URLs
       const { data: { publicUrl } } = supabase.storage
         .from('verification-documents')
         .getPublicUrl(filePath);
 
-      // Update profile with verification document
+      const { data: { publicUrl: selfiePublicUrl } } = supabase.storage
+        .from('verification-documents')
+        .getPublicUrl(selfiePath);
+
+      // Update profile with verification documents
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
           verification_document_url: publicUrl,
-          verification_status: 'pending',
+          verification_selfie_url: selfiePublicUrl,
+          verification_status: 'in_review',
           verification_submitted_at: new Date().toISOString(),
         })
         .eq('id', newUserId);
@@ -160,6 +198,7 @@ const Auth = () => {
               userRut: profileData.rut || 'No especificado',
               userPhone: profileData.phone || 'No especificado',
               documentUrl: publicUrl,
+              selfieUrl: selfiePublicUrl,
               userId: newUserId
             }
           });
@@ -169,7 +208,7 @@ const Auth = () => {
         }
       }
 
-      toast.success("¡Documento enviado! Tu verificación será revisada pronto");
+      toast.success("¡Documentos enviados! Tu verificación será revisada pronto");
       setShowVerificationDialog(false);
       navigate("/dashboard");
     } catch (error: any) {
@@ -230,6 +269,28 @@ const Auth = () => {
                       required
                     />
                   </div>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="px-0 text-sm"
+                    onClick={async () => {
+                      const email = (document.getElementById('signin-email') as HTMLInputElement)?.value;
+                      if (!email) {
+                        toast.error("Por favor ingresa tu email primero");
+                        return;
+                      }
+                      try {
+                        await supabase.auth.resetPasswordForEmail(email, {
+                          redirectTo: `${window.location.origin}/auth`
+                        });
+                        toast.success("Te hemos enviado un email con instrucciones para recuperar tu contraseña");
+                      } catch (error: any) {
+                        toast.error("Error al enviar email de recuperación");
+                      }
+                    }}
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Button>
                   <Button type="submit" className="w-full" disabled={loading}>
                     <Lock className="mr-2 h-4 w-4" />
                     {loading ? "Ingresando..." : "Iniciar Sesión"}
@@ -320,30 +381,27 @@ const Auth = () => {
               Verificación de Identidad
             </DialogTitle>
             <DialogDescription>
-              Para mayor seguridad, sube una foto tuya sosteniendo tu cédula de identidad o carnet
+              Sube tu cédula de identidad y una selfie sosteniendo el carnet
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {previewUrl && (
-              <div className="relative w-full h-48 bg-muted rounded-lg overflow-hidden">
-                <img 
-                  src={previewUrl} 
-                  alt="Preview" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-
-            <div className="flex items-center justify-center w-full">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    {verificationFile ? verificationFile.name : "Haz clic para subir una imagen"}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    PNG, JPG hasta 5MB
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Foto de tu Carnet</Label>
+              {previewUrl && (
+                <div className="relative w-full h-32 bg-muted rounded-lg overflow-hidden mb-2">
+                  <img 
+                    src={previewUrl} 
+                    alt="Preview Carnet" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex flex-col items-center justify-center">
+                  <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                  <p className="text-xs text-muted-foreground">
+                    {verificationFile ? verificationFile.name : "Sube tu carnet"}
                   </p>
                 </div>
                 <input
@@ -351,6 +409,33 @@ const Auth = () => {
                   className="hidden"
                   accept="image/*"
                   onChange={handleFileChange}
+                />
+              </label>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Selfie con Carnet</Label>
+              {previewSelfieUrl && (
+                <div className="relative w-full h-32 bg-muted rounded-lg overflow-hidden mb-2">
+                  <img 
+                    src={previewSelfieUrl} 
+                    alt="Preview Selfie" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex flex-col items-center justify-center">
+                  <Camera className="h-6 w-6 text-muted-foreground mb-1" />
+                  <p className="text-xs text-muted-foreground">
+                    {verificationSelfie ? verificationSelfie.name : "Toma una selfie con tu carnet"}
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleSelfieChange}
                 />
               </label>
             </div>
@@ -373,9 +458,9 @@ const Auth = () => {
               <Button
                 onClick={handleUploadVerification}
                 className="flex-1"
-                disabled={!verificationFile || uploadingDoc}
+                disabled={!verificationFile || !verificationSelfie || uploadingDoc}
               >
-                {uploadingDoc ? "Subiendo..." : "Enviar Documento"}
+                {uploadingDoc ? "Subiendo..." : "Enviar Documentos"}
               </Button>
             </div>
           </div>
