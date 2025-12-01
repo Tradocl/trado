@@ -96,6 +96,23 @@ const Verification = () => {
 
       if (updateError) throw updateError;
 
+      // Notificar al admin
+      try {
+        await supabase.functions.invoke('notify-verification-submitted', {
+          body: {
+            userName: profile.full_name,
+            userEmail: profile.email,
+            userRut: profile.rut || 'No especificado',
+            userPhone: profile.phone || 'No especificado',
+            documentUrl: urlData.publicUrl,
+            userId: user.id
+          }
+        });
+      } catch (notifError) {
+        console.error('Error sending notification:', notifError);
+        // No mostramos error al usuario, el documento fue subido correctamente
+      }
+
       toast.success("¡Documento enviado! Tu verificación está en revisión.");
       fetchProfile();
       setSelectedFile(null);
