@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { formatCLP } from "@/lib/utils";
-import tradoLogo from "@/assets/trado-logo.png";
+import tradoShield from "@/assets/trado-shield.png";
 
 interface Profile {
   full_name: string;
@@ -147,7 +147,10 @@ const Dashboard = () => {
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <img src={tradoLogo} alt="Trado" className="h-10 w-auto" />
+          <div className="flex items-center gap-3">
+            <img src={tradoShield} alt="Trado" className="h-12 w-12" />
+            <h1 className="text-2xl font-bold">Trado</h1>
+          </div>
           <div className="flex gap-2">
             {isAdmin && (
               <Button variant="outline" onClick={() => navigate("/admin")}>

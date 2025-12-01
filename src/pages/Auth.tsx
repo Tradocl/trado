@@ -232,7 +232,7 @@ const Auth = () => {
         <Card className="w-full max-w-md shadow-2xl border-0">
           <CardHeader className="text-center space-y-2">
             <div className="flex justify-center mb-4">
-              <img src={tradoLogo} alt="Trado" className="h-24 w-auto" />
+              <img src={tradoLogo} alt="Trado" className="h-32 w-auto" />
             </div>
             <CardDescription className="text-base">
               Compra y vende con seguridad
