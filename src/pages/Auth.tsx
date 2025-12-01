@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera } from "lucide-react";
 import { validateRUT, validateChileanPhone } from "@/lib/validators";
+import tradoLogo from "@/assets/trado-logo.png";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -231,11 +232,8 @@ const Auth = () => {
         <Card className="w-full max-w-md shadow-2xl border-0">
           <CardHeader className="text-center space-y-2">
             <div className="flex justify-center mb-4">
-              <div className="p-4 bg-primary rounded-2xl">
-                <Shield className="h-12 w-12 text-primary-foreground" />
-              </div>
+              <img src={tradoLogo} alt="Trado" className="h-24 w-auto" />
             </div>
-            <CardTitle className="text-3xl font-bold">Trado</CardTitle>
             <CardDescription className="text-base">
               Compra y vende con seguridad
             </CardDescription>
