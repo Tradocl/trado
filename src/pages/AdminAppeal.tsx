@@ -371,7 +371,6 @@ export default function AdminAppeal() {
                 <TabsContent value="chat" className="mt-6">
                   <AppealChat
                     appealId={appeal.id}
-                    canSendMessages={false}
                     currentUserId={user?.id || ""}
                   />
                 </TabsContent>

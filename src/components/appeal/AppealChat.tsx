@@ -9,11 +9,10 @@ import { es } from "date-fns/locale";
 
 interface AppealChatProps {
   appealId: string;
-  canSendMessages: boolean;
   currentUserId: string;
 }
 
-export function AppealChat({ appealId, canSendMessages, currentUserId }: AppealChatProps) {
+export function AppealChat({ appealId, currentUserId }: AppealChatProps) {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -68,7 +67,7 @@ export function AppealChat({ appealId, canSendMessages, currentUserId }: AppealC
   };
 
   const handleSend = async () => {
-    if (!newMessage.trim() || !canSendMessages) return;
+    if (!newMessage.trim()) return;
 
     setSending(true);
     try {
@@ -96,15 +95,6 @@ export function AppealChat({ appealId, canSendMessages, currentUserId }: AppealC
       handleSend();
     }
   };
-
-  if (!canSendMessages && messages.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        <Lock className="h-12 w-12 mx-auto mb-2 opacity-50" />
-        <p>El chat está bloqueado. La apelación está en revisión por la plataforma.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -143,31 +133,24 @@ export function AppealChat({ appealId, canSendMessages, currentUserId }: AppealC
         <div ref={messagesEndRef} />
       </div>
 
-      {canSendMessages ? (
-        <div className="flex gap-2">
-          <Textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Escribe tu mensaje..."
-            className="min-h-[80px]"
-            disabled={sending}
-          />
-          <Button
-            onClick={handleSend}
-            disabled={!newMessage.trim() || sending}
-            size="icon"
-            className="shrink-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      ) : (
-        <div className="bg-muted p-3 rounded-lg text-sm text-center text-muted-foreground">
-          <Lock className="h-4 w-4 inline mr-2" />
-          El chat está bloqueado mientras la plataforma revisa la apelación
-        </div>
-      )}
+      <div className="flex gap-2">
+        <Textarea
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Escribe tu mensaje..."
+          className="min-h-[80px]"
+          disabled={sending}
+        />
+        <Button
+          onClick={handleSend}
+          disabled={!newMessage.trim() || sending}
+          size="icon"
+          className="shrink-0"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
