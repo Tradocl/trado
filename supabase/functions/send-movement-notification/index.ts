@@ -52,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    const adminEmail = "josepabloacevedoolivares@gmail.com";
+    const adminEmail = "admin@trado.cl";
     
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
