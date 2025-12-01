@@ -16,6 +16,7 @@ import { Store as StoreIcon } from "lucide-react";
 import { TransactionChat } from "@/components/TransactionChat";
 import { RatingDialog } from "@/components/RatingDialog";
 import { UserRatings } from "@/components/UserRatings";
+import { CreateAppealDialog } from "@/components/appeal/CreateAppealDialog";
 import { formatCLP } from "@/lib/utils";
 
 interface Transaction {

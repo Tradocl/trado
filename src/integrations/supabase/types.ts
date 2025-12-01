@@ -14,6 +14,202 @@ export type Database = {
   }
   public: {
     Tables: {
+      appeal_decisions: {
+        Row: {
+          admin_id: string
+          appeal_id: string
+          buyer_refund_amount: number | null
+          created_at: string
+          id: string
+          resolution: Database["public"]["Enums"]["appeal_resolution"]
+          resolution_notes: string
+          seller_payment_amount: number | null
+        }
+        Insert: {
+          admin_id: string
+          appeal_id: string
+          buyer_refund_amount?: number | null
+          created_at?: string
+          id?: string
+          resolution: Database["public"]["Enums"]["appeal_resolution"]
+          resolution_notes: string
+          seller_payment_amount?: number | null
+        }
+        Update: {
+          admin_id?: string
+          appeal_id?: string
+          buyer_refund_amount?: number | null
+          created_at?: string
+          id?: string
+          resolution?: Database["public"]["Enums"]["appeal_resolution"]
+          resolution_notes?: string
+          seller_payment_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeal_decisions_appeal_id_fkey"
+            columns: ["appeal_id"]
+            isOneToOne: false
+            referencedRelation: "appeals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appeal_evidence: {
+        Row: {
+          appeal_id: string
+          comment: string | null
+          created_at: string
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          appeal_id: string
+          comment?: string | null
+          created_at?: string
+          file_name: string
+          file_type: string
+          file_url: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          appeal_id?: string
+          comment?: string | null
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeal_evidence_appeal_id_fkey"
+            columns: ["appeal_id"]
+            isOneToOne: false
+            referencedRelation: "appeals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appeal_messages: {
+        Row: {
+          appeal_id: string
+          created_at: string
+          id: string
+          message: string
+          user_id: string
+        }
+        Insert: {
+          appeal_id: string
+          created_at?: string
+          id?: string
+          message: string
+          user_id: string
+        }
+        Update: {
+          appeal_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeal_messages_appeal_id_fkey"
+            columns: ["appeal_id"]
+            isOneToOne: false
+            referencedRelation: "appeals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appeal_ratings: {
+        Row: {
+          appeal_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          rater_id: string
+          stars: number
+        }
+        Insert: {
+          appeal_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rater_id: string
+          stars: number
+        }
+        Update: {
+          appeal_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rater_id?: string
+          stars?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeal_ratings_appeal_id_fkey"
+            columns: ["appeal_id"]
+            isOneToOne: false
+            referencedRelation: "appeals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appeals: {
+        Row: {
+          created_at: string
+          escalated_at: string | null
+          id: string
+          initiator_id: string
+          negotiation_deadline: string | null
+          reason: Database["public"]["Enums"]["appeal_reason"]
+          reason_description: string | null
+          status: Database["public"]["Enums"]["appeal_status"]
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          escalated_at?: string | null
+          id?: string
+          initiator_id: string
+          negotiation_deadline?: string | null
+          reason: Database["public"]["Enums"]["appeal_reason"]
+          reason_description?: string | null
+          status?: Database["public"]["Enums"]["appeal_status"]
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          escalated_at?: string | null
+          id?: string
+          initiator_id?: string
+          negotiation_deadline?: string | null
+          reason?: Database["public"]["Enums"]["appeal_reason"]
+          reason_description?: string | null
+          status?: Database["public"]["Enums"]["appeal_status"]
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeals_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           created_at: string | null
@@ -192,6 +388,7 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          appeal_status: Database["public"]["Enums"]["appeal_status"] | null
           buyer_id: string | null
           cancelled_at: string | null
           commission: number | null
@@ -209,6 +406,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          appeal_status?: Database["public"]["Enums"]["appeal_status"] | null
           buyer_id?: string | null
           cancelled_at?: string | null
           commission?: number | null
@@ -226,6 +424,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          appeal_status?: Database["public"]["Enums"]["appeal_status"] | null
           buyer_id?: string | null
           cancelled_at?: string | null
           commission?: number | null
@@ -402,6 +601,27 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      appeal_reason:
+        | "producto_no_llego"
+        | "producto_diferente"
+        | "danos_o_fallas"
+        | "incumplimiento_acuerdo"
+        | "otro"
+      appeal_resolution:
+        | "liberar_fondos_vendedor"
+        | "reembolso_parcial"
+        | "reembolso_total"
+        | "solicitar_mas_evidencia"
+      appeal_status:
+        | "no_hay_apelacion"
+        | "apelacion_abierta"
+        | "en_negociacion"
+        | "pendiente_intervencion_plataforma"
+        | "en_revision_plataforma"
+        | "resuelta_a_favor_comprador"
+        | "resuelta_a_favor_vendedor"
+        | "resuelta_parcial"
+        | "cerrada"
       transaction_state:
         | "created"
         | "invited"
@@ -539,6 +759,30 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      appeal_reason: [
+        "producto_no_llego",
+        "producto_diferente",
+        "danos_o_fallas",
+        "incumplimiento_acuerdo",
+        "otro",
+      ],
+      appeal_resolution: [
+        "liberar_fondos_vendedor",
+        "reembolso_parcial",
+        "reembolso_total",
+        "solicitar_mas_evidencia",
+      ],
+      appeal_status: [
+        "no_hay_apelacion",
+        "apelacion_abierta",
+        "en_negociacion",
+        "pendiente_intervencion_plataforma",
+        "en_revision_plataforma",
+        "resuelta_a_favor_comprador",
+        "resuelta_a_favor_vendedor",
+        "resuelta_parcial",
+        "cerrada",
+      ],
       transaction_state: [
         "created",
         "invited",
