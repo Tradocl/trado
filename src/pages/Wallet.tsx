@@ -120,9 +120,33 @@ const Wallet = () => {
     if (searchParams.get("action") === "deposit") {
       setDepositOpen(true);
     } else if (searchParams.get("action") === "withdraw") {
-      setWithdrawOpen(true);
+      loadBankDetails().then(() => setWithdrawOpen(true));
     }
   }, [user, authLoading, navigate, searchParams]);
+
+  const loadBankDetails = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setBankHolderName(data.bank_holder_name || "");
+        setBankHolderRut(data.bank_holder_rut || "");
+        setBankName(data.bank_name || "");
+        setBankAccountType(data.bank_account_type || "");
+        setBankAccountNumber(data.bank_account_number || "");
+      }
+    } catch (error: any) {
+      console.error("Error loading bank details:", error);
+    }
+  };
 
   const loadWalletData = async () => {
     if (!user) return;
