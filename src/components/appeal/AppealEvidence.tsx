@@ -53,38 +53,7 @@ export function AppealEvidence({ appealId, currentUserId }: AppealEvidenceProps)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      
-      // Refresh signed URLs if needed
-      const evidenceWithFreshUrls = await Promise.all(
-        (data || []).map(async (item) => {
-          // Check if URL is expired or about to expire
-          try {
-            const response = await fetch(item.file_url, { method: 'HEAD' });
-            if (!response.ok) {
-              // URL expired, generate new signed URL
-              const filePath = item.file_url.split('/').slice(-2).join('/');
-              const { data: urlData } = await supabase.storage
-                .from("appeal-evidence")
-                .createSignedUrl(filePath, 31536000);
-              
-              if (urlData) {
-                // Update the URL in the database
-                await supabase
-                  .from("appeal_evidence")
-                  .update({ file_url: urlData.signedUrl })
-                  .eq("id", item.id);
-                
-                return { ...item, file_url: urlData.signedUrl };
-              }
-            }
-          } catch (e) {
-            // Ignore fetch errors, use existing URL
-          }
-          return item;
-        })
-      );
-      
-      setEvidence(evidenceWithFreshUrls);
+      setEvidence((data as any) || []);
     } catch (error: any) {
       console.error("Error fetching evidence:", error);
       toast.error("Error al cargar evidencias");
@@ -113,18 +82,16 @@ export function AppealEvidence({ appealId, currentUserId }: AppealEvidenceProps)
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData, error: urlError } = await supabase.storage
+      const { data: { publicUrl } } = supabase.storage
         .from("appeal-evidence")
-        .createSignedUrl(filePath, 31536000); // 1 year
-
-      if (urlError) throw urlError;
+        .getPublicUrl(filePath);
 
       const { error: insertError } = await supabase
         .from("appeal_evidence")
         .insert({
           appeal_id: appealId,
           user_id: currentUserId,
-          file_url: urlData.signedUrl,
+          file_url: publicUrl,
           file_type: file.type,
           file_name: file.name,
           comment: comment.trim() || null,
