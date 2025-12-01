@@ -3,10 +3,23 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, AlertCircle, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { 
+  ArrowLeft, 
+  AlertCircle, 
+  Clock, 
+  ShieldAlert,
+  MessageSquare,
+  FileText,
+  History,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Info
+} from "lucide-react";
 import { toast } from "sonner";
 import { AppealChat } from "@/components/appeal/AppealChat";
 import { AppealEvidence } from "@/components/appeal/AppealEvidence";
@@ -22,6 +35,7 @@ export default function Appeal() {
   const [transaction, setTransaction] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [escalating, setEscalating] = useState(false);
 
   useEffect(() => {
     if (!appealId) return;
@@ -62,7 +76,7 @@ export default function Appeal() {
       
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      setTimeRemaining(`${hours}h ${minutes}m restantes`);
+      setTimeRemaining(`${hours}h ${minutes}m`);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -101,6 +115,7 @@ export default function Appeal() {
   };
 
   const handleEscalate = async () => {
+    setEscalating(true);
     try {
       const { error } = await supabase
         .from("appeals")
@@ -111,27 +126,78 @@ export default function Appeal() {
         .eq("id", appealId);
 
       if (error) throw error;
-      toast.success("Apelación escalada a revisión de la plataforma");
+      toast.success("Apelación escalada correctamente");
     } catch (error: any) {
       console.error("Error escalating appeal:", error);
       toast.error("Error al escalar la apelación");
+    } finally {
+      setEscalating(false);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      apelacion_abierta: { label: "Abierta", variant: "default" },
-      en_negociacion: { label: "En Negociación", variant: "secondary" },
-      pendiente_intervencion_plataforma: { label: "Pendiente Intervención", variant: "outline" },
-      en_revision_plataforma: { label: "En Revisión", variant: "outline" },
-      resuelta_a_favor_comprador: { label: "Resuelta - Favor Comprador", variant: "default" },
-      resuelta_a_favor_vendedor: { label: "Resuelta - Favor Vendedor", variant: "default" },
-      resuelta_parcial: { label: "Resuelta Parcialmente", variant: "default" },
-      cerrada: { label: "Cerrada", variant: "secondary" },
+  const getStatusConfig = (status: string) => {
+    const configs: Record<string, { 
+      label: string; 
+      variant: "default" | "secondary" | "destructive" | "outline";
+      icon: any;
+      color: string;
+    }> = {
+      apelacion_abierta: { 
+        label: "Apelación Abierta", 
+        variant: "destructive",
+        icon: AlertTriangle,
+        color: "text-red-500"
+      },
+      en_negociacion: { 
+        label: "En Negociación", 
+        variant: "secondary",
+        icon: MessageSquare,
+        color: "text-amber-500"
+      },
+      pendiente_intervencion_plataforma: { 
+        label: "Pendiente Revisión", 
+        variant: "outline",
+        icon: Clock,
+        color: "text-blue-500"
+      },
+      en_revision_plataforma: { 
+        label: "En Revisión", 
+        variant: "outline",
+        icon: ShieldAlert,
+        color: "text-purple-500"
+      },
+      resuelta_a_favor_comprador: { 
+        label: "Resuelta - Comprador", 
+        variant: "default",
+        icon: CheckCircle2,
+        color: "text-green-500"
+      },
+      resuelta_a_favor_vendedor: { 
+        label: "Resuelta - Vendedor", 
+        variant: "default",
+        icon: CheckCircle2,
+        color: "text-green-500"
+      },
+      resuelta_parcial: { 
+        label: "Resuelta Parcial", 
+        variant: "default",
+        icon: CheckCircle2,
+        color: "text-green-500"
+      },
+      cerrada: { 
+        label: "Cerrada", 
+        variant: "secondary",
+        icon: XCircle,
+        color: "text-muted-foreground"
+      },
     };
     
-    const config = statusConfig[status] || { label: status, variant: "outline" };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return configs[status] || { 
+      label: status, 
+      variant: "outline",
+      icon: Info,
+      color: "text-muted-foreground"
+    };
   };
 
   const getReasonLabel = (reason: string) => {
@@ -147,147 +213,252 @@ export default function Appeal() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando apelación...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+        <Card className="p-8 max-w-md w-full">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent"></div>
+            <p className="text-lg font-medium">Cargando apelación...</p>
+          </div>
+        </Card>
       </div>
     );
   }
 
   if (!appeal || !transaction) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="p-6 max-w-md">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-center mb-2">Apelación no encontrada</h2>
-          <p className="text-muted-foreground text-center mb-4">
-            La apelación que buscas no existe o no tienes acceso a ella.
-          </p>
-          <Button onClick={() => navigate("/dashboard")} className="w-full">
-            Volver al Dashboard
-          </Button>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+        <Card className="p-8 max-w-md w-full">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
+              <AlertCircle className="h-8 w-8 text-destructive" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Apelación no encontrada</h2>
+              <p className="text-muted-foreground">
+                La apelación que buscas no existe o no tienes acceso a ella.
+              </p>
+            </div>
+            <Button onClick={() => navigate("/dashboard")} className="w-full mt-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver al Dashboard
+            </Button>
+          </div>
         </Card>
       </div>
     );
   }
 
-  const isBuyer = user?.id === transaction.buyer_id;
-  const isSeller = user?.id === transaction.seller_id;
-  const canChat = ["apelacion_abierta", "en_negociacion"].includes(appeal.status);
+  const statusConfig = getStatusConfig(appeal.status);
+  const StatusIcon = statusConfig.icon;
+  const canNegotiate = ["apelacion_abierta", "en_negociacion"].includes(appeal.status);
   const isResolved = ["resuelta_a_favor_comprador", "resuelta_a_favor_vendedor", "resuelta_parcial", "cerrada"].includes(appeal.status);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(`/transaction/${transaction.id}`)}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver a la transacción
-        </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Header */}
+        <div className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(`/transaction/${transaction.id}`)}
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver a la transacción
+          </Button>
+
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center ${statusConfig.color}`}>
+              <StatusIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Apelación</h1>
+              <p className="text-muted-foreground">Caso #{appeal.id.slice(0, 8).toUpperCase()}</p>
+            </div>
+          </div>
+        </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h1 className="text-2xl font-bold mb-2">Apelación #{appeal.id.slice(0, 8)}</h1>
-                  <p className="text-muted-foreground">
-                    Transacción: {transaction.product_name}
-                  </p>
+            {/* Status Card */}
+            <Card className="border-2 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <StatusIcon className="h-5 w-5" />
+                    Estado de la Apelación
+                  </CardTitle>
+                  <Badge variant={statusConfig.variant} className="text-sm">
+                    {statusConfig.label}
+                  </Badge>
                 </div>
-                {getStatusBadge(appeal.status)}
-              </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Transacción</p>
+                    <p className="font-semibold">{transaction.product_name}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Monto en Disputa</p>
+                    <p className="text-lg font-bold text-primary">{formatCLP(transaction.amount)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Motivo</p>
+                    <p className="font-semibold">{getReasonLabel(appeal.reason)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Iniciada</p>
+                    <p className="font-semibold">
+                      {new Date(appeal.created_at).toLocaleDateString("es-CL")}
+                    </p>
+                  </div>
+                </div>
 
-              <div className="grid gap-4 md:grid-cols-2 mb-6">
-                <div>
-                  <p className="text-sm text-muted-foreground">Motivo</p>
-                  <p className="font-medium">{getReasonLabel(appeal.reason)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Monto en disputa</p>
-                  <p className="font-medium">{formatCLP(transaction.amount)}</p>
-                </div>
                 {appeal.reason_description && (
-                  <div className="md:col-span-2">
-                    <p className="text-sm text-muted-foreground">Descripción</p>
-                    <p className="text-sm">{appeal.reason_description}</p>
-                  </div>
-                )}
-              </div>
-
-              {canChat && appeal.negotiation_deadline && (
-                <div className="bg-muted p-4 rounded-lg flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <span className="font-medium">{timeRemaining}</span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleEscalate}
-                  >
-                    Solicitar Intervención
-                  </Button>
-                </div>
-              )}
-
-              {appeal.status === "pendiente_intervencion_plataforma" && (
-                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 p-4 rounded-lg mb-6">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-amber-900 dark:text-amber-100">
-                        Esperando revisión de la plataforma
-                      </p>
-                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                        Un árbitro revisará el caso y tomará una decisión pronto.
+                  <>
+                    <Separator className="my-4" />
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Descripción del Problema</p>
+                      <p className="text-sm leading-relaxed bg-muted/50 p-3 rounded-lg">
+                        {appeal.reason_description}
                       </p>
                     </div>
-                  </div>
-                </div>
-              )}
+                  </>
+                )}
 
-              {isResolved && (
-                <AppealRatingDialog
-                  appealId={appeal.id}
-                  userId={user?.id || ""}
-                  isResolved={isResolved}
-                />
-              )}
+                {/* Negotiation Timer */}
+                {canNegotiate && appeal.negotiation_deadline && (
+                  <>
+                    <Separator className="my-4" />
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                      <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                            <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-amber-900 dark:text-amber-100">
+                              Tiempo de Negociación
+                            </p>
+                            <p className="text-sm text-amber-700 dark:text-amber-300">
+                              {timeRemaining} para resolver entre las partes
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={handleEscalate}
+                          disabled={escalating}
+                          className="border-amber-300 dark:border-amber-700"
+                        >
+                          {escalating ? (
+                            <>
+                              <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                              Escalando...
+                            </>
+                          ) : (
+                            <>
+                              <ShieldAlert className="h-4 w-4 mr-2" />
+                              Solicitar Intervención
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Platform Review Alert */}
+                {appeal.status === "pendiente_intervencion_plataforma" && (
+                  <>
+                    <Separator className="my-4" />
+                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
+                          <ShieldAlert className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                            Esperando Revisión de la Plataforma
+                          </p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            Un árbitro revisará toda la evidencia y conversaciones para tomar una decisión justa. 
+                            Recibirás una notificación cuando el caso sea resuelto.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Rating Dialog */}
+                {isResolved && (
+                  <>
+                    <Separator className="my-4" />
+                    <AppealRatingDialog
+                      appealId={appeal.id}
+                      userId={user?.id || ""}
+                      isResolved={isResolved}
+                    />
+                  </>
+                )}
+              </CardContent>
             </Card>
 
-            <Card className="p-6">
+            {/* Tabs Section */}
+            <Card className="border-2 shadow-lg">
               <Tabs defaultValue="chat" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="chat">Chat</TabsTrigger>
-                  <TabsTrigger value="evidence">Evidencia</TabsTrigger>
-                </TabsList>
-                <TabsContent value="chat" className="mt-6">
-                  <AppealChat
-                    appealId={appeal.id}
-                    currentUserId={user?.id || ""}
-                  />
-                </TabsContent>
-                <TabsContent value="evidence" className="mt-6">
-                  <AppealEvidence
-                    appealId={appeal.id}
-                    currentUserId={user?.id || ""}
-                  />
-                </TabsContent>
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 pb-0">
+                  <TabsList className="grid w-full grid-cols-2 h-12">
+                    <TabsTrigger value="chat" className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Chat
+                    </TabsTrigger>
+                    <TabsTrigger value="evidence" className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Evidencia
+                    </TabsTrigger>
+                  </TabsList>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <TabsContent value="chat" className="mt-0">
+                    <AppealChat
+                      appealId={appeal.id}
+                      currentUserId={user?.id || ""}
+                    />
+                  </TabsContent>
+                  <TabsContent value="evidence" className="mt-0">
+                    <AppealEvidence
+                      appealId={appeal.id}
+                      currentUserId={user?.id || ""}
+                    />
+                  </TabsContent>
+                </CardContent>
               </Tabs>
             </Card>
           </div>
 
+          {/* Sidebar */}
           <div className="lg:col-span-1">
-            <AppealTimeline
-              appeal={appeal}
-              transaction={transaction}
-            />
+            <Card className="border-2 shadow-lg sticky top-6">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5" />
+                  Historial
+                </CardTitle>
+                <CardDescription>
+                  Seguimiento de la apelación
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <AppealTimeline
+                  appeal={appeal}
+                  transaction={transaction}
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
