@@ -292,8 +292,8 @@ const CreateSale = () => {
 
       {/* Confirmation Modal */}
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-3 bg-success/10 rounded-xl">
                 <CheckCircle2 className="h-6 w-6 text-success" />
@@ -308,7 +308,7 @@ const CreateSale = () => {
           </DialogHeader>
 
           {formData && orderDetails && (
-            <div className="space-y-4 py-4">
+            <div className="space-y-4 py-4 overflow-y-auto flex-1">
               {/* Product Info */}
               <div className="p-4 bg-muted/30 rounded-lg space-y-2">
                 <h4 className="font-semibold text-sm text-muted-foreground">Producto</h4>
@@ -363,7 +363,7 @@ const CreateSale = () => {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="flex-shrink-0 gap-2 pt-4 border-t">
             <Button
               variant="outline"
               onClick={() => setShowConfirmModal(false)}
