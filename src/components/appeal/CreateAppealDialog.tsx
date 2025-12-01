@@ -54,7 +54,7 @@ export function CreateAppealDialog({ transactionId, userId }: CreateAppealDialog
           initiator_id: userId,
           reason: reason as Database["public"]["Enums"]["appeal_reason"],
           reason_description: description.trim(),
-          status: "en_negociacion" as Database["public"]["Enums"]["appeal_status"],
+          status: "apelacion_abierta" as Database["public"]["Enums"]["appeal_status"],
           negotiation_deadline: deadline.toISOString(),
         })
         .select()
@@ -65,7 +65,7 @@ export function CreateAppealDialog({ transactionId, userId }: CreateAppealDialog
       // Update transaction appeal status
       const { error: updateError } = await supabase
         .from("transactions")
-        .update({ appeal_status: "en_negociacion" as Database["public"]["Enums"]["appeal_status"] })
+        .update({ appeal_status: "apelacion_abierta" as Database["public"]["Enums"]["appeal_status"] })
         .eq("id", transactionId);
 
       if (updateError) throw updateError;
