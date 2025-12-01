@@ -12,8 +12,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale } from "lucide-react";
 import { formatCLP } from "@/lib/utils";
+import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
 
 interface Profile {
   id: string;
@@ -574,6 +575,10 @@ export default function Admin() {
                 {stats.pendingVerifications}
               </Badge>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="appeals">
+            <Scale className="h-4 w-4 mr-2" />
+            Apelaciones
           </TabsTrigger>
           <TabsTrigger value="users">Usuarios</TabsTrigger>
         </TabsList>

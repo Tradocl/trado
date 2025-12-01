@@ -16,6 +16,8 @@ import Admin from "./pages/Admin";
 import MovementHistory from "./pages/MovementHistory";
 import TransactionHistory from "./pages/TransactionHistory";
 import Profile from "./pages/Profile";
+import Appeal from "./pages/Appeal";
+import AdminAppeal from "./pages/AdminAppeal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +42,8 @@ const App = () => (
             <Route path="/movement-history" element={<MovementHistory />} />
             <Route path="/transaction-history" element={<TransactionHistory />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/appeal/:appealId" element={<Appeal />} />
+            <Route path="/admin/appeal/:appealId" element={<AdminAppeal />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
