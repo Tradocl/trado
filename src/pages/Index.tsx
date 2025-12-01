@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Shield, Lock, Users, TrendingUp, ArrowRight, Star, Quote } from "lucide-react";
-import tradoLogo from "@/assets/trado-logo.png";
+import tradoShield from "@/assets/trado-shield.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -13,8 +13,14 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center text-white space-y-8 max-w-4xl mx-auto">
           <div className="flex justify-center mb-8">
-            <img src={tradoLogo} alt="Trado" className="h-32 md:h-40 w-auto" />
+            <div className="p-6 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl">
+              <img src={tradoShield} alt="Trado" className="h-20 w-20" />
+            </div>
           </div>
+          
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+            Trado
+          </h1>
           
           <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
             Compra y vende con total seguridad. Tu dinero protegido hasta que confirmes la entrega.
