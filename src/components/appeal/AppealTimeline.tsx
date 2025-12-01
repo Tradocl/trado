@@ -34,10 +34,10 @@ export function AppealTimeline({ appeal, transaction }: AppealTimelineProps) {
         .from("appeal_decisions")
         .select(`
           *,
-          admin:profiles!appeal_decisions_admin_id_fkey(full_name)
+          admin:profiles(full_name)
         `)
         .eq("appeal_id", appeal.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setDecision(data);
