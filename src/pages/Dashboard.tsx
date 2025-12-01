@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -152,6 +152,10 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold">Trado</h1>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/profile")}>
+              <User className="mr-2 h-4 w-4" />
+              Perfil
+            </Button>
             {isAdmin && (
               <Button variant="outline" onClick={() => navigate("/admin")}>
                 <Settings className="mr-2 h-4 w-4" />
