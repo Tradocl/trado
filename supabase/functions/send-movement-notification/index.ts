@@ -52,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    const adminEmail = "josepabloacevedoolivares@gmail.com";
+    const adminEmail = "admin@trado.cl";
     
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -61,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Trado <onboarding@resend.dev>",
+        from: "Trado Notificaciones <notificaciones@trado.cl>",
         to: [adminEmail],
         subject: `${statusEmoji} ${typeText} ${statusText} - ${userName}`,
         html: emailHtml,
