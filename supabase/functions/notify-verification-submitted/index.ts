@@ -13,6 +13,7 @@ interface VerificationNotificationRequest {
   userRut: string;
   userPhone: string;
   documentUrl: string;
+  selfieUrl: string;
   userId: string;
 }
 
@@ -22,7 +23,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userName, userEmail, userRut, userPhone, documentUrl, userId }: VerificationNotificationRequest = await req.json();
+    const { userName, userEmail, userRut, userPhone, documentUrl, selfieUrl, userId }: VerificationNotificationRequest = await req.json();
 
     console.log("Sending verification notification:", { userName, userEmail, userId });
 
@@ -43,11 +44,16 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         
         <div style="background-color: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 5px 0;"><strong>Documento:</strong></p>
+          <p style="margin: 5px 0;"><strong>Documentos:</strong></p>
           <a href="${documentUrl}" 
              style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; 
-                    text-decoration: none; border-radius: 5px; margin-top: 10px;">
-            Ver Documento
+                    text-decoration: none; border-radius: 5px; margin: 10px 10px 0 0;">
+            Ver Carnet
+          </a>
+          <a href="${selfieUrl}" 
+             style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; 
+                    text-decoration: none; border-radius: 5px; margin: 10px 0 0 0;">
+            Ver Selfie con Carnet
           </a>
         </div>
         

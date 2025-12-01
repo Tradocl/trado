@@ -17,6 +17,7 @@ const Verification = () => {
   const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedSelfie, setSelectedSelfie] = useState<File | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -63,15 +64,38 @@ const Verification = () => {
     }
   };
 
+  const handleSelfieSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        toast.error("Solo se permiten imágenes");
+        return;
+      }
+      
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("La imagen debe ser menor a 5MB");
+        return;
+      }
+      
+      setSelectedSelfie(file);
+    }
+  };
+
   const handleUpload = async () => {
-    if (!selectedFile || !user) return;
+    if (!selectedFile || !selectedSelfie || !user) {
+      toast.error("Debes subir tanto tu carnet como tu selfie con el carnet");
+      return;
+    }
 
     setUploading(true);
 
     try {
-      // Subir archivo a storage
+      // Subir documento de identidad
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/document-${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('verification-documents')
@@ -79,16 +103,31 @@ const Verification = () => {
 
       if (uploadError) throw uploadError;
 
-      // Obtener URL pública
-      const { data: urlData } = supabase.storage
+      // Subir selfie
+      const selfieExt = selectedSelfie.name.split('.').pop();
+      const selfieName = `${user.id}/selfie-${Date.now()}.${selfieExt}`;
+      
+      const { error: selfieUploadError } = await supabase.storage
+        .from('verification-documents')
+        .upload(selfieName, selectedSelfie);
+
+      if (selfieUploadError) throw selfieUploadError;
+
+      // Obtener URLs públicas
+      const { data: docUrlData } = supabase.storage
         .from('verification-documents')
         .getPublicUrl(fileName);
+
+      const { data: selfieUrlData } = supabase.storage
+        .from('verification-documents')
+        .getPublicUrl(selfieName);
 
       // Actualizar perfil
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          verification_document_url: urlData.publicUrl,
+          verification_document_url: docUrlData.publicUrl,
+          verification_selfie_url: selfieUrlData.publicUrl,
           verification_status: 'in_review',
           verification_submitted_at: new Date().toISOString()
         })
@@ -104,7 +143,8 @@ const Verification = () => {
             userEmail: profile.email,
             userRut: profile.rut || 'No especificado',
             userPhone: profile.phone || 'No especificado',
-            documentUrl: urlData.publicUrl,
+            documentUrl: docUrlData.publicUrl,
+            selfieUrl: selfieUrlData.publicUrl,
             userId: user.id
           }
         });
@@ -113,11 +153,12 @@ const Verification = () => {
         // No mostramos error al usuario, el documento fue subido correctamente
       }
 
-      toast.success("¡Documento enviado! Tu verificación está en revisión.");
+      toast.success("¡Documentos enviados! Tu verificación está en revisión.");
       fetchProfile();
       setSelectedFile(null);
+      setSelectedSelfie(null);
     } catch (error: any) {
-      toast.error(error.message || "Error al subir documento");
+      toast.error(error.message || "Error al subir documentos");
     } finally {
       setUploading(false);
     }
@@ -211,8 +252,9 @@ const Verification = () => {
                     <h3 className="font-semibold mb-2">Instrucciones:</h3>
                     <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                       <li>Sube una foto clara de tu cédula de identidad (por ambos lados)</li>
-                      <li>Asegúrate de que toda la información sea legible</li>
-                      <li>El archivo debe ser menor a 5MB</li>
+                      <li>Sube una selfie donde aparezcas sosteniendo tu carnet al lado de tu rostro</li>
+                      <li>Asegúrate de que toda la información sea legible en ambas fotos</li>
+                      <li>Cada archivo debe ser menor a 5MB</li>
                       <li>Formatos aceptados: JPG, PNG, WEBP</li>
                     </ul>
                   </div>
@@ -233,9 +275,25 @@ const Verification = () => {
                     )}
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="selfie">Selfie con Carnet</Label>
+                    <Input
+                      id="selfie"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSelfieSelect}
+                      disabled={uploading}
+                    />
+                    {selectedSelfie && (
+                      <p className="text-sm text-muted-foreground">
+                        Archivo seleccionado: {selectedSelfie.name}
+                      </p>
+                    )}
+                  </div>
+
                   <Button
                     onClick={handleUpload}
-                    disabled={!selectedFile || uploading}
+                    disabled={!selectedFile || !selectedSelfie || uploading}
                     className="w-full"
                   >
                     <Upload className="mr-2 h-4 w-4" />
