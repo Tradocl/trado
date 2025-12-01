@@ -162,51 +162,6 @@ serve(async (req: Request): Promise<Response> => {
       }
     }
 
-    // Create automatic withdrawal for seller
-    const { data: sellerProfileWithBank, error: sellerBankError } = await supabaseClient
-      .from("profiles")
-      .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number")
-      .eq("id", tx.seller_id)
-      .single();
-
-    if (!sellerBankError && sellerProfileWithBank) {
-      // Calculate new balance after withdrawal
-      const balanceAfterWithdrawal = newSellerBalance - amountAfterCommission;
-
-      // Create automatic withdrawal request
-      const { error: withdrawalError } = await supabaseClient.from("wallet_movements").insert({
-        wallet_id: sellerWallet.id,
-        transaction_id: tx.id,
-        type: "withdrawal",
-        amount: -amountAfterCommission,
-        balance_after: balanceAfterWithdrawal,
-        status: "pending",
-        description: `Retiro automático - Venta "${tx.product_name}"`,
-        bank_holder_name: sellerProfileWithBank.bank_holder_name,
-        bank_holder_rut: sellerProfileWithBank.bank_holder_rut,
-        bank_name: sellerProfileWithBank.bank_name,
-        bank_account_type: sellerProfileWithBank.bank_account_type,
-        bank_account_number: sellerProfileWithBank.bank_account_number,
-      });
-
-      if (withdrawalError) {
-        console.error("Error creating automatic withdrawal", withdrawalError);
-        // Don't fail the transaction if withdrawal creation fails
-      } else {
-        // Update wallet balance to reflect the pending withdrawal
-        const { error: balanceUpdateError } = await supabaseClient
-          .from("wallets")
-          .update({ balance: balanceAfterWithdrawal })
-          .eq("id", sellerWallet.id);
-
-        if (balanceUpdateError) {
-          console.error("Error updating balance after withdrawal", balanceUpdateError);
-        }
-      }
-    } else {
-      console.log("Seller has no bank details configured, skipping automatic withdrawal");
-    }
-
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
