@@ -47,7 +47,7 @@ export function AppealEvidence({ appealId, currentUserId }: AppealEvidenceProps)
         .from("appeal_evidence")
         .select(`
           *,
-          user:profiles!appeal_evidence_user_id_fkey(full_name)
+          user:profiles(full_name)
         `)
         .eq("appeal_id", appealId)
         .order("created_at", { ascending: false });
