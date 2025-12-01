@@ -11,3 +11,13 @@ verify_jwt = false
 
 [functions.notify-transaction-created]
 verify_jwt = false
+
+[functions.notify-verification-submitted]
+verify_jwt = false
+
+[functions.send-payment-instructions]
+verify_jwt = false
+
+[functions.send-verification-result]
+verify_jwt = true
+

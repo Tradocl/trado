@@ -365,6 +365,13 @@ export default function Admin() {
 
   const handleApproveVerification = async (profileId: string) => {
     try {
+      // Get user data first for notification
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", profileId)
+        .single();
+
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -374,6 +381,23 @@ export default function Admin() {
         .eq("id", profileId);
 
       if (error) throw error;
+
+      // Send email notification
+      if (profile) {
+        try {
+          await supabase.functions.invoke("send-verification-result", {
+            body: {
+              userEmail: profile.email,
+              userName: profile.full_name,
+              status: "approved",
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending email:", emailError);
+          // Don't fail the approval if email fails
+        }
+      }
+
       toast.success("Verificación aprobada");
       loadAdminData();
     } catch (error) {
@@ -384,6 +408,13 @@ export default function Admin() {
 
   const handleRejectVerification = async (profileId: string) => {
     try {
+      // Get user data first for notification
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", profileId)
+        .single();
+
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -393,6 +424,23 @@ export default function Admin() {
         .eq("id", profileId);
 
       if (error) throw error;
+
+      // Send email notification
+      if (profile) {
+        try {
+          await supabase.functions.invoke("send-verification-result", {
+            body: {
+              userEmail: profile.email,
+              userName: profile.full_name,
+              status: "rejected",
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending email:", emailError);
+          // Don't fail the rejection if email fails
+        }
+      }
+
       toast.success("Verificación rechazada");
       loadAdminData();
     } catch (error) {
