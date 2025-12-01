@@ -419,9 +419,16 @@ const Transaction = () => {
                 </CardTitle>
                 <CardDescription className="text-base">{transaction.product_description}</CardDescription>
               </div>
-              <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-base px-4 py-2 shadow-lg animate-pulse`}>
-                {stateLabels[transaction.state]?.label || transaction.state}
-              </Badge>
+              <div className="flex flex-col gap-2 items-end">
+                <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-base px-4 py-2 shadow-lg animate-pulse`}>
+                  {stateLabels[transaction.state]?.label || transaction.state}
+                </Badge>
+                {activeAppeal && (
+                  <Badge className="bg-amber-500 text-white text-base px-4 py-2 shadow-lg animate-pulse">
+                    En Apelación
+                  </Badge>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6 pt-6">
@@ -675,12 +682,13 @@ const Transaction = () => {
                   size="lg"
                   className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
                   onClick={handleMarkAsShipped}
+                  disabled={!!activeAppeal}
                 >
                   <Truck className="mr-2 h-6 w-6" />
                   Marcar Producto como Enviado
                 </Button>
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
-                  📦 Marca cuando hayas enviado el producto al comprador
+                  {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Marca cuando hayas enviado el producto al comprador"}
                 </p>
               </div>
             )}
@@ -695,13 +703,13 @@ const Transaction = () => {
                   size="lg"
                   className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
                   onClick={handleConfirmDelivery}
-                  disabled={confirmingDelivery}
+                  disabled={confirmingDelivery || !!activeAppeal}
                 >
                   <Check className="mr-2 h-6 w-6" />
                   {confirmingDelivery ? "Procesando..." : "Confirmar que Recibí el Producto"}
                 </Button>
                 <p className="text-sm text-muted-foreground text-center">
-                  ⚠️ Solo confirma si recibiste el producto en perfectas condiciones
+                  {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "⚠️ Solo confirma si recibiste el producto en perfectas condiciones"}
                 </p>
               </div>
             )}

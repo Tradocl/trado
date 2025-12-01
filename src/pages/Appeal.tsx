@@ -270,7 +270,6 @@ export default function Appeal() {
                 <TabsContent value="chat" className="mt-6">
                   <AppealChat
                     appealId={appeal.id}
-                    canSendMessages={canChat}
                     currentUserId={user?.id || ""}
                   />
                 </TabsContent>
