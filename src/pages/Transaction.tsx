@@ -57,6 +57,7 @@ const Transaction = () => {
   const [sellerProfile, setSellerProfile] = useState<Profile | null>(null);
   const [buyerProfile, setBuyerProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeAppeal, setActiveAppeal] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
@@ -156,6 +157,19 @@ const Transaction = () => {
 
       setTransaction(txData);
       checkIfUserHasRated();
+
+      // Check if there's an active appeal
+      if (txData.appeal_status && txData.appeal_status !== "no_hay_apelacion" && txData.appeal_status !== "cerrada") {
+        const { data: appealData } = await supabase
+          .from("appeals")
+          .select("*")
+          .eq("transaction_id", id)
+          .single();
+        
+        setActiveAppeal(appealData);
+      } else {
+        setActiveAppeal(null);
+      }
 
       // Load seller profile
       const { data: sellerData } = await supabase
@@ -692,7 +706,32 @@ const Transaction = () => {
               </div>
             )}
 
-            {transaction && ["funds_secured", "in_delivery"].includes(transaction.state) && (
+            {/* Active Appeal Alert */}
+            {activeAppeal && (
+              <div className="mt-4 p-6 bg-amber-50 dark:bg-amber-950 border-2 border-amber-200 dark:border-amber-800 rounded-xl animate-scale-in">
+                <div className="flex items-start gap-3 mb-4">
+                  <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0 mt-1" />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-lg text-amber-900 dark:text-amber-100 mb-1">
+                      Apelación Activa
+                    </h4>
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+                      Hay una apelación en curso para esta transacción. Puedes revisar los detalles y participar en la resolución.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                  onClick={() => navigate(`/appeal/${activeAppeal.id}`)}
+                >
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Ir a Sala de Apelación
+                </Button>
+              </div>
+            )}
+
+            {/* Create Appeal Button - Only show if no active appeal */}
+            {!activeAppeal && transaction && ["funds_secured", "in_delivery"].includes(transaction.state) && (
               <div className="mt-4">
                 <CreateAppealDialog
                   transactionId={transaction.id}
