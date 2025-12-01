@@ -686,32 +686,18 @@ const Transaction = () => {
                   <Check className="mr-2 h-6 w-6" />
                   {confirmingDelivery ? "Procesando..." : "Confirmar que Recibí el Producto"}
                 </Button>
-                <Button 
-                  size="lg"
-                  variant="destructive" 
-                  className="w-full text-lg py-6 shadow-xl hover-scale"
-                  onClick={() => setDisputeDialogOpen(true)}
-                >
-                  <AlertCircle className="mr-2 h-6 w-6" />
-                  Reportar Problema / Abrir Disputa
-                </Button>
                 <p className="text-sm text-muted-foreground text-center">
                   ⚠️ Solo confirma si recibiste el producto en perfectas condiciones
                 </p>
               </div>
             )}
 
-            {(isSeller || isBuyer) && ['funds_secured', 'in_delivery'].includes(transaction.state) && (
-              <div className="pt-3">
-                <Button 
-                  size="lg"
-                  variant="outline" 
-                  className="w-full border-2 border-destructive/30 text-destructive hover:bg-destructive/10 text-base py-5"
-                  onClick={() => setDisputeDialogOpen(true)}
-                >
-                  <AlertCircle className="mr-2 h-5 w-5" />
-                  ¿Hay un Problema? Reportar Incidencia
-                </Button>
+            {transaction && ["funds_secured", "in_delivery"].includes(transaction.state) && (
+              <div className="mt-4">
+                <CreateAppealDialog
+                  transactionId={transaction.id}
+                  userId={user?.id || ""}
+                />
               </div>
             )}
 

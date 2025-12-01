@@ -1086,6 +1086,18 @@ export default function Admin() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="appeals" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Apelaciones</CardTitle>
+              <CardDescription>Revisa y resuelve las apelaciones de transacciones</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminAppealsList />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Reject Verification Dialog */}
