@@ -11,6 +11,7 @@ interface VerificationResultRequest {
   userEmail: string;
   userName: string;
   status: "approved" | "rejected";
+  rejectionReason?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -19,7 +20,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userEmail, userName, status }: VerificationResultRequest = await req.json();
+    const { userEmail, userName, status, rejectionReason }: VerificationResultRequest = await req.json();
 
     console.log("Sending verification result notification:", { userEmail, userName, status });
 
@@ -67,13 +68,20 @@ const handler = async (req: Request): Promise<Response> => {
           </p>
         </div>
         
-        <p><strong>Posibles motivos:</strong></p>
-        <ul style="color: #6b7280;">
-          <li>La imagen del documento no es clara o legible</li>
-          <li>La selfie con el carnet no muestra tu rostro o el documento con claridad</li>
-          <li>Los datos del documento no coinciden con tu información registrada</li>
-          <li>El documento no es válido o está vencido</li>
-        </ul>
+        ${rejectionReason ? `
+          <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0 0 5px 0; font-weight: bold; color: #92400e;">Motivo del rechazo:</p>
+            <p style="margin: 0; color: #78350f; white-space: pre-wrap;">${rejectionReason}</p>
+          </div>
+        ` : `
+          <p><strong>Posibles motivos:</strong></p>
+          <ul style="color: #6b7280;">
+            <li>La imagen del documento no es clara o legible</li>
+            <li>La selfie con el carnet no muestra tu rostro o el documento con claridad</li>
+            <li>Los datos del documento no coinciden con tu información registrada</li>
+            <li>El documento no es válido o está vencido</li>
+          </ul>
+        `}
         
         <p><strong>¿Qué puedes hacer?</strong></p>
         <p>Puedes intentar nuevamente subiendo imágenes más claras donde se vean todos los datos de tu cédula y tu rostro de forma nítida.</p>

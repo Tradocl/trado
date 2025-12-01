@@ -8,6 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag } from "lucide-react";
 import { formatCLP } from "@/lib/utils";
@@ -89,6 +92,9 @@ export default function Admin() {
   const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedVerificationId, setSelectedVerificationId] = useState<string>("");
+  const [rejectionReason, setRejectionReason] = useState("");
   const [stats, setStats] = useState({
     totalUsers: 0,
     pendingVerifications: 0,
@@ -406,13 +412,24 @@ export default function Admin() {
     }
   };
 
-  const handleRejectVerification = async (profileId: string) => {
+  const openRejectDialog = (profileId: string) => {
+    setSelectedVerificationId(profileId);
+    setRejectionReason("");
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectVerification = async () => {
+    if (!rejectionReason.trim()) {
+      toast.error("Por favor escribe un motivo de rechazo");
+      return;
+    }
+
     try {
       // Get user data first for notification
       const { data: profile } = await supabase
         .from("profiles")
         .select("email, full_name")
-        .eq("id", profileId)
+        .eq("id", selectedVerificationId)
         .single();
 
       const { error } = await supabase
@@ -420,8 +437,9 @@ export default function Admin() {
         .update({
           verification_status: "rejected",
           is_verified: false,
+          verification_rejection_reason: rejectionReason.trim(),
         })
-        .eq("id", profileId);
+        .eq("id", selectedVerificationId);
 
       if (error) throw error;
 
@@ -433,6 +451,7 @@ export default function Admin() {
               userEmail: profile.email,
               userName: profile.full_name,
               status: "rejected",
+              rejectionReason: rejectionReason.trim(),
             },
           });
         } catch (emailError) {
@@ -441,7 +460,10 @@ export default function Admin() {
         }
       }
 
-      toast.success("Verificación rechazada");
+      toast.success("Verificación rechazada con motivo enviado al usuario");
+      setRejectDialogOpen(false);
+      setRejectionReason("");
+      setSelectedVerificationId("");
       loadAdminData();
     } catch (error) {
       console.error("Error rejecting verification:", error);
@@ -667,7 +689,7 @@ export default function Admin() {
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => handleRejectVerification(verification.id)}
+                            onClick={() => openRejectDialog(verification.id)}
                           >
                             <XCircle className="h-4 w-4 mr-1" />
                             Rechazar
@@ -1060,6 +1082,42 @@ export default function Admin() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Reject Verification Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rechazar Verificación</DialogTitle>
+            <DialogDescription>
+              Por favor, especifica el motivo del rechazo. Este mensaje será enviado al usuario por email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason">Motivo del Rechazo</Label>
+              <Textarea
+                id="rejection-reason"
+                placeholder="Ej: La imagen del documento no es clara. Por favor, sube una foto con mejor iluminación donde se vean todos los datos de forma legible."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={5}
+                className="resize-none"
+              />
+              <p className="text-sm text-muted-foreground">
+                Sé específico sobre qué debe mejorar el usuario para aprobar su verificación.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleRejectVerification}>
+              Rechazar y Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
