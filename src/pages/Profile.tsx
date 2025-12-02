@@ -192,13 +192,13 @@ const Profile = () => {
       const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('verification-documents')
-        .upload(filePath, file);
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('verification-documents')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       const { error: updateError } = await supabase
