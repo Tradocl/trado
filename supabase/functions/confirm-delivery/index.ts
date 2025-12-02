@@ -104,6 +104,7 @@ serve(async (req: Request): Promise<Response> => {
       amount: amountAfterCommission,
       balance_after: newSellerBalance,
       description: `Venta "${tx.product_name}"`,
+      status: "approved",
     });
 
     if (movementError) {

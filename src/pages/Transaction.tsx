@@ -235,6 +235,7 @@ const Transaction = () => {
         amount: -transaction.amount,
         balance_after: newBalance,
         description: `Compra "${transaction.product_name}"`,
+        status: "approved",
       });
 
       await supabase

@@ -512,55 +512,57 @@ const Wallet = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {pendingMovements.map((movement) => {
-                  const isDeposit = movement.type === "deposit";
-                  return (
-                    <div
-                      key={movement.id}
-                      className="flex items-center justify-between p-4 border border-warning/30 rounded-lg bg-background"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="p-2 rounded-full bg-warning/10 text-warning">
-                          <Clock className="h-5 w-5" />
+                {pendingMovements
+                  .filter((movement) => movement.type === "deposit" || movement.type === "withdrawal")
+                  .map((movement) => {
+                    const isDeposit = movement.type === "deposit";
+                    return (
+                      <div
+                        key={movement.id}
+                        className="flex items-center justify-between p-4 border border-warning/30 rounded-lg bg-background"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="p-2 rounded-full bg-warning/10 text-warning">
+                            <Clock className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {isDeposit ? "Depósito" : "Retiro"} Pendiente
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(movement.created_at).toLocaleDateString("es-CL")} - {new Date(movement.created_at).toLocaleTimeString("es-CL")}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">
-                            {isDeposit ? "Depósito" : "Retiro"} Pendiente
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(movement.created_at).toLocaleDateString("es-CL")} - {new Date(movement.created_at).toLocaleTimeString("es-CL")}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-warning">
+                              {isDeposit ? "+" : "-"}${formatCLP(Math.abs(movement.amount))}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              En revisión
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditMovement(movement)}
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleCancelMovement(movement.id)}
+                            >
+                              Cancelar
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-warning">
-                            {isDeposit ? "+" : "-"}${formatCLP(Math.abs(movement.amount))}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            En revisión
-                          </p>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditMovement(movement)}
-                          >
-                            Editar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleCancelMovement(movement.id)}
-                          >
-                            Cancelar
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             </CardContent>
           </Card>
@@ -594,7 +596,7 @@ const Wallet = () => {
             ) : (
               <div className="space-y-4">
                 {movements.map((movement) => {
-                  const isDeposit = movement.type === "deposit";
+                  const isDeposit = movement.type === "deposit" || movement.type === "escrow_release";
                   return (
                     <div
                       key={movement.id}
