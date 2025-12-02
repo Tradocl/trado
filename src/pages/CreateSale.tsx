@@ -11,13 +11,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ArrowLeft, Store, Info, AlertCircle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { calculateOrderDetails, formatCLP } from "@/lib/utils";
+import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
 
 const CreateSale = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState<number>(0);
+  const [amountDisplay, setAmountDisplay] = useState("");
   const [orderDetails, setOrderDetails] = useState<ReturnType<typeof calculateOrderDetails> | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -28,7 +29,11 @@ const CreateSale = () => {
   } | null>(null);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
+    const rawValue = e.target.value;
+    const formatted = formatAmountInput(rawValue);
+    setAmountDisplay(formatted);
+    
+    const value = parseFormattedAmount(rawValue);
     if (value > 0) {
       setAmount(value);
       const details = calculateOrderDetails(value);
@@ -48,7 +53,7 @@ const CreateSale = () => {
     const form = new FormData(e.currentTarget);
     const productName = form.get("productName") as string;
     const productDescription = form.get("productDescription") as string;
-    const amount = parseFloat(form.get("amount") as string);
+    const amount = parseFormattedAmount(form.get("amount") as string);
 
     if (!productName || !amount || amount <= 0) {
       toast.error("Por favor completa todos los campos correctamente");
@@ -186,11 +191,11 @@ const CreateSale = () => {
                 <Input
                   id="amount"
                   name="amount"
-                  type="number"
-                  placeholder="150000"
-                  min="1"
-                  step="1"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="150.000"
                   required
+                  value={amountDisplay}
                   onChange={handleAmountChange}
                 />
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
