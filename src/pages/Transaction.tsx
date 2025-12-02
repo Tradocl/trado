@@ -18,6 +18,7 @@ import { RatingDialog } from "@/components/RatingDialog";
 import { UserRatings } from "@/components/UserRatings";
 import { CreateAppealDialog } from "@/components/appeal/CreateAppealDialog";
 import { formatCLP } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Transaction {
   id: string;
@@ -37,6 +38,7 @@ interface Profile {
   id: string;
   full_name: string;
   reputation_score: number;
+  avatar_url: string | null;
 }
 
 const stateLabels: Record<string, { label: string; color: string }> = {
@@ -521,13 +523,18 @@ const Transaction = () => {
             {/* Participants */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="p-5 border-2 border-success/30 rounded-xl bg-gradient-to-br from-success/10 to-success/5 shadow-md hover-scale">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-success/20 rounded-lg">
-                    <StoreIcon className="h-5 w-5 text-success" />
+                <div className="flex items-center gap-3 mb-3">
+                  <Avatar className="h-12 w-12 border-2 border-success/30">
+                    <AvatarImage src={sellerProfile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-success/20 text-success font-bold">
+                      {sellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'V'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-bold text-lg">Vendedor</h4>
+                    <p className="font-semibold">{sellerProfile?.full_name}</p>
                   </div>
-                  <h4 className="font-bold text-lg">Vendedor</h4>
                 </div>
-                <p className="font-semibold text-lg">{sellerProfile?.full_name}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <Star className="h-5 w-5 text-warning fill-warning" />
                   <span className="font-bold">{sellerProfile?.reputation_score?.toFixed(1) || "0.0"}</span>
@@ -535,15 +542,30 @@ const Transaction = () => {
                 {sellerProfile && <UserRatings userId={sellerProfile.id} maxRatings={3} />}
               </div>
               <div className="p-5 border-2 border-info/30 rounded-xl bg-gradient-to-br from-info/10 to-info/5 shadow-md hover-scale">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-info/20 rounded-lg">
-                    <Users className="h-5 w-5 text-info" />
+                <div className="flex items-center gap-3 mb-3">
+                  {buyerProfile ? (
+                    <Avatar className="h-12 w-12 border-2 border-info/30">
+                      <AvatarImage src={buyerProfile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-info/20 text-info font-bold">
+                        {buyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'C'}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div className="h-12 w-12 rounded-full bg-info/20 flex items-center justify-center">
+                      <Users className="h-6 w-6 text-info" />
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-bold text-lg">Comprador</h4>
+                    {buyerProfile ? (
+                      <p className="font-semibold">{buyerProfile.full_name}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Esperando...</p>
+                    )}
                   </div>
-                  <h4 className="font-bold text-lg">Comprador</h4>
                 </div>
                 {buyerProfile ? (
                   <>
-                    <p className="font-semibold text-lg">{buyerProfile.full_name}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <Star className="h-5 w-5 text-warning fill-warning" />
                       <span className="font-bold">{buyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
@@ -551,7 +573,7 @@ const Transaction = () => {
                     <UserRatings userId={buyerProfile.id} maxRatings={3} />
                   </>
                 ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+                  <div className="flex items-center gap-2 text-muted-foreground animate-pulse mt-2">
                     <div className="h-3 w-3 rounded-full bg-warning"></div>
                     <p className="text-sm font-medium">Esperando comprador...</p>
                   </div>
