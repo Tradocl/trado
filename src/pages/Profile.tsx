@@ -17,6 +17,36 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import tradoShield from "@/assets/trado-shield.png";
 
+interface PasswordRequirement {
+  label: string;
+  test: (password: string) => boolean;
+}
+
+const passwordRequirements: PasswordRequirement[] = [
+  { label: "Mínimo 8 caracteres", test: (p) => p.length >= 8 },
+  { label: "Al menos una mayúscula", test: (p) => /[A-Z]/.test(p) },
+  { label: "Al menos una minúscula", test: (p) => /[a-z]/.test(p) },
+  { label: "Al menos un número", test: (p) => /[0-9]/.test(p) },
+];
+
+const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+  if (!password) return { score: 0, label: "", color: "" };
+  
+  let score = 0;
+  
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[a-z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  
+  if (score <= 2) return { score: 25, label: "Débil", color: "bg-destructive" };
+  if (score <= 4) return { score: 50, label: "Media", color: "bg-warning" };
+  if (score <= 5) return { score: 75, label: "Fuerte", color: "bg-info" };
+  return { score: 100, label: "Muy fuerte", color: "bg-success" };
+};
+
 interface ProfileData {
   full_name: string;
   email: string;
@@ -50,12 +80,17 @@ const profileSchema = z.object({
 });
 
 const passwordSchema = z.object({
-  currentPassword: z.string().min(6, "Mínimo 6 caracteres"),
-  newPassword: z.string().min(6, "Mínimo 6 caracteres"),
-  confirmPassword: z.string().min(6, "Mínimo 6 caracteres"),
+  currentPassword: z.string().min(1, "Ingresa tu contraseña actual"),
+  newPassword: z.string().min(8, "Mínimo 8 caracteres"),
+  confirmPassword: z.string().min(1, "Confirma tu contraseña"),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Las contraseñas no coinciden",
   path: ["confirmPassword"],
+}).refine((data) => {
+  return passwordRequirements.every(req => req.test(data.newPassword));
+}, {
+  message: "La contraseña no cumple con los requisitos",
+  path: ["newPassword"],
 });
 
 type BankAccountFormValues = z.infer<typeof bankAccountSchema>;
@@ -736,31 +771,77 @@ const Profile = () => {
                     <FormField
                       control={passwordForm.control}
                       name="newPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Nueva contraseña</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input 
-                                type={showNewPassword ? "text" : "password"} 
-                                placeholder="••••••••" 
-                                {...field} 
-                                className="h-9 pr-10" 
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="absolute right-0 top-0 h-9 w-9 px-2"
-                                onClick={() => setShowNewPassword(!showNewPassword)}
-                              >
-                                {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                              </Button>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const newPasswordValue = field.value || "";
+                        const strength = getPasswordStrength(newPasswordValue);
+                        return (
+                          <FormItem>
+                            <FormLabel className="text-sm">Nueva contraseña</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input 
+                                  type={showNewPassword ? "text" : "password"} 
+                                  placeholder="••••••••" 
+                                  {...field} 
+                                  className="h-9 pr-10" 
+                                />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="absolute right-0 top-0 h-9 w-9 px-2"
+                                  onClick={() => setShowNewPassword(!showNewPassword)}
+                                >
+                                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            </FormControl>
+                            {newPasswordValue && (
+                              <div className="space-y-2 mt-2">
+                                {/* Password Strength Bar */}
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs text-muted-foreground">Fortaleza:</span>
+                                    <span className={`text-xs font-medium ${
+                                      strength.score <= 25 ? "text-destructive" :
+                                      strength.score <= 50 ? "text-warning" :
+                                      strength.score <= 75 ? "text-info" : "text-success"
+                                    }`}>
+                                      {strength.label}
+                                    </span>
+                                  </div>
+                                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full transition-all duration-300 ${strength.color}`}
+                                      style={{ width: `${strength.score}%` }}
+                                    />
+                                  </div>
+                                </div>
+                                
+                                {/* Requirements List */}
+                                <div className="space-y-1">
+                                  {passwordRequirements.map((req, index) => {
+                                    const passed = req.test(newPasswordValue);
+                                    return (
+                                      <div key={index} className="flex items-center gap-2 text-xs">
+                                        {passed ? (
+                                          <Check className="h-3 w-3 text-success" />
+                                        ) : (
+                                          <X className="h-3 w-3 text-destructive" />
+                                        )}
+                                        <span className={passed ? "text-success" : "text-muted-foreground"}>
+                                          {req.label}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
 
                     <FormField
