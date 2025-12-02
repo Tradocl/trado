@@ -47,13 +47,25 @@ export function AdminAppealsList() {
             amount,
             seller:profiles!transactions_seller_id_fkey(full_name),
             buyer:profiles!transactions_buyer_id_fkey(full_name)
-          ),
-          initiator:profiles(full_name)
+          )
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setAppeals(data || []);
+
+      // Fetch initiator names separately
+      const appealsWithInitiators = await Promise.all(
+        (data || []).map(async (appeal) => {
+          const { data: initiatorData } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", appeal.initiator_id)
+            .single();
+          return { ...appeal, initiator: initiatorData };
+        })
+      );
+
+      setAppeals(appealsWithInitiators);
     } catch (error: any) {
       console.error("Error fetching appeals:", error);
     } finally {
