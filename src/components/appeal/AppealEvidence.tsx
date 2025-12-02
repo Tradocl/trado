@@ -45,15 +45,33 @@ export function AppealEvidence({ appealId, currentUserId }: AppealEvidenceProps)
     try {
       const { data, error } = await supabase
         .from("appeal_evidence")
-        .select(`
-          *,
-          user:profiles(full_name)
-        `)
+        .select("*")
         .eq("appeal_id", appealId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setEvidence((data as any) || []);
+
+      const evidenceData = (data as any[]) || [];
+      const userIds = Array.from(new Set(evidenceData.map((item) => item.user_id).filter(Boolean)));
+
+      let profilesMap = new Map<string, string>();
+      if (userIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds as string[]);
+
+        if (!profilesError && profilesData) {
+          profilesMap = new Map(profilesData.map((p: any) => [p.id, p.full_name]));
+        }
+      }
+
+      const evidenceWithUsers = evidenceData.map((item) => ({
+        ...item,
+        user_name: profilesMap.get(item.user_id) || "Usuario",
+      }));
+
+      setEvidence(evidenceWithUsers);
     } catch (error: any) {
       console.error("Error fetching evidence:", error);
       toast.error("Error al cargar evidencias");
@@ -98,6 +116,8 @@ export function AppealEvidence({ appealId, currentUserId }: AppealEvidenceProps)
         });
 
       if (insertError) throw insertError;
+
+      await fetchEvidence();
 
       toast.success("Evidencia subida correctamente");
       setComment("");
@@ -201,7 +221,7 @@ export function AppealEvidence({ appealId, currentUserId }: AppealEvidenceProps)
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.file_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Por {item.user?.full_name || "Usuario"}
+                        Por {item.user_name || "Usuario"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(item.created_at), "dd/MM/yyyy HH:mm", { locale: es })}
