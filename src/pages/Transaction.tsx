@@ -422,9 +422,29 @@ const Transaction = () => {
                 <CardDescription className="text-base">{transaction.product_description}</CardDescription>
               </div>
               <div className="flex flex-col gap-2 items-end">
-                <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-base px-4 py-2 shadow-lg animate-pulse`}>
-                  {stateLabels[transaction.state]?.label || transaction.state}
-                </Badge>
+                {(() => {
+                  const resolvedAppealStatuses = [
+                    "resuelta_a_favor_comprador",
+                    "resuelta_a_favor_vendedor",
+                    "resuelta_parcial",
+                    "cerrada"
+                  ];
+                  const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
+                  
+                  if (isAppealResolved) {
+                    return (
+                      <Badge className="bg-success text-base px-4 py-2 shadow-lg">
+                        Completada
+                      </Badge>
+                    );
+                  }
+                  
+                  return (
+                    <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-base px-4 py-2 shadow-lg animate-pulse`}>
+                      {stateLabels[transaction.state]?.label || transaction.state}
+                    </Badge>
+                  );
+                })()}
                 {activeAppeal && (
                   <Badge className="bg-amber-500 text-white text-base px-4 py-2 shadow-lg animate-pulse">
                     En Apelación
