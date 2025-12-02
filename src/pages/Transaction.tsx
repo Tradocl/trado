@@ -62,6 +62,7 @@ const Transaction = () => {
   const [loading, setLoading] = useState(true);
   const [activeAppeal, setActiveAppeal] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
@@ -207,6 +208,16 @@ const Transaction = () => {
       setCopied(true);
       toast.success("Código copiado al portapapeles");
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const copyInviteLink = () => {
+    if (transaction?.id) {
+      const link = `${window.location.origin}/transaction/${transaction.id}`;
+      navigator.clipboard.writeText(link);
+      setCopiedLink(true);
+      toast.success("Enlace copiado al portapapeles");
+      setTimeout(() => setCopiedLink(false), 2000);
     }
   };
 
@@ -474,31 +485,48 @@ const Transaction = () => {
                   </div>
                   <h4 className="font-bold text-info text-lg">⏳ Esperando Comprador</h4>
                 </div>
-                <div className="flex flex-col md:flex-row gap-2">
-                  <Input
-                    value={transaction.invite_code}
-                    readOnly
-                    className="text-center text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30 flex-1"
-                  />
-                  <div className="flex gap-2">
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <Input
+                      value={transaction.invite_code}
+                      readOnly
+                      className="text-center text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30 flex-1"
+                    />
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={copyInviteCode} 
+                        variant="outline"
+                        className="border-2 border-info/30 hover:bg-info/20 transition-all"
+                      >
+                        {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="font-semibold"
+                        onClick={handleCancelTransaction}
+                      >
+                        Cancelar sala
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <Input
+                      value={`${window.location.origin}/transaction/${transaction.id}`}
+                      readOnly
+                      className="text-sm font-mono bg-background/50 border-2 border-primary/30 flex-1"
+                    />
                     <Button 
-                      onClick={copyInviteCode} 
+                      onClick={copyInviteLink} 
                       variant="outline"
-                      className="border-2 border-info/30 hover:bg-info/20 transition-all"
+                      className="border-2 border-primary/30 hover:bg-primary/20 transition-all"
                     >
-                      {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      className="font-semibold"
-                      onClick={handleCancelTransaction}
-                    >
-                      Cancelar sala
+                      {copiedLink ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
+                      <span className="ml-2">Copiar enlace</span>
                     </Button>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-3 text-center">
-                  📱 Comparte este código con el comprador o cancela la sala si ya no la necesitas
+                  📱 Comparte el código o el enlace directo con el comprador
                 </p>
               </div>
             )}
