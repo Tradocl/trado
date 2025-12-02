@@ -379,6 +379,7 @@ export default function AdminAppeal() {
                   <AppealEvidence
                     appealId={appeal.id}
                     currentUserId={user?.id || ""}
+                    appealStatus={appeal.status}
                   />
                 </TabsContent>
               </Tabs>
