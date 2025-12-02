@@ -192,44 +192,47 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus }: Appeal
   };
 
   const canSubmitForReview = ["apelacion_abierta", "en_negociacion"].includes(appealStatus);
+  const isResolved = ["resuelta_a_favor_comprador", "resuelta_a_favor_vendedor", "resuelta_parcial", "cerrada"].includes(appealStatus);
 
   return (
     <div className="space-y-6">
-      <div className="border rounded-lg p-4 space-y-4">
-        <h3 className="font-semibold">Subir nueva evidencia</h3>
-        
-        <div className="space-y-2">
-          <Label htmlFor="evidence-comment">Comentario (opcional)</Label>
-          <Textarea
-            id="evidence-comment"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Describe qué muestra este archivo..."
-            className="min-h-[80px]"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="evidence-file">Archivo</Label>
-          <Input
-            id="evidence-file"
-            type="file"
-            onChange={handleFileUpload}
-            disabled={uploading}
-            accept="image/*,video/*,application/pdf,.doc,.docx"
-          />
-          <p className="text-xs text-muted-foreground">
-            Máximo 20MB. Formatos: imágenes, videos, PDF, documentos.
-          </p>
-        </div>
-
-        {uploading && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-            Subiendo archivo...
+      {!isResolved && (
+        <div className="border rounded-lg p-4 space-y-4">
+          <h3 className="font-semibold">Subir nueva evidencia</h3>
+          
+          <div className="space-y-2">
+            <Label htmlFor="evidence-comment">Comentario (opcional)</Label>
+            <Textarea
+              id="evidence-comment"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Describe qué muestra este archivo..."
+              className="min-h-[80px]"
+            />
           </div>
-        )}
-      </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="evidence-file">Archivo</Label>
+            <Input
+              id="evidence-file"
+              type="file"
+              onChange={handleFileUpload}
+              disabled={uploading}
+              accept="image/*,video/*,application/pdf,.doc,.docx"
+            />
+            <p className="text-xs text-muted-foreground">
+              Máximo 20MB. Formatos: imágenes, videos, PDF, documentos.
+            </p>
+          </div>
+
+          {uploading && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              Subiendo archivo...
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         <h3 className="font-semibold">

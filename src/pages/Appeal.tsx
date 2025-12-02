@@ -484,15 +484,28 @@ export default function Appeal() {
             </Card>
 
             {/* Evidences Section */}
-            <Card className="border-2 shadow-lg">
+            <Card className={`border-2 shadow-lg ${isResolved ? 'opacity-75' : ''}`}>
               <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Evidencia de la Apelación
-                </CardTitle>
-                <CardDescription>
-                  Sube y revisa los archivos relacionados con este caso.
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Evidencia de la Apelación
+                    </CardTitle>
+                    <CardDescription>
+                      {isResolved 
+                        ? "Este caso ha sido cerrado. La evidencia es solo de consulta."
+                        : "Sube y revisa los archivos relacionados con este caso."
+                      }
+                    </CardDescription>
+                  </div>
+                  {isResolved && (
+                    <Badge variant="secondary" className="bg-muted">
+                      <XCircle className="h-3 w-3 mr-1" />
+                      Cerrado
+                    </Badge>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="pt-6">
                 <AppealEvidence
