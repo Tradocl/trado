@@ -4,20 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, FileText, Image as ImageIcon, Video, Download } from "lucide-react";
+import { Upload, FileText, Image as ImageIcon, Video, Download, Send } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Separator } from "@/components/ui/separator";
 
 interface AppealEvidenceProps {
   appealId: string;
   currentUserId: string;
+  appealStatus: string;
 }
 
-export function AppealEvidence({ appealId, currentUserId }: AppealEvidenceProps) {
+export function AppealEvidence({ appealId, currentUserId, appealStatus }: AppealEvidenceProps) {
   const [evidence, setEvidence] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
   const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchEvidence();
@@ -163,6 +166,33 @@ export function AppealEvidence({ appealId, currentUserId }: AppealEvidenceProps)
     );
   };
 
+  const handleSubmitForReview = async () => {
+    if (evidence.length === 0) {
+      toast.error("Debes subir al menos una evidencia antes de enviar a revisión");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("appeals")
+        .update({
+          status: "en_revision_plataforma",
+        })
+        .eq("id", appealId);
+
+      if (error) throw error;
+      toast.success("Apelación enviada a revisión de administradores");
+    } catch (error: any) {
+      console.error("Error submitting for review:", error);
+      toast.error("Error al enviar la apelación a revisión");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const canSubmitForReview = ["apelacion_abierta", "en_negociacion"].includes(appealStatus);
+
   return (
     <div className="space-y-6">
       <div className="border rounded-lg p-4 space-y-4">
@@ -250,6 +280,48 @@ export function AppealEvidence({ appealId, currentUserId }: AppealEvidenceProps)
           </div>
         )}
       </div>
+
+      {canSubmitForReview && (
+        <>
+          <Separator className="my-6" />
+          <div className="bg-gradient-to-r from-primary/5 to-accent/5 border rounded-lg p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">¿Listo para enviar a revisión?</h3>
+                <p className="text-sm text-muted-foreground">
+                  Una vez que envíes el caso a revisión, un administrador revisará toda la evidencia y conversaciones 
+                  para tomar una decisión justa. Asegúrate de haber subido toda la evidencia necesaria antes de enviar.
+                </p>
+              </div>
+              
+              <Button 
+                onClick={handleSubmitForReview}
+                disabled={submitting || evidence.length === 0}
+                className="w-full"
+                size="lg"
+              >
+                {submitting ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Enviar a Revisión de Administradores
+                  </>
+                )}
+              </Button>
+
+              {evidence.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Debes subir al menos una evidencia para poder enviar a revisión
+                </p>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

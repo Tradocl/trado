@@ -422,6 +422,7 @@ export default function Appeal() {
                 <AppealEvidence
                   appealId={appeal.id}
                   currentUserId={user?.id || ""}
+                  appealStatus={appeal.status}
                 />
               </CardContent>
             </Card>
