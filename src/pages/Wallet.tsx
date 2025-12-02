@@ -499,7 +499,7 @@ const Wallet = () => {
           </CardContent>
         </Card>
 
-        {pendingMovements.length > 0 && (
+        {pendingMovements.filter((m) => m.type === "deposit" || m.type === "withdrawal").length > 0 && (
           <Card className="border-warning/50 bg-warning/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-warning">
