@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, FileText, Image as ImageIcon, Video, Download, Send } from "lucide-react";
+import { Upload, FileText, Image as ImageIcon, Video, Download, Send, X, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -16,11 +16,17 @@ interface AppealEvidenceProps {
   appealStatus: string;
 }
 
+interface PendingFile {
+  file: File;
+  preview: string | null;
+}
+
 export function AppealEvidence({ appealId, currentUserId, appealStatus }: AppealEvidenceProps) {
   const [evidence, setEvidence] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 
   useEffect(() => {
     fetchEvidence();
@@ -41,6 +47,10 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus }: Appeal
 
     return () => {
       supabase.removeChannel(channel);
+      // Clean up previews on unmount
+      pendingFiles.forEach(pf => {
+        if (pf.preview) URL.revokeObjectURL(pf.preview);
+      });
     };
   }, [appealId]);
 
@@ -81,50 +91,93 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus }: Appeal
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    if (file.size > 20 * 1024 * 1024) {
-      toast.error("El archivo no puede superar los 20MB");
+    const validFiles: PendingFile[] = [];
+    
+    for (const file of files) {
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error(`${file.name} supera los 20MB y no será incluido`);
+        continue;
+      }
+      
+      const preview = file.type.startsWith("image/") 
+        ? URL.createObjectURL(file) 
+        : null;
+      
+      validFiles.push({ file, preview });
+    }
+
+    setPendingFiles(prev => [...prev, ...validFiles]);
+    e.target.value = "";
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => {
+      const removed = prev[index];
+      if (removed.preview) URL.revokeObjectURL(removed.preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleUploadAll = async () => {
+    if (pendingFiles.length === 0) {
+      toast.error("Selecciona al menos un archivo para subir");
       return;
     }
 
     setUploading(true);
+    let successCount = 0;
+
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
+      for (const { file } of pendingFiles) {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${currentUserId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const filePath = `${appealId}/${fileName}`;
 
-      const filePath = `${appealId}/${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from("appeal-evidence")
-        .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from("appeal-evidence")
+          .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error(`Error uploading ${file.name}:`, uploadError);
+          continue;
+        }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("appeal-evidence")
-        .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage
+          .from("appeal-evidence")
+          .getPublicUrl(filePath);
 
-      const { error: insertError } = await supabase
-        .from("appeal_evidence")
-        .insert({
-          appeal_id: appealId,
-          user_id: currentUserId,
-          file_url: publicUrl,
-          file_type: file.type,
-          file_name: file.name,
-          comment: comment.trim() || null,
+        const { error: insertError } = await supabase
+          .from("appeal_evidence")
+          .insert({
+            appeal_id: appealId,
+            user_id: currentUserId,
+            file_url: publicUrl,
+            file_type: file.type,
+            file_name: file.name,
+            comment: successCount === 0 && comment.trim() ? comment.trim() : null,
+          });
+
+        if (!insertError) {
+          successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`${successCount} archivo(s) subido(s) correctamente`);
+        // Clean up previews
+        pendingFiles.forEach(pf => {
+          if (pf.preview) URL.revokeObjectURL(pf.preview);
         });
-
-      if (insertError) throw insertError;
-
-      await fetchEvidence();
-
-      toast.success("Evidencia subida correctamente");
-      setComment("");
-      e.target.value = "";
+        setPendingFiles([]);
+        setComment("");
+        await fetchEvidence();
+      } else {
+        toast.error("No se pudo subir ningún archivo");
+      }
     } catch (error: any) {
       console.error("Error uploading evidence:", error);
       toast.error("Error al subir la evidencia");
@@ -206,30 +259,100 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus }: Appeal
               id="evidence-comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Describe qué muestra este archivo..."
+              placeholder="Describe qué muestran estos archivos..."
               className="min-h-[80px]"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="evidence-file">Archivo</Label>
-            <Input
-              id="evidence-file"
-              type="file"
-              onChange={handleFileUpload}
-              disabled={uploading}
-              accept="image/*,video/*,application/pdf,.doc,.docx"
-            />
+          <div className="space-y-3">
+            <Label>Archivos</Label>
+            
+            {/* Pending files preview */}
+            {pendingFiles.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {pendingFiles.map((pf, index) => (
+                  <div key={index} className="relative group">
+                    {pf.preview ? (
+                      <img 
+                        src={pf.preview} 
+                        alt={pf.file.name}
+                        className="w-full h-24 object-cover rounded-lg border"
+                      />
+                    ) : (
+                      <div className="w-full h-24 bg-muted rounded-lg border flex flex-col items-center justify-center p-2">
+                        {getFileIcon(pf.file.type)}
+                        <span className="text-xs text-muted-foreground truncate w-full text-center mt-1">
+                          {pf.file.name}
+                        </span>
+                      </div>
+                    )}
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removePendingFile(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+                
+                {/* Add more button */}
+                <label className="w-full h-24 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                  <Plus className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground mt-1">Agregar más</span>
+                  <Input
+                    type="file"
+                    multiple
+                    onChange={handleFilesSelected}
+                    className="hidden"
+                    accept="image/*,video/*,application/pdf,.doc,.docx"
+                  />
+                </label>
+              </div>
+            )}
+
+            {/* Initial file selector */}
+            {pendingFiles.length === 0 && (
+              <label className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                <span className="text-sm font-medium">Haz clic para seleccionar archivos</span>
+                <span className="text-xs text-muted-foreground mt-1">
+                  Puedes seleccionar múltiples archivos a la vez
+                </span>
+                <Input
+                  type="file"
+                  multiple
+                  onChange={handleFilesSelected}
+                  className="hidden"
+                  accept="image/*,video/*,application/pdf,.doc,.docx"
+                />
+              </label>
+            )}
+            
             <p className="text-xs text-muted-foreground">
-              Máximo 20MB. Formatos: imágenes, videos, PDF, documentos.
+              Máximo 20MB por archivo. Formatos: imágenes, videos, PDF, documentos.
             </p>
           </div>
 
-          {uploading && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              Subiendo archivo...
-            </div>
+          {pendingFiles.length > 0 && (
+            <Button 
+              onClick={handleUploadAll} 
+              disabled={uploading}
+              className="w-full"
+            >
+              {uploading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                  Subiendo {pendingFiles.length} archivo(s)...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Subir {pendingFiles.length} archivo(s)
+                </>
+              )}
+            </Button>
           )}
         </div>
       )}
