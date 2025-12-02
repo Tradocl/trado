@@ -41,6 +41,7 @@ const Wallet = () => {
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
   const [amount, setAmount] = useState("");
   const [copied, setCopied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   
   // Withdrawal form fields
   const [bankHolderName, setBankHolderName] = useState("");
@@ -190,7 +191,7 @@ const Wallet = () => {
   };
 
   const handleDeposit = async () => {
-    if (!user || !amount) return;
+    if (!user || !amount || submitting) return;
 
     const depositAmount = parseFloat(amount);
     if (isNaN(depositAmount) || depositAmount <= 0) {
@@ -198,6 +199,7 @@ const Wallet = () => {
       return;
     }
 
+    setSubmitting(true);
     try {
       const { data: wallet } = await supabase
         .from("wallets")
@@ -251,11 +253,13 @@ const Wallet = () => {
       loadWalletData();
     } catch (error: any) {
       toast.error("Error al solicitar depósito: " + error.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleWithdraw = async () => {
-    if (!user || !amount) return;
+    if (!user || !amount || submitting) return;
 
     const withdrawAmount = parseFloat(amount);
     if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
@@ -273,6 +277,7 @@ const Wallet = () => {
       return;
     }
 
+    setSubmitting(true);
     try {
       const { data: wallet } = await supabase
         .from("wallets")
@@ -343,6 +348,8 @@ const Wallet = () => {
       loadWalletData();
     } catch (error: any) {
       toast.error("Error al solicitar retiro: " + error.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -368,7 +375,7 @@ const Wallet = () => {
   };
 
   const handleUpdateMovement = async () => {
-    if (!selectedMovement || !amount) return;
+    if (!selectedMovement || !amount || submitting) return;
 
     const newAmount = parseFloat(amount);
     if (isNaN(newAmount) || newAmount <= 0) {
@@ -388,6 +395,7 @@ const Wallet = () => {
       }
     }
 
+    setSubmitting(true);
     try {
       const updateData: any = {
         amount: newAmount,
@@ -421,6 +429,8 @@ const Wallet = () => {
       loadWalletData();
     } catch (error: any) {
       toast.error("Error al actualizar movimiento: " + error.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -737,8 +747,12 @@ const Wallet = () => {
               </p>
             </div>
 
-            <Button onClick={handleDeposit} className="w-full bg-success hover:bg-success/90">
-              Confirmar Depósito
+            <Button 
+              onClick={handleDeposit} 
+              className="w-full bg-success hover:bg-success/90"
+              disabled={submitting || !amount}
+            >
+              {submitting ? "Procesando..." : "Confirmar Depósito"}
             </Button>
           </div>
         </DialogContent>
@@ -846,8 +860,12 @@ const Wallet = () => {
               </p>
             </div>
             
-            <Button onClick={handleWithdraw} className="w-full">
-              Solicitar Retiro
+            <Button 
+              onClick={handleWithdraw} 
+              className="w-full"
+              disabled={submitting || !amount}
+            >
+              {submitting ? "Procesando..." : "Solicitar Retiro"}
             </Button>
           </div>
         </DialogContent>
@@ -948,8 +966,12 @@ const Wallet = () => {
               </div>
             )}
 
-            <Button onClick={handleUpdateMovement} className="w-full">
-              Actualizar {selectedMovement?.type === "deposit" ? "Depósito" : "Retiro"}
+            <Button 
+              onClick={handleUpdateMovement} 
+              className="w-full"
+              disabled={submitting || !amount}
+            >
+              {submitting ? "Procesando..." : `Actualizar ${selectedMovement?.type === "deposit" ? "Depósito" : "Retiro"}`}
             </Button>
           </div>
         </DialogContent>
