@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { formatCLP } from "@/lib/utils";
+import { formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
 
 interface Movement {
   id: string;
@@ -40,6 +40,7 @@ const Wallet = () => {
   const [editMovementOpen, setEditMovementOpen] = useState(false);
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
   const [amount, setAmount] = useState("");
+  const [amountDisplay, setAmountDisplay] = useState("");
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
@@ -190,11 +191,17 @@ const Wallet = () => {
     }
   };
 
+  const handleAmountChange = (value: string) => {
+    const formatted = formatAmountInput(value);
+    setAmountDisplay(formatted);
+    setAmount(parseFormattedAmount(value).toString());
+  };
+
   const handleDeposit = async () => {
     if (!user || !amount || submitting) return;
 
-    const depositAmount = parseFloat(amount);
-    if (isNaN(depositAmount) || depositAmount <= 0) {
+    const depositAmount = parseFormattedAmount(amount);
+    if (depositAmount <= 0) {
       toast.error("Ingresa un monto válido");
       return;
     }
@@ -250,6 +257,7 @@ const Wallet = () => {
       toast.success("Solicitud de depósito enviada. Por favor realiza la transferencia a la cuenta indicada.");
       setDepositOpen(false);
       setAmount("");
+      setAmountDisplay("");
       loadWalletData();
     } catch (error: any) {
       toast.error("Error al solicitar depósito: " + error.message);
@@ -261,8 +269,8 @@ const Wallet = () => {
   const handleWithdraw = async () => {
     if (!user || !amount || submitting) return;
 
-    const withdrawAmount = parseFloat(amount);
-    if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+    const withdrawAmount = parseFormattedAmount(amount);
+    if (withdrawAmount <= 0) {
       toast.error("Ingresa un monto válido");
       return;
     }
@@ -340,6 +348,7 @@ const Wallet = () => {
       toast.success("Solicitud de retiro enviada para aprobación");
       setWithdrawOpen(false);
       setAmount("");
+      setAmountDisplay("");
       setBankHolderName("");
       setBankHolderRut("");
       setBankName("");
@@ -363,6 +372,7 @@ const Wallet = () => {
   const handleEditMovement = (movement: Movement) => {
     setSelectedMovement(movement);
     setAmount(movement.amount.toString());
+    setAmountDisplay(formatAmountInput(movement.amount.toString()));
     if (movement.type === "withdrawal") {
       // Pre-fill withdrawal form fields
       setBankHolderName(movement.bank_holder_name || "");
@@ -377,8 +387,8 @@ const Wallet = () => {
   const handleUpdateMovement = async () => {
     if (!selectedMovement || !amount || submitting) return;
 
-    const newAmount = parseFloat(amount);
-    if (isNaN(newAmount) || newAmount <= 0) {
+    const newAmount = parseFormattedAmount(amount);
+    if (newAmount <= 0) {
       toast.error("Ingresa un monto válido");
       return;
     }
@@ -421,6 +431,7 @@ const Wallet = () => {
       setEditMovementOpen(false);
       setSelectedMovement(null);
       setAmount("");
+      setAmountDisplay("");
       setBankHolderName("");
       setBankHolderRut("");
       setBankName("");
@@ -668,11 +679,11 @@ const Wallet = () => {
               <Label htmlFor="deposit-amount">Monto a depositar</Label>
               <Input
                 id="deposit-amount"
-                type="number"
-                placeholder="10000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                min="1"
+                type="text"
+                inputMode="numeric"
+                placeholder="10.000"
+                value={amountDisplay}
+                onChange={(e) => handleAmountChange(e.target.value)}
               />
             </div>
 
@@ -772,12 +783,11 @@ const Wallet = () => {
               <Label htmlFor="withdraw-amount">Monto a retirar</Label>
               <Input
                 id="withdraw-amount"
-                type="number"
-                placeholder="5000"
-                max={balance}
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                min="1"
+                type="text"
+                inputMode="numeric"
+                placeholder="5.000"
+                value={amountDisplay}
+                onChange={(e) => handleAmountChange(e.target.value)}
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Máximo disponible: ${formatCLP(balance)}
@@ -885,12 +895,11 @@ const Wallet = () => {
               <Label htmlFor="edit-amount">Monto</Label>
               <Input
                 id="edit-amount"
-                type="number"
-                placeholder="10000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                min="1"
-                max={selectedMovement?.type === "withdrawal" ? balance : undefined}
+                type="text"
+                inputMode="numeric"
+                placeholder="10.000"
+                value={amountDisplay}
+                onChange={(e) => handleAmountChange(e.target.value)}
               />
             </div>
 

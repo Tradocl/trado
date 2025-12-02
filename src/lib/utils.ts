@@ -40,6 +40,31 @@ export function formatCLP(amount: number): string {
   return Math.round(amount).toLocaleString('es-CL');
 }
 
+/**
+ * Formatea un string de input con separadores de miles (puntos)
+ * Elimina caracteres no numéricos y agrega puntos cada 3 dígitos
+ * 
+ * @param value - Valor del input
+ * @returns String formateado con puntos
+ */
+export function formatAmountInput(value: string): string {
+  // Remove all non-numeric characters
+  const numericValue = value.replace(/\D/g, '');
+  // Add thousand separators (dots)
+  return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+/**
+ * Parsea un string formateado con puntos a número
+ * 
+ * @param value - Valor formateado (ej: "1.500.000")
+ * @returns Número parseado (ej: 1500000)
+ */
+export function parseFormattedAmount(value: string): number {
+  const numericValue = value.replace(/\D/g, '');
+  return parseInt(numericValue, 10) || 0;
+}
+
 export function calculateOrderDetails(transactionAmount: number): {
   buyerPays: number;
   appFee: number;
