@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X } from "lucide-react";
+import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -49,8 +49,18 @@ const profileSchema = z.object({
   address: z.string().trim().min(5, "Dirección muy corta").max(200, "Dirección muy larga"),
 });
 
+const passwordSchema = z.object({
+  currentPassword: z.string().min(6, "Mínimo 6 caracteres"),
+  newPassword: z.string().min(6, "Mínimo 6 caracteres"),
+  confirmPassword: z.string().min(6, "Mínimo 6 caracteres"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
+
 type BankAccountFormValues = z.infer<typeof bankAccountSchema>;
 type ProfileFormValues = z.infer<typeof profileSchema>;
+type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const chileanBanks = [
   "Banco de Chile",
@@ -79,7 +89,12 @@ const Profile = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [bankSectionOpen, setBankSectionOpen] = useState(false);
+  const [passwordSectionOpen, setPasswordSectionOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const bankForm = useForm<BankAccountFormValues>({
     resolver: zodResolver(bankAccountSchema),
@@ -98,6 +113,15 @@ const Profile = () => {
       full_name: "",
       phone: "",
       address: "",
+    },
+  });
+
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
     },
   });
 
@@ -224,6 +248,43 @@ const Profile = () => {
       toast.error("Error al guardar: " + error.message);
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+  const onPasswordSubmit = async (values: PasswordFormValues) => {
+    if (!user) return;
+
+    setSavingPassword(true);
+    try {
+      // First verify current password by re-authenticating
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email || "",
+        password: values.currentPassword,
+      });
+
+      if (signInError) {
+        toast.error("La contraseña actual es incorrecta");
+        return;
+      }
+
+      // Update to new password
+      const { error } = await supabase.auth.updateUser({
+        password: values.newPassword,
+      });
+
+      if (error) throw error;
+
+      toast.success("Contraseña actualizada correctamente");
+      passwordForm.reset();
+      setPasswordSectionOpen(false);
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      toast.error("Error al cambiar contraseña: " + error.message);
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -607,6 +668,134 @@ const Profile = () => {
                     <Button type="submit" disabled={saving} className="w-full" size="sm">
                       <Save className="mr-2 h-4 w-4" />
                       {saving ? "Guardando..." : "Guardar Datos Bancarios"}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        {/* Password Change Collapsible */}
+        <Collapsible open={passwordSectionOpen} onOpenChange={setPasswordSectionOpen}>
+          <Card className="border-0 shadow-lg">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-5 w-5 text-primary" />
+                    <div>
+                      <CardTitle className="text-base">Cambiar Contraseña</CardTitle>
+                      <CardDescription className="text-xs">
+                        Actualiza tu contraseña de acceso
+                      </CardDescription>
+                    </div>
+                  </div>
+                  {passwordSectionOpen ? (
+                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <Form {...passwordForm}>
+                  <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                    <FormField
+                      control={passwordForm.control}
+                      name="currentPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Contraseña actual</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input 
+                                type={showCurrentPassword ? "text" : "password"} 
+                                placeholder="••••••••" 
+                                {...field} 
+                                className="h-9 pr-10" 
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-9 w-9 px-2"
+                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              >
+                                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={passwordForm.control}
+                      name="newPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Nueva contraseña</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input 
+                                type={showNewPassword ? "text" : "password"} 
+                                placeholder="••••••••" 
+                                {...field} 
+                                className="h-9 pr-10" 
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-9 w-9 px-2"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                              >
+                                {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={passwordForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Confirmar nueva contraseña</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input 
+                                type={showConfirmPassword ? "text" : "password"} 
+                                placeholder="••••••••" 
+                                {...field} 
+                                className="h-9 pr-10" 
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-9 w-9 px-2"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              >
+                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button type="submit" disabled={savingPassword} className="w-full" size="sm">
+                      <Lock className="mr-2 h-4 w-4" />
+                      {savingPassword ? "Actualizando..." : "Cambiar Contraseña"}
                     </Button>
                   </form>
                 </Form>
