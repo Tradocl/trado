@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -21,7 +21,7 @@ import {
   Info
 } from "lucide-react";
 import { toast } from "sonner";
-import { AppealChat } from "@/components/appeal/AppealChat";
+
 import { AppealEvidence } from "@/components/appeal/AppealEvidence";
 import { AppealTimeline } from "@/components/appeal/AppealTimeline";
 import { AppealRatingDialog } from "@/components/appeal/AppealRatingDialog";
@@ -407,36 +407,23 @@ export default function Appeal() {
               </CardContent>
             </Card>
 
-            {/* Tabs Section */}
+            {/* Evidences Section */}
             <Card className="border-2 shadow-lg">
-              <Tabs defaultValue="chat" className="w-full">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 pb-0">
-                  <TabsList className="grid w-full grid-cols-2 h-12">
-                    <TabsTrigger value="chat" className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      Chat
-                    </TabsTrigger>
-                    <TabsTrigger value="evidence" className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Evidencia
-                    </TabsTrigger>
-                  </TabsList>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <TabsContent value="chat" className="mt-0">
-                    <AppealChat
-                      appealId={appeal.id}
-                      currentUserId={user?.id || ""}
-                    />
-                  </TabsContent>
-                  <TabsContent value="evidence" className="mt-0">
-                    <AppealEvidence
-                      appealId={appeal.id}
-                      currentUserId={user?.id || ""}
-                    />
-                  </TabsContent>
-                </CardContent>
-              </Tabs>
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Evidencia de la Apelación
+                </CardTitle>
+                <CardDescription>
+                  Sube y revisa los archivos relacionados con este caso.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <AppealEvidence
+                  appealId={appeal.id}
+                  currentUserId={user?.id || ""}
+                />
+              </CardContent>
             </Card>
           </div>
 
