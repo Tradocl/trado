@@ -9,9 +9,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Shield, Lock, Upload, Camera } from "lucide-react";
+import { Shield, Lock, Upload, Camera, Check, X } from "lucide-react";
 import { validateRUT, validateChileanPhone } from "@/lib/validators";
 import tradoLogo from "@/assets/trado-logo.png";
+
+interface PasswordRequirement {
+  label: string;
+  test: (password: string) => boolean;
+}
+
+const passwordRequirements: PasswordRequirement[] = [
+  { label: "Mínimo 8 caracteres", test: (p) => p.length >= 8 },
+  { label: "Al menos una mayúscula", test: (p) => /[A-Z]/.test(p) },
+  { label: "Al menos una minúscula", test: (p) => /[a-z]/.test(p) },
+  { label: "Al menos un número", test: (p) => /[0-9]/.test(p) },
+];
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -25,6 +37,8 @@ const Auth = () => {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [previewSelfieUrl, setPreviewSelfieUrl] = useState<string>("");
   const [newUserId, setNewUserId] = useState<string>("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -58,11 +72,26 @@ const Auth = () => {
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const password = signupPassword;
     const fullName = formData.get("fullName") as string;
     const phone = formData.get("phone") as string;
     const rut = formData.get("rut") as string;
     const address = formData.get("address") as string;
+
+    // Validar que las contraseñas coincidan
+    if (password !== confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
+      setLoading(false);
+      return;
+    }
+
+    // Validar requisitos de contraseña
+    const failedRequirements = passwordRequirements.filter(req => !req.test(password));
+    if (failedRequirements.length > 0) {
+      toast.error("La contraseña no cumple con los requisitos de seguridad");
+      setLoading(false);
+      return;
+    }
 
     // Validar RUT
     if (!validateRUT(rut)) {
@@ -87,6 +116,8 @@ const Auth = () => {
       toast.success("¡Cuenta creada! Ahora sube tu documento de identidad");
       setNewUserId(data.user.id);
       setShowVerificationDialog(true);
+      setSignupPassword("");
+      setConfirmPassword("");
       setLoading(false);
     }
   };
@@ -355,9 +386,56 @@ const Auth = () => {
                       name="password"
                       type="password"
                       placeholder="••••••••"
-                      minLength={6}
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
                       required
                     />
+                    {signupPassword && (
+                      <div className="space-y-1 mt-2">
+                        {passwordRequirements.map((req, index) => {
+                          const passed = req.test(signupPassword);
+                          return (
+                            <div key={index} className="flex items-center gap-2 text-xs">
+                              {passed ? (
+                                <Check className="h-3 w-3 text-success" />
+                              ) : (
+                                <X className="h-3 w-3 text-destructive" />
+                              )}
+                              <span className={passed ? "text-success" : "text-muted-foreground"}>
+                                {req.label}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-confirm-password">Confirmar Contraseña</Label>
+                    <Input
+                      id="signup-confirm-password"
+                      name="confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                    {confirmPassword && signupPassword && (
+                      <div className="flex items-center gap-2 text-xs mt-1">
+                        {confirmPassword === signupPassword ? (
+                          <>
+                            <Check className="h-3 w-3 text-success" />
+                            <span className="text-success">Las contraseñas coinciden</span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-3 w-3 text-destructive" />
+                            <span className="text-destructive">Las contraseñas no coinciden</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     <Shield className="mr-2 h-4 w-4" />
