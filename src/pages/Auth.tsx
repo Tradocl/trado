@@ -25,6 +25,28 @@ const passwordRequirements: PasswordRequirement[] = [
   { label: "Al menos un número", test: (p) => /[0-9]/.test(p) },
 ];
 
+const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+  if (!password) return { score: 0, label: "", color: "" };
+  
+  let score = 0;
+  
+  // Length checks
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  
+  // Character variety
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[a-z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  
+  // Determine strength level
+  if (score <= 2) return { score: 25, label: "Débil", color: "bg-destructive" };
+  if (score <= 4) return { score: 50, label: "Media", color: "bg-warning" };
+  if (score <= 5) return { score: 75, label: "Fuerte", color: "bg-info" };
+  return { score: 100, label: "Muy fuerte", color: "bg-success" };
+};
+
 const Auth = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -391,22 +413,45 @@ const Auth = () => {
                       required
                     />
                     {signupPassword && (
-                      <div className="space-y-1 mt-2">
-                        {passwordRequirements.map((req, index) => {
-                          const passed = req.test(signupPassword);
-                          return (
-                            <div key={index} className="flex items-center gap-2 text-xs">
-                              {passed ? (
-                                <Check className="h-3 w-3 text-success" />
-                              ) : (
-                                <X className="h-3 w-3 text-destructive" />
-                              )}
-                              <span className={passed ? "text-success" : "text-muted-foreground"}>
-                                {req.label}
-                              </span>
-                            </div>
-                          );
-                        })}
+                      <div className="space-y-2 mt-2">
+                        {/* Password Strength Bar */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-muted-foreground">Fortaleza:</span>
+                            <span className={`text-xs font-medium ${
+                              getPasswordStrength(signupPassword).score <= 25 ? "text-destructive" :
+                              getPasswordStrength(signupPassword).score <= 50 ? "text-warning" :
+                              getPasswordStrength(signupPassword).score <= 75 ? "text-info" : "text-success"
+                            }`}>
+                              {getPasswordStrength(signupPassword).label}
+                            </span>
+                          </div>
+                          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full transition-all duration-300 ${getPasswordStrength(signupPassword).color}`}
+                              style={{ width: `${getPasswordStrength(signupPassword).score}%` }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Requirements List */}
+                        <div className="space-y-1">
+                          {passwordRequirements.map((req, index) => {
+                            const passed = req.test(signupPassword);
+                            return (
+                              <div key={index} className="flex items-center gap-2 text-xs">
+                                {passed ? (
+                                  <Check className="h-3 w-3 text-success" />
+                                ) : (
+                                  <X className="h-3 w-3 text-destructive" />
+                                )}
+                                <span className={passed ? "text-success" : "text-muted-foreground"}>
+                                  {req.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
