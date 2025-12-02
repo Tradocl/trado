@@ -19,6 +19,7 @@ interface Transaction {
   amount: number;
   commission: number;
   state: string;
+  appeal_status: string | null;
   created_at: string;
   completed_at: string | null;
   seller_id: string;
@@ -32,6 +33,13 @@ interface Transaction {
     reputation_score: number;
   };
 }
+
+const resolvedAppealStatuses = [
+  "resuelta_a_favor_comprador",
+  "resuelta_a_favor_vendedor",
+  "resuelta_parcial",
+  "cerrada"
+];
 
 export default function TransactionHistory() {
   const navigate = useNavigate();
@@ -50,7 +58,7 @@ export default function TransactionHistory() {
 
   const loadTransactions = async () => {
     try {
-      // Load completed purchases
+      // Load completed purchases (state = completed OR appeal resolved)
       const { data: purchaseData, error: purchaseError } = await supabase
         .from("transactions")
         .select(`
@@ -58,12 +66,11 @@ export default function TransactionHistory() {
           seller_profile:profiles!transactions_seller_id_fkey(full_name, reputation_score)
         `)
         .eq("buyer_id", user!.id)
-        .eq("state", "completed")
         .order("completed_at", { ascending: false });
 
       if (purchaseError) throw purchaseError;
 
-      // Load completed sales
+      // Load completed sales (state = completed OR appeal resolved)
       const { data: salesData, error: salesError } = await supabase
         .from("transactions")
         .select(`
@@ -71,13 +78,16 @@ export default function TransactionHistory() {
           buyer_profile:profiles!transactions_buyer_id_fkey(full_name, reputation_score)
         `)
         .eq("seller_id", user!.id)
-        .eq("state", "completed")
         .order("completed_at", { ascending: false });
 
       if (salesError) throw salesError;
 
-      setPurchases(purchaseData || []);
-      setSales(salesData || []);
+      // Filter to only completed or resolved appeals
+      const isCompletedOrResolved = (t: Transaction) => 
+        t.state === 'completed' || resolvedAppealStatuses.includes(t.appeal_status || '');
+
+      setPurchases((purchaseData || []).filter(isCompletedOrResolved));
+      setSales((salesData || []).filter(isCompletedOrResolved));
     } catch (error: any) {
       console.error("Error loading transactions:", error);
       toast.error("Error al cargar el historial de transacciones");

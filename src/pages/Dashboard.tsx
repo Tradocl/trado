@@ -28,10 +28,18 @@ interface Transaction {
   product_name: string;
   amount: number;
   state: string;
+  appeal_status: string | null;
   seller_id: string;
   buyer_id: string | null;
   created_at: string;
 }
+
+const resolvedAppealStatuses = [
+  "resuelta_a_favor_comprador",
+  "resuelta_a_favor_vendedor",
+  "resuelta_parcial",
+  "cerrada"
+];
 
 const stateLabels: Record<string, { label: string; color: string }> = {
   created: { label: "Creada", color: "bg-gray-500" },
@@ -79,25 +87,31 @@ const Dashboard = () => {
           .order("created_at", { ascending: false }),
         supabase
           .from("transactions")
-          .select("id")
+          .select("id, appeal_status, state")
           .or(`seller_id.eq.${user.id},buyer_id.eq.${user.id}`)
-          .eq("state", "completed")
       ]);
 
       if (profileRes.error) throw profileRes.error;
       if (walletRes.error) throw walletRes.error;
 
-      // Calculate total transactions dynamically from completed transactions
-      const totalTransactions = completedTransactionsRes.data?.length || 0;
+      // Calculate total completed transactions (state = completed OR appeal resolved)
+      const completedCount = completedTransactionsRes.data?.filter(t => 
+        (t as any).state === 'completed' || 
+        resolvedAppealStatuses.includes(t.appeal_status || '')
+      ).length || 0;
       
       setProfile({
         ...profileRes.data,
-        total_transactions: totalTransactions
+        total_transactions: completedCount
       });
       setWallet(walletRes.data);
       
+      // Filter out transactions with resolved appeals from "in progress" list
       if (transactionsRes.data) {
-        setTransactions(transactionsRes.data);
+        const activeTransactions = transactionsRes.data.filter(t => 
+          !resolvedAppealStatuses.includes(t.appeal_status || '')
+        );
+        setTransactions(activeTransactions);
       }
     } catch (error: any) {
       toast.error("Error al cargar datos: " + error.message);
