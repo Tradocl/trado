@@ -28,6 +28,7 @@ interface Transaction {
   amount: number;
   commission: number;
   state: string;
+  appeal_status: string | null;
   invite_code: string;
   created_at: string;
 }
@@ -541,89 +542,101 @@ const Transaction = () => {
             <Separator className="my-6" />
 
             {/* Progress Timeline */}
-            <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
-              <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
-                <Package className="h-6 w-6 text-primary" />
-                Progreso de la Transacción
-              </h4>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                    transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
-                  }`}>
-                    <Users className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-lg">Comprador Unido</p>
-                    <p className="text-sm text-muted-foreground">
-                      {transaction.buyer_id ? '✅ Comprador confirmado' : '⏳ Esperando comprador...'}
-                    </p>
-                  </div>
-                </div>
+            {(() => {
+              const resolvedAppealStatuses = ['resuelta_a_favor_comprador', 'resuelta_a_favor_vendedor', 'resuelta_parcial', 'cerrada'];
+              const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
+              const isCompleted = transaction.state === 'completed' || isAppealResolved;
+              
+              return (
+                <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
+                  <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
+                    <Package className="h-6 w-6 text-primary" />
+                    Progreso de la Transacción
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 group">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                        transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
+                      }`}>
+                        <Users className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">Comprador Unido</p>
+                        <p className="text-sm text-muted-foreground">
+                          {transaction.buyer_id ? '✅ Comprador confirmado' : '⏳ Esperando comprador...'}
+                        </p>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                    ['funds_secured', 'in_delivery', 'completed'].includes(transaction.state) 
-                      ? 'bg-success text-success-foreground scale-110' 
-                      : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
-                      ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                      : 'bg-muted'
-                  }`}>
-                    <DollarSign className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-lg">Pago en Escrow</p>
-                    <p className="text-sm text-muted-foreground">
-                      {['funds_secured', 'in_delivery', 'completed'].includes(transaction.state)
-                        ? '✅ Fondos asegurados y protegidos'
-                        : transaction.state === 'invited'
-                        ? '⏳ Esperando depósito del comprador...'
-                        : '⚪ Pendiente'}
-                    </p>
-                  </div>
-                </div>
+                    <div className="flex items-center gap-4 group">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                        ['funds_secured', 'in_delivery', 'completed'].includes(transaction.state) || isAppealResolved
+                          ? 'bg-success text-success-foreground scale-110' 
+                          : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
+                          ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
+                          : 'bg-muted'
+                      }`}>
+                        <DollarSign className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">Pago en Escrow</p>
+                        <p className="text-sm text-muted-foreground">
+                          {['funds_secured', 'in_delivery', 'completed'].includes(transaction.state) || isAppealResolved
+                            ? '✅ Fondos asegurados y protegidos'
+                            : transaction.state === 'invited'
+                            ? '⏳ Esperando depósito del comprador...'
+                            : '⚪ Pendiente'}
+                        </p>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                    ['in_delivery', 'completed'].includes(transaction.state)
-                      ? 'bg-success text-success-foreground scale-110'
-                      : transaction.state === 'funds_secured'
-                      ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                      : 'bg-muted'
-                  }`}>
-                    <Truck className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-lg">Entrega del Producto</p>
-                    <p className="text-sm text-muted-foreground">
-                      {transaction.state === 'completed'
-                        ? '✅ Producto entregado y confirmado'
-                        : transaction.state === 'in_delivery'
-                        ? '🚚 En camino al comprador...'
-                        : transaction.state === 'funds_secured'
-                        ? '⏳ Esperando envío del vendedor...'
-                        : '⚪ Pendiente'}
-                    </p>
-                  </div>
-                </div>
+                    <div className="flex items-center gap-4 group">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                        ['in_delivery', 'completed'].includes(transaction.state) || isAppealResolved
+                          ? 'bg-success text-success-foreground scale-110'
+                          : transaction.state === 'funds_secured'
+                          ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
+                          : 'bg-muted'
+                      }`}>
+                        <Truck className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">Entrega del Producto</p>
+                        <p className="text-sm text-muted-foreground">
+                          {isCompleted
+                            ? '✅ Producto entregado y confirmado'
+                            : transaction.state === 'in_delivery'
+                            ? '🚚 En camino al comprador...'
+                            : transaction.state === 'funds_secured'
+                            ? '⏳ Esperando envío del vendedor...'
+                            : '⚪ Pendiente'}
+                        </p>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                    transaction.state === 'completed'
-                      ? 'bg-success text-success-foreground scale-110'
-                      : 'bg-muted'
-                  }`}>
-                    <Check className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-lg">Transacción Completada</p>
-                    <p className="text-sm text-muted-foreground">
-                      {transaction.state === 'completed' ? '✅ ¡Todo listo!' : '⚪ Pendiente'}
-                    </p>
+                    <div className="flex items-center gap-4 group">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                        isCompleted
+                          ? 'bg-success text-success-foreground scale-110'
+                          : 'bg-muted'
+                      }`}>
+                        <Check className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">Transacción Completada</p>
+                        <p className="text-sm text-muted-foreground">
+                          {isCompleted 
+                            ? isAppealResolved 
+                              ? '✅ Caso resuelto por la plataforma' 
+                              : '✅ ¡Todo listo!' 
+                            : '⚪ Pendiente'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             <Separator className="my-6" />
 
