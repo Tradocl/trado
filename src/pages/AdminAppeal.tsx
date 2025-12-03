@@ -196,10 +196,14 @@ export default function AdminAppeal() {
         }
       }
 
-      // Update transaction appeal status
+      // Update transaction state and appeal status
       await supabase
         .from("transactions")
-        .update({ appeal_status: newStatus })
+        .update({ 
+          state: "completed",
+          appeal_status: newStatus,
+          completed_at: new Date().toISOString()
+        })
         .eq("id", transaction.id);
 
       toast.success("Decisión registrada correctamente");
