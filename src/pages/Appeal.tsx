@@ -350,6 +350,7 @@ export default function Appeal() {
             {canNegotiate && transaction.buyer_id && (
               <MutualResolutionPanel
                 appealId={appeal.id}
+                transactionId={transaction.id}
                 currentUserId={user?.id || ""}
                 buyerId={transaction.buyer_id}
                 sellerId={transaction.seller_id}

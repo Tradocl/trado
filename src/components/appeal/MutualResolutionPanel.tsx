@@ -21,6 +21,7 @@ import { formatCLP } from "@/lib/utils";
 
 interface MutualResolutionPanelProps {
   appealId: string;
+  transactionId: string;
   currentUserId: string;
   buyerId: string;
   sellerId: string;
@@ -43,6 +44,7 @@ interface Proposal {
 
 export function MutualResolutionPanel({
   appealId,
+  transactionId,
   currentUserId,
   buyerId,
   sellerId,
@@ -241,6 +243,16 @@ export function MutualResolutionPanel({
         .from("appeals")
         .update({ status: appealStatus })
         .eq("id", appealId);
+
+      // 7. Update transaction state to completed
+      await supabase
+        .from("transactions")
+        .update({ 
+          state: "completed",
+          appeal_status: appealStatus,
+          completed_at: new Date().toISOString()
+        })
+        .eq("id", transactionId);
 
       toast.success("¡Acuerdo aceptado! Los fondos han sido distribuidos.");
     } catch (error: any) {
