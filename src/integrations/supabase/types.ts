@@ -16,31 +16,34 @@ export type Database = {
     Tables: {
       appeal_decisions: {
         Row: {
-          admin_id: string
+          admin_id: string | null
           appeal_id: string
           buyer_refund_amount: number | null
           created_at: string
           id: string
+          is_mutual_agreement: boolean | null
           resolution: Database["public"]["Enums"]["appeal_resolution"]
           resolution_notes: string
           seller_payment_amount: number | null
         }
         Insert: {
-          admin_id: string
+          admin_id?: string | null
           appeal_id: string
           buyer_refund_amount?: number | null
           created_at?: string
           id?: string
+          is_mutual_agreement?: boolean | null
           resolution: Database["public"]["Enums"]["appeal_resolution"]
           resolution_notes: string
           seller_payment_amount?: number | null
         }
         Update: {
-          admin_id?: string
+          admin_id?: string | null
           appeal_id?: string
           buyer_refund_amount?: number | null
           created_at?: string
           id?: string
+          is_mutual_agreement?: boolean | null
           resolution?: Database["public"]["Enums"]["appeal_resolution"]
           resolution_notes?: string
           seller_payment_amount?: number | null
@@ -121,6 +124,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "appeal_messages_appeal_id_fkey"
+            columns: ["appeal_id"]
+            isOneToOne: false
+            referencedRelation: "appeals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appeal_mutual_proposals: {
+        Row: {
+          appeal_id: string
+          buyer_amount: number
+          created_at: string
+          id: string
+          message: string | null
+          proposer_id: string
+          responded_at: string | null
+          seller_amount: number
+          status: string
+        }
+        Insert: {
+          appeal_id: string
+          buyer_amount: number
+          created_at?: string
+          id?: string
+          message?: string | null
+          proposer_id: string
+          responded_at?: string | null
+          seller_amount: number
+          status?: string
+        }
+        Update: {
+          appeal_id?: string
+          buyer_amount?: number
+          created_at?: string
+          id?: string
+          message?: string | null
+          proposer_id?: string
+          responded_at?: string | null
+          seller_amount?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeal_mutual_proposals_appeal_id_fkey"
             columns: ["appeal_id"]
             isOneToOne: false
             referencedRelation: "appeals"
