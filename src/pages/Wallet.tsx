@@ -498,7 +498,10 @@ const Wallet = () => {
             size="lg"
             variant="outline"
             className="h-16 border-2"
-            onClick={() => setWithdrawOpen(true)}
+            onClick={() => {
+              loadBankDetails();
+              setWithdrawOpen(true);
+            }}
           >
             <ArrowUpRight className="mr-2 h-5 w-5" />
             Retirar Dinero
