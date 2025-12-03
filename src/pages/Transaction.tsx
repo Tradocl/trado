@@ -851,7 +851,7 @@ const Transaction = () => {
               </div>
             )}
 
-            {transaction.state === "completed" && (
+            {(transaction.state === "completed" || (transaction.appeal_status && ["resuelta_a_favor_comprador", "resuelta_a_favor_vendedor", "resuelta_parcial", "cerrada"].includes(transaction.appeal_status))) && (
               <>
                 <div className="p-8 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border-2 border-success/30 text-center animate-scale-in">
                   <div className="flex justify-center mb-4">
