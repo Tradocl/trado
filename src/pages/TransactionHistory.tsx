@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ShoppingBag, Store, Calendar, DollarSign, User, Package } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Store, Calendar, DollarSign, User, Package, Star, Check } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -47,6 +47,7 @@ export default function TransactionHistory() {
   const [purchases, setPurchases] = useState<Transaction[]>([]);
   const [sales, setSales] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userRatings, setUserRatings] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) {
@@ -54,7 +55,24 @@ export default function TransactionHistory() {
       return;
     }
     loadTransactions();
+    loadUserRatings();
   }, [user, navigate]);
+
+  const loadUserRatings = async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from("ratings")
+        .select("transaction_id")
+        .eq("rater_id", user.id);
+      
+      if (data) {
+        setUserRatings(new Set(data.map(r => r.transaction_id)));
+      }
+    } catch (error) {
+      console.error("Error loading ratings:", error);
+    }
+  };
 
   const loadTransactions = async () => {
     try {
@@ -99,6 +117,7 @@ export default function TransactionHistory() {
   const TransactionCard = ({ transaction, isSale }: { transaction: Transaction; isSale: boolean }) => {
     const otherParty = isSale ? transaction.buyer_profile : transaction.seller_profile;
     const netAmount = isSale ? Number(transaction.amount) - Number(transaction.commission) : Number(transaction.amount);
+    const hasRated = userRatings.has(transaction.id);
 
     return (
       <Card 
@@ -155,6 +174,21 @@ export default function TransactionHistory() {
                 <span>Recibido: ${formatCLP(netAmount)}</span>
               </div>
             )}
+
+            {/* Rating status */}
+            <div className="flex items-center gap-2 pt-2 border-t">
+              {hasRated ? (
+                <span className="text-xs text-success flex items-center gap-1">
+                  <Check className="h-3 w-3" />
+                  Ya calificaste
+                </span>
+              ) : (
+                <span className="text-xs text-warning flex items-center gap-1">
+                  <Star className="h-3 w-3" />
+                  Pendiente de calificar
+                </span>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
