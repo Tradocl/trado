@@ -343,47 +343,6 @@ export default function Appeal() {
                   </>
                 )}
 
-                {/* Negotiation Timer */}
-                {canNegotiate && appeal.negotiation_deadline && (
-                  <>
-                    <Separator className="my-4" />
-                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                      <div className="flex items-center justify-between flex-wrap gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-                            <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-amber-900 dark:text-amber-100">
-                              Tiempo de Negociación
-                            </p>
-                            <p className="text-sm text-amber-700 dark:text-amber-300">
-                              {timeRemaining} para resolver entre las partes
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="outline"
-                          onClick={handleEscalate}
-                          disabled={escalating}
-                          className="border-amber-300 dark:border-amber-700"
-                        >
-                          {escalating ? (
-                            <>
-                              <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                              Escalando...
-                            </>
-                          ) : (
-                            <>
-                              <ShieldAlert className="h-4 w-4 mr-2" />
-                              Solicitar Intervención
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                )}
 
                 {/* Platform Review Alert */}
                 {appeal.status === "pendiente_intervencion_plataforma" && (
