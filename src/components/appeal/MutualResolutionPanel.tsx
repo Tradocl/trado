@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Handshake, 
   Send, 
@@ -55,11 +54,12 @@ export function MutualResolutionPanel({
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [buyerAmount, setBuyerAmount] = useState(totalAmount / 2);
+  const [selectedRecipient, setSelectedRecipient] = useState<"buyer" | "seller" | null>(null);
   const [message, setMessage] = useState("");
 
   const isBuyer = currentUserId === buyerId;
-  const sellerAmount = totalAmount - buyerAmount;
+  const buyerAmount = selectedRecipient === "buyer" ? totalAmount : 0;
+  const sellerAmount = selectedRecipient === "seller" ? totalAmount : 0;
 
   useEffect(() => {
     fetchProposals();
@@ -105,8 +105,8 @@ export function MutualResolutionPanel({
   const hasPendingProposal = !!pendingProposal;
 
   const handleSubmitProposal = async () => {
-    if (buyerAmount < 0 || sellerAmount < 0) {
-      toast.error("Los montos no pueden ser negativos");
+    if (!selectedRecipient) {
+      toast.error("Selecciona quién debe recibir los fondos");
       return;
     }
 
@@ -134,6 +134,7 @@ export function MutualResolutionPanel({
       
       toast.success("Propuesta enviada correctamente");
       setMessage("");
+      setSelectedRecipient(null);
     } catch (error: any) {
       console.error("Error submitting proposal:", error);
       toast.error("Error al enviar la propuesta");
@@ -214,22 +215,31 @@ export function MutualResolutionPanel({
           });
       }
 
-      // 4. Create appeal decision record
+      // 4. Determine resolution type based on amounts
+      const resolution = pendingProposal.buyer_amount === totalAmount 
+        ? "reembolso_total" 
+        : "liberar_fondos_vendedor";
+      
+      const appealStatus = pendingProposal.buyer_amount === totalAmount
+        ? "resuelta_a_favor_comprador"
+        : "resuelta_a_favor_vendedor";
+
+      // 5. Create appeal decision record
       await supabase
         .from("appeal_decisions")
         .insert({
           appeal_id: appealId,
-          resolution: "reembolso_parcial",
+          resolution,
           buyer_refund_amount: pendingProposal.buyer_amount,
           seller_payment_amount: pendingProposal.seller_amount,
           resolution_notes: `Acuerdo mutuo entre las partes. ${pendingProposal.message || ""}`,
           is_mutual_agreement: true,
         });
 
-      // 5. Update appeal status
+      // 6. Update appeal status
       await supabase
         .from("appeals")
-        .update({ status: "resuelta_parcial" })
+        .update({ status: appealStatus })
         .eq("id", appealId);
 
       toast.success("¡Acuerdo aceptado! Los fondos han sido distribuidos.");
@@ -380,7 +390,7 @@ export function MutualResolutionPanel({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold">
-                  {isProposalForMe ? "Hacer Contra-propuesta" : "Proponer Distribución"}
+                  {isProposalForMe ? "Hacer Contra-propuesta" : "Proponer Resolución"}
                 </h4>
                 <Badge variant="outline">
                   Total: {formatCLP(totalAmount)}
@@ -388,46 +398,38 @@ export function MutualResolutionPanel({
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Comprador recibe</Label>
-                    <Input
-                      type="number"
-                      value={Math.round(buyerAmount)}
-                      onChange={(e) => setBuyerAmount(Math.min(totalAmount, Math.max(0, Number(e.target.value))))}
-                      className="text-center font-semibold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Vendedor recibe</Label>
-                    <Input
-                      type="number"
-                      value={Math.round(sellerAmount)}
-                      onChange={(e) => setBuyerAmount(totalAmount - Math.min(totalAmount, Math.max(0, Number(e.target.value))))}
-                      className="text-center font-semibold"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Distribución</Label>
-                  <Slider
-                    value={[buyerAmount]}
-                    onValueChange={([value]) => setBuyerAmount(value)}
-                    max={totalAmount}
-                    step={1000}
-                    className="py-4"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>100% Comprador</span>
-                    <span>100% Vendedor</span>
-                  </div>
+                <div className="space-y-3">
+                  <Label>¿Quién debe recibir los fondos?</Label>
+                  <RadioGroup
+                    value={selectedRecipient || ""}
+                    onValueChange={(value) => setSelectedRecipient(value as "buyer" | "seller")}
+                    className="grid grid-cols-1 gap-3"
+                  >
+                    <div className={`flex items-center space-x-3 border rounded-lg p-4 cursor-pointer transition-colors ${selectedRecipient === "buyer" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                      <RadioGroupItem value="buyer" id="buyer" />
+                      <Label htmlFor="buyer" className="flex-1 cursor-pointer">
+                        <div className="font-medium">Reembolsar al Comprador</div>
+                        <div className="text-sm text-muted-foreground">
+                          El comprador recibe {formatCLP(totalAmount)}
+                        </div>
+                      </Label>
+                    </div>
+                    <div className={`flex items-center space-x-3 border rounded-lg p-4 cursor-pointer transition-colors ${selectedRecipient === "seller" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                      <RadioGroupItem value="seller" id="seller" />
+                      <Label htmlFor="seller" className="flex-1 cursor-pointer">
+                        <div className="font-medium">Liberar al Vendedor</div>
+                        <div className="text-sm text-muted-foreground">
+                          El vendedor recibe {formatCLP(totalAmount)}
+                        </div>
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Mensaje (opcional)</Label>
                   <Textarea
-                    placeholder="Explica por qué propones esta distribución..."
+                    placeholder="Explica por qué propones esta resolución..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     rows={3}
@@ -437,7 +439,7 @@ export function MutualResolutionPanel({
                 <Button 
                   className="w-full" 
                   onClick={handleSubmitProposal}
-                  disabled={submitting}
+                  disabled={submitting || !selectedRecipient}
                 >
                   {submitting ? (
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -487,7 +489,7 @@ export function MutualResolutionPanel({
                 {proposals.filter(p => p.status !== "pending").slice(0, 5).map(proposal => (
                   <div key={proposal.id} className="text-xs bg-muted/50 rounded p-2 flex justify-between items-center">
                     <span>
-                      {proposal.proposer_id === buyerId ? "Comprador" : "Vendedor"}: {formatCLP(proposal.buyer_amount)} / {formatCLP(proposal.seller_amount)}
+                      {proposal.proposer_id === buyerId ? "Comprador" : "Vendedor"} propuso: {proposal.buyer_amount === totalAmount ? "Reembolso al comprador" : "Liberar al vendedor"}
                     </span>
                     <Badge variant={proposal.status === "accepted" ? "default" : "secondary"} className="text-xs">
                       {proposal.status === "accepted" ? "Aceptada" : "Rechazada"}
