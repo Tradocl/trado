@@ -89,7 +89,7 @@ export function CreateAppealDialog({ transactionId, userId }: CreateAppealDialog
           Iniciar Apelación
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Iniciar apelación</DialogTitle>
         </DialogHeader>
@@ -132,7 +132,7 @@ export function CreateAppealDialog({ transactionId, userId }: CreateAppealDialog
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Explica qué sucedió y por qué estás iniciando esta apelación..."
-                className="min-h-[150px]"
+                className="min-h-[120px]"
               />
               <p className="text-xs text-muted-foreground">
                 Proporciona la mayor cantidad de detalles posible. Esto ayudará a resolver el problema más rápido.
@@ -140,11 +140,11 @@ export function CreateAppealDialog({ transactionId, userId }: CreateAppealDialog
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
             <Button
               variant="outline"
               onClick={() => setOpen(false)}
-              className="flex-1"
+              className="w-full sm:flex-1"
               disabled={creating}
             >
               Cancelar
@@ -152,7 +152,7 @@ export function CreateAppealDialog({ transactionId, userId }: CreateAppealDialog
             <Button
               onClick={handleCreate}
               disabled={!reason || !description.trim() || creating}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               {creating ? "Creando..." : "Crear apelación"}
             </Button>
