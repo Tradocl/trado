@@ -290,12 +290,15 @@ const Transaction = () => {
         throw new Error("No se pudo completar la transacción");
       }
 
-      toast.success("¡Pago liberado al vendedor!");
+      const successMessage = transaction.sale_type === "servicio" 
+        ? "¡Pago liberado al proveedor!" 
+        : "¡Pago liberado al vendedor!";
+      toast.success(successMessage);
       setRatingDialogOpen(true);
       await loadTransaction();
     } catch (error: any) {
       console.error("Error al confirmar entrega:", error);
-      toast.error("Error al confirmar entrega: " + (error.message || "Intenta nuevamente"));
+      toast.error("Error al confirmar: " + (error.message || "Intenta nuevamente"));
     } finally {
       setConfirmingDelivery(false);
     }
@@ -518,7 +521,9 @@ const Transaction = () => {
                   <div className="p-2 bg-info rounded-lg animate-pulse">
                     <Copy className="h-5 w-5 text-info-foreground" />
                   </div>
-                  <h4 className="font-bold text-info text-lg">⏳ Esperando Comprador</h4>
+                  <h4 className="font-bold text-info text-lg">
+                    ⏳ {transaction.sale_type === "servicio" ? "Esperando Cliente" : "Esperando Comprador"}
+                  </h4>
                 </div>
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col md:flex-row gap-2">
@@ -561,7 +566,7 @@ const Transaction = () => {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-3 text-center">
-                  📱 Comparte el código o el enlace directo con el comprador
+                  📱 Comparte el código o el enlace directo con {transaction.sale_type === "servicio" ? "el cliente" : "el comprador"}
                 </p>
               </div>
             )}
@@ -574,7 +579,9 @@ const Transaction = () => {
                     <Check className="h-6 w-6 text-success" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-success">✅ El comprador se ha unido</h4>
+                    <h4 className="font-bold text-lg text-success">
+                      ✅ {transaction.sale_type === "servicio" ? "El cliente se ha unido" : "El comprador se ha unido"}
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       {buyerProfile?.full_name} se ha unido a la transacción
                     </p>
@@ -584,65 +591,76 @@ const Transaction = () => {
             )}
 
             {/* Participants */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="p-5 border-2 border-success/30 rounded-xl bg-gradient-to-br from-success/10 to-success/5 shadow-md hover-scale">
-                <div className="flex items-center gap-3 mb-3">
-                  <Avatar className="h-12 w-12 border-2 border-success/30">
-                    <AvatarImage src={sellerProfile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-success/20 text-success font-bold">
-                      {sellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'V'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h4 className="font-bold text-lg">Vendedor</h4>
-                    <p className="font-semibold">{sellerProfile?.full_name}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <Star className="h-5 w-5 text-warning fill-warning" />
-                  <span className="font-bold">{sellerProfile?.reputation_score?.toFixed(1) || "0.0"}</span>
-                </div>
-                {sellerProfile && <UserRatings userId={sellerProfile.id} maxRatings={3} />}
-              </div>
-              <div className="p-5 border-2 border-info/30 rounded-xl bg-gradient-to-br from-info/10 to-info/5 shadow-md hover-scale">
-                <div className="flex items-center gap-3 mb-3">
-                  {buyerProfile ? (
-                    <Avatar className="h-12 w-12 border-2 border-info/30">
-                      <AvatarImage src={buyerProfile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-info/20 text-info font-bold">
-                        {buyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'C'}
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <div className="h-12 w-12 rounded-full bg-info/20 flex items-center justify-center">
-                      <Users className="h-6 w-6 text-info" />
+            {(() => {
+              const isService = transaction.sale_type === "servicio";
+              const sellerLabel = isService ? "Proveedor" : "Vendedor";
+              const buyerLabel = isService ? "Cliente" : "Comprador";
+              const sellerFallback = isService ? "P" : "V";
+              const buyerFallback = isService ? "C" : "C";
+              const waitingLabel = isService ? "Esperando cliente..." : "Esperando comprador...";
+              
+              return (
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-5 border-2 border-success/30 rounded-xl bg-gradient-to-br from-success/10 to-success/5 shadow-md hover-scale">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Avatar className="h-12 w-12 border-2 border-success/30">
+                        <AvatarImage src={sellerProfile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-success/20 text-success font-bold">
+                          {sellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || sellerFallback}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h4 className="font-bold text-lg">{sellerLabel}</h4>
+                        <p className="font-semibold">{sellerProfile?.full_name}</p>
+                      </div>
                     </div>
-                  )}
-                  <div>
-                    <h4 className="font-bold text-lg">Comprador</h4>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Star className="h-5 w-5 text-warning fill-warning" />
+                      <span className="font-bold">{sellerProfile?.reputation_score?.toFixed(1) || "0.0"}</span>
+                    </div>
+                    {sellerProfile && <UserRatings userId={sellerProfile.id} maxRatings={3} />}
+                  </div>
+                  <div className="p-5 border-2 border-info/30 rounded-xl bg-gradient-to-br from-info/10 to-info/5 shadow-md hover-scale">
+                    <div className="flex items-center gap-3 mb-3">
+                      {buyerProfile ? (
+                        <Avatar className="h-12 w-12 border-2 border-info/30">
+                          <AvatarImage src={buyerProfile?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-info/20 text-info font-bold">
+                            {buyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || buyerFallback}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <div className="h-12 w-12 rounded-full bg-info/20 flex items-center justify-center">
+                          <Users className="h-6 w-6 text-info" />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-bold text-lg">{buyerLabel}</h4>
+                        {buyerProfile ? (
+                          <p className="font-semibold">{buyerProfile.full_name}</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Esperando...</p>
+                        )}
+                      </div>
+                    </div>
                     {buyerProfile ? (
-                      <p className="font-semibold">{buyerProfile.full_name}</p>
+                      <>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Star className="h-5 w-5 text-warning fill-warning" />
+                          <span className="font-bold">{buyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
+                        </div>
+                        <UserRatings userId={buyerProfile.id} maxRatings={3} />
+                      </>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Esperando...</p>
+                      <div className="flex items-center gap-2 text-muted-foreground animate-pulse mt-2">
+                        <div className="h-3 w-3 rounded-full bg-warning"></div>
+                        <p className="text-sm font-medium">{waitingLabel}</p>
+                      </div>
                     )}
                   </div>
                 </div>
-                {buyerProfile ? (
-                  <>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Star className="h-5 w-5 text-warning fill-warning" />
-                      <span className="font-bold">{buyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
-                    </div>
-                    <UserRatings userId={buyerProfile.id} maxRatings={3} />
-                  </>
-                ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground animate-pulse mt-2">
-                    <div className="h-3 w-3 rounded-full bg-warning"></div>
-                    <p className="text-sm font-medium">Esperando comprador...</p>
-                  </div>
-                )}
-              </div>
-            </div>
+              );
+            })()}
 
             <Separator className="my-6" />
 
@@ -652,9 +670,105 @@ const Transaction = () => {
               const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
               const isCompleted = transaction.state === 'completed' || isAppealResolved;
               const isInPersonDelivery = transaction.sale_type === 'producto_persona';
+              const isService = transaction.sale_type === 'servicio';
               const isInReview = ['awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state);
               const passedDelivery = ['in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
               const passedReceived = ['awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
+              
+              // For services, simplified flow without shipping or meeting
+              if (isService) {
+                return (
+                  <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
+                    <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
+                      <StoreIcon className="h-6 w-6 text-primary" />
+                      Progreso del Servicio
+                    </h4>
+                    <div className="space-y-4">
+                      {/* Step 1: Client Joined */}
+                      <div className="flex items-center gap-4 group">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                          transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
+                        }`}>
+                          <Users className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Cliente Confirmado</p>
+                          <p className="text-sm text-muted-foreground">
+                            {transaction.buyer_id ? '✅ Cliente confirmado' : '⏳ Esperando cliente...'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 2: Escrow */}
+                      <div className="flex items-center gap-4 group">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                          passedDelivery || transaction.state === 'funds_secured'
+                            ? 'bg-success text-success-foreground scale-110' 
+                            : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
+                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
+                            : 'bg-muted'
+                        }`}>
+                          <DollarSign className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Pago en Escrow</p>
+                          <p className="text-sm text-muted-foreground">
+                            {passedDelivery || transaction.state === 'funds_secured'
+                              ? '✅ Fondos asegurados y protegidos'
+                              : transaction.state === 'invited'
+                              ? '⏳ Esperando depósito del cliente...'
+                              : '⚪ Pendiente'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 3: Service in Progress */}
+                      <div className="flex items-center gap-4 group">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                          isCompleted
+                            ? 'bg-success text-success-foreground scale-110'
+                            : passedDelivery || transaction.state === 'funds_secured'
+                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
+                            : 'bg-muted'
+                        }`}>
+                          <StoreIcon className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Servicio en Progreso</p>
+                          <p className="text-sm text-muted-foreground">
+                            {isCompleted
+                              ? '✅ Servicio completado'
+                              : passedDelivery || transaction.state === 'funds_secured'
+                              ? '🛠️ El proveedor realiza el servicio'
+                              : '⚪ Pendiente'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 4: Completed */}
+                      <div className="flex items-center gap-4 group">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                          isCompleted
+                            ? 'bg-success text-success-foreground scale-110'
+                            : 'bg-muted'
+                        }`}>
+                          <Check className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Servicio Completado</p>
+                          <p className="text-sm text-muted-foreground">
+                            {isCompleted 
+                              ? isAppealResolved 
+                                ? '✅ Caso resuelto por la plataforma' 
+                                : '✅ ¡Servicio finalizado!' 
+                              : '⚪ Pendiente'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
               
               // For in-person delivery, different flow
               if (isInPersonDelivery) {
@@ -925,10 +1039,16 @@ const Transaction = () => {
               <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
                 <div className="flex items-center gap-2 mb-2">
                   <Users className="h-6 w-6 text-info" />
-                  <h4 className="font-bold text-lg">¿Quieres comprar este producto?</h4>
+                  <h4 className="font-bold text-lg">
+                    {transaction.sale_type === "servicio" 
+                      ? "¿Quieres contratar este servicio?" 
+                      : "¿Quieres comprar este producto?"}
+                  </h4>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Únete a esta transacción para iniciar el proceso de compra protegida.
+                  {transaction.sale_type === "servicio"
+                    ? "Únete a esta transacción para contratar el servicio de forma protegida."
+                    : "Únete a esta transacción para iniciar el proceso de compra protegida."}
                 </p>
                 <Button
                   size="lg"
@@ -937,10 +1057,14 @@ const Transaction = () => {
                   disabled={joiningTransaction}
                 >
                   <Users className="mr-2 h-6 w-6" />
-                  {joiningTransaction ? "Uniéndose..." : "Unirme como Comprador"}
+                  {joiningTransaction 
+                    ? "Uniéndose..." 
+                    : transaction.sale_type === "servicio" 
+                      ? "Unirme como Cliente" 
+                      : "Unirme como Comprador"}
                 </Button>
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
-                  🔒 Tu compra estará 100% protegida
+                  🔒 {transaction.sale_type === "servicio" ? "Tu pago estará 100% protegido" : "Tu compra estará 100% protegida"}
                 </p>
               </div>
             )}
@@ -961,12 +1085,12 @@ const Transaction = () => {
                   Depositar ${formatCLP(transaction.amount)} en Escrow
                 </Button>
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
-                  🔒 Tus fondos estarán protegidos hasta que confirmes la entrega
+                  🔒 Tus fondos estarán protegidos hasta que confirmes {transaction.sale_type === "servicio" ? "el servicio" : "la entrega"}
                 </p>
               </div>
             )}
 
-            {isSeller && transaction.state === "funds_secured" && transaction.sale_type !== "producto_persona" && (
+            {isSeller && transaction.state === "funds_secured" && transaction.sale_type === "producto_envio" && (
               <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
                 <div className="flex items-center gap-2 mb-2">
                   <Truck className="h-6 w-6 text-info" />
@@ -984,6 +1108,76 @@ const Transaction = () => {
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
                   {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Marca cuando hayas enviado el producto al comprador"}
                 </p>
+              </div>
+            )}
+
+            {/* Service: Provider marks service as complete, client confirms */}
+            {transaction.sale_type === "servicio" && transaction.state === "funds_secured" && (
+              <div className="space-y-3 p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border-2 border-primary/30 animate-scale-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <StoreIcon className="h-6 w-6 text-primary" />
+                  <h4 className="font-bold text-lg">
+                    {isSeller ? "Servicio en Progreso" : "Esperando Servicio"}
+                  </h4>
+                </div>
+                {isSeller ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Realiza el servicio acordado. Cuando termines, el cliente podrá confirmar y liberar el pago.
+                    </p>
+                    <Button 
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale" 
+                      onClick={handleMarkAsShipped}
+                      disabled={!!activeAppeal}
+                    >
+                      <Check className="mr-2 h-6 w-6" />
+                      Marcar Servicio como Completado
+                    </Button>
+                    <p className="text-sm text-muted-foreground text-center">
+                      {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "🛠️ Marca cuando hayas finalizado el servicio"}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    El proveedor está realizando el servicio. Cuando termine, podrás confirmar y liberar el pago.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Service: Client confirms completion */}
+            {transaction.sale_type === "servicio" && transaction.state === "in_delivery" && (
+              <div className="space-y-3 p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-xl border-2 border-success/30 animate-scale-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <Check className="h-6 w-6 text-success" />
+                  <h4 className="font-bold text-lg">
+                    {isBuyer ? "Confirmar Servicio Completado" : "Esperando Confirmación del Cliente"}
+                  </h4>
+                </div>
+                {isBuyer ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      El proveedor ha marcado el servicio como completado. Si estás satisfecho, confirma para liberar el pago.
+                    </p>
+                    <Button 
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
+                      onClick={handleConfirmDelivery}
+                      disabled={confirmingDelivery || !!activeAppeal}
+                    >
+                      <Check className="mr-2 h-6 w-6" />
+                      {confirmingDelivery ? "Procesando..." : "Confirmar Servicio - Liberar Pago"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      ⚠️ Solo confirma si estás satisfecho con el servicio recibido
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    El cliente debe confirmar que el servicio fue completado satisfactoriamente para que recibas el pago.
+                  </p>
+                )}
               </div>
             )}
 
