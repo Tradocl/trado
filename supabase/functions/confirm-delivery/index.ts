@@ -114,7 +114,6 @@ serve(async (req: Request): Promise<Response> => {
 
     // Determine sale type label for description
     const saleTypeLabel = tx.sale_type === "servicio" ? "Servicio" : "Venta";
-    const shortId = transactionId.slice(0, 8).toUpperCase();
 
     console.log(`[confirm-delivery] Processing payment: amount=${transactionAmount}, commission=${calculatedCommission}, net=${amountAfterCommission}`);
 
@@ -129,14 +128,14 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("No se pudo actualizar la billetera del vendedor");
     }
 
-    // Insert wallet movement with detailed description
+    // Insert wallet movement with simple description
     const { error: movementError } = await supabaseClient.from("wallet_movements").insert({
       wallet_id: sellerWallet.id,
       transaction_id: tx.id,
       type: "escrow_release",
       amount: amountAfterCommission,
       balance_after: newSellerBalance,
-      description: `${saleTypeLabel} #${shortId}: "${tx.product_name}" ($${transactionAmount.toLocaleString('es-CL')} - $${calculatedCommission.toLocaleString('es-CL')} comisión)`,
+      description: `${saleTypeLabel} "${tx.product_name}"`,
       status: "approved",
     });
 
