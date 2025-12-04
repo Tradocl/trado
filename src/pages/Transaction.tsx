@@ -233,17 +233,17 @@ const Transaction = () => {
     if (!user || !transaction) return;
 
     try {
-      // CRITICAL: First check if escrow_lock already exists for this transaction
+      // CRITICAL: First check if escrow_lock already exists for this transaction (pending = blocked, approved = spent)
       const { data: existingLock } = await supabase
         .from("wallet_movements")
         .select("id")
         .eq("transaction_id", transaction.id)
         .eq("type", "escrow_lock")
-        .eq("status", "approved")
+        .in("status", ["pending", "approved"])
         .maybeSingle();
 
       if (existingLock) {
-        toast.info("Los fondos ya fueron depositados en esta transacción");
+        toast.info("Los fondos ya fueron bloqueados en esta transacción");
         setDepositDialogOpen(false);
         loadTransaction();
         return;
@@ -261,20 +261,26 @@ const Transaction = () => {
         return;
       }
 
-      // Lock funds in escrow
-      const newBalance = wallet.balance - transaction.amount;
+      // Block funds in escrow (don't spend yet, just hold them)
+      const currentBlocked = Number(wallet.blocked_balance ?? 0);
+      const newBlockedBalance = currentBlocked + transaction.amount;
+      const newAvailableBalance = wallet.balance - transaction.amount;
       const typeLabel = transaction.sale_type === "servicio" ? "Servicio" : "Compra";
 
-      await supabase.from("wallets").update({ balance: newBalance }).eq("id", wallet.id);
+      // Update wallet: reduce available balance, increase blocked balance
+      await supabase.from("wallets").update({ 
+        balance: newAvailableBalance,
+        blocked_balance: newBlockedBalance 
+      }).eq("id", wallet.id);
 
       await supabase.from("wallet_movements").insert({
         wallet_id: wallet.id,
         transaction_id: transaction.id,
         type: "escrow_lock",
         amount: -transaction.amount,
-        balance_after: newBalance,
+        balance_after: newAvailableBalance,
         description: `${typeLabel} "${transaction.product_name}"`,
-        status: "approved",
+        status: "pending", // Pending until transaction completes
       });
 
       await supabase
@@ -282,7 +288,7 @@ const Transaction = () => {
         .update({ state: "funds_secured", deposited_at: new Date().toISOString() })
         .eq("id", transaction.id);
 
-      toast.success("¡Fondos depositados en escrow!");
+      toast.success("¡Fondos bloqueados en garantía!");
       setDepositDialogOpen(false);
       loadTransaction();
     } catch (error: any) {

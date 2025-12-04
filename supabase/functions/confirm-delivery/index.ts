@@ -82,11 +82,22 @@ serve(async (req: Request): Promise<Response> => {
 
     if (existingRelease) {
       console.log(`[confirm-delivery] Escrow release already exists for transaction ${transactionId}, skipping duplicate`);
-      // Return success since the transaction was already completed
       return new Response(JSON.stringify({ success: true, message: "La transacción ya fue completada anteriormente" }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
+    }
+
+    // Get buyer wallet to release blocked funds
+    const { data: buyerWallet, error: buyerWalletError } = await supabaseClient
+      .from("wallets")
+      .select("id, balance, blocked_balance")
+      .eq("user_id", tx.buyer_id)
+      .single();
+
+    if (buyerWalletError || !buyerWallet) {
+      console.error("[confirm-delivery] Error fetching buyer wallet", buyerWalletError);
+      throw new Error("Billetera del comprador no encontrada");
     }
 
     // Get seller wallet
@@ -109,13 +120,42 @@ serve(async (req: Request): Promise<Response> => {
     const calculatedCommission = Math.min(feeWithFloor, 20000);
 
     const amountAfterCommission = transactionAmount - calculatedCommission;
-    const currentBalance = Number(sellerWallet.balance ?? 0);
-    const newSellerBalance = currentBalance + amountAfterCommission;
+    const currentSellerBalance = Number(sellerWallet.balance ?? 0);
+    const newSellerBalance = currentSellerBalance + amountAfterCommission;
+
+    // Release buyer's blocked funds
+    const currentBuyerBlocked = Number(buyerWallet.blocked_balance ?? 0);
+    const newBuyerBlocked = Math.max(0, currentBuyerBlocked - transactionAmount);
 
     // Determine sale type label for description
     const saleTypeLabel = tx.sale_type === "servicio" ? "Servicio" : "Venta";
 
     console.log(`[confirm-delivery] Processing payment: amount=${transactionAmount}, commission=${calculatedCommission}, net=${amountAfterCommission}`);
+    console.log(`[confirm-delivery] Buyer blocked: ${currentBuyerBlocked} -> ${newBuyerBlocked}`);
+
+    // Update buyer wallet: release blocked funds
+    const { error: updateBuyerWalletError } = await supabaseClient
+      .from("wallets")
+      .update({ blocked_balance: newBuyerBlocked })
+      .eq("id", buyerWallet.id);
+
+    if (updateBuyerWalletError) {
+      console.error("[confirm-delivery] Error updating buyer wallet", updateBuyerWalletError);
+      throw new Error("No se pudo actualizar la billetera del comprador");
+    }
+
+    // Approve the buyer's escrow_lock movement (mark as spent)
+    const { error: approveMovementError } = await supabaseClient
+      .from("wallet_movements")
+      .update({ status: "approved" })
+      .eq("transaction_id", transactionId)
+      .eq("type", "escrow_lock")
+      .eq("status", "pending");
+
+    if (approveMovementError) {
+      console.error("[confirm-delivery] Error approving escrow_lock movement", approveMovementError);
+      // Continue anyway, it's not critical
+    }
 
     // Update seller wallet balance
     const { error: updateWalletError } = await supabaseClient
@@ -128,7 +168,7 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("No se pudo actualizar la billetera del vendedor");
     }
 
-    // Insert wallet movement with simple description
+    // Insert seller wallet movement
     const { error: movementError } = await supabaseClient.from("wallet_movements").insert({
       wallet_id: sellerWallet.id,
       transaction_id: tx.id,
@@ -150,7 +190,7 @@ serve(async (req: Request): Promise<Response> => {
       .update({ 
         state: "completed", 
         completed_at: new Date().toISOString(),
-        commission: calculatedCommission // Store the calculated commission
+        commission: calculatedCommission
       })
       .eq("id", tx.id);
 
