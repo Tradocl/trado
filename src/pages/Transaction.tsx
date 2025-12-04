@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,6 +19,7 @@ import { UserRatings } from "@/components/UserRatings";
 import { CreateAppealDialog } from "@/components/appeal/CreateAppealDialog";
 import { ReturnRequestDialog } from "@/components/ReturnRequestDialog";
 import { ReturnStatusPanel } from "@/components/ReturnStatusPanel";
+import { MeetingProposalPanel } from "@/components/MeetingProposalPanel";
 import { formatCLP } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -650,10 +651,130 @@ const Transaction = () => {
               const resolvedAppealStatuses = ['resuelta_a_favor_comprador', 'resuelta_a_favor_vendedor', 'resuelta_parcial', 'cerrada'];
               const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
               const isCompleted = transaction.state === 'completed' || isAppealResolved;
+              const isInPersonDelivery = transaction.sale_type === 'producto_persona';
               const isInReview = ['awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state);
               const passedDelivery = ['in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
               const passedReceived = ['awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
               
+              // For in-person delivery, different flow
+              if (isInPersonDelivery) {
+                return (
+                  <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
+                    <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
+                      <Handshake className="h-6 w-6 text-primary" />
+                      Progreso del Encuentro
+                    </h4>
+                    <div className="space-y-4">
+                      {/* Step 1: Buyer Joined */}
+                      <div className="flex items-center gap-4 group">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                          transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
+                        }`}>
+                          <Users className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Comprador Unido</p>
+                          <p className="text-sm text-muted-foreground">
+                            {transaction.buyer_id ? '✅ Comprador confirmado' : '⏳ Esperando comprador...'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 2: Escrow */}
+                      <div className="flex items-center gap-4 group">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                          passedDelivery || transaction.state === 'funds_secured'
+                            ? 'bg-success text-success-foreground scale-110' 
+                            : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
+                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
+                            : 'bg-muted'
+                        }`}>
+                          <DollarSign className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Pago en Escrow</p>
+                          <p className="text-sm text-muted-foreground">
+                            {passedDelivery || transaction.state === 'funds_secured'
+                              ? '✅ Fondos asegurados y protegidos'
+                              : transaction.state === 'invited'
+                              ? '⏳ Esperando depósito del comprador...'
+                              : '⚪ Pendiente'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 3: Ready to Meet / Coordinate */}
+                      <div className="flex items-center gap-4 group">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                          passedDelivery
+                            ? 'bg-success text-success-foreground scale-110'
+                            : transaction.state === 'funds_secured'
+                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
+                            : 'bg-muted'
+                        }`}>
+                          <MapPin className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Listo para Entregar</p>
+                          <p className="text-sm text-muted-foreground">
+                            {passedDelivery
+                              ? '✅ Encuentro coordinado'
+                              : transaction.state === 'funds_secured'
+                              ? '📍 Coordinen lugar y hora de encuentro'
+                              : '⚪ Pendiente'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 4: Meeting / Handoff */}
+                      <div className="flex items-center gap-4 group">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                          isCompleted
+                            ? 'bg-success text-success-foreground scale-110'
+                            : passedDelivery
+                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
+                            : 'bg-muted'
+                        }`}>
+                          <Handshake className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Confirmar Entrega</p>
+                          <p className="text-sm text-muted-foreground">
+                            {isCompleted
+                              ? '✅ Entrega confirmada'
+                              : passedDelivery
+                              ? '🤝 Juntarse y confirmar recibimiento'
+                              : '⚪ Pendiente'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 5: Completed */}
+                      <div className="flex items-center gap-4 group">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                          isCompleted
+                            ? 'bg-success text-success-foreground scale-110'
+                            : 'bg-muted'
+                        }`}>
+                          <Check className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Transacción Completada</p>
+                          <p className="text-sm text-muted-foreground">
+                            {isCompleted 
+                              ? isAppealResolved 
+                                ? '✅ Caso resuelto por la plataforma' 
+                                : '✅ ¡Todo listo!' 
+                              : '⚪ Pendiente'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              
+              // Standard shipping flow
               return (
                 <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
                   <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
@@ -845,7 +966,7 @@ const Transaction = () => {
               </div>
             )}
 
-            {isSeller && transaction.state === "funds_secured" && (
+            {isSeller && transaction.state === "funds_secured" && transaction.sale_type !== "producto_persona" && (
               <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
                 <div className="flex items-center gap-2 mb-2">
                   <Truck className="h-6 w-6 text-info" />
@@ -866,7 +987,63 @@ const Transaction = () => {
               </div>
             )}
 
-            {isBuyer && transaction.state === "in_delivery" && (
+            {/* In-person delivery: Meeting Proposal Panel */}
+            {transaction.sale_type === "producto_persona" && transaction.state === "funds_secured" && transaction.buyer_id && (
+              <MeetingProposalPanel
+                transactionId={transaction.id}
+                userId={user?.id || ""}
+                sellerId={transaction.seller_id}
+                buyerId={transaction.buyer_id}
+                sellerName={sellerProfile?.full_name || "Vendedor"}
+                buyerName={buyerProfile?.full_name || "Comprador"}
+                isSeller={isSeller}
+                onMeetingConfirmed={() => {
+                  // Automatically move to in_delivery when meeting is confirmed
+                  supabase
+                    .from("transactions")
+                    .update({ state: "in_delivery", shipped_at: new Date().toISOString() })
+                    .eq("id", transaction.id)
+                    .then(() => loadTransaction());
+                }}
+              />
+            )}
+
+            {/* In-person delivery: Ready to confirm - both parties */}
+            {transaction.sale_type === "producto_persona" && transaction.state === "in_delivery" && (
+              <div className="space-y-3 p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-xl border-2 border-success/30 animate-scale-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <Handshake className="h-6 w-6 text-success" />
+                  <h4 className="font-bold text-lg">
+                    {isBuyer ? "Confirmar Recepción" : "Esperando Confirmación"}
+                  </h4>
+                </div>
+                {isBuyer ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Cuando recibas el producto en persona y verifiques que está todo bien, confirma para liberar el pago.
+                    </p>
+                    <Button 
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
+                      onClick={handleConfirmDelivery}
+                      disabled={confirmingDelivery || !!activeAppeal}
+                    >
+                      <Check className="mr-2 h-6 w-6" />
+                      {confirmingDelivery ? "Procesando..." : "Confirmar Entrega - Liberar Pago"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      ⚠️ Solo confirma si el producto está en perfectas condiciones
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    El comprador debe confirmar la recepción del producto para que recibas el pago.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {isBuyer && transaction.state === "in_delivery" && transaction.sale_type !== "producto_persona" && (
               <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="h-6 w-6 text-info" />
