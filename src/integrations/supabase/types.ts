@@ -305,6 +305,50 @@ export type Database = {
           },
         ]
       }
+      meeting_proposals: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          proposed_datetime: string
+          proposed_location: string
+          proposer_id: string
+          responded_at: string | null
+          status: string
+          transaction_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          proposed_datetime: string
+          proposed_location: string
+          proposer_id: string
+          responded_at?: string | null
+          status?: string
+          transaction_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          proposed_datetime?: string
+          proposed_location?: string
+          proposer_id?: string
+          responded_at?: string | null
+          status?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_proposals_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
