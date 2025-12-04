@@ -32,6 +32,7 @@ const Wallet = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [balance, setBalance] = useState(0);
+  const [blockedBalance, setBlockedBalance] = useState(0);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [pendingMovements, setPendingMovements] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,8 +108,9 @@ const Wallet = () => {
             filter: `user_id=eq.${user.id}`
           },
           (payload: any) => {
-            console.log('Balance actualizado:', payload.new.balance);
+            console.log('Wallet actualizada:', payload.new);
             setBalance(payload.new.balance);
+            setBlockedBalance(payload.new.blocked_balance ?? 0);
           }
         )
         .subscribe();
@@ -163,6 +165,7 @@ const Wallet = () => {
       if (walletError) throw walletError;
 
       setBalance(wallet.balance);
+      setBlockedBalance(wallet.blocked_balance ?? 0);
 
       const { data: movementsData, error: movementsError } = await supabase
         .from("wallet_movements")
@@ -512,14 +515,21 @@ const Wallet = () => {
           <CardHeader>
             <CardTitle className="text-3xl">Mi Billetera</CardTitle>
             <CardDescription className="text-primary-foreground/80">
-              Saldo actual disponible
+              Resumen de fondos
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div>
-              <p className="text-sm opacity-80 mb-2">Saldo disponible</p>
+              <p className="text-sm opacity-80 mb-1">Saldo disponible</p>
               <p className="text-5xl font-bold">${formatCLP(balance)}</p>
             </div>
+            {blockedBalance > 0 && (
+              <div className="pt-3 border-t border-primary-foreground/20">
+                <p className="text-sm opacity-80 mb-1">Fondos en garantía</p>
+                <p className="text-2xl font-semibold">${formatCLP(blockedBalance)}</p>
+                <p className="text-xs opacity-60 mt-1">Retenidos hasta completar transacciones</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

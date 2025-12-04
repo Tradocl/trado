@@ -700,6 +700,7 @@ export type Database = {
       wallets: {
         Row: {
           balance: number | null
+          blocked_balance: number | null
           created_at: string | null
           currency: string | null
           id: string
@@ -708,6 +709,7 @@ export type Database = {
         }
         Insert: {
           balance?: number | null
+          blocked_balance?: number | null
           created_at?: string | null
           currency?: string | null
           id?: string
@@ -716,6 +718,7 @@ export type Database = {
         }
         Update: {
           balance?: number | null
+          blocked_balance?: number | null
           created_at?: string | null
           currency?: string | null
           id?: string
