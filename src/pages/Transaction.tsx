@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,6 +17,8 @@ import { TransactionChat } from "@/components/TransactionChat";
 import { RatingDialog } from "@/components/RatingDialog";
 import { UserRatings } from "@/components/UserRatings";
 import { CreateAppealDialog } from "@/components/appeal/CreateAppealDialog";
+import { ReturnRequestDialog } from "@/components/ReturnRequestDialog";
+import { ReturnStatusPanel } from "@/components/ReturnStatusPanel";
 import { formatCLP } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -32,6 +34,8 @@ interface Transaction {
   appeal_status: string | null;
   invite_code: string;
   created_at: string;
+  sale_type: string | null;
+  shipped_at: string | null;
 }
 
 interface Profile {
@@ -47,6 +51,9 @@ const stateLabels: Record<string, { label: string; color: string }> = {
   awaiting_deposit: { label: "Esperando Depósito", color: "bg-warning" },
   funds_secured: { label: "Fondos Asegurados", color: "bg-success" },
   in_delivery: { label: "En Entrega", color: "bg-info" },
+  awaiting_buyer_review: { label: "Período de Revisión", color: "bg-warning" },
+  return_requested: { label: "Devolución Solicitada", color: "bg-warning" },
+  return_in_progress: { label: "Devolución en Proceso", color: "bg-warning" },
   completed: { label: "Completada", color: "bg-success" },
   cancelled: { label: "Cancelada", color: "bg-destructive" },
   in_dispute: { label: "En Disputa", color: "bg-destructive" },
@@ -299,10 +306,29 @@ const Transaction = () => {
     try {
       await supabase
         .from("transactions")
-        .update({ state: "in_delivery" })
+        .update({ 
+          state: "in_delivery",
+          shipped_at: new Date().toISOString()
+        })
         .eq("id", transaction.id);
 
       toast.success("¡Marcado como enviado! El comprador será notificado.");
+      loadTransaction();
+    } catch (error: any) {
+      toast.error("Error al actualizar estado: " + error.message);
+    }
+  };
+
+  const handleMarkAsReceived = async () => {
+    if (!user || !transaction || !isBuyer) return;
+
+    try {
+      await supabase
+        .from("transactions")
+        .update({ state: "awaiting_buyer_review" })
+        .eq("id", transaction.id);
+
+      toast.success("¡Producto recibido! Ahora puedes revisarlo con calma.");
       loadTransaction();
     } catch (error: any) {
       toast.error("Error al actualizar estado: " + error.message);
@@ -616,6 +642,9 @@ const Transaction = () => {
               const resolvedAppealStatuses = ['resuelta_a_favor_comprador', 'resuelta_a_favor_vendedor', 'resuelta_parcial', 'cerrada'];
               const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
               const isCompleted = transaction.state === 'completed' || isAppealResolved;
+              const isInReview = ['awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state);
+              const passedDelivery = ['in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
+              const passedReceived = ['awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
               
               return (
                 <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
@@ -624,6 +653,7 @@ const Transaction = () => {
                     Progreso de la Transacción
                   </h4>
                   <div className="space-y-4">
+                    {/* Step 1: Buyer Joined */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                         transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
@@ -638,9 +668,10 @@ const Transaction = () => {
                       </div>
                     </div>
 
+                    {/* Step 2: Escrow */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                        ['funds_secured', 'in_delivery', 'completed'].includes(transaction.state) || isAppealResolved
+                        passedDelivery || transaction.state === 'funds_secured'
                           ? 'bg-success text-success-foreground scale-110' 
                           : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
                           ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
@@ -651,7 +682,7 @@ const Transaction = () => {
                       <div className="flex-1">
                         <p className="font-bold text-lg">Pago en Escrow</p>
                         <p className="text-sm text-muted-foreground">
-                          {['funds_secured', 'in_delivery', 'completed'].includes(transaction.state) || isAppealResolved
+                          {passedDelivery || transaction.state === 'funds_secured'
                             ? '✅ Fondos asegurados y protegidos'
                             : transaction.state === 'invited'
                             ? '⏳ Esperando depósito del comprador...'
@@ -660,9 +691,10 @@ const Transaction = () => {
                       </div>
                     </div>
 
+                    {/* Step 3: Shipped */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                        ['in_delivery', 'completed'].includes(transaction.state) || isAppealResolved
+                        passedDelivery
                           ? 'bg-success text-success-foreground scale-110'
                           : transaction.state === 'funds_secured'
                           ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
@@ -671,12 +703,10 @@ const Transaction = () => {
                         <Truck className="h-6 w-6" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-bold text-lg">Entrega del Producto</p>
+                        <p className="font-bold text-lg">Producto Enviado</p>
                         <p className="text-sm text-muted-foreground">
-                          {isCompleted
-                            ? '✅ Producto entregado y confirmado'
-                            : transaction.state === 'in_delivery'
-                            ? '🚚 En camino al comprador...'
+                          {passedDelivery
+                            ? '✅ Producto enviado'
                             : transaction.state === 'funds_secured'
                             ? '⏳ Esperando envío del vendedor...'
                             : '⚪ Pendiente'}
@@ -684,6 +714,55 @@ const Transaction = () => {
                       </div>
                     </div>
 
+                    {/* Step 4: Received */}
+                    <div className="flex items-center gap-4 group">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                        passedReceived
+                          ? 'bg-success text-success-foreground scale-110'
+                          : transaction.state === 'in_delivery'
+                          ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
+                          : 'bg-muted'
+                      }`}>
+                        <Package className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">Producto Recibido</p>
+                        <p className="text-sm text-muted-foreground">
+                          {passedReceived
+                            ? '✅ Comprador recibió el producto'
+                            : transaction.state === 'in_delivery'
+                            ? '🚚 En camino al comprador...'
+                            : '⚪ Pendiente'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 5: Review Period */}
+                    <div className="flex items-center gap-4 group">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                        isCompleted
+                          ? 'bg-success text-success-foreground scale-110'
+                          : isInReview
+                          ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
+                          : 'bg-muted'
+                      }`}>
+                        <Eye className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">Período de Revisión</p>
+                        <p className="text-sm text-muted-foreground">
+                          {isCompleted
+                            ? '✅ Revisión completada'
+                            : ['return_requested', 'return_in_progress'].includes(transaction.state)
+                            ? '🔄 Devolución en proceso'
+                            : transaction.state === 'awaiting_buyer_review'
+                            ? '🔍 Comprador revisando el producto...'
+                            : '⚪ Pendiente'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 6: Completed */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                         isCompleted
@@ -707,6 +786,8 @@ const Transaction = () => {
                 </div>
               );
             })()}
+
+            <Separator className="my-6" />
 
             <Separator className="my-6" />
 
@@ -778,11 +859,40 @@ const Transaction = () => {
             )}
 
             {isBuyer && transaction.state === "in_delivery" && (
-              <div className="space-y-3 p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-xl border-2 border-success/30 animate-scale-in">
+              <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
                 <div className="flex items-center gap-2 mb-2">
-                  <Package className="h-6 w-6 text-success" />
+                  <Package className="h-6 w-6 text-info" />
                   <h4 className="font-bold text-lg">Producto en Camino</h4>
                 </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  El vendedor ha enviado el producto. Cuando lo recibas, marca que lo tienes para iniciar el período de revisión.
+                </p>
+                <Button 
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
+                  onClick={handleMarkAsReceived}
+                  disabled={!!activeAppeal}
+                >
+                  <Package className="mr-2 h-6 w-6" />
+                  Ya Recibí el Paquete
+                </Button>
+                <p className="text-sm text-muted-foreground text-center">
+                  {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Recuerda pedir el comprobante de envío al vendedor"}
+                </p>
+              </div>
+            )}
+
+            {/* Review Period UI */}
+            {isBuyer && transaction.state === "awaiting_buyer_review" && (
+              <div className="space-y-4 p-6 bg-gradient-to-br from-warning/10 to-warning/5 rounded-xl border-2 border-warning/30 animate-scale-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="h-6 w-6 text-warning" />
+                  <h4 className="font-bold text-lg">Período de Revisión</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  El producto está en tus manos. Revísalo con calma y decide si todo está correcto.
+                </p>
+                
                 <Button 
                   size="lg"
                   className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
@@ -790,12 +900,43 @@ const Transaction = () => {
                   disabled={confirmingDelivery || !!activeAppeal}
                 >
                   <Check className="mr-2 h-6 w-6" />
-                  {confirmingDelivery ? "Procesando..." : "Confirmar que Recibí el Producto"}
+                  {confirmingDelivery ? "Procesando..." : "Todo Correcto - Liberar Pago"}
                 </Button>
-                <p className="text-sm text-muted-foreground text-center">
-                  {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "⚠️ Solo confirma si recibiste el producto en perfectas condiciones"}
+
+                <ReturnRequestDialog
+                  transactionId={transaction.id}
+                  userId={user?.id || ""}
+                  onRequestCreated={loadTransaction}
+                />
+
+                <p className="text-xs text-muted-foreground text-center">
+                  ⚠️ Solo confirma si el producto está en perfectas condiciones
                 </p>
               </div>
+            )}
+
+            {/* Seller waiting for review */}
+            {isSeller && transaction.state === "awaiting_buyer_review" && (
+              <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="h-6 w-6 text-info" />
+                  <h4 className="font-bold text-lg">Comprador Revisando</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  El comprador ha recibido el producto y lo está revisando. Cuando confirme que todo está correcto, recibirás el pago.
+                </p>
+              </div>
+            )}
+
+            {/* Return Status Panel */}
+            {["return_requested", "return_in_progress"].includes(transaction.state) && (
+              <ReturnStatusPanel
+                transactionId={transaction.id}
+                isBuyer={isBuyer}
+                isSeller={isSeller}
+                transactionAmount={transaction.amount}
+                onStatusChange={loadTransaction}
+              />
             )}
 
             {/* Active Appeal Alert */}
