@@ -461,6 +461,14 @@ const Transaction = () => {
                 <CardDescription className="text-base">{transaction.product_description}</CardDescription>
               </div>
               <div className="flex flex-col gap-2 items-end">
+                {/* Sale type badge */}
+                {transaction.sale_type && (
+                  <Badge variant="outline" className="text-sm px-3 py-1">
+                    {transaction.sale_type === "servicio" && "🛠️ Servicio"}
+                    {transaction.sale_type === "producto_persona" && "🤝 Entrega en Persona"}
+                    {transaction.sale_type === "producto_envio" && "📦 Envío"}
+                  </Badge>
+                )}
                 {(() => {
                   const resolvedAppealStatuses = [
                     "resuelta_a_favor_comprador",
