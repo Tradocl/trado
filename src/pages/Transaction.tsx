@@ -1237,7 +1237,7 @@ const Transaction = () => {
               </div>
             )}
 
-            {isBuyer && transaction.state === "in_delivery" && transaction.sale_type !== "producto_persona" && (
+            {isBuyer && transaction.state === "in_delivery" && transaction.sale_type === "producto_envio" && (
               <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="h-6 w-6 text-info" />
