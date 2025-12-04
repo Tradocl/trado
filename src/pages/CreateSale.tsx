@@ -8,10 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Store, Info, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Store, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
+
+type SaleType = "servicio" | "producto_persona" | "producto_envio";
 
 const CreateSale = () => {
   const { user } = useAuth();
@@ -22,10 +24,13 @@ const CreateSale = () => {
   const [orderDetails, setOrderDetails] = useState<ReturnType<typeof calculateOrderDetails> | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [saleType, setSaleType] = useState<SaleType>("producto_envio");
+  const [mainType, setMainType] = useState<"servicio" | "producto">("producto");
   const [formData, setFormData] = useState<{
     productName: string;
     productDescription: string;
     amount: number;
+    saleType: SaleType;
   } | null>(null);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,6 +75,7 @@ const CreateSale = () => {
       productName,
       productDescription,
       amount,
+      saleType,
     });
     setShowConfirmModal(true);
   };
@@ -95,6 +101,7 @@ const CreateSale = () => {
           commission: orderDetails.appFee,
           state: "created",
           invite_code: inviteCode,
+          sale_type: formData.saleType,
         })
         .select()
         .single();
@@ -166,12 +173,86 @@ const CreateSale = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreateSale} className="space-y-6">
+              {/* Sale Type Selector */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">¿Qué tipo de venta es?</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMainType("servicio");
+                      setSaleType("servicio");
+                    }}
+                    className={`p-4 rounded-xl border-2 transition-all text-left ${
+                      mainType === "servicio"
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <Wrench className={`h-8 w-8 mb-2 ${mainType === "servicio" ? "text-primary" : "text-muted-foreground"}`} />
+                    <p className="font-semibold">Servicio</p>
+                    <p className="text-xs text-muted-foreground">Reparación, diseño, consultoría, etc.</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMainType("producto");
+                      setSaleType("producto_envio");
+                    }}
+                    className={`p-4 rounded-xl border-2 transition-all text-left ${
+                      mainType === "producto"
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <Package className={`h-8 w-8 mb-2 ${mainType === "producto" ? "text-primary" : "text-muted-foreground"}`} />
+                    <p className="font-semibold">Producto</p>
+                    <p className="text-xs text-muted-foreground">Artículo físico que entregas</p>
+                  </button>
+                </div>
+
+                {/* Sub-selector for products */}
+                {mainType === "producto" && (
+                  <div className="space-y-2 animate-fade-in">
+                    <Label className="text-sm">¿Cómo entregarás el producto?</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSaleType("producto_persona")}
+                        className={`p-3 rounded-lg border-2 transition-all text-left ${
+                          saleType === "producto_persona"
+                            ? "border-info bg-info/10"
+                            : "border-border hover:border-info/50"
+                        }`}
+                      >
+                        <Users className={`h-6 w-6 mb-1 ${saleType === "producto_persona" ? "text-info" : "text-muted-foreground"}`} />
+                        <p className="font-medium text-sm">En Persona</p>
+                        <p className="text-xs text-muted-foreground">Encuentro con el comprador</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSaleType("producto_envio")}
+                        className={`p-3 rounded-lg border-2 transition-all text-left ${
+                          saleType === "producto_envio"
+                            ? "border-info bg-info/10"
+                            : "border-border hover:border-info/50"
+                        }`}
+                      >
+                        <Truck className={`h-6 w-6 mb-1 ${saleType === "producto_envio" ? "text-info" : "text-muted-foreground"}`} />
+                        <p className="font-medium text-sm">Por Envío</p>
+                        <p className="text-xs text-muted-foreground">Lo envías por courier</p>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="productName">Producto o Servicio</Label>
+                <Label htmlFor="productName">{mainType === "servicio" ? "Servicio" : "Producto"}</Label>
                 <Input
                   id="productName"
                   name="productName"
-                  placeholder="Ej: iPhone 13 Pro"
+                  placeholder={mainType === "servicio" ? "Ej: Diseño de logo" : "Ej: iPhone 13 Pro"}
                   required
                 />
               </div>

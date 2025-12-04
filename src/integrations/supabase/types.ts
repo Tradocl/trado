@@ -432,6 +432,56 @@ export type Database = {
           },
         ]
       }
+      return_requests: {
+        Row: {
+          carrier: string | null
+          created_at: string | null
+          id: string
+          reason: string
+          reason_description: string | null
+          received_at: string | null
+          requester_id: string
+          shipped_at: string | null
+          status: string | null
+          tracking_number: string | null
+          transaction_id: string
+        }
+        Insert: {
+          carrier?: string | null
+          created_at?: string | null
+          id?: string
+          reason: string
+          reason_description?: string | null
+          received_at?: string | null
+          requester_id: string
+          shipped_at?: string | null
+          status?: string | null
+          tracking_number?: string | null
+          transaction_id: string
+        }
+        Update: {
+          carrier?: string | null
+          created_at?: string | null
+          id?: string
+          reason?: string
+          reason_description?: string | null
+          received_at?: string | null
+          requester_id?: string
+          shipped_at?: string | null
+          status?: string | null
+          tracking_number?: string | null
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_requests_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -447,7 +497,9 @@ export type Database = {
           invite_code: string | null
           product_description: string | null
           product_name: string
+          sale_type: string | null
           seller_id: string
+          shipped_at: string | null
           state: Database["public"]["Enums"]["transaction_state"] | null
           updated_at: string | null
         }
@@ -465,7 +517,9 @@ export type Database = {
           invite_code?: string | null
           product_description?: string | null
           product_name: string
+          sale_type?: string | null
           seller_id: string
+          shipped_at?: string | null
           state?: Database["public"]["Enums"]["transaction_state"] | null
           updated_at?: string | null
         }
@@ -483,7 +537,9 @@ export type Database = {
           invite_code?: string | null
           product_description?: string | null
           product_name?: string
+          sale_type?: string | null
           seller_id?: string
+          shipped_at?: string | null
           state?: Database["public"]["Enums"]["transaction_state"] | null
           updated_at?: string | null
         }
@@ -669,6 +725,7 @@ export type Database = {
         | "resuelta_a_favor_vendedor"
         | "resuelta_parcial"
         | "cerrada"
+      sale_type: "servicio" | "producto_persona" | "producto_envio"
       transaction_state:
         | "created"
         | "invited"
@@ -678,6 +735,9 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "in_dispute"
+        | "awaiting_buyer_review"
+        | "return_requested"
+        | "return_in_progress"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -830,6 +890,7 @@ export const Constants = {
         "resuelta_parcial",
         "cerrada",
       ],
+      sale_type: ["servicio", "producto_persona", "producto_envio"],
       transaction_state: [
         "created",
         "invited",
@@ -839,6 +900,9 @@ export const Constants = {
         "completed",
         "cancelled",
         "in_dispute",
+        "awaiting_buyer_review",
+        "return_requested",
+        "return_in_progress",
       ],
     },
   },
