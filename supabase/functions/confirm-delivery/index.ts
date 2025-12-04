@@ -57,7 +57,10 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("Transacción inválida");
     }
 
-    if (tx.state !== "funds_secured" && tx.state !== "in_delivery") {
+    // Allow completion from funds_secured (legacy), in_delivery (legacy), or awaiting_buyer_review (new flow)
+    const allowedStates = ["funds_secured", "in_delivery", "awaiting_buyer_review"];
+    if (!allowedStates.includes(tx.state)) {
+      console.log(`Transaction state ${tx.state} not in allowed states: ${allowedStates.join(", ")}`);
       throw new Error("La transacción no está lista para completarse");
     }
 
