@@ -525,9 +525,9 @@ const Wallet = () => {
             </div>
             {blockedBalance > 0 && (
               <div className="pt-3 border-t border-primary-foreground/20">
-                <p className="text-sm opacity-80 mb-1">Fondos en garantía</p>
+                <p className="text-sm opacity-80 mb-1">Escrow bloqueado</p>
                 <p className="text-2xl font-semibold">${formatCLP(blockedBalance)}</p>
-                <p className="text-xs opacity-60 mt-1">Retenidos hasta completar transacciones</p>
+                <p className="text-xs opacity-60 mt-1">Liberados al completar transacciones</p>
               </div>
             )}
           </CardContent>
