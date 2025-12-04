@@ -233,6 +233,22 @@ const Transaction = () => {
     if (!user || !transaction) return;
 
     try {
+      // CRITICAL: First check if escrow_lock already exists for this transaction
+      const { data: existingLock } = await supabase
+        .from("wallet_movements")
+        .select("id")
+        .eq("transaction_id", transaction.id)
+        .eq("type", "escrow_lock")
+        .eq("status", "approved")
+        .maybeSingle();
+
+      if (existingLock) {
+        toast.info("Los fondos ya fueron depositados en esta transacción");
+        setDepositDialogOpen(false);
+        loadTransaction();
+        return;
+      }
+
       const { data: wallet } = await supabase
         .from("wallets")
         .select("*")
@@ -247,6 +263,8 @@ const Transaction = () => {
 
       // Lock funds in escrow
       const newBalance = wallet.balance - transaction.amount;
+      const shortId = transaction.id.slice(0, 8).toUpperCase();
+      const typeLabel = transaction.sale_type === "servicio" ? "Contratación servicio" : "Compra";
 
       await supabase.from("wallets").update({ balance: newBalance }).eq("id", wallet.id);
 
@@ -256,7 +274,7 @@ const Transaction = () => {
         type: "escrow_lock",
         amount: -transaction.amount,
         balance_after: newBalance,
-        description: `Compra "${transaction.product_name}"`,
+        description: `${typeLabel} #${shortId}: "${transaction.product_name}" - Fondos en garantía`,
         status: "approved",
       });
 
