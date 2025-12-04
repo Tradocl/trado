@@ -223,7 +223,7 @@ const Wallet = () => {
           type: "deposit",
           amount: depositAmount,
           balance_after: wallet.balance,
-          description: "Depósito",
+          description: `Depósito de $${depositAmount.toLocaleString('es-CL')} - Pendiente aprobación`,
           status: "pending",
         })
         .select()
@@ -302,7 +302,7 @@ const Wallet = () => {
           type: "withdrawal",
           amount: withdrawAmount,
           balance_after: wallet.balance,
-          description: "Retiro",
+          description: `Retiro de $${withdrawAmount.toLocaleString('es-CL')} a ${bankName} (${bankAccountType} ****${bankAccountNumber.slice(-4)})`,
           status: "pending",
           bank_holder_name: bankHolderName,
           bank_holder_rut: bankHolderRut,

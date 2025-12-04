@@ -402,7 +402,19 @@ export default function Admin() {
 
       if (walletError) throw walletError;
 
-      // Update movement status
+      // Build improved description
+      const formattedAmount = movement.amount.toLocaleString('es-CL');
+      const approvedDate = new Date().toLocaleDateString('es-CL');
+      let updatedDescription = movement.description;
+      
+      if (movement.type === "deposit") {
+        updatedDescription = `Depósito de $${formattedAmount} - Aprobado ${approvedDate}`;
+      } else if (movement.type === "withdrawal") {
+        const bankInfo = movement.bank_name ? ` a ${movement.bank_name}` : '';
+        updatedDescription = `Retiro de $${formattedAmount}${bankInfo} - Aprobado ${approvedDate}`;
+      }
+
+      // Update movement status with improved description
       const { error: movementError } = await supabase
         .from("wallet_movements")
         .update({
@@ -410,6 +422,7 @@ export default function Admin() {
           reviewed_by: user?.id,
           reviewed_at: new Date().toISOString(),
           balance_after: newBalance,
+          description: updatedDescription,
         })
         .eq("id", movementId);
 
@@ -424,7 +437,7 @@ export default function Admin() {
             movementType: movement.type,
             amount: movement.amount,
             status: "approved",
-            description: movement.description,
+            description: updatedDescription,
           },
         });
       } catch (emailError) {

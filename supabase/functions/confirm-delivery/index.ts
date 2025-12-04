@@ -41,15 +41,17 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    console.log(`[confirm-delivery] Processing transaction: ${transactionId}`);
+
     // Get transaction
     const { data: tx, error: txError } = await supabaseClient
       .from("transactions")
-      .select("id, seller_id, buyer_id, amount, commission, state, product_name")
+      .select("id, seller_id, buyer_id, amount, commission, state, product_name, sale_type")
       .eq("id", transactionId)
       .single();
 
     if (txError || !tx) {
-      console.error("Error fetching transaction", txError);
+      console.error("[confirm-delivery] Error fetching transaction", txError);
       throw new Error("Transacción no encontrada");
     }
 
@@ -60,8 +62,31 @@ serve(async (req: Request): Promise<Response> => {
     // Allow completion from funds_secured (legacy), in_delivery (legacy), or awaiting_buyer_review (new flow)
     const allowedStates = ["funds_secured", "in_delivery", "awaiting_buyer_review"];
     if (!allowedStates.includes(tx.state)) {
-      console.log(`Transaction state ${tx.state} not in allowed states: ${allowedStates.join(", ")}`);
+      console.log(`[confirm-delivery] Transaction state ${tx.state} not in allowed states: ${allowedStates.join(", ")}`);
       throw new Error("La transacción no está lista para completarse");
+    }
+
+    // CRITICAL: Check if escrow_release already exists for this transaction to prevent double payments
+    const { data: existingRelease, error: releaseCheckError } = await supabaseClient
+      .from("wallet_movements")
+      .select("id")
+      .eq("transaction_id", transactionId)
+      .eq("type", "escrow_release")
+      .eq("status", "approved")
+      .maybeSingle();
+
+    if (releaseCheckError) {
+      console.error("[confirm-delivery] Error checking existing release", releaseCheckError);
+      throw new Error("Error al verificar el estado del pago");
+    }
+
+    if (existingRelease) {
+      console.log(`[confirm-delivery] Escrow release already exists for transaction ${transactionId}, skipping duplicate`);
+      // Return success since the transaction was already completed
+      return new Response(JSON.stringify({ success: true, message: "La transacción ya fue completada anteriormente" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Get seller wallet
@@ -72,12 +97,11 @@ serve(async (req: Request): Promise<Response> => {
       .single();
 
     if (walletError || !sellerWallet) {
-      console.error("Error fetching seller wallet", walletError);
+      console.error("[confirm-delivery] Error fetching seller wallet", walletError);
       throw new Error("Billetera del vendedor no encontrada");
     }
 
     // Recalculate commission using the same logic as frontend
-    // This ensures consistency even if the stored commission is outdated
     const transactionAmount = Number(tx.amount);
     const baseFee = transactionAmount * 0.05;
     const roundedFee = Math.round(baseFee / 10) * 10;
@@ -88,6 +112,12 @@ serve(async (req: Request): Promise<Response> => {
     const currentBalance = Number(sellerWallet.balance ?? 0);
     const newSellerBalance = currentBalance + amountAfterCommission;
 
+    // Determine sale type label for description
+    const saleTypeLabel = tx.sale_type === "servicio" ? "Servicio" : "Venta";
+    const shortId = transactionId.slice(0, 8).toUpperCase();
+
+    console.log(`[confirm-delivery] Processing payment: amount=${transactionAmount}, commission=${calculatedCommission}, net=${amountAfterCommission}`);
+
     // Update seller wallet balance
     const { error: updateWalletError } = await supabaseClient
       .from("wallets")
@@ -95,34 +125,38 @@ serve(async (req: Request): Promise<Response> => {
       .eq("id", sellerWallet.id);
 
     if (updateWalletError) {
-      console.error("Error updating seller wallet", updateWalletError);
+      console.error("[confirm-delivery] Error updating seller wallet", updateWalletError);
       throw new Error("No se pudo actualizar la billetera del vendedor");
     }
 
-    // Insert wallet movement
+    // Insert wallet movement with detailed description
     const { error: movementError } = await supabaseClient.from("wallet_movements").insert({
       wallet_id: sellerWallet.id,
       transaction_id: tx.id,
       type: "escrow_release",
       amount: amountAfterCommission,
       balance_after: newSellerBalance,
-      description: `Venta "${tx.product_name}"`,
+      description: `${saleTypeLabel} #${shortId}: "${tx.product_name}" ($${transactionAmount.toLocaleString('es-CL')} - $${calculatedCommission.toLocaleString('es-CL')} comisión)`,
       status: "approved",
     });
 
     if (movementError) {
-      console.error("Error inserting wallet movement", movementError);
+      console.error("[confirm-delivery] Error inserting wallet movement", movementError);
       throw new Error("No se pudo registrar el movimiento de la billetera");
     }
 
     // Update transaction state
     const { error: txUpdateError } = await supabaseClient
       .from("transactions")
-      .update({ state: "completed", completed_at: new Date().toISOString() })
+      .update({ 
+        state: "completed", 
+        completed_at: new Date().toISOString(),
+        commission: calculatedCommission // Store the calculated commission
+      })
       .eq("id", tx.id);
 
     if (txUpdateError) {
-      console.error("Error updating transaction", txUpdateError);
+      console.error("[confirm-delivery] Error updating transaction", txUpdateError);
       throw new Error("No se pudo actualizar la transacción");
     }
 
@@ -142,7 +176,7 @@ serve(async (req: Request): Promise<Response> => {
         .eq("id", tx.seller_id);
 
       if (profileUpdateError) {
-        console.error("Error updating seller profile stats", profileUpdateError);
+        console.error("[confirm-delivery] Error updating seller profile stats", profileUpdateError);
       }
     }
 
@@ -162,16 +196,18 @@ serve(async (req: Request): Promise<Response> => {
         .eq("id", tx.buyer_id);
 
       if (buyerProfileUpdateError) {
-        console.error("Error updating buyer profile stats", buyerProfileUpdateError);
+        console.error("[confirm-delivery] Error updating buyer profile stats", buyerProfileUpdateError);
       }
     }
+
+    console.log(`[confirm-delivery] Successfully completed transaction ${transactionId}`);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
-    console.error("Error in confirm-delivery function:", error);
+    console.error("[confirm-delivery] Error:", error);
     return new Response(JSON.stringify({ error: error.message ?? "Error interno" }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders },

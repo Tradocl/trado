@@ -111,22 +111,26 @@ export default function MovementHistory() {
       approved: "default",
       pending: "secondary",
       rejected: "destructive",
+      cancelled: "outline",
     };
     const labels: Record<string, string> = {
       approved: "Aprobado",
       pending: "En revisión",
       rejected: "Rechazado",
+      cancelled: "Cancelado",
     };
     return <Badge variant={variants[status] || "outline"}>{labels[status] || status}</Badge>;
   };
 
   const getTypeBadge = (type: string) => {
-    const isDeposit = type === "deposit";
-    return (
-      <Badge variant={isDeposit ? "default" : "outline"}>
-        {isDeposit ? "Depósito" : "Retiro"}
-      </Badge>
-    );
+    const typeConfig: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+      deposit: { label: "Depósito", variant: "default" },
+      withdrawal: { label: "Retiro", variant: "secondary" },
+      escrow_lock: { label: "Bloqueo Garantía", variant: "outline" },
+      escrow_release: { label: "Liberación Venta", variant: "default" },
+    };
+    const config = typeConfig[type] || { label: type, variant: "outline" };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   if (loading) {
@@ -165,6 +169,7 @@ export default function MovementHistory() {
                   <SelectItem value="pending">En revisión</SelectItem>
                   <SelectItem value="approved">Aprobados</SelectItem>
                   <SelectItem value="rejected">Rechazados</SelectItem>
+                  <SelectItem value="cancelled">Cancelados</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -179,6 +184,8 @@ export default function MovementHistory() {
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="deposit">Depósitos</SelectItem>
                   <SelectItem value="withdrawal">Retiros</SelectItem>
+                  <SelectItem value="escrow_lock">Bloqueos Garantía</SelectItem>
+                  <SelectItem value="escrow_release">Liberaciones Venta</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -254,7 +261,9 @@ export default function MovementHistory() {
                       </TableCell>
                       <TableCell>{getTypeBadge(movement.type)}</TableCell>
                       <TableCell className="font-medium">
-                        ${formatCLP(movement.amount)}
+                        <span className={movement.amount < 0 ? "text-destructive" : "text-success"}>
+                          {movement.amount < 0 ? "-" : "+"}${formatCLP(Math.abs(movement.amount))}
+                        </span>
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
                         {movement.description || "-"}
