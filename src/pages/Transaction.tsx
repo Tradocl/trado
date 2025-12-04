@@ -263,8 +263,7 @@ const Transaction = () => {
 
       // Lock funds in escrow
       const newBalance = wallet.balance - transaction.amount;
-      const shortId = transaction.id.slice(0, 8).toUpperCase();
-      const typeLabel = transaction.sale_type === "servicio" ? "Contratación servicio" : "Compra";
+      const typeLabel = transaction.sale_type === "servicio" ? "Servicio" : "Compra";
 
       await supabase.from("wallets").update({ balance: newBalance }).eq("id", wallet.id);
 
@@ -274,7 +273,7 @@ const Transaction = () => {
         type: "escrow_lock",
         amount: -transaction.amount,
         balance_after: newBalance,
-        description: `${typeLabel} #${shortId}: "${transaction.product_name}" - Fondos en garantía`,
+        description: `${typeLabel} "${transaction.product_name}"`,
         status: "approved",
       });
 
