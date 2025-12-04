@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale, Coins, ArrowDownCircle, ArrowUpCircle, Lock, Receipt, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { formatCLP } from "@/lib/utils";
 import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
 
@@ -102,6 +102,19 @@ export default function Admin() {
     pendingDeposits: 0,
     pendingWithdrawals: 0,
     totalTransactions: 0,
+  });
+
+  // Token accounting stats
+  const [tokenStats, setTokenStats] = useState({
+    totalCirculating: 0,
+    totalDeposits: 0,
+    totalWithdrawals: 0,
+    activeEscrow: 0,
+    totalCommissions: 0,
+    theoreticalBalance: 0,
+    discrepancy: 0,
+    movementsByType: [] as { type: string; count: number; total: number }[],
+    walletDetails: [] as { user_name: string; user_email: string; balance: number }[],
   });
 
   useEffect(() => {
@@ -237,11 +250,114 @@ export default function Admin() {
         pendingWithdrawals: pendingWithdrawalsData?.length || 0,
         totalTransactions: transactionsData?.length || 0,
       });
+
+      // Load token accounting stats
+      await loadTokenStats();
     } catch (error) {
       console.error("Error loading admin data:", error);
       toast.error("Error al cargar los datos");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTokenStats = async () => {
+    try {
+      // 1. Total circulating (sum of all wallet balances)
+      const { data: walletsData } = await supabase
+        .from("wallets")
+        .select("balance, user_id, profiles!wallets_user_id_fkey(full_name, email)");
+
+      const totalCirculating = walletsData?.reduce((sum, w) => sum + (w.balance || 0), 0) || 0;
+
+      const walletDetails = walletsData?.map(w => ({
+        user_name: w.profiles?.full_name || "Usuario",
+        user_email: w.profiles?.email || "",
+        balance: w.balance || 0,
+      })).sort((a, b) => b.balance - a.balance) || [];
+
+      // 2. Total deposits approved
+      const { data: depositsData } = await supabase
+        .from("wallet_movements")
+        .select("amount")
+        .eq("type", "deposit")
+        .eq("status", "approved");
+
+      const totalDeposits = depositsData?.reduce((sum, d) => sum + d.amount, 0) || 0;
+
+      // 3. Total withdrawals approved
+      const { data: withdrawalsData } = await supabase
+        .from("wallet_movements")
+        .select("amount")
+        .eq("type", "withdrawal")
+        .eq("status", "approved");
+
+      const totalWithdrawals = withdrawalsData?.reduce((sum, w) => sum + w.amount, 0) || 0;
+
+      // 4. Active escrow (escrow_lock approved - escrow_release approved)
+      const { data: escrowLockData } = await supabase
+        .from("wallet_movements")
+        .select("amount")
+        .eq("type", "escrow_lock")
+        .eq("status", "approved");
+
+      const { data: escrowReleaseData } = await supabase
+        .from("wallet_movements")
+        .select("amount")
+        .eq("type", "escrow_release")
+        .eq("status", "approved");
+
+      const totalEscrowLock = escrowLockData?.reduce((sum, e) => sum + e.amount, 0) || 0;
+      const totalEscrowRelease = escrowReleaseData?.reduce((sum, e) => sum + e.amount, 0) || 0;
+      const activeEscrow = totalEscrowLock - totalEscrowRelease;
+
+      // 5. Total commissions from completed transactions
+      const { data: commissionsData } = await supabase
+        .from("transactions")
+        .select("commission")
+        .eq("state", "completed");
+
+      const totalCommissions = commissionsData?.reduce((sum, t) => sum + (t.commission || 0), 0) || 0;
+
+      // 6. Movements by type
+      const { data: allMovements } = await supabase
+        .from("wallet_movements")
+        .select("type, amount, status")
+        .eq("status", "approved");
+
+      const movementsByTypeMap: Record<string, { count: number; total: number }> = {};
+      allMovements?.forEach(m => {
+        if (!movementsByTypeMap[m.type]) {
+          movementsByTypeMap[m.type] = { count: 0, total: 0 };
+        }
+        movementsByTypeMap[m.type].count++;
+        movementsByTypeMap[m.type].total += m.amount;
+      });
+
+      const movementsByType = Object.entries(movementsByTypeMap).map(([type, data]) => ({
+        type,
+        count: data.count,
+        total: data.total,
+      }));
+
+      // Calculate theoretical balance
+      // Depositos - Retiros = Balance Teórico (escrow no afecta porque ya está en wallets)
+      const theoreticalBalance = totalDeposits - totalWithdrawals;
+      const discrepancy = theoreticalBalance - totalCirculating;
+
+      setTokenStats({
+        totalCirculating,
+        totalDeposits,
+        totalWithdrawals,
+        activeEscrow,
+        totalCommissions,
+        theoreticalBalance,
+        discrepancy,
+        movementsByType,
+        walletDetails,
+      });
+    } catch (error) {
+      console.error("Error loading token stats:", error);
     }
   };
 
@@ -579,6 +695,10 @@ export default function Admin() {
           <TabsTrigger value="appeals">
             <Scale className="h-4 w-4 mr-2" />
             Apelaciones
+          </TabsTrigger>
+          <TabsTrigger value="tokens">
+            <Coins className="h-4 w-4 mr-2" />
+            Tokens
           </TabsTrigger>
           <TabsTrigger value="users">Usuarios</TabsTrigger>
         </TabsList>
@@ -1095,6 +1215,229 @@ export default function Admin() {
             </CardHeader>
             <CardContent>
               <AdminAppealsList />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tokens" className="space-y-4">
+          {/* Token Summary Cards */}
+          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Circulando</CardTitle>
+                <Coins className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.totalCirculating)}</div>
+                <p className="text-xs text-muted-foreground">En wallets de usuarios</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Depósitos Históricos</CardTitle>
+                <ArrowDownCircle className="h-4 w-4 text-success" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-success">${formatCLP(tokenStats.totalDeposits)}</div>
+                <p className="text-xs text-muted-foreground">Total entrado al sistema</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Retiros Históricos</CardTitle>
+                <ArrowUpCircle className="h-4 w-4 text-warning" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-warning">${formatCLP(tokenStats.totalWithdrawals)}</div>
+                <p className="text-xs text-muted-foreground">Total salido del sistema</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Escrow Activo</CardTitle>
+                <Lock className="h-4 w-4 text-info" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-info">${formatCLP(tokenStats.activeEscrow)}</div>
+                <p className="text-xs text-muted-foreground">Bloqueado en transacciones</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Comisiones Cobradas</CardTitle>
+                <Receipt className="h-4 w-4 text-accent" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${formatCLP(tokenStats.totalCommissions)}</div>
+                <p className="text-xs text-muted-foreground">Ingreso plataforma</p>
+              </CardContent>
+            </Card>
+            <Card className={tokenStats.discrepancy === 0 ? "border-success/50 bg-success/5" : "border-destructive/50 bg-destructive/5"}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Estado Balance</CardTitle>
+                {tokenStats.discrepancy === 0 ? (
+                  <CheckCircle2 className="h-4 w-4 text-success" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                )}
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${tokenStats.discrepancy === 0 ? "text-success" : "text-destructive"}`}>
+                  {tokenStats.discrepancy === 0 ? "Cuadra" : `$${formatCLP(Math.abs(tokenStats.discrepancy))}`}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {tokenStats.discrepancy === 0 ? "Sistema balanceado" : tokenStats.discrepancy > 0 ? "Faltante en wallets" : "Exceso en wallets"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Reconciliation Panel */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Scale className="h-5 w-5" />
+                Reconciliación de Balance
+              </CardTitle>
+              <CardDescription>Ecuación de balance del sistema</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+                    <div className="text-sm text-muted-foreground">+ Depósitos Aprobados</div>
+                    <div className="text-xl font-bold text-success">${formatCLP(tokenStats.totalDeposits)}</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
+                    <div className="text-sm text-muted-foreground">- Retiros Aprobados</div>
+                    <div className="text-xl font-bold text-warning">-${formatCLP(tokenStats.totalWithdrawals)}</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted border">
+                    <div className="text-sm text-muted-foreground">= Balance Teórico</div>
+                    <div className="text-xl font-bold">${formatCLP(tokenStats.theoreticalBalance)}</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="text-sm text-muted-foreground">Total en Wallets</div>
+                    <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.totalCirculating)}</div>
+                  </div>
+                </div>
+
+                {tokenStats.discrepancy !== 0 && (
+                  <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30">
+                    <div className="flex items-center gap-2 text-destructive">
+                      <AlertTriangle className="h-5 w-5" />
+                      <span className="font-semibold">Discrepancia Detectada</span>
+                    </div>
+                    <p className="text-sm mt-2">
+                      Diferencia de <strong>${formatCLP(Math.abs(tokenStats.discrepancy))}</strong>. 
+                      {tokenStats.discrepancy > 0 
+                        ? " El balance teórico es mayor que lo disponible en wallets." 
+                        : " Hay más dinero en wallets de lo esperado."}
+                    </p>
+                  </div>
+                )}
+
+                {tokenStats.discrepancy === 0 && (
+                  <div className="p-4 rounded-lg bg-success/10 border border-success/30">
+                    <div className="flex items-center gap-2 text-success">
+                      <CheckCircle2 className="h-5 w-5" />
+                      <span className="font-semibold">Balance Correcto</span>
+                    </div>
+                    <p className="text-sm mt-2">
+                      El sistema está correctamente balanceado. Los depósitos menos retiros coinciden con el total en wallets.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Movements by Type */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Movimientos por Tipo</CardTitle>
+              <CardDescription>Resumen de movimientos aprobados por categoría</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead className="text-right">Cantidad</TableHead>
+                    <TableHead className="text-right">Monto Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tokenStats.movementsByType.map((movement) => (
+                    <TableRow key={movement.type}>
+                      <TableCell className="font-medium">
+                        <Badge variant={
+                          movement.type === "deposit" ? "default" :
+                          movement.type === "withdrawal" ? "secondary" :
+                          movement.type === "escrow_lock" ? "outline" :
+                          movement.type === "escrow_release" ? "outline" : "default"
+                        }>
+                          {movement.type === "deposit" && "Depósito"}
+                          {movement.type === "withdrawal" && "Retiro"}
+                          {movement.type === "escrow_lock" && "Bloqueo Escrow"}
+                          {movement.type === "escrow_release" && "Liberación Escrow"}
+                          {!["deposit", "withdrawal", "escrow_lock", "escrow_release"].includes(movement.type) && movement.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">{movement.count}</TableCell>
+                      <TableCell className="text-right font-bold">${formatCLP(movement.total)}</TableCell>
+                    </TableRow>
+                  ))}
+                  {tokenStats.movementsByType.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                        No hay movimientos registrados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Wallet Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalle de Wallets</CardTitle>
+              <CardDescription>Balance individual de cada usuario (ordenado por balance)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead className="text-right">Balance</TableHead>
+                    <TableHead className="text-right">% del Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tokenStats.walletDetails.map((wallet, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{wallet.user_name}</TableCell>
+                      <TableCell>{wallet.user_email}</TableCell>
+                      <TableCell className="text-right font-bold">${formatCLP(wallet.balance)}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {tokenStats.totalCirculating > 0 
+                          ? ((wallet.balance / tokenStats.totalCirculating) * 100).toFixed(1) 
+                          : 0}%
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {tokenStats.walletDetails.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                        No hay wallets registrados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
