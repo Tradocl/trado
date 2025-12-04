@@ -15,7 +15,6 @@ import { toast } from "sonner";
 import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale, Coins, ArrowDownCircle, ArrowUpCircle, Lock, Receipt, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { formatCLP } from "@/lib/utils";
 import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface Profile {
   id: string;
@@ -116,7 +115,6 @@ export default function Admin() {
     discrepancy: 0,
     movementsByType: [] as { type: string; count: number; total: number }[],
     walletDetails: [] as { user_name: string; user_email: string; balance: number }[],
-    monthlyHistory: [] as { month: string; deposits: number; withdrawals: number; net: number }[],
   });
 
   useEffect(() => {
@@ -342,49 +340,6 @@ export default function Admin() {
         total: data.total,
       }));
 
-      // 7. Monthly history (last 6 months)
-      const { data: monthlyMovements } = await supabase
-        .from("wallet_movements")
-        .select("type, amount, created_at")
-        .eq("status", "approved")
-        .in("type", ["deposit", "withdrawal"])
-        .gte("created_at", new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString());
-
-      const monthlyMap: Record<string, { deposits: number; withdrawals: number }> = {};
-      
-      // Initialize last 6 months
-      for (let i = 5; i >= 0; i--) {
-        const date = new Date();
-        date.setMonth(date.getMonth() - i);
-        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        monthlyMap[key] = { deposits: 0, withdrawals: 0 };
-      }
-
-      monthlyMovements?.forEach(m => {
-        const date = new Date(m.created_at);
-        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        if (monthlyMap[key]) {
-          if (m.type === "deposit") {
-            monthlyMap[key].deposits += m.amount;
-          } else if (m.type === "withdrawal") {
-            monthlyMap[key].withdrawals += m.amount;
-          }
-        }
-      });
-
-      const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-      const monthlyHistory = Object.entries(monthlyMap)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, data]) => {
-          const [year, month] = key.split('-');
-          return {
-            month: `${monthNames[parseInt(month) - 1]} ${year.slice(2)}`,
-            deposits: data.deposits,
-            withdrawals: data.withdrawals,
-            net: data.deposits - data.withdrawals,
-          };
-        });
-
       // Calculate theoretical balance
       // Depositos - Retiros = Balance Teórico (escrow no afecta porque ya está en wallets)
       const theoreticalBalance = totalDeposits - totalWithdrawals;
@@ -400,7 +355,6 @@ export default function Admin() {
         discrepancy,
         movementsByType,
         walletDetails,
-        monthlyHistory,
       });
     } catch (error) {
       console.error("Error loading token stats:", error);
@@ -1408,49 +1362,6 @@ export default function Admin() {
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Monthly History Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Historial Mensual
-              </CardTitle>
-              <CardDescription>Depósitos y retiros de los últimos 6 meses</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {tokenStats.monthlyHistory.length > 0 ? (
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={tokenStats.monthlyHistory} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="month" className="text-xs" />
-                      <YAxis 
-                        tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                        className="text-xs"
-                      />
-                      <Tooltip 
-                        formatter={(value: number) => [`$${formatCLP(value)}`, '']}
-                        labelStyle={{ color: 'hsl(var(--foreground))' }}
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
-                        }}
-                      />
-                      <Legend />
-                      <Bar dataKey="deposits" name="Depósitos" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="withdrawals" name="Retiros" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  No hay datos de historial mensual disponibles
-                </div>
-              )}
             </CardContent>
           </Card>
 
