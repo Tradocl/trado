@@ -32,6 +32,7 @@ interface Transaction {
   seller_id: string;
   buyer_id: string | null;
   created_at: string;
+  initiator_role: string | null;
 }
 
 const resolvedAppealStatuses = [
@@ -251,49 +252,71 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border/50">
-                {transactions.map((transaction, index) => (
-                  <div
-                    key={transaction.id}
-                    onClick={() => navigate(`/transaction/${transaction.id}`)}
-                    className="group p-4 hover:bg-muted/30 cursor-pointer transition-all duration-200"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className={`p-2.5 rounded-xl transition-colors duration-200 ${
-                          transaction.seller_id === user?.id 
-                            ? 'bg-emerald-500/10 text-emerald-600' 
-                            : 'bg-info/10 text-info'
-                        }`}>
-                          {transaction.seller_id === user?.id ? (
-                            <Store className="h-5 w-5" />
-                          ) : (
-                            <ShoppingBag className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold truncate">{transaction.product_name}</h4>
-                            <Badge className={`${stateLabels[transaction.state]?.color || "bg-gray-500"} text-xs`}>
-                              {stateLabels[transaction.state]?.label || transaction.state}
-                            </Badge>
+                {transactions.map((transaction, index) => {
+                  // Calculate REAL role of current user based on initiator_role
+                  const initiatorRole = transaction.initiator_role || 'seller';
+                  let isRealSeller = false;
+                  let isRealBuyer = false;
+                  
+                  if (initiatorRole === 'seller') {
+                    isRealSeller = transaction.seller_id === user?.id;
+                    isRealBuyer = transaction.buyer_id === user?.id;
+                  } else {
+                    // Buyer initiated
+                    if (transaction.buyer_id) {
+                      // Post-swap
+                      isRealSeller = transaction.seller_id === user?.id;
+                      isRealBuyer = transaction.buyer_id === user?.id;
+                    } else {
+                      // Pre-swap: creator (buyer) is in seller_id
+                      isRealBuyer = transaction.seller_id === user?.id;
+                    }
+                  }
+                  
+                  return (
+                    <div
+                      key={transaction.id}
+                      onClick={() => navigate(`/transaction/${transaction.id}`)}
+                      className="group p-4 hover:bg-muted/30 cursor-pointer transition-all duration-200"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className={`p-2.5 rounded-xl transition-colors duration-200 ${
+                            isRealSeller
+                              ? 'bg-emerald-500/10 text-emerald-600' 
+                              : 'bg-info/10 text-info'
+                          }`}>
+                            {isRealSeller ? (
+                              <Store className="h-5 w-5" />
+                            ) : (
+                              <ShoppingBag className="h-5 w-5" />
+                            )}
                           </div>
-                          <div className="flex items-center gap-3 text-sm">
-                            <span className="font-semibold text-foreground">${formatCLP(transaction.amount)}</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              transaction.seller_id === user?.id 
-                                ? 'bg-emerald-500/10 text-emerald-600' 
-                                : 'bg-info/10 text-info'
-                            }`}>
-                              {transaction.seller_id === user?.id ? "Vendiendo" : "Comprando"}
-                            </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold truncate">{transaction.product_name}</h4>
+                              <Badge className={`${stateLabels[transaction.state]?.color || "bg-gray-500"} text-xs`}>
+                                {stateLabels[transaction.state]?.label || transaction.state}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm">
+                              <span className="font-semibold text-foreground">${formatCLP(transaction.amount)}</span>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                isRealSeller
+                                  ? 'bg-emerald-500/10 text-emerald-600' 
+                                  : 'bg-info/10 text-info'
+                              }`}>
+                                {isRealSeller ? "Vendiendo" : "Comprando"}
+                              </span>
+                            </div>
                           </div>
                         </div>
+                        <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
                       </div>
-                      <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
