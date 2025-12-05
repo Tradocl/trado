@@ -1480,6 +1480,7 @@ const Transaction = () => {
                 <CreateAppealDialog
                   transactionId={transaction.id}
                   userId={user?.id || ""}
+                  saleType={transaction.sale_type || undefined}
                 />
               </div>
             )}
