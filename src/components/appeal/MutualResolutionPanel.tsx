@@ -27,8 +27,7 @@ interface MutualResolutionPanelProps {
   sellerId: string;
   totalAmount: number;
   appealStatus: string;
-  onEscalate: () => void;
-  escalating: boolean;
+  onSwitchToEscalate: () => void;
 }
 
 interface Proposal {
@@ -50,8 +49,7 @@ export function MutualResolutionPanel({
   sellerId,
   totalAmount,
   appealStatus,
-  onEscalate,
-  escalating
+  onSwitchToEscalate
 }: MutualResolutionPanelProps) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,7 +148,6 @@ export function MutualResolutionPanel({
     
     setSubmitting(true);
     try {
-      // Call secure edge function to process mutual resolution
       const { data, error } = await supabase.functions.invoke("accept-mutual-resolution", {
         body: {
           proposalId: pendingProposal.id,
@@ -172,7 +169,7 @@ export function MutualResolutionPanel({
       toast.success("¡Acuerdo aceptado! Los fondos han sido distribuidos.");
     } catch (error: any) {
       console.error("Error accepting proposal:", error);
-      toast.error("Error al aceptar la propuesta");
+      toast.error(error.message || "Error al aceptar la propuesta");
     } finally {
       setSubmitting(false);
     }
@@ -215,10 +212,10 @@ export function MutualResolutionPanel({
   }
 
   return (
-    <Card className="border-2 shadow-lg border-primary/20">
-      <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
+    <Card className="border-2 shadow-lg border-green-200 dark:border-green-800">
+      <CardHeader className="bg-gradient-to-r from-green-500/10 to-emerald-500/10">
         <CardTitle className="flex items-center gap-2">
-          <Handshake className="h-5 w-5" />
+          <Handshake className="h-5 w-5 text-green-600 dark:text-green-400" />
           Resolución por Acuerdo Mutuo
         </CardTitle>
         <CardDescription>
@@ -263,7 +260,7 @@ export function MutualResolutionPanel({
 
             <div className="flex gap-3">
               <Button 
-                className="flex-1" 
+                className="flex-1 bg-green-600 hover:bg-green-700" 
                 onClick={handleAcceptProposal}
                 disabled={submitting}
               >
@@ -272,7 +269,7 @@ export function MutualResolutionPanel({
                 ) : (
                   <Check className="h-4 w-4 mr-2" />
                 )}
-                Aceptar
+                Aceptar Acuerdo
               </Button>
               <Button 
                 variant="outline" 
@@ -380,7 +377,7 @@ export function MutualResolutionPanel({
           </>
         )}
 
-        {/* Escalate Option */}
+        {/* Switch to Escalation Option */}
         <Separator />
         <div className="text-center space-y-3">
           <p className="text-sm text-muted-foreground">
@@ -388,21 +385,11 @@ export function MutualResolutionPanel({
           </p>
           <Button
             variant="outline"
-            onClick={onEscalate}
-            disabled={escalating}
-            className="border-amber-300 dark:border-amber-700"
+            onClick={onSwitchToEscalate}
+            className="border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/20"
           >
-            {escalating ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Escalando...
-              </>
-            ) : (
-              <>
-                <ShieldAlert className="h-4 w-4 mr-2" />
-                Solicitar Intervención de Plataforma
-              </>
-            )}
+            <ShieldAlert className="h-4 w-4 mr-2" />
+            Enviar Pruebas a Administradores
           </Button>
         </div>
 
