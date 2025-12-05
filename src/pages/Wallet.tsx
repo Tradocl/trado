@@ -52,6 +52,33 @@ const Wallet = () => {
   const [bankAccountType, setBankAccountType] = useState("");
   const [bankAccountNumber, setBankAccountNumber] = useState("");
 
+  // Helper to get short movement description
+  const getShortDescription = (movement: Movement) => {
+    const type = movement.type;
+    const desc = movement.description?.toLowerCase() || '';
+    
+    if (type === 'deposit') return 'Depósito';
+    if (type === 'withdrawal') return 'Retiro';
+    if (type === 'escrow_lock') {
+      if (desc.includes('servicio')) return `Servicio "${getProductName(movement.description)}"`;
+      return `Compra "${getProductName(movement.description)}"`;
+    }
+    if (type === 'escrow_release') {
+      if (desc.includes('servicio')) return `Servicio "${getProductName(movement.description)}"`;
+      return `Venta "${getProductName(movement.description)}"`;
+    }
+    if (type === 'commission') return 'Comisión';
+    if (type === 'refund') return 'Reembolso';
+    return movement.description || type;
+  };
+
+  const getProductName = (description: string | null) => {
+    if (!description) return '';
+    // Extract product name from patterns like: 'Compra "Product Name"' or 'Servicio "Service Name"'
+    const match = description.match(/"([^"]+)"/);
+    return match ? match[1] : description.split('-')[0]?.trim() || '';
+  };
+
   // Company bank details for deposits
   const companyBankDetails = {
     name: "Trado SpA",
@@ -668,7 +695,7 @@ const Wallet = () => {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium">{movement.description}</p>
+                          <p className="font-medium">{getShortDescription(movement)}</p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(movement.created_at).toLocaleDateString("es-CL")}
                           </p>
