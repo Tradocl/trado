@@ -18,7 +18,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Info
+  Info,
+  Briefcase,
+  Package,
+  Truck,
+  Users
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -194,6 +198,31 @@ export default function Appeal() {
     };
   };
 
+  const getSaleTypeConfig = (saleType: string) => {
+    const configs: Record<string, { label: string; icon: any; color: string }> = {
+      servicio: { 
+        label: "Servicio", 
+        icon: Briefcase,
+        color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+      },
+      producto_persona: { 
+        label: "Producto - Entrega en persona", 
+        icon: Users,
+        color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+      },
+      producto_envio: { 
+        label: "Producto - Envío", 
+        icon: Truck,
+        color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+      },
+    };
+    return configs[saleType] || { 
+      label: "Producto", 
+      icon: Package,
+      color: "bg-muted text-muted-foreground"
+    };
+  };
+
   const getReasonLabel = (reason: string) => {
     const isService = transaction?.sale_type === "servicio";
     
@@ -301,6 +330,18 @@ export default function Appeal() {
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
+                {/* Sale Type Badge */}
+                {transaction.sale_type && (() => {
+                  const saleTypeConfig = getSaleTypeConfig(transaction.sale_type);
+                  const SaleTypeIcon = saleTypeConfig.icon;
+                  return (
+                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium mb-4 ${saleTypeConfig.color}`}>
+                      <SaleTypeIcon className="h-4 w-4" />
+                      {saleTypeConfig.label}
+                    </div>
+                  );
+                })()}
+                
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Transacción</p>
