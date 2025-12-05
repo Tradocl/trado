@@ -372,7 +372,14 @@ const Transaction = () => {
   };
 
   const handleCancelTransaction = async () => {
-    if (!user || !transaction || !isSeller || transaction.buyer_id) return;
+    // Allow initiator to cancel only when no joiner has joined yet
+    const initiatorRole = transaction?.initiator_role || 'seller';
+    const hasJoiner = initiatorRole === 'seller' ? !!transaction?.buyer_id : !!transaction?.buyer_id;
+    const isCreator = initiatorRole === 'seller' 
+      ? user?.id === transaction?.seller_id 
+      : user?.id === transaction?.seller_id; // Pre-swap: creator is in seller_id
+    
+    if (!user || !transaction || !isCreator || hasJoiner) return;
 
     try {
       await supabase
@@ -438,24 +445,64 @@ const Transaction = () => {
     return null;
   }
 
-  const isSeller = user?.id === transaction.seller_id;
-  const isBuyer = user?.id === transaction.buyer_id;
   const initiatorRole = transaction.initiator_role || 'seller';
-  const isInitiator = (initiatorRole === 'seller' && isSeller) || (initiatorRole === 'buyer' && isBuyer);
-  const canJoinAsBuyer = !transaction.buyer_id && !isSeller;
-  const canJoinAsSeller = !transaction.seller_id && !isBuyer;
   
-  // For buyer-initiated transactions, the other party (seller) must join before buyer can deposit
-  const canDeposit = initiatorRole === 'seller' 
-    ? isBuyer && transaction.seller_id  // Seller created: buyer can deposit after seller exists
-    : isBuyer && transaction.seller_id; // Buyer created: buyer can deposit only after seller joins
-
-  console.log("Transaction state:", transaction.state);
-  console.log("Is seller:", isSeller);
-  console.log("Is buyer:", isBuyer);
-  console.log("Can join as buyer:", canJoinAsBuyer);
-  console.log("Buyer ID:", transaction.buyer_id);
-  console.log("User ID:", user?.id);
+  // Calculate REAL roles based on initiator_role and swap status
+  // After JoinTransaction.tsx swap: seller_id = real seller, buyer_id = real buyer
+  // Before swap when buyer initiated: creator (buyer) is temporarily in seller_id
+  let realSellerId: string | null = null;
+  let realBuyerId: string | null = null;
+  let creatorId: string | null = null;
+  let joinerId: string | null = null;
+  
+  if (initiatorRole === 'seller') {
+    // Normal flow: seller created, buyer joins
+    realSellerId = transaction.seller_id;
+    realBuyerId = transaction.buyer_id;
+    creatorId = transaction.seller_id;
+    joinerId = transaction.buyer_id;
+  } else {
+    // Buyer initiated
+    if (transaction.buyer_id) {
+      // Post-swap: seller joined, creator moved to buyer_id
+      realSellerId = transaction.seller_id;
+      realBuyerId = transaction.buyer_id;
+      creatorId = transaction.buyer_id; // Creator is now in buyer_id
+      joinerId = transaction.seller_id;  // Joiner is in seller_id
+    } else {
+      // Pre-swap: creator (buyer) still in seller_id, waiting for seller
+      realBuyerId = transaction.seller_id; // Creator is buyer but in seller_id
+      realSellerId = null;
+      creatorId = transaction.seller_id;
+      joinerId = null;
+    }
+  }
+  
+  // Determine profiles for real roles
+  const realSellerProfile = realSellerId === transaction.seller_id ? sellerProfile : 
+                            realSellerId === transaction.buyer_id ? buyerProfile : null;
+  const realBuyerProfile = realBuyerId === transaction.buyer_id ? buyerProfile :
+                           realBuyerId === transaction.seller_id ? sellerProfile : null;
+  const creatorProfile = creatorId === transaction.seller_id ? sellerProfile :
+                         creatorId === transaction.buyer_id ? buyerProfile : null;
+  const joinerProfile = joinerId === transaction.seller_id ? sellerProfile :
+                        joinerId === transaction.buyer_id ? buyerProfile : null;
+  
+  // Determine if current user is REAL seller or buyer
+  const isSeller = user?.id === realSellerId;
+  const isBuyer = user?.id === realBuyerId;
+  const isInitiator = user?.id === creatorId;
+  
+  // Can join: only when opposite role is missing
+  const canJoinAsBuyer = initiatorRole === 'seller' && !transaction.buyer_id && user?.id !== transaction.seller_id;
+  const canJoinAsSeller = initiatorRole === 'buyer' && !transaction.buyer_id && user?.id !== transaction.seller_id;
+  
+  // Labels based on sale type
+  const isService = transaction.sale_type === 'servicio';
+  const sellerLabel = isService ? 'Proveedor' : 'Vendedor';
+  const buyerLabel = isService ? 'Cliente' : 'Comprador';
+  const creatorRoleLabel = initiatorRole === 'seller' ? sellerLabel : buyerLabel;
+  const joinerRoleLabel = initiatorRole === 'seller' ? buyerLabel : sellerLabel;
 
   const handleJoinAsBuyer = async () => {
     if (!user || !transaction || joiningTransaction) return;
@@ -556,19 +603,14 @@ const Transaction = () => {
             </div>
 
             {/* Show invite code to initiator waiting for other party */}
-            {isInitiator && transaction.state === "created" && (
-              (!transaction.buyer_id && initiatorRole === 'seller') || 
-              (!transaction.seller_id && initiatorRole === 'buyer')
-            ) && (
+            {isInitiator && transaction.state === "created" && !joinerProfile && (
               <div className="p-6 bg-gradient-to-br from-info/20 to-info/5 rounded-xl border-2 border-info/30 shadow-lg animate-scale-in">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-info rounded-lg animate-pulse">
                     <Copy className="h-5 w-5 text-info-foreground" />
                   </div>
                   <h4 className="font-bold text-info text-lg">
-                    ⏳ {initiatorRole === 'seller' 
-                      ? (transaction.sale_type === "servicio" ? "Esperando Cliente" : "Esperando Comprador")
-                      : (transaction.sale_type === "servicio" ? "Esperando Proveedor" : "Esperando Vendedor")}
+                    ⏳ Esperando {joinerRoleLabel}
                   </h4>
                 </div>
                 <div className="flex flex-col gap-3">
@@ -586,7 +628,7 @@ const Transaction = () => {
                       >
                         {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
                       </Button>
-                      {initiatorRole === 'seller' && (
+                      {isInitiator && (
                         <Button
                           variant="destructive"
                           className="font-semibold"
@@ -614,17 +656,13 @@ const Transaction = () => {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-3 text-center">
-                  📱 Comparte el código o el enlace directo con {
-                    initiatorRole === 'seller'
-                      ? (transaction.sale_type === "servicio" ? "el cliente" : "el comprador")
-                      : (transaction.sale_type === "servicio" ? "el proveedor" : "el vendedor")
-                  }
+                  📱 Comparte el código o el enlace directo con {joinerRoleLabel.toLowerCase()}
                 </p>
               </div>
             )}
 
-            {/* Buyer joined notification */}
-            {transaction.buyer_id && !['completed', 'cancelled', 'in_dispute'].includes(transaction.state) && (
+            {/* Joiner joined notification */}
+            {joinerProfile && !['completed', 'cancelled', 'in_dispute'].includes(transaction.state) && (
               <div className="p-5 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border-2 border-success/30 shadow-lg animate-scale-in">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-success/20 rounded-full">
@@ -632,87 +670,98 @@ const Transaction = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-lg text-success">
-                      ✅ {transaction.sale_type === "servicio" ? "El cliente se ha unido" : "El comprador se ha unido"}
+                      ✅ {joinerRoleLabel} se ha unido
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      {buyerProfile?.full_name} se ha unido a la transacción
+                      {joinerProfile?.full_name} se ha unido a la transacción
                     </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Participants */}
-            {(() => {
-              const isService = transaction.sale_type === "servicio";
-              const sellerLabel = isService ? "Proveedor" : "Vendedor";
-              const buyerLabel = isService ? "Cliente" : "Comprador";
-              const sellerFallback = isService ? "P" : "V";
-              const buyerFallback = isService ? "C" : "C";
-              const waitingLabel = isService ? "Esperando cliente..." : "Esperando comprador...";
-              
-              return (
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="p-5 border-2 border-success/30 rounded-xl bg-gradient-to-br from-success/10 to-success/5 shadow-md hover-scale">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Avatar className="h-12 w-12 border-2 border-success/30">
-                        <AvatarImage src={sellerProfile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-success/20 text-success font-bold">
-                          {sellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || sellerFallback}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h4 className="font-bold text-lg">{sellerLabel}</h4>
-                        <p className="font-semibold">{sellerProfile?.full_name}</p>
-                      </div>
+            {/* Participants - Show REAL seller and buyer */}
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Real Seller/Provider */}
+              <div className="p-5 border-2 border-success/30 rounded-xl bg-gradient-to-br from-success/10 to-success/5 shadow-md hover-scale">
+                <div className="flex items-center gap-3 mb-3">
+                  {realSellerProfile ? (
+                    <Avatar className="h-12 w-12 border-2 border-success/30">
+                      <AvatarImage src={realSellerProfile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-success/20 text-success font-bold">
+                        {realSellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || (isService ? "P" : "V")}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div className="h-12 w-12 rounded-full bg-success/20 flex items-center justify-center">
+                      <Store className="h-6 w-6 text-success" />
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Star className="h-5 w-5 text-warning fill-warning" />
-                      <span className="font-bold">{sellerProfile?.reputation_score?.toFixed(1) || "0.0"}</span>
-                    </div>
-                    {sellerProfile && <UserRatings userId={sellerProfile.id} maxRatings={3} />}
-                  </div>
-                  <div className="p-5 border-2 border-info/30 rounded-xl bg-gradient-to-br from-info/10 to-info/5 shadow-md hover-scale">
-                    <div className="flex items-center gap-3 mb-3">
-                      {buyerProfile ? (
-                        <Avatar className="h-12 w-12 border-2 border-info/30">
-                          <AvatarImage src={buyerProfile?.avatar_url || undefined} />
-                          <AvatarFallback className="bg-info/20 text-info font-bold">
-                            {buyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || buyerFallback}
-                          </AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <div className="h-12 w-12 rounded-full bg-info/20 flex items-center justify-center">
-                          <Users className="h-6 w-6 text-info" />
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="font-bold text-lg">{buyerLabel}</h4>
-                        {buyerProfile ? (
-                          <p className="font-semibold">{buyerProfile.full_name}</p>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">Esperando...</p>
-                        )}
-                      </div>
-                    </div>
-                    {buyerProfile ? (
-                      <>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Star className="h-5 w-5 text-warning fill-warning" />
-                          <span className="font-bold">{buyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
-                        </div>
-                        <UserRatings userId={buyerProfile.id} maxRatings={3} />
-                      </>
+                  )}
+                  <div>
+                    <h4 className="font-bold text-lg">{sellerLabel}</h4>
+                    {realSellerProfile ? (
+                      <p className="font-semibold">{realSellerProfile.full_name}</p>
                     ) : (
-                      <div className="flex items-center gap-2 text-muted-foreground animate-pulse mt-2">
-                        <div className="h-3 w-3 rounded-full bg-warning"></div>
-                        <p className="text-sm font-medium">{waitingLabel}</p>
-                      </div>
+                      <p className="text-sm text-muted-foreground">Esperando...</p>
                     )}
                   </div>
                 </div>
-              );
-            })()}
+                {realSellerProfile ? (
+                  <>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Star className="h-5 w-5 text-warning fill-warning" />
+                      <span className="font-bold">{realSellerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
+                    </div>
+                    <UserRatings userId={realSellerProfile.id} maxRatings={3} />
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground animate-pulse mt-2">
+                    <div className="h-3 w-3 rounded-full bg-warning"></div>
+                    <p className="text-sm font-medium">Esperando {sellerLabel.toLowerCase()}...</p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Real Buyer/Client */}
+              <div className="p-5 border-2 border-info/30 rounded-xl bg-gradient-to-br from-info/10 to-info/5 shadow-md hover-scale">
+                <div className="flex items-center gap-3 mb-3">
+                  {realBuyerProfile ? (
+                    <Avatar className="h-12 w-12 border-2 border-info/30">
+                      <AvatarImage src={realBuyerProfile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-info/20 text-info font-bold">
+                        {realBuyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || "C"}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div className="h-12 w-12 rounded-full bg-info/20 flex items-center justify-center">
+                      <Users className="h-6 w-6 text-info" />
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-bold text-lg">{buyerLabel}</h4>
+                    {realBuyerProfile ? (
+                      <p className="font-semibold">{realBuyerProfile.full_name}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Esperando...</p>
+                    )}
+                  </div>
+                </div>
+                {realBuyerProfile ? (
+                  <>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Star className="h-5 w-5 text-warning fill-warning" />
+                      <span className="font-bold">{realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
+                    </div>
+                    <UserRatings userId={realBuyerProfile.id} maxRatings={3} />
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground animate-pulse mt-2">
+                    <div className="h-3 w-3 rounded-full bg-warning"></div>
+                    <p className="text-sm font-medium">Esperando {buyerLabel.toLowerCase()}...</p>
+                  </div>
+                )}
+              </div>
+            </div>
 
             <Separator className="my-6" />
 
@@ -722,13 +771,14 @@ const Transaction = () => {
               const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
               const isCompleted = transaction.state === 'completed' || isAppealResolved;
               const isInPersonDelivery = transaction.sale_type === 'producto_persona';
-              const isService = transaction.sale_type === 'servicio';
               const isInReview = ['awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state);
               const passedDelivery = ['in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
               const passedReceived = ['awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
               
-              const sellerName = sellerProfile?.full_name || 'Vendedor';
-              const buyerName = buyerProfile?.full_name || 'Comprador';
+              const creatorName = creatorProfile?.full_name || creatorRoleLabel;
+              const joinerName = joinerProfile?.full_name || joinerRoleLabel;
+              const realSellerName = realSellerProfile?.full_name || sellerLabel;
+              const realBuyerName = realBuyerProfile?.full_name || buyerLabel;
               
               // For services, simplified flow without shipping or meeting
               if (isService) {
@@ -747,22 +797,22 @@ const Transaction = () => {
                         <div className="flex-1">
                           <p className="font-bold text-lg">Sala Creada</p>
                           <p className="text-sm text-muted-foreground">
-                            ✅ Proveedor ({sellerName}) creó la sala
+                            ✅ {creatorRoleLabel} ({creatorName}) creó la sala
                           </p>
                         </div>
                       </div>
 
-                      {/* Step 2: Client Joined */}
+                      {/* Step 2: Joiner Joined */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
+                          joinerProfile ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
                         }`}>
                           <Users className="h-6 w-6" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-bold text-lg">Cliente Confirmado</p>
+                          <p className="font-bold text-lg">{joinerRoleLabel} Confirmado</p>
                           <p className="text-sm text-muted-foreground">
-                            {transaction.buyer_id ? `✅ Cliente (${buyerName}) confirmado` : '⏳ Esperando cliente...'}
+                            {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
                           </p>
                         </div>
                       </div>
@@ -784,7 +834,7 @@ const Transaction = () => {
                             {passedDelivery || transaction.state === 'funds_secured'
                               ? '✅ Fondos asegurados y protegidos'
                               : transaction.state === 'invited'
-                              ? `⏳ Esperando depósito del cliente (${buyerName})...`
+                              ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()} (${realBuyerName})...`
                               : '⚪ Pendiente'}
                           </p>
                         </div>
@@ -807,7 +857,7 @@ const Transaction = () => {
                             {isCompleted
                               ? '✅ Servicio completado'
                               : passedDelivery || transaction.state === 'funds_secured'
-                              ? `🛠️ Proveedor (${sellerName}) realiza el servicio`
+                              ? `🛠️ ${sellerLabel} (${realSellerName}) realiza el servicio`
                               : '⚪ Pendiente'}
                           </p>
                         </div>
@@ -855,22 +905,22 @@ const Transaction = () => {
                         <div className="flex-1">
                           <p className="font-bold text-lg">Sala Creada</p>
                           <p className="text-sm text-muted-foreground">
-                            ✅ Vendedor ({sellerName}) creó la sala
+                            ✅ {creatorRoleLabel} ({creatorName}) creó la sala
                           </p>
                         </div>
                       </div>
 
-                      {/* Step 2: Buyer Joined */}
+                      {/* Step 2: Joiner Joined */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
+                          joinerProfile ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
                         }`}>
                           <Users className="h-6 w-6" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-bold text-lg">Comprador Unido</p>
+                          <p className="font-bold text-lg">{joinerRoleLabel} Unido</p>
                           <p className="text-sm text-muted-foreground">
-                            {transaction.buyer_id ? `✅ Comprador (${buyerName}) confirmado` : '⏳ Esperando comprador...'}
+                            {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
                           </p>
                         </div>
                       </div>
@@ -892,7 +942,7 @@ const Transaction = () => {
                             {passedDelivery || transaction.state === 'funds_secured'
                               ? '✅ Fondos asegurados y protegidos'
                               : transaction.state === 'invited'
-                              ? `⏳ Esperando depósito del comprador (${buyerName})...`
+                              ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()} (${realBuyerName})...`
                               : '⚪ Pendiente'}
                           </p>
                         </div>
@@ -938,7 +988,7 @@ const Transaction = () => {
                             {isCompleted
                               ? '✅ Entrega confirmada'
                               : passedDelivery
-                              ? `🤝 Comprador (${buyerName}) confirma recibimiento`
+                              ? `🤝 ${buyerLabel} (${realBuyerName}) confirma recibimiento`
                               : '⚪ Pendiente'}
                           </p>
                         </div>
@@ -985,22 +1035,22 @@ const Transaction = () => {
                       <div className="flex-1">
                         <p className="font-bold text-lg">Sala Creada</p>
                         <p className="text-sm text-muted-foreground">
-                          ✅ Vendedor ({sellerName}) creó la sala
+                          ✅ {creatorRoleLabel} ({creatorName}) creó la sala
                         </p>
                       </div>
                     </div>
 
-                    {/* Step 2: Buyer Joined */}
+                    {/* Step 2: Joiner Joined */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                        transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
+                        joinerProfile ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
                       }`}>
                         <Users className="h-6 w-6" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-bold text-lg">Comprador Unido</p>
+                        <p className="font-bold text-lg">{joinerRoleLabel} Unido</p>
                         <p className="text-sm text-muted-foreground">
-                          {transaction.buyer_id ? `✅ Comprador (${buyerName}) confirmado` : '⏳ Esperando comprador...'}
+                          {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
                         </p>
                       </div>
                     </div>
@@ -1022,7 +1072,7 @@ const Transaction = () => {
                           {passedDelivery || transaction.state === 'funds_secured'
                             ? '✅ Fondos asegurados y protegidos'
                             : transaction.state === 'invited'
-                            ? `⏳ Esperando depósito del comprador (${buyerName})...`
+                            ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()} (${realBuyerName})...`
                             : '⚪ Pendiente'}
                         </p>
                       </div>
@@ -1043,9 +1093,9 @@ const Transaction = () => {
                         <p className="font-bold text-lg">Producto Enviado</p>
                         <p className="text-sm text-muted-foreground">
                           {passedDelivery
-                            ? `✅ Vendedor (${sellerName}) envió el producto`
+                            ? `✅ ${sellerLabel} (${realSellerName}) envió el producto`
                             : transaction.state === 'funds_secured'
-                            ? `⏳ Esperando envío del vendedor (${sellerName})...`
+                            ? `⏳ Esperando envío del ${sellerLabel.toLowerCase()} (${realSellerName})...`
                             : '⚪ Pendiente'}
                         </p>
                       </div>
@@ -1066,9 +1116,9 @@ const Transaction = () => {
                         <p className="font-bold text-lg">Producto Recibido</p>
                         <p className="text-sm text-muted-foreground">
                           {passedReceived
-                            ? `✅ Comprador (${buyerName}) recibió el producto`
+                            ? `✅ ${buyerLabel} (${realBuyerName}) recibió el producto`
                             : transaction.state === 'in_delivery'
-                            ? `🚚 En camino al comprador (${buyerName})...`
+                            ? `🚚 En camino al ${buyerLabel.toLowerCase()} (${realBuyerName})...`
                             : '⚪ Pendiente'}
                         </p>
                       </div>
@@ -1093,7 +1143,7 @@ const Transaction = () => {
                             : ['return_requested', 'return_in_progress'].includes(transaction.state)
                             ? '🔄 Devolución en proceso'
                             : transaction.state === 'awaiting_buyer_review'
-                            ? `🔍 Comprador (${buyerName}) revisando el producto...`
+                            ? `🔍 ${buyerLabel} (${realBuyerName}) revisando el producto...`
                             : '⚪ Pendiente'}
                         </p>
                       </div>
