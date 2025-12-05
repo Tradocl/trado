@@ -43,10 +43,10 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`[confirm-delivery] Processing transaction: ${transactionId}`);
 
-    // Get transaction
+    // Get transaction with initiator_role
     const { data: tx, error: txError } = await supabaseClient
       .from("transactions")
-      .select("id, seller_id, buyer_id, amount, commission, state, product_name, sale_type")
+      .select("id, seller_id, buyer_id, amount, commission, state, product_name, sale_type, initiator_role")
       .eq("id", transactionId)
       .single();
 
@@ -119,19 +119,33 @@ serve(async (req: Request): Promise<Response> => {
     const feeWithFloor = Math.max(roundedFee, 1000);
     const calculatedCommission = Math.min(feeWithFloor, 20000);
 
-    const amountAfterCommission = transactionAmount - calculatedCommission;
+    // Determine how much the seller receives based on initiator_role
+    // If buyer initiated: buyer already paid price + commission, so seller gets full amount
+    // If seller initiated: commission is deducted from seller's payment
+    const initiatorRole = (tx as any).initiator_role || "seller";
+    const amountToSeller = initiatorRole === "buyer" 
+      ? transactionAmount  // Buyer paid commission, seller gets full price
+      : transactionAmount - calculatedCommission;  // Seller pays commission
+
     const currentSellerBalance = Number(sellerWallet.balance ?? 0);
-    const newSellerBalance = currentSellerBalance + amountAfterCommission;
+    const newSellerBalance = currentSellerBalance + amountToSeller;
+
+    // Calculate how much was blocked in escrow
+    // If buyer initiated, they blocked amount + commission
+    // If seller initiated, buyer blocked just the amount
+    const escrowAmount = initiatorRole === "buyer"
+      ? transactionAmount + calculatedCommission
+      : transactionAmount;
 
     // Release buyer's blocked funds
     const currentBuyerBlocked = Number(buyerWallet.blocked_balance ?? 0);
-    const newBuyerBlocked = Math.max(0, currentBuyerBlocked - transactionAmount);
+    const newBuyerBlocked = Math.max(0, currentBuyerBlocked - escrowAmount);
 
     // Determine sale type label for description
     const saleTypeLabel = tx.sale_type === "servicio" ? "Servicio" : "Venta";
 
-    console.log(`[confirm-delivery] Processing payment: amount=${transactionAmount}, commission=${calculatedCommission}, net=${amountAfterCommission}`);
-    console.log(`[confirm-delivery] Buyer blocked: ${currentBuyerBlocked} -> ${newBuyerBlocked}`);
+    console.log(`[confirm-delivery] Processing payment: initiatorRole=${initiatorRole}, amount=${transactionAmount}, commission=${calculatedCommission}, sellerReceives=${amountToSeller}`);
+    console.log(`[confirm-delivery] Buyer blocked: ${currentBuyerBlocked} -> ${newBuyerBlocked} (releasing ${escrowAmount})`);
 
     // Update buyer wallet: release blocked funds
     const { error: updateBuyerWalletError } = await supabaseClient
@@ -173,7 +187,7 @@ serve(async (req: Request): Promise<Response> => {
       wallet_id: sellerWallet.id,
       transaction_id: tx.id,
       type: "escrow_release",
-      amount: amountAfterCommission,
+      amount: amountToSeller,
       balance_after: newSellerBalance,
       description: `${saleTypeLabel} "${tx.product_name}"`,
       status: "approved",

@@ -8,7 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Wallet from "./pages/Wallet";
-import CreateSale from "./pages/CreateSale";
+import CreateTransaction from "./pages/CreateTransaction";
 import JoinTransaction from "./pages/JoinTransaction";
 import Transaction from "./pages/Transaction";
 import Verification from "./pages/Verification";
@@ -34,7 +34,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/wallet" element={<Wallet />} />
-            <Route path="/create-sale" element={<CreateSale />} />
+            <Route path="/create-transaction" element={<CreateTransaction />} />
+            <Route path="/create-sale" element={<CreateTransaction />} />
             <Route path="/join-transaction" element={<JoinTransaction />} />
             <Route path="/transaction/:id" element={<Transaction />} />
             <Route path="/verification" element={<Verification />} />

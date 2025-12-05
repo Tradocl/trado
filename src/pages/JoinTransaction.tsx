@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ShoppingBag, Search } from "lucide-react";
+import { ArrowLeft, Handshake, Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -35,60 +35,87 @@ const JoinTransaction = () => {
         return;
       }
 
-      if (transaction.seller_id === user.id) {
-        toast.error("No puedes unirte a tu propia venta");
+      // Check if user is already part of this transaction
+      if (transaction.seller_id === user.id || transaction.buyer_id === user.id) {
+        toast.error("Ya eres parte de esta transacción");
         setLoading(false);
         return;
       }
 
-      if (transaction.buyer_id && transaction.buyer_id !== user.id) {
-        toast.error("Esta transacción ya tiene un comprador");
-        setLoading(false);
-        return;
+      // Determine the initiator role to know which field to update
+      const initiatorRole = (transaction as any).initiator_role || "seller";
+      
+      // If initiator was seller, the joining user becomes buyer
+      // If initiator was buyer, the joining user becomes seller
+      let updateData: any = { state: "invited" };
+      
+      if (initiatorRole === "seller") {
+        // Seller created, so joining user is buyer
+        if (transaction.buyer_id) {
+          toast.error("Esta transacción ya tiene un comprador");
+          setLoading(false);
+          return;
+        }
+        updateData.buyer_id = user.id;
+      } else {
+        // Buyer created, so joining user is seller
+        if (transaction.seller_id) {
+          toast.error("Esta transacción ya tiene un vendedor");
+          setLoading(false);
+          return;
+        }
+        updateData.seller_id = user.id;
       }
 
-      // Update transaction with buyer
+      // Update transaction
       const { error: updateError } = await supabase
         .from("transactions")
-        .update({
-          buyer_id: user.id,
-          state: "invited",
-        })
+        .update(updateData)
         .eq("id", transaction.id);
 
       if (updateError) throw updateError;
 
-      // Get buyer and seller profiles
-      const { data: buyerProfile } = await supabase
+      // Get profiles for email
+      const { data: joinerProfile } = await supabase
         .from("profiles")
         .select("full_name, email")
         .eq("id", user.id)
         .single();
 
-      const { data: sellerProfile } = await supabase
+      // Determine other party ID based on who initiated
+      const otherPartyId = initiatorRole === "seller" ? transaction.seller_id : transaction.buyer_id;
+      
+      const { data: otherProfile } = await supabase
         .from("profiles")
         .select("full_name")
-        .eq("id", transaction.seller_id)
+        .eq("id", otherPartyId)
         .single();
 
-      // Send payment instructions to buyer
-      try {
-        await supabase.functions.invoke("send-payment-instructions", {
-          body: {
-            buyerEmail: buyerProfile?.email || user.email || "",
-            buyerName: buyerProfile?.full_name || "Comprador",
-            referenceCode: transaction.invite_code,
-            totalAmount: transaction.amount + (transaction.commission || 0),
-            productName: transaction.product_name,
-            sellerName: sellerProfile?.full_name || "Vendedor",
-          },
-        });
-      } catch (emailError) {
-        console.error("Error sending payment instructions:", emailError);
-        // Don't fail the join if email fails
+      // Only send payment instructions if the joiner is the buyer
+      // (buyer deposits, seller doesn't need to pay)
+      if (initiatorRole === "seller") {
+        // Joiner is buyer, send payment instructions
+        try {
+          await supabase.functions.invoke("send-payment-instructions", {
+            body: {
+              buyerEmail: joinerProfile?.email || user.email || "",
+              buyerName: joinerProfile?.full_name || "Comprador",
+              referenceCode: transaction.invite_code,
+              totalAmount: transaction.amount,
+              productName: transaction.product_name,
+              sellerName: otherProfile?.full_name || "Vendedor",
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending payment instructions:", emailError);
+        }
       }
 
-      toast.success("¡Te uniste a la transacción!");
+      const roleLabel = initiatorRole === "seller" 
+        ? (transaction.sale_type === "servicio" ? "cliente" : "comprador")
+        : (transaction.sale_type === "servicio" ? "proveedor" : "vendedor");
+      
+      toast.success(`¡Te uniste como ${roleLabel}!`);
       navigate(`/transaction/${transaction.id}`);
     } catch (error: any) {
       toast.error("Error al unirse: " + error.message);
@@ -113,12 +140,12 @@ const JoinTransaction = () => {
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-3 bg-info/10 rounded-xl">
-                <ShoppingBag className="h-8 w-8 text-info" />
+                <Handshake className="h-8 w-8 text-info" />
               </div>
               <div>
-                <CardTitle className="text-2xl">Unirse a una Compra</CardTitle>
+                <CardTitle className="text-2xl">Unirse a Sala de Transacción</CardTitle>
                 <CardDescription>
-                  Ingresa el código de invitación del vendedor
+                  Ingresa el código de invitación compartido
                 </CardDescription>
               </div>
             </div>
@@ -137,21 +164,21 @@ const JoinTransaction = () => {
                   required
                 />
                 <p className="text-sm text-muted-foreground">
-                  El vendedor te proporcionará este código de 8 caracteres
+                  El código de 8 caracteres que te compartieron
                 </p>
               </div>
 
               <div className="p-4 bg-success/10 rounded-lg border border-success/20">
-                <h4 className="font-semibold text-success mb-2">Compra Protegida</h4>
+                <h4 className="font-semibold text-success mb-2">Transacción Protegida</h4>
                 <p className="text-sm text-muted-foreground">
-                  Tu dinero quedará retenido en Trado hasta que confirmes haber recibido el producto. 
-                  Si hay algún problema, puedes abrir una disputa y recuperar tu dinero.
+                  El dinero quedará retenido en Trado hasta que ambas partes confirmen. 
+                  Si hay algún problema, puedes abrir una apelación.
                 </p>
               </div>
 
               <Button type="submit" className="w-full bg-info hover:bg-info/90" disabled={loading}>
                 <Search className="mr-2 h-4 w-4" />
-                {loading ? "Buscando..." : "Buscar Transacción"}
+                {loading ? "Buscando..." : "Unirme a la Transacción"}
               </Button>
             </form>
           </CardContent>
