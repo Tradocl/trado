@@ -375,29 +375,31 @@ const Dashboard = () => {
         </div>
 
         {/* Wallet Card */}
-        <Card className="border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wallet className="h-6 w-6 text-primary" />
+        <Card className="border-0 shadow-xl overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b border-border/50">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Wallet className="h-5 w-5 text-primary" />
+              </div>
               Mi Billetera
             </CardTitle>
             <CardDescription>Administra tu saldo virtual</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
+          <CardContent className="space-y-4 pt-6">
+            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-muted to-muted/50 rounded-xl">
               <span className="text-sm font-medium">Saldo disponible</span>
-              <span className="text-2xl font-bold">${formatCLP(wallet?.balance || 0)}</span>
+              <span className="text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              <Button variant="outline" onClick={() => navigate("/wallet")}>
+              <Button variant="outline" className="hover:bg-muted transition-colors" onClick={() => navigate("/wallet")}>
                 <History className="mr-2 h-4 w-4" />
                 Movimientos
               </Button>
-              <Button onClick={() => navigate("/wallet?action=deposit")}>
+              <Button className="bg-primary hover:bg-primary/90" onClick={() => navigate("/wallet?action=deposit")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Depositar
               </Button>
-              <Button variant="outline" onClick={() => navigate("/wallet?action=withdraw")}>
+              <Button variant="outline" className="hover:bg-muted transition-colors" onClick={() => navigate("/wallet?action=withdraw")}>
                 <ArrowUpRight className="mr-2 h-4 w-4" />
                 Retirar
               </Button>
