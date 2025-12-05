@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { AppealEvidence } from "@/components/appeal/AppealEvidence";
 import { AppealTimeline } from "@/components/appeal/AppealTimeline";
 import { AppealRatingDialog } from "@/components/appeal/AppealRatingDialog";
-import { MutualResolutionPanel } from "@/components/appeal/MutualResolutionPanel";
+import { AppealResolutionFlow } from "@/components/appeal/AppealResolutionFlow";
 import { formatCLP } from "@/lib/utils";
 
 export default function Appeal() {
@@ -37,7 +37,6 @@ export default function Appeal() {
   const [decision, setDecision] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
-  const [escalating, setEscalating] = useState(false);
 
   useEffect(() => {
     if (!appealId) return;
@@ -127,27 +126,6 @@ export default function Appeal() {
       toast.error("Error al cargar la apelación");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleEscalate = async () => {
-    setEscalating(true);
-    try {
-      const { error } = await supabase
-        .from("appeals")
-        .update({
-          status: "pendiente_intervencion_plataforma",
-          escalated_at: new Date().toISOString(),
-        })
-        .eq("id", appealId);
-
-      if (error) throw error;
-      toast.success("Apelación escalada correctamente");
-    } catch (error: any) {
-      console.error("Error escalating appeal:", error);
-      toast.error("Error al escalar la apelación");
-    } finally {
-      setEscalating(false);
     }
   };
 
@@ -346,9 +324,9 @@ export default function Appeal() {
               </CardContent>
             </Card>
 
-            {/* Mutual Resolution Panel */}
+            {/* Appeal Resolution Flow */}
             {canNegotiate && transaction.buyer_id && (
-              <MutualResolutionPanel
+              <AppealResolutionFlow
                 appealId={appeal.id}
                 transactionId={transaction.id}
                 currentUserId={user?.id || ""}
@@ -356,8 +334,7 @@ export default function Appeal() {
                 sellerId={transaction.seller_id}
                 totalAmount={Number(transaction.amount)}
                 appealStatus={appeal.status}
-                onEscalate={handleEscalate}
-                escalating={escalating}
+                onRefresh={fetchAppealData}
               />
             )}
 
@@ -455,38 +432,40 @@ export default function Appeal() {
               </Card>
             )}
 
-            {/* Evidences Section */}
-            <Card className={`border-2 shadow-lg ${isResolved ? 'opacity-75' : ''}`}>
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Evidencia de la Apelación
-                    </CardTitle>
-                    <CardDescription>
-                      {isResolved 
-                        ? "Este caso ha sido cerrado. La evidencia es solo de consulta."
-                        : "Sube y revisa los archivos relacionados con este caso."
-                      }
-                    </CardDescription>
+            {/* Evidences Section - Only show when not in negotiation (evidence is in the resolution flow) */}
+            {!canNegotiate && (
+              <Card className={`border-2 shadow-lg ${isResolved ? 'opacity-75' : ''}`}>
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Evidencia de la Apelación
+                      </CardTitle>
+                      <CardDescription>
+                        {isResolved 
+                          ? "Este caso ha sido cerrado. La evidencia es solo de consulta."
+                          : "Archivos relacionados con este caso."
+                        }
+                      </CardDescription>
+                    </div>
+                    {isResolved && (
+                      <Badge variant="secondary" className="bg-muted">
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Cerrado
+                      </Badge>
+                    )}
                   </div>
-                  {isResolved && (
-                    <Badge variant="secondary" className="bg-muted">
-                      <XCircle className="h-3 w-3 mr-1" />
-                      Cerrado
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <AppealEvidence
-                  appealId={appeal.id}
-                  currentUserId={user?.id || ""}
-                  appealStatus={appeal.status}
-                />
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <AppealEvidence
+                    appealId={appeal.id}
+                    currentUserId={user?.id || ""}
+                    appealStatus={appeal.status}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar */}
