@@ -493,6 +493,12 @@ const Transaction = () => {
   const isBuyer = user?.id === realBuyerId;
   const isInitiator = user?.id === creatorId;
   
+  // Calculate contextual amounts based on role
+  const sellerReceives = transaction.amount - transaction.commission;
+  const buyerPays = initiatorRole === 'buyer' 
+    ? transaction.amount + transaction.commission 
+    : transaction.amount;
+  
   // Can join: only when opposite role is missing
   const canJoinAsBuyer = initiatorRole === 'seller' && !transaction.buyer_id && user?.id !== transaction.seller_id;
   const canJoinAsSeller = initiatorRole === 'buyer' && !transaction.buyer_id && user?.id !== transaction.seller_id;
@@ -595,10 +601,28 @@ const Transaction = () => {
             <div className="relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg blur-xl"></div>
               <div className="relative flex justify-between items-center p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
-                <span className="text-lg font-semibold">Monto Total</span>
-                <span className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  ${formatCLP(transaction.amount)}
-                </span>
+                {isBuyer ? (
+                  <>
+                    <span className="text-lg font-semibold">Tu pago total</span>
+                    <span className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                      ${formatCLP(buyerPays)}
+                    </span>
+                  </>
+                ) : isSeller ? (
+                  <>
+                    <span className="text-lg font-semibold">Recibirás (neto)</span>
+                    <span className="text-4xl font-bold text-success">
+                      ${formatCLP(sellerReceives)}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg font-semibold">Precio acordado</span>
+                    <span className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                      ${formatCLP(transaction.amount)}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -1226,7 +1250,7 @@ const Transaction = () => {
                   onClick={() => setDepositDialogOpen(true)}
                 >
                   <DollarSign className="mr-2 h-6 w-6" />
-                  Depositar ${formatCLP(transaction.amount)} en Escrow
+                  Depositar ${formatCLP(buyerPays)} en Escrow
                 </Button>
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
                   🔒 Tus fondos estarán protegidos hasta que confirmes {transaction.sale_type === "servicio" ? "el servicio" : "la entrega"}
@@ -1633,20 +1657,45 @@ const Transaction = () => {
       <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar Depósito</DialogTitle>
+            <DialogTitle>Confirmar Depósito en Escrow</DialogTitle>
             <DialogDescription>
-              Se bloquearán ${formatCLP(transaction.amount)} de tu billetera hasta que confirmes la entrega
+              Revisa el desglose antes de confirmar
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Desglose financiero */}
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Precio del {transaction.sale_type === "servicio" ? "servicio" : "producto"}</span>
+                <span className="font-medium">${formatCLP(transaction.amount)}</span>
+              </div>
+              {initiatorRole === 'buyer' && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Comisión Trado</span>
+                  <span className="font-medium">${formatCLP(transaction.commission)}</span>
+                </div>
+              )}
+              <Separator />
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Total a depositar</span>
+                <span className="font-bold text-lg text-primary">${formatCLP(buyerPays)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">{sellerLabel} recibirá</span>
+                <span className="text-success font-medium">${formatCLP(sellerReceives)}</span>
+              </div>
+            </div>
+            
             <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
               <p className="text-sm">
-                Tu dinero estará 100% seguro. Solo se liberará al vendedor cuando confirmes que
-                recibiste el producto.
+                🔒 Tu dinero estará 100% seguro. Solo se liberará al {sellerLabel.toLowerCase()} cuando confirmes que
+                recibiste {transaction.sale_type === "servicio" ? "el servicio" : "el producto"}.
               </p>
             </div>
-            <Button onClick={handleDeposit} className="w-full">
-              Confirmar Depósito
+            
+            <Button onClick={handleDeposit} className="w-full bg-success hover:bg-success/90">
+              <DollarSign className="mr-2 h-4 w-4" />
+              Confirmar Depósito de ${formatCLP(buyerPays)}
             </Button>
           </div>
         </DialogContent>
