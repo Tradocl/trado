@@ -494,7 +494,11 @@ const Transaction = () => {
   const isInitiator = user?.id === creatorId;
   
   // Calculate contextual amounts based on role
-  const sellerReceives = transaction.amount - transaction.commission;
+  // If buyer initiated: commission added on top, seller receives full amount
+  // If seller initiated: commission deducted from seller's payout
+  const sellerReceives = initiatorRole === 'buyer' 
+    ? transaction.amount 
+    : transaction.amount - transaction.commission;
   const buyerPays = initiatorRole === 'buyer' 
     ? transaction.amount + transaction.commission 
     : transaction.amount;
@@ -610,7 +614,7 @@ const Transaction = () => {
                   </>
                 ) : isSeller ? (
                   <>
-                    <span className="text-lg font-semibold">Recibirás (neto)</span>
+                    <span className="text-lg font-semibold">Recibirás</span>
                     <span className="text-4xl font-bold text-success">
                       ${formatCLP(sellerReceives)}
                     </span>
