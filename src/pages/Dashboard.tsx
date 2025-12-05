@@ -281,72 +281,72 @@ const Dashboard = () => {
 
         {/* Action Cards */}
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="hover:shadow-xl transition-shadow cursor-pointer border-2 hover:border-primary"
+          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-primary hover:-translate-y-1"
                 onClick={() => navigate("/create-transaction")}>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-primary/10 rounded-xl">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl group-hover:scale-110 transition-transform duration-300">
                   <Plus className="h-8 w-8 text-primary" />
                 </div>
                 <div>
                   <CardTitle className="text-xl">Crear Sala</CardTitle>
-                  <CardDescription>Nueva transacción segura</CardDescription>
+                  <CardDescription className="text-xs">Nueva transacción segura</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Crea una sala de transacción protegida con escrow para comprar o vender
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Inicia una transacción protegida con escrow para intercambiar <span className="font-medium text-foreground">productos</span> o <span className="font-medium text-foreground">servicios</span> de forma segura
               </p>
-              <Button className="w-full">
+              <Button className="w-full group-hover:shadow-lg transition-shadow">
                 <Plus className="mr-2 h-4 w-4" />
-                Crear Sala de Transacción
+                Crear Sala
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-xl transition-shadow cursor-pointer border-2 hover:border-info"
+          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-info hover:-translate-y-1"
                 onClick={() => navigate("/join-transaction")}>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-info/10 rounded-xl">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-br from-info/20 to-info/5 rounded-2xl group-hover:scale-110 transition-transform duration-300">
                   <ShoppingBag className="h-8 w-8 text-info" />
                 </div>
                 <div>
                   <CardTitle className="text-xl">Unirse a Sala</CardTitle>
-                  <CardDescription>Ingresa con código</CardDescription>
+                  <CardDescription className="text-xs">Ingresa con código</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Ingresa el código de invitación para unirte a una transacción existente
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Ingresa el <span className="font-medium text-foreground">código de invitación</span> para unirte a una transacción existente
               </p>
-              <Button className="w-full bg-info hover:bg-info/90">
+              <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow">
                 <ShoppingBag className="mr-2 h-4 w-4" />
                 Unirse a Sala
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-xl transition-shadow cursor-pointer border-2 hover:border-primary/50"
+          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-muted-foreground/30 hover:-translate-y-1"
                 onClick={() => navigate("/transaction-history")}>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-primary/10 rounded-xl">
-                  <History className="h-8 w-8 text-primary" />
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-br from-muted-foreground/20 to-muted-foreground/5 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                  <History className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <div>
                   <CardTitle className="text-xl">Historial</CardTitle>
-                  <CardDescription>Revisa tus transacciones</CardDescription>
+                  <CardDescription className="text-xs">Revisa tus transacciones</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Ve todas tus compras y ventas completadas
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Consulta todas tus <span className="font-medium text-foreground">transacciones completadas</span> y su detalle
               </p>
-              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+              <Button variant="outline" className="w-full border-muted-foreground/30 hover:bg-muted group-hover:shadow-lg transition-shadow">
                 <History className="mr-2 h-4 w-4" />
                 Ver Historial
               </Button>
