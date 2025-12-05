@@ -195,13 +195,25 @@ export default function Appeal() {
   };
 
   const getReasonLabel = (reason: string) => {
-    const reasons: Record<string, string> = {
+    const isService = transaction?.sale_type === "servicio";
+    
+    const productReasons: Record<string, string> = {
       producto_no_llego: "Producto nunca llegó",
       producto_diferente: "Producto distinto al acordado",
       danos_o_fallas: "Daños o fallas",
       incumplimiento_acuerdo: "Incumplimiento del acuerdo",
       otro: "Otro",
     };
+    
+    const serviceReasons: Record<string, string> = {
+      producto_no_llego: "Servicio no realizado",
+      producto_diferente: "Servicio distinto al acordado",
+      danos_o_fallas: "Trabajo deficiente",
+      incumplimiento_acuerdo: "Incumplimiento del acuerdo",
+      otro: "Otro",
+    };
+    
+    const reasons = isService ? serviceReasons : productReasons;
     return reasons[reason] || reason;
   };
 
