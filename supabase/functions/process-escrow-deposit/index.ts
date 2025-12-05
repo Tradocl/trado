@@ -62,10 +62,11 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("No autorizado - solo el comprador puede depositar");
     }
 
-    // Verify transaction state
-    if (tx.state !== "awaiting_deposit") {
-      console.log(`[process-escrow-deposit] Transaction state ${tx.state} is not awaiting_deposit`);
-      throw new Error("La transacción no está esperando depósito");
+    // Verify transaction state - accept both "invited" and "awaiting_deposit"
+    const validStates = ["invited", "awaiting_deposit"];
+    if (!validStates.includes(tx.state)) {
+      console.log(`[process-escrow-deposit] Transaction state ${tx.state} is not valid for deposit`);
+      throw new Error("La transacción no está en un estado válido para depositar");
     }
 
     // Check if escrow_lock already exists for this transaction
