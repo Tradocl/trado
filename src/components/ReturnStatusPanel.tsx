@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Package, Truck, Check, AlertTriangle } from "lucide-react";
+import { RotateCcw, Package, Truck, Check, AlertTriangle, Info, DollarSign } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { ReturnSellerResponsePanel } from "@/components/return/ReturnSellerResponsePanel";
+import { ReturnMediationPanel } from "@/components/return/ReturnMediationPanel";
 
 interface ReturnRequest {
   id: string;
@@ -21,6 +23,10 @@ interface ReturnRequest {
   created_at: string;
   shipped_at: string | null;
   received_at: string | null;
+  responsibility_type: string | null;
+  seller_response: string | null;
+  shipping_paid_by: string | null;
+  admin_notes: string | null;
 }
 
 interface ReturnStatusPanelProps {
@@ -36,7 +42,8 @@ const reasonLabels: Record<string, string> = {
   no_corresponde: "No corresponde a la descripción",
   error_envio: "Error en el envío",
   incompleto: "Producto incompleto",
-  otro: "Otro motivo",
+  arrepentimiento: "Cambié de opinión",
+  no_esperaba: "No es lo que esperaba",
 };
 
 const carriers = [
@@ -91,7 +98,6 @@ export const ReturnStatusPanel = ({
 
     setLoading(true);
     try {
-      // Update return request
       const { error: returnError } = await supabase
         .from("return_requests")
         .update({
@@ -104,7 +110,6 @@ export const ReturnStatusPanel = ({
 
       if (returnError) throw returnError;
 
-      // Update transaction state
       const { error: txError } = await supabase
         .from("transactions")
         .update({ state: "return_in_progress" })
@@ -126,7 +131,6 @@ export const ReturnStatusPanel = ({
     
     setLoading(true);
     try {
-      // Call secure edge function to process return refund
       const { data, error } = await supabase.functions.invoke("process-return-refund", {
         body: {
           returnRequestId: returnRequest.id,
@@ -168,6 +172,73 @@ export const ReturnStatusPanel = ({
 
   if (!returnRequest) return null;
 
+  // Show seller response panel if pending and seller_fault
+  if (
+    isSeller && 
+    returnRequest.responsibility_type === "seller_fault" && 
+    returnRequest.seller_response === "pending" &&
+    returnRequest.status === "pending"
+  ) {
+    return (
+      <ReturnSellerResponsePanel 
+        returnRequest={returnRequest} 
+        onResponse={() => {
+          loadReturnRequest();
+          onStatusChange();
+        }} 
+      />
+    );
+  }
+
+  // Show mediation panel if disputed
+  if (returnRequest.status === "disputed") {
+    return (
+      <ReturnMediationPanel 
+        returnRequest={returnRequest}
+        isBuyer={isBuyer}
+        isSeller={isSeller}
+      />
+    );
+  }
+
+  // Show waiting for seller response (buyer view)
+  if (
+    isBuyer && 
+    returnRequest.responsibility_type === "seller_fault" && 
+    returnRequest.seller_response === "pending" &&
+    returnRequest.status === "pending"
+  ) {
+    return (
+      <Card className="border-2 border-warning/30 bg-gradient-to-br from-warning/5 to-warning/10">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <RotateCcw className="h-5 w-5 text-warning" />
+            Solicitud de Devolución Enviada
+            <Badge variant="outline" className="ml-auto">Esperando respuesta</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-3 bg-background/50 rounded-lg">
+            <p className="text-sm text-muted-foreground mb-1">Motivo:</p>
+            <p className="font-medium">{reasonLabels[returnRequest.reason] || returnRequest.reason}</p>
+          </div>
+          <div className="p-4 bg-warning/10 rounded-lg border border-warning/20 text-center">
+            <AlertTriangle className="h-8 w-8 text-warning mx-auto mb-2" />
+            <p className="font-medium">Esperando respuesta del vendedor</p>
+            <p className="text-sm text-muted-foreground">
+              El vendedor debe aceptar o rechazar tu solicitud
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Normal return flow (accepted or buyer_fault)
+  const canProceedWithShipping = 
+    returnRequest.status === "accepted" || 
+    (returnRequest.responsibility_type === "buyer_fault" && returnRequest.status !== "shipped" && returnRequest.status !== "completed");
+
   return (
     <Card className="border-2 border-warning/30 bg-gradient-to-br from-warning/5 to-warning/10">
       <CardHeader className="pb-3">
@@ -175,7 +246,8 @@ export const ReturnStatusPanel = ({
           <RotateCcw className="h-5 w-5 text-warning" />
           Devolución en Proceso
           <Badge variant="outline" className="ml-auto">
-            {returnRequest.status === "pending" && "Pendiente de envío"}
+            {returnRequest.status === "pending" && "Pendiente"}
+            {returnRequest.status === "accepted" && "Aceptada"}
             {returnRequest.status === "shipped" && "En camino"}
             {returnRequest.status === "completed" && "Completada"}
           </Badge>
@@ -191,6 +263,21 @@ export const ReturnStatusPanel = ({
           )}
         </div>
 
+        {/* Shipping cost info */}
+        {returnRequest.shipping_paid_by && (
+          <div className={`p-3 rounded-lg flex items-center gap-2 ${
+            returnRequest.shipping_paid_by === "buyer" 
+              ? "bg-info/10 border border-info/20" 
+              : "bg-warning/10 border border-warning/20"
+          }`}>
+            <DollarSign className={`h-5 w-5 ${returnRequest.shipping_paid_by === "buyer" ? "text-info" : "text-warning"}`} />
+            <p className="text-sm">
+              <strong>Costo de envío:</strong>{" "}
+              {returnRequest.shipping_paid_by === "buyer" ? "Comprador paga" : "Vendedor paga"}
+            </p>
+          </div>
+        )}
+
         {/* Progress Steps */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">
@@ -205,7 +292,7 @@ export const ReturnStatusPanel = ({
                 {new Date(returnRequest.created_at).toLocaleDateString("es-CL")}
               </p>
             </div>
-            <Check className={`h-5 w-5 ${returnRequest.status !== "pending" ? "text-success" : "text-warning"}`} />
+            <Check className={`h-5 w-5 text-success`} />
           </div>
 
           <div className="flex items-center gap-3">
@@ -259,12 +346,19 @@ export const ReturnStatusPanel = ({
         )}
 
         {/* Buyer: Add tracking info */}
-        {isBuyer && returnRequest.status === "pending" && (
+        {isBuyer && canProceedWithShipping && !returnRequest.tracking_number && (
           <div className="space-y-3 p-4 bg-background/50 rounded-lg border">
             <div className="flex items-start gap-2 mb-3">
-              <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
+              {returnRequest.shipping_paid_by === "buyer" ? (
+                <Info className="h-5 w-5 text-info shrink-0" />
+              ) : (
+                <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
+              )}
               <p className="text-sm text-muted-foreground">
-                Envía el producto al vendedor usando un courier con seguimiento. El costo del envío es por tu cuenta.
+                Envía el producto al vendedor usando un courier con seguimiento.
+                {returnRequest.shipping_paid_by === "buyer" 
+                  ? " Recuerda que tú pagas el costo del envío."
+                  : " El vendedor ha aceptado pagar el costo del envío."}
               </p>
             </div>
             <div className="space-y-2">
@@ -330,7 +424,7 @@ export const ReturnStatusPanel = ({
           </div>
         )}
 
-        {isSeller && returnRequest.status === "pending" && (
+        {isSeller && (returnRequest.status === "accepted" || returnRequest.responsibility_type === "buyer_fault") && !returnRequest.tracking_number && (
           <div className="p-4 bg-warning/10 rounded-lg border border-warning/20 text-center">
             <Package className="h-8 w-8 text-warning mx-auto mb-2" />
             <p className="font-medium">Esperando envío del comprador</p>

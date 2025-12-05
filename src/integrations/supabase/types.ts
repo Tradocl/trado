@@ -478,40 +478,58 @@ export type Database = {
       }
       return_requests: {
         Row: {
+          admin_notes: string | null
           carrier: string | null
           created_at: string | null
           id: string
+          mediated_at: string | null
+          mediated_by: string | null
           reason: string
           reason_description: string | null
           received_at: string | null
           requester_id: string
+          responsibility_type: string | null
+          seller_response: string | null
           shipped_at: string | null
+          shipping_paid_by: string | null
           status: string | null
           tracking_number: string | null
           transaction_id: string
         }
         Insert: {
+          admin_notes?: string | null
           carrier?: string | null
           created_at?: string | null
           id?: string
+          mediated_at?: string | null
+          mediated_by?: string | null
           reason: string
           reason_description?: string | null
           received_at?: string | null
           requester_id: string
+          responsibility_type?: string | null
+          seller_response?: string | null
           shipped_at?: string | null
+          shipping_paid_by?: string | null
           status?: string | null
           tracking_number?: string | null
           transaction_id: string
         }
         Update: {
+          admin_notes?: string | null
           carrier?: string | null
           created_at?: string | null
           id?: string
+          mediated_at?: string | null
+          mediated_by?: string | null
           reason?: string
           reason_description?: string | null
           received_at?: string | null
           requester_id?: string
+          responsibility_type?: string | null
+          seller_response?: string | null
           shipped_at?: string | null
+          shipping_paid_by?: string | null
           status?: string | null
           tracking_number?: string | null
           transaction_id?: string
