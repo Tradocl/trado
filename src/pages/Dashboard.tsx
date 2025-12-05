@@ -301,11 +301,11 @@ const Dashboard = () => {
 
         {/* Action Cards */}
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-primary hover:-translate-y-1"
+          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-primary/20 hover:border-primary hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent"
                 onClick={() => navigate("/create-transaction")}>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                <div className="p-4 bg-gradient-to-br from-primary/30 to-primary/10 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
                   <Plus className="h-8 w-8 text-primary" />
                 </div>
                 <div>
@@ -316,7 +316,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Inicia una transacción protegida con escrow para intercambiar <span className="font-medium text-foreground">productos</span> o <span className="font-medium text-foreground">servicios</span> de forma segura
+                Inicia una transacción protegida con escrow para intercambiar <span className="font-medium text-primary">productos</span> o <span className="font-medium text-primary">servicios</span> de forma segura
               </p>
               <Button className="w-full group-hover:shadow-lg transition-shadow">
                 <Plus className="mr-2 h-4 w-4" />
@@ -325,11 +325,11 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-info hover:-translate-y-1"
+          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-info/20 hover:border-info hover:-translate-y-1 bg-gradient-to-br from-info/5 to-transparent"
                 onClick={() => navigate("/join-transaction")}>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-br from-info/20 to-info/5 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                <div className="p-4 bg-gradient-to-br from-info/30 to-info/10 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
                   <ShoppingBag className="h-8 w-8 text-info" />
                 </div>
                 <div>
@@ -340,7 +340,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Ingresa el <span className="font-medium text-foreground">código de invitación</span> para unirte a una transacción existente
+                Ingresa el <span className="font-medium text-info">código de invitación</span> para unirte a una transacción existente
               </p>
               <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow">
                 <ShoppingBag className="mr-2 h-4 w-4" />
@@ -349,12 +349,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-muted-foreground/30 hover:-translate-y-1"
+          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-border hover:border-primary/30 hover:-translate-y-1"
                 onClick={() => navigate("/transaction-history")}>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-br from-muted-foreground/20 to-muted-foreground/5 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                  <History className="h-8 w-8 text-muted-foreground" />
+                <div className="p-4 bg-gradient-to-br from-primary/15 to-primary/5 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  <History className="h-8 w-8 text-primary/70" />
                 </div>
                 <div>
                   <CardTitle className="text-xl">Historial</CardTitle>
@@ -366,7 +366,7 @@ const Dashboard = () => {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Consulta todas tus <span className="font-medium text-foreground">transacciones completadas</span> y su detalle
               </p>
-              <Button variant="outline" className="w-full border-muted-foreground/30 hover:bg-muted group-hover:shadow-lg transition-shadow">
+              <Button variant="outline" className="w-full border-primary/30 text-primary hover:bg-primary/5 group-hover:shadow-lg transition-shadow">
                 <History className="mr-2 h-4 w-4" />
                 Ver Historial
               </Button>
@@ -376,9 +376,9 @@ const Dashboard = () => {
 
         {/* Wallet Card */}
         <Card className="border-0 shadow-xl overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b border-border/50">
+          <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-primary/10">
             <CardTitle className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
+              <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl shadow-sm">
                 <Wallet className="h-5 w-5 text-primary" />
               </div>
               Mi Billetera
@@ -386,21 +386,21 @@ const Dashboard = () => {
             <CardDescription>Administra tu saldo virtual</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
-            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-muted to-muted/50 rounded-xl">
+            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-primary/5 to-muted/50 rounded-xl border border-primary/10">
               <span className="text-sm font-medium">Saldo disponible</span>
               <span className="text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              <Button variant="outline" className="hover:bg-muted transition-colors" onClick={() => navigate("/wallet")}>
-                <History className="mr-2 h-4 w-4" />
+              <Button variant="outline" className="border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-colors" onClick={() => navigate("/wallet")}>
+                <History className="mr-2 h-4 w-4 text-primary/70" />
                 Movimientos
               </Button>
-              <Button className="bg-primary hover:bg-primary/90" onClick={() => navigate("/wallet?action=deposit")}>
+              <Button className="bg-primary hover:bg-primary/90 shadow-md" onClick={() => navigate("/wallet?action=deposit")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Depositar
               </Button>
-              <Button variant="outline" className="hover:bg-muted transition-colors" onClick={() => navigate("/wallet?action=withdraw")}>
-                <ArrowUpRight className="mr-2 h-4 w-4" />
+              <Button variant="outline" className="border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-colors" onClick={() => navigate("/wallet?action=withdraw")}>
+                <ArrowUpRight className="mr-2 h-4 w-4 text-primary/70" />
                 Retirar
               </Button>
             </div>
