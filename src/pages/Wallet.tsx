@@ -167,7 +167,8 @@ const Wallet = () => {
       setBalance(wallet.balance);
       setBlockedBalance(wallet.blocked_balance ?? 0);
 
-      const { data: movementsData, error: movementsError } = await supabase
+      // Get approved movements + pending escrow_lock movements
+      const { data: approvedMovements, error: approvedError } = await supabase
         .from("wallet_movements")
         .select("*")
         .eq("wallet_id", wallet.id)
@@ -175,8 +176,24 @@ const Wallet = () => {
         .order("created_at", { ascending: false })
         .limit(20);
 
-      if (movementsError) throw movementsError;
-      setMovements(movementsData || []);
+      if (approvedError) throw approvedError;
+
+      const { data: escrowMovements, error: escrowError } = await supabase
+        .from("wallet_movements")
+        .select("*")
+        .eq("wallet_id", wallet.id)
+        .eq("type", "escrow_lock")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+
+      if (escrowError) throw escrowError;
+
+      // Combine and sort by date
+      const allMovements = [...(approvedMovements || []), ...(escrowMovements || [])]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 20);
+
+      setMovements(allMovements);
 
       const { data: pendingData, error: pendingError } = await supabase
         .from("wallet_movements")
