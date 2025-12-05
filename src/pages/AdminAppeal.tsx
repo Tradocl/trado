@@ -116,101 +116,24 @@ export default function AdminAppeal() {
 
     setSubmitting(true);
     try {
-      // Create decision record
-      const { error: decisionError } = await supabase
-        .from("appeal_decisions")
-        .insert({
-          appeal_id: appealId!,
-          admin_id: user!.id,
-          resolution: resolution as Database["public"]["Enums"]["appeal_resolution"],
-          resolution_notes: notes.trim(),
-          buyer_refund_amount: buyerAmount,
-          seller_payment_amount: sellerAmount,
-        });
+      const { data, error } = await supabase.functions.invoke("resolve-appeal", {
+        body: {
+          appealId: appealId!,
+          resolution,
+          resolutionNotes: notes.trim(),
+          buyerRefundAmount: buyerAmount,
+          sellerPaymentAmount: sellerAmount,
+        },
+      });
 
-      if (decisionError) throw decisionError;
-
-      // Update appeal status
-      let newStatus: Database["public"]["Enums"]["appeal_status"] = "cerrada";
-      if (resolution === "reembolso_total") newStatus = "resuelta_a_favor_comprador";
-      else if (resolution === "liberar_fondos_vendedor") newStatus = "resuelta_a_favor_vendedor";
-      else if (resolution === "reembolso_parcial") newStatus = "resuelta_parcial";
-
-      const { error: appealError } = await supabase
-        .from("appeals")
-        .update({ status: newStatus })
-        .eq("id", appealId);
-
-      if (appealError) throw appealError;
-
-      // Update wallets
-      if (buyerAmount) {
-        const { data: buyerWallet } = await supabase
-          .from("wallets")
-          .select("*")
-          .eq("user_id", transaction.buyer_id)
-          .single();
-
-        if (buyerWallet && buyerWallet.balance !== null) {
-          const newBalance = buyerWallet.balance + buyerAmount;
-          await supabase
-            .from("wallets")
-            .update({ balance: newBalance })
-            .eq("id", buyerWallet.id);
-
-          await supabase.from("wallet_movements").insert({
-            wallet_id: buyerWallet.id,
-            type: "deposit",
-            amount: buyerAmount,
-            balance_after: newBalance,
-            description: `Reembolso por apelación - ${transaction.product_name}`,
-            transaction_id: transaction.id,
-            status: "approved",
-          });
-        }
-      }
-
-      if (sellerAmount) {
-        const { data: sellerWallet } = await supabase
-          .from("wallets")
-          .select("*")
-          .eq("user_id", transaction.seller_id)
-          .single();
-
-        if (sellerWallet && sellerWallet.balance !== null) {
-          const newBalance = sellerWallet.balance + sellerAmount;
-          await supabase
-            .from("wallets")
-            .update({ balance: newBalance })
-            .eq("id", sellerWallet.id);
-
-          await supabase.from("wallet_movements").insert({
-            wallet_id: sellerWallet.id,
-            type: "deposit",
-            amount: sellerAmount,
-            balance_after: newBalance,
-            description: `Pago liberado por apelación - ${transaction.product_name}`,
-            transaction_id: transaction.id,
-            status: "approved",
-          });
-        }
-      }
-
-      // Update transaction state and appeal status
-      await supabase
-        .from("transactions")
-        .update({ 
-          state: "completed",
-          appeal_status: newStatus,
-          completed_at: new Date().toISOString()
-        })
-        .eq("id", transaction.id);
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast.success("Decisión registrada correctamente");
       navigate("/admin");
     } catch (error: any) {
       console.error("Error submitting decision:", error);
-      toast.error("Error al registrar la decisión");
+      toast.error(error.message || "Error al registrar la decisión");
     } finally {
       setSubmitting(false);
     }
