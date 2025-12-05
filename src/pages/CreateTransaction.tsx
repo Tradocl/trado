@@ -101,27 +101,21 @@ const CreateTransaction = () => {
       const { data: codeData } = await supabase.rpc("generate_invite_code");
       const inviteCode = codeData;
 
-      // Determine who is seller and who is buyer based on initiator role
-      const transactionData: any = {
+      // Always set current user as seller_id (required by DB constraint and RLS)
+      // The initiator_role field tracks the actual role of the creator
+      // When someone joins, they fill the opposite role based on initiator_role
+      const transactionData = {
         product_name: formData.productName,
         product_description: formData.productDescription,
         amount: formData.amount,
         commission: orderDetails.appFee,
-        state: "created",
+        state: "created" as const,
         invite_code: inviteCode,
         sale_type: formData.saleType,
         initiator_role: formData.initiatorRole,
+        seller_id: user.id, // Creator always goes here due to DB/RLS constraints
+        buyer_id: null,
       };
-
-      // If initiator is seller, they are the seller_id
-      // If initiator is buyer, they are the buyer_id
-      if (formData.initiatorRole === "seller") {
-        transactionData.seller_id = user.id;
-        transactionData.buyer_id = null;
-      } else {
-        transactionData.buyer_id = user.id;
-        transactionData.seller_id = null;
-      }
 
       const { data: transaction, error } = await supabase
         .from("transactions")

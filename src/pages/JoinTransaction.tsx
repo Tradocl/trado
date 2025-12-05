@@ -46,7 +46,9 @@ const JoinTransaction = () => {
       const initiatorRole = (transaction as any).initiator_role || "seller";
       
       // If initiator was seller, the joining user becomes buyer
-      // If initiator was buyer, the joining user becomes seller
+      // If initiator was buyer (stored temporarily in seller_id), we swap: 
+      //   - move creator to buyer_id
+      //   - set joiner as seller_id
       let updateData: any = { state: "invited" };
       
       if (initiatorRole === "seller") {
@@ -58,13 +60,10 @@ const JoinTransaction = () => {
         }
         updateData.buyer_id = user.id;
       } else {
-        // Buyer created, so joining user is seller
-        if (transaction.seller_id) {
-          toast.error("Esta transacción ya tiene un vendedor");
-          setLoading(false);
-          return;
-        }
-        updateData.seller_id = user.id;
+        // Buyer created (stored in seller_id due to DB constraints)
+        // Now we swap: creator becomes buyer, joiner becomes seller
+        updateData.buyer_id = transaction.seller_id; // Move creator to buyer
+        updateData.seller_id = user.id; // Joiner becomes seller
       }
 
       // Update transaction
@@ -82,13 +81,13 @@ const JoinTransaction = () => {
         .eq("id", user.id)
         .single();
 
-      // Determine other party ID based on who initiated
-      const otherPartyId = initiatorRole === "seller" ? transaction.seller_id : transaction.buyer_id;
+      // Determine the creator's ID (stored in seller_id before any swap)
+      const creatorId = transaction.seller_id;
       
-      const { data: otherProfile } = await supabase
+      const { data: creatorProfile } = await supabase
         .from("profiles")
         .select("full_name")
-        .eq("id", otherPartyId)
+        .eq("id", creatorId)
         .single();
 
       // Only send payment instructions if the joiner is the buyer
@@ -103,7 +102,29 @@ const JoinTransaction = () => {
               referenceCode: transaction.invite_code,
               totalAmount: transaction.amount,
               productName: transaction.product_name,
-              sellerName: otherProfile?.full_name || "Vendedor",
+              sellerName: creatorProfile?.full_name || "Vendedor",
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending payment instructions:", emailError);
+        }
+      } else {
+        // Joiner is seller, send payment instructions to the creator (buyer)
+        const { data: buyerProfile } = await supabase
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", creatorId)
+          .single();
+          
+        try {
+          await supabase.functions.invoke("send-payment-instructions", {
+            body: {
+              buyerEmail: buyerProfile?.email || "",
+              buyerName: buyerProfile?.full_name || "Comprador",
+              referenceCode: transaction.invite_code,
+              totalAmount: transaction.amount + transaction.commission, // Buyer pays price + commission when they initiated
+              productName: transaction.product_name,
+              sellerName: joinerProfile?.full_name || "Vendedor",
             },
           });
         } catch (emailError) {
