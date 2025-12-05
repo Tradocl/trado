@@ -538,6 +538,7 @@ export type Database = {
           deposited_at: string | null
           dispute_opened_at: string | null
           id: string
+          initiator_role: string | null
           invite_code: string | null
           product_description: string | null
           product_name: string
@@ -558,6 +559,7 @@ export type Database = {
           deposited_at?: string | null
           dispute_opened_at?: string | null
           id?: string
+          initiator_role?: string | null
           invite_code?: string | null
           product_description?: string | null
           product_name: string
@@ -578,6 +580,7 @@ export type Database = {
           deposited_at?: string | null
           dispute_opened_at?: string | null
           id?: string
+          initiator_role?: string | null
           invite_code?: string | null
           product_description?: string | null
           product_name?: string

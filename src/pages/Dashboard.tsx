@@ -282,25 +282,25 @@ const Dashboard = () => {
         {/* Action Cards */}
         <div className="grid md:grid-cols-3 gap-6">
           <Card className="hover:shadow-xl transition-shadow cursor-pointer border-2 hover:border-primary"
-                onClick={() => navigate("/create-sale")}>
+                onClick={() => navigate("/create-transaction")}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-success/10 rounded-xl">
-                  <Store className="h-8 w-8 text-success" />
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Plus className="h-8 w-8 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Vender</CardTitle>
-                  <CardDescription>Crea una transacción segura</CardDescription>
+                  <CardTitle className="text-xl">Crear Sala</CardTitle>
+                  <CardDescription>Nueva transacción segura</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                Crea una sala de transacción para vender tu producto de forma segura con escrow
+                Crea una sala de transacción protegida con escrow para comprar o vender
               </p>
-              <Button className="w-full bg-success hover:bg-success/90">
+              <Button className="w-full">
                 <Plus className="mr-2 h-4 w-4" />
-                Crear Venta
+                Crear Sala de Transacción
               </Button>
             </CardContent>
           </Card>
@@ -313,18 +313,18 @@ const Dashboard = () => {
                   <ShoppingBag className="h-8 w-8 text-info" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Comprar</CardTitle>
-                  <CardDescription>Únete a una transacción</CardDescription>
+                  <CardTitle className="text-xl">Unirse a Sala</CardTitle>
+                  <CardDescription>Ingresa con código</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                Ingresa el código de invitación para unirte a una compra protegida
+                Ingresa el código de invitación para unirte a una transacción existente
               </p>
               <Button className="w-full bg-info hover:bg-info/90">
                 <ShoppingBag className="mr-2 h-4 w-4" />
-                Unirse a Compra
+                Unirse a Sala
               </Button>
             </CardContent>
           </Card>

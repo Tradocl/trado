@@ -25,7 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Transaction {
   id: string;
-  seller_id: string;
+  seller_id: string | null;
   buyer_id: string | null;
   product_name: string;
   product_description: string;
@@ -37,6 +37,7 @@ interface Transaction {
   created_at: string;
   sale_type: string | null;
   shipped_at: string | null;
+  initiator_role: string | null;
 }
 
 interface Profile {
@@ -249,13 +250,21 @@ const Transaction = () => {
         return;
       }
 
+      // Calculate deposit amount based on who initiated the transaction
+      // If buyer initiated: they pay amount + commission
+      // If seller initiated: buyer pays just the amount
+      const initiatorRole = transaction.initiator_role || 'seller';
+      const depositAmount = initiatorRole === 'buyer' 
+        ? transaction.amount + transaction.commission 
+        : transaction.amount;
+
       const { data: wallet } = await supabase
         .from("wallets")
         .select("*")
         .eq("user_id", user.id)
         .single();
 
-      if (!wallet || wallet.balance < transaction.amount) {
+      if (!wallet || wallet.balance < depositAmount) {
         toast.error("Saldo insuficiente. Por favor deposita fondos primero.");
         navigate("/wallet?action=deposit");
         return;
@@ -263,8 +272,8 @@ const Transaction = () => {
 
       // Block funds in escrow (don't spend yet, just hold them)
       const currentBlocked = Number(wallet.blocked_balance ?? 0);
-      const newBlockedBalance = currentBlocked + transaction.amount;
-      const newAvailableBalance = wallet.balance - transaction.amount;
+      const newBlockedBalance = currentBlocked + depositAmount;
+      const newAvailableBalance = wallet.balance - depositAmount;
       const typeLabel = transaction.sale_type === "servicio" ? "Servicio" : "Compra";
 
       // Update wallet: reduce available balance, increase blocked balance
@@ -277,7 +286,7 @@ const Transaction = () => {
         wallet_id: wallet.id,
         transaction_id: transaction.id,
         type: "escrow_lock",
-        amount: -transaction.amount,
+        amount: -depositAmount,
         balance_after: newAvailableBalance,
         description: `${typeLabel} "${transaction.product_name}"`,
         status: "pending", // Pending until transaction completes
@@ -431,7 +440,15 @@ const Transaction = () => {
 
   const isSeller = user?.id === transaction.seller_id;
   const isBuyer = user?.id === transaction.buyer_id;
+  const initiatorRole = transaction.initiator_role || 'seller';
+  const isInitiator = (initiatorRole === 'seller' && isSeller) || (initiatorRole === 'buyer' && isBuyer);
   const canJoinAsBuyer = !transaction.buyer_id && !isSeller;
+  const canJoinAsSeller = !transaction.seller_id && !isBuyer;
+  
+  // For buyer-initiated transactions, the other party (seller) must join before buyer can deposit
+  const canDeposit = initiatorRole === 'seller' 
+    ? isBuyer && transaction.seller_id  // Seller created: buyer can deposit after seller exists
+    : isBuyer && transaction.seller_id; // Buyer created: buyer can deposit only after seller joins
 
   console.log("Transaction state:", transaction.state);
   console.log("Is seller:", isSeller);
@@ -538,14 +555,20 @@ const Transaction = () => {
               </div>
             </div>
 
-            {isSeller && !transaction.buyer_id && transaction.state === "created" && (
+            {/* Show invite code to initiator waiting for other party */}
+            {isInitiator && transaction.state === "created" && (
+              (!transaction.buyer_id && initiatorRole === 'seller') || 
+              (!transaction.seller_id && initiatorRole === 'buyer')
+            ) && (
               <div className="p-6 bg-gradient-to-br from-info/20 to-info/5 rounded-xl border-2 border-info/30 shadow-lg animate-scale-in">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-info rounded-lg animate-pulse">
                     <Copy className="h-5 w-5 text-info-foreground" />
                   </div>
                   <h4 className="font-bold text-info text-lg">
-                    ⏳ {transaction.sale_type === "servicio" ? "Esperando Cliente" : "Esperando Comprador"}
+                    ⏳ {initiatorRole === 'seller' 
+                      ? (transaction.sale_type === "servicio" ? "Esperando Cliente" : "Esperando Comprador")
+                      : (transaction.sale_type === "servicio" ? "Esperando Proveedor" : "Esperando Vendedor")}
                   </h4>
                 </div>
                 <div className="flex flex-col gap-3">
@@ -563,13 +586,15 @@ const Transaction = () => {
                       >
                         {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
                       </Button>
-                      <Button
-                        variant="destructive"
-                        className="font-semibold"
-                        onClick={handleCancelTransaction}
-                      >
-                        Cancelar sala
-                      </Button>
+                      {initiatorRole === 'seller' && (
+                        <Button
+                          variant="destructive"
+                          className="font-semibold"
+                          onClick={handleCancelTransaction}
+                        >
+                          Cancelar sala
+                        </Button>
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-col md:flex-row gap-2">
@@ -589,7 +614,11 @@ const Transaction = () => {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-3 text-center">
-                  📱 Comparte el código o el enlace directo con {transaction.sale_type === "servicio" ? "el cliente" : "el comprador"}
+                  📱 Comparte el código o el enlace directo con {
+                    initiatorRole === 'seller'
+                      ? (transaction.sale_type === "servicio" ? "el cliente" : "el comprador")
+                      : (transaction.sale_type === "servicio" ? "el proveedor" : "el vendedor")
+                  }
                 </p>
               </div>
             )}
