@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale, Coins, ArrowDownCircle, ArrowUpCircle, Lock, Receipt, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale, Coins, ArrowDownCircle, ArrowUpCircle, Lock, Receipt, AlertTriangle, CheckCircle2, RotateCcw } from "lucide-react";
 import { formatCLP } from "@/lib/utils";
 import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
+import { AdminReturnMediationList } from "@/components/admin/AdminReturnMediationList";
 
 interface Profile {
   id: string;
@@ -709,6 +710,10 @@ export default function Admin() {
             <Scale className="h-4 w-4 mr-2" />
             Apelaciones
           </TabsTrigger>
+          <TabsTrigger value="returns">
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Devoluciones
+          </TabsTrigger>
           <TabsTrigger value="tokens">
             <Coins className="h-4 w-4 mr-2" />
             Tokens
@@ -1230,6 +1235,10 @@ export default function Admin() {
               <AdminAppealsList />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="returns" className="space-y-4">
+          <AdminReturnMediationList />
         </TabsContent>
 
         <TabsContent value="tokens" className="space-y-4">
