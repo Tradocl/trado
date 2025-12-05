@@ -13,22 +13,33 @@ import { useNavigate } from "react-router-dom";
 interface CreateAppealDialogProps {
   transactionId: string;
   userId: string;
+  saleType?: string;
 }
 
-export function CreateAppealDialog({ transactionId, userId }: CreateAppealDialogProps) {
+export function CreateAppealDialog({ transactionId, userId, saleType }: CreateAppealDialogProps) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [description, setDescription] = useState("");
   const [creating, setCreating] = useState(false);
 
-  const reasons = [
-    { value: "producto_no_llego", label: "Producto nunca llegó" },
-    { value: "producto_diferente", label: "Producto distinto al acordado" },
-    { value: "danos_o_fallas", label: "Daños o fallas" },
-    { value: "incumplimiento_acuerdo", label: "Incumplimiento del acuerdo" },
-    { value: "otro", label: "Otro" },
-  ];
+  const isService = saleType === "servicio";
+
+  const reasons = isService
+    ? [
+        { value: "producto_no_llego", label: "Servicio no realizado" },
+        { value: "producto_diferente", label: "Servicio distinto al acordado" },
+        { value: "danos_o_fallas", label: "Trabajo deficiente" },
+        { value: "incumplimiento_acuerdo", label: "Incumplimiento del acuerdo" },
+        { value: "otro", label: "Otro" },
+      ]
+    : [
+        { value: "producto_no_llego", label: "Producto nunca llegó" },
+        { value: "producto_diferente", label: "Producto distinto al acordado" },
+        { value: "danos_o_fallas", label: "Daños o fallas" },
+        { value: "incumplimiento_acuerdo", label: "Incumplimiento del acuerdo" },
+        { value: "otro", label: "Otro" },
+      ];
 
   const handleCreate = async () => {
     if (!reason) {
