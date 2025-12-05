@@ -324,12 +324,12 @@ const Dashboard = () => {
 
         {/* Action Cards */}
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-primary/20 hover:border-primary hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent"
+          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-success/20 hover:border-success hover:-translate-y-1 bg-gradient-to-br from-success/5 to-transparent"
                 onClick={() => navigate("/create-transaction")}>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-br from-primary/30 to-primary/10 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                  <Plus className="h-8 w-8 text-primary" />
+                <div className="p-4 bg-gradient-to-br from-success/30 to-success/10 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  <Plus className="h-8 w-8 text-success" />
                 </div>
                 <div>
                   <CardTitle className="text-xl">Crear Sala</CardTitle>
@@ -339,9 +339,9 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Inicia una transacción protegida con escrow para intercambiar <span className="font-medium text-primary">productos</span> o <span className="font-medium text-primary">servicios</span> de forma segura
+                Inicia una transacción protegida con escrow para intercambiar <span className="font-medium text-success">productos</span> o <span className="font-medium text-success">servicios</span> de forma segura
               </p>
-              <Button className="w-full group-hover:shadow-lg transition-shadow">
+              <Button className="w-full bg-success hover:bg-success/90 group-hover:shadow-lg transition-shadow">
                 <Plus className="mr-2 h-4 w-4" />
                 Crear Sala
               </Button>
@@ -372,12 +372,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-border hover:border-primary/30 hover:-translate-y-1"
+          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-primary/20 hover:border-primary hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent"
                 onClick={() => navigate("/transaction-history")}>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-br from-primary/15 to-primary/5 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                  <History className="h-8 w-8 text-primary/70" />
+                <div className="p-4 bg-gradient-to-br from-primary/30 to-primary/10 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  <History className="h-8 w-8 text-primary" />
                 </div>
                 <div>
                   <CardTitle className="text-xl">Historial</CardTitle>
@@ -387,9 +387,9 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Consulta todas tus <span className="font-medium text-foreground">transacciones completadas</span> y su detalle
+                Consulta todas tus <span className="font-medium text-primary">transacciones completadas</span> y su detalle
               </p>
-              <Button variant="outline" className="w-full border-primary/30 text-primary hover:bg-primary/5 group-hover:shadow-lg transition-shadow">
+              <Button className="w-full group-hover:shadow-lg transition-shadow">
                 <History className="mr-2 h-4 w-4" />
                 Ver Historial
               </Button>
