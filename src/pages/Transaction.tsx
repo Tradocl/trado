@@ -234,68 +234,28 @@ const Transaction = () => {
     if (!user || !transaction) return;
 
     try {
-      // CRITICAL: First check if escrow_lock already exists for this transaction (pending = blocked, approved = spent)
-      const { data: existingLock } = await supabase
-        .from("wallet_movements")
-        .select("id")
-        .eq("transaction_id", transaction.id)
-        .eq("type", "escrow_lock")
-        .in("status", ["pending", "approved"])
-        .maybeSingle();
+      // Call secure edge function to process escrow deposit
+      const { data, error } = await supabase.functions.invoke("process-escrow-deposit", {
+        body: {
+          transactionId: transaction.id,
+          userId: user.id,
+        },
+      });
 
-      if (existingLock) {
-        toast.info("Los fondos ya fueron bloqueados en esta transacción");
-        setDepositDialogOpen(false);
-        loadTransaction();
-        return;
+      if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(error.message || "Error al procesar el depósito");
       }
 
-      // Calculate deposit amount based on who initiated the transaction
-      // If buyer initiated: they pay amount + commission
-      // If seller initiated: buyer pays just the amount
-      const initiatorRole = transaction.initiator_role || 'seller';
-      const depositAmount = initiatorRole === 'buyer' 
-        ? transaction.amount + transaction.commission 
-        : transaction.amount;
-
-      const { data: wallet } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!wallet || wallet.balance < depositAmount) {
+      if (data?.insufficientFunds) {
         toast.error("Saldo insuficiente. Por favor deposita fondos primero.");
         navigate("/wallet?action=deposit");
         return;
       }
 
-      // Block funds in escrow (don't spend yet, just hold them)
-      const currentBlocked = Number(wallet.blocked_balance ?? 0);
-      const newBlockedBalance = currentBlocked + depositAmount;
-      const newAvailableBalance = wallet.balance - depositAmount;
-      const typeLabel = transaction.sale_type === "servicio" ? "Servicio" : "Compra";
-
-      // Update wallet: reduce available balance, increase blocked balance
-      await supabase.from("wallets").update({ 
-        balance: newAvailableBalance,
-        blocked_balance: newBlockedBalance 
-      }).eq("id", wallet.id);
-
-      await supabase.from("wallet_movements").insert({
-        wallet_id: wallet.id,
-        transaction_id: transaction.id,
-        type: "escrow_lock",
-        amount: -depositAmount,
-        balance_after: newAvailableBalance,
-        description: `${typeLabel} "${transaction.product_name}"`,
-        status: "pending", // Pending until transaction completes
-      });
-
-      await supabase
-        .from("transactions")
-        .update({ state: "funds_secured", deposited_at: new Date().toISOString() })
-        .eq("id", transaction.id);
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       toast.success("¡Fondos bloqueados en garantía!");
       setDepositDialogOpen(false);

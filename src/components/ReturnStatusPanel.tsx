@@ -122,63 +122,27 @@ export const ReturnStatusPanel = ({
   };
 
   const handleConfirmReceipt = async () => {
+    if (!returnRequest) return;
+    
     setLoading(true);
     try {
-      // Update return request
-      const { error: returnError } = await supabase
-        .from("return_requests")
-        .update({
-          status: "completed",
-          received_at: new Date().toISOString(),
-        })
-        .eq("id", returnRequest?.id);
+      // Call secure edge function to process return refund
+      const { data, error } = await supabase.functions.invoke("process-return-refund", {
+        body: {
+          returnRequestId: returnRequest.id,
+          transactionId,
+          userId: (await supabase.auth.getUser()).data.user?.id,
+        },
+      });
 
-      if (returnError) throw returnError;
-
-      // Get buyer's wallet and process refund
-      const { data: transaction } = await supabase
-        .from("transactions")
-        .select("buyer_id, amount")
-        .eq("id", transactionId)
-        .single();
-
-      if (transaction?.buyer_id) {
-        const { data: wallet } = await supabase
-          .from("wallets")
-          .select("*")
-          .eq("user_id", transaction.buyer_id)
-          .single();
-
-        if (wallet) {
-          const newBalance = Number(wallet.balance) + Number(transaction.amount);
-
-          await supabase
-            .from("wallets")
-            .update({ balance: newBalance })
-            .eq("id", wallet.id);
-
-          await supabase.from("wallet_movements").insert({
-            wallet_id: wallet.id,
-            transaction_id: transactionId,
-            type: "refund",
-            amount: transaction.amount,
-            balance_after: newBalance,
-            description: "Reembolso por devolución",
-            status: "approved",
-          });
-        }
+      if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(error.message || "Error al procesar el reembolso");
       }
 
-      // Update transaction state to completed
-      const { error: txError } = await supabase
-        .from("transactions")
-        .update({ 
-          state: "completed",
-          completed_at: new Date().toISOString()
-        })
-        .eq("id", transactionId);
-
-      if (txError) throw txError;
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       toast.success("Devolución completada - Reembolso procesado");
       onStatusChange();

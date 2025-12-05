@@ -150,109 +150,24 @@ export function MutualResolutionPanel({
     
     setSubmitting(true);
     try {
-      // 1. Update proposal status
-      const { error: proposalError } = await supabase
-        .from("appeal_mutual_proposals")
-        .update({ 
-          status: "accepted", 
-          responded_at: new Date().toISOString() 
-        })
-        .eq("id", pendingProposal.id);
+      // Call secure edge function to process mutual resolution
+      const { data, error } = await supabase.functions.invoke("accept-mutual-resolution", {
+        body: {
+          proposalId: pendingProposal.id,
+          appealId,
+          transactionId,
+          userId: currentUserId,
+        },
+      });
 
-      if (proposalError) throw proposalError;
-
-      // 2. Get wallets for both parties
-      const { data: buyerWallet } = await supabase
-        .from("wallets")
-        .select("id, balance")
-        .eq("user_id", buyerId)
-        .single();
-
-      const { data: sellerWallet } = await supabase
-        .from("wallets")
-        .select("id, balance")
-        .eq("user_id", sellerId)
-        .single();
-
-      if (!buyerWallet || !sellerWallet) {
-        throw new Error("No se encontraron las billeteras");
+      if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(error.message || "Error al procesar el acuerdo");
       }
 
-      // 3. Update wallets and create movements
-      if (pendingProposal.buyer_amount > 0) {
-        const newBuyerBalance = Number(buyerWallet.balance) + pendingProposal.buyer_amount;
-        await supabase
-          .from("wallets")
-          .update({ balance: newBuyerBalance })
-          .eq("id", buyerWallet.id);
-
-        await supabase
-          .from("wallet_movements")
-          .insert({
-            wallet_id: buyerWallet.id,
-            type: "refund",
-            amount: pendingProposal.buyer_amount,
-            balance_after: newBuyerBalance,
-            status: "approved",
-            description: "Acuerdo mutuo - Reembolso",
-          });
+      if (data?.error) {
+        throw new Error(data.error);
       }
-
-      if (pendingProposal.seller_amount > 0) {
-        const newSellerBalance = Number(sellerWallet.balance) + pendingProposal.seller_amount;
-        await supabase
-          .from("wallets")
-          .update({ balance: newSellerBalance })
-          .eq("id", sellerWallet.id);
-
-        await supabase
-          .from("wallet_movements")
-          .insert({
-            wallet_id: sellerWallet.id,
-            type: "sale_release",
-            amount: pendingProposal.seller_amount,
-            balance_after: newSellerBalance,
-            status: "approved",
-            description: "Acuerdo mutuo - Liberación",
-          });
-      }
-
-      // 4. Determine resolution type based on amounts
-      const resolution = pendingProposal.buyer_amount === totalAmount 
-        ? "reembolso_total" 
-        : "liberar_fondos_vendedor";
-      
-      const appealStatus = pendingProposal.buyer_amount === totalAmount
-        ? "resuelta_a_favor_comprador"
-        : "resuelta_a_favor_vendedor";
-
-      // 5. Create appeal decision record
-      await supabase
-        .from("appeal_decisions")
-        .insert({
-          appeal_id: appealId,
-          resolution,
-          buyer_refund_amount: pendingProposal.buyer_amount,
-          seller_payment_amount: pendingProposal.seller_amount,
-          resolution_notes: `Acuerdo mutuo entre las partes. ${pendingProposal.message || ""}`,
-          is_mutual_agreement: true,
-        });
-
-      // 6. Update appeal status
-      await supabase
-        .from("appeals")
-        .update({ status: appealStatus })
-        .eq("id", appealId);
-
-      // 7. Update transaction state to completed
-      await supabase
-        .from("transactions")
-        .update({ 
-          state: "completed",
-          appeal_status: appealStatus,
-          completed_at: new Date().toISOString()
-        })
-        .eq("id", transactionId);
 
       toast.success("¡Acuerdo aceptado! Los fondos han sido distribuidos.");
     } catch (error: any) {

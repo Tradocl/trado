@@ -21,3 +21,11 @@ verify_jwt = false
 [functions.send-verification-result]
 verify_jwt = true
 
+[functions.process-escrow-deposit]
+verify_jwt = true
+
+[functions.accept-mutual-resolution]
+verify_jwt = true
+
+[functions.process-return-refund]
+verify_jwt = true
