@@ -215,7 +215,7 @@ export const AdminReturnMediationList = () => {
 
       {/* Resolve Dialog */}
       <Dialog open={resolveDialogOpen} onOpenChange={setResolveDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Scale className="h-5 w-5" />
@@ -227,7 +227,7 @@ export const AdminReturnMediationList = () => {
           </DialogHeader>
 
           {selectedMediation && (
-            <div className="space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
               {/* Case Summary */}
               <div className="p-4 bg-muted/50 rounded-lg space-y-2">
                 <p className="text-sm"><strong>Producto:</strong> {selectedMediation.transaction?.product_name}</p>
@@ -288,7 +288,7 @@ export const AdminReturnMediationList = () => {
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setResolveDialogOpen(false)} disabled={resolving}>
               Cancelar
             </Button>
