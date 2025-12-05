@@ -698,6 +698,9 @@ const Transaction = () => {
               const passedDelivery = ['in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
               const passedReceived = ['awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
               
+              const sellerName = sellerProfile?.full_name || 'Vendedor';
+              const buyerName = buyerProfile?.full_name || 'Comprador';
+              
               // For services, simplified flow without shipping or meeting
               if (isService) {
                 return (
@@ -707,7 +710,20 @@ const Transaction = () => {
                       Progreso del Servicio
                     </h4>
                     <div className="space-y-4">
-                      {/* Step 1: Client Joined */}
+                      {/* Step 1: Room Created */}
+                      <div className="flex items-center gap-4 group">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground scale-110">
+                          <Store className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Sala Creada</p>
+                          <p className="text-sm text-muted-foreground">
+                            ✅ Proveedor ({sellerName}) creó la sala
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 2: Client Joined */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                           transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
@@ -717,12 +733,12 @@ const Transaction = () => {
                         <div className="flex-1">
                           <p className="font-bold text-lg">Cliente Confirmado</p>
                           <p className="text-sm text-muted-foreground">
-                            {transaction.buyer_id ? '✅ Cliente confirmado' : '⏳ Esperando cliente...'}
+                            {transaction.buyer_id ? `✅ Cliente (${buyerName}) confirmado` : '⏳ Esperando cliente...'}
                           </p>
                         </div>
                       </div>
 
-                      {/* Step 2: Escrow */}
+                      {/* Step 3: Escrow */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                           passedDelivery || transaction.state === 'funds_secured'
@@ -739,13 +755,13 @@ const Transaction = () => {
                             {passedDelivery || transaction.state === 'funds_secured'
                               ? '✅ Fondos asegurados y protegidos'
                               : transaction.state === 'invited'
-                              ? '⏳ Esperando depósito del cliente...'
+                              ? `⏳ Esperando depósito del cliente (${buyerName})...`
                               : '⚪ Pendiente'}
                           </p>
                         </div>
                       </div>
 
-                      {/* Step 3: Service in Progress */}
+                      {/* Step 4: Service in Progress */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                           isCompleted
@@ -762,13 +778,13 @@ const Transaction = () => {
                             {isCompleted
                               ? '✅ Servicio completado'
                               : passedDelivery || transaction.state === 'funds_secured'
-                              ? '🛠️ El proveedor realiza el servicio'
+                              ? `🛠️ Proveedor (${sellerName}) realiza el servicio`
                               : '⚪ Pendiente'}
                           </p>
                         </div>
                       </div>
 
-                      {/* Step 4: Completed */}
+                      {/* Step 5: Completed */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                           isCompleted
@@ -802,7 +818,20 @@ const Transaction = () => {
                       Progreso del Encuentro
                     </h4>
                     <div className="space-y-4">
-                      {/* Step 1: Buyer Joined */}
+                      {/* Step 1: Room Created */}
+                      <div className="flex items-center gap-4 group">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground scale-110">
+                          <Store className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">Sala Creada</p>
+                          <p className="text-sm text-muted-foreground">
+                            ✅ Vendedor ({sellerName}) creó la sala
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Step 2: Buyer Joined */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                           transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
@@ -812,12 +841,12 @@ const Transaction = () => {
                         <div className="flex-1">
                           <p className="font-bold text-lg">Comprador Unido</p>
                           <p className="text-sm text-muted-foreground">
-                            {transaction.buyer_id ? '✅ Comprador confirmado' : '⏳ Esperando comprador...'}
+                            {transaction.buyer_id ? `✅ Comprador (${buyerName}) confirmado` : '⏳ Esperando comprador...'}
                           </p>
                         </div>
                       </div>
 
-                      {/* Step 2: Escrow */}
+                      {/* Step 3: Escrow */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                           passedDelivery || transaction.state === 'funds_secured'
@@ -834,13 +863,13 @@ const Transaction = () => {
                             {passedDelivery || transaction.state === 'funds_secured'
                               ? '✅ Fondos asegurados y protegidos'
                               : transaction.state === 'invited'
-                              ? '⏳ Esperando depósito del comprador...'
+                              ? `⏳ Esperando depósito del comprador (${buyerName})...`
                               : '⚪ Pendiente'}
                           </p>
                         </div>
                       </div>
 
-                      {/* Step 3: Ready to Meet / Coordinate */}
+                      {/* Step 4: Ready to Meet / Coordinate */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                           passedDelivery
@@ -863,7 +892,7 @@ const Transaction = () => {
                         </div>
                       </div>
 
-                      {/* Step 4: Meeting / Handoff */}
+                      {/* Step 5: Meeting / Handoff */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                           isCompleted
@@ -880,13 +909,13 @@ const Transaction = () => {
                             {isCompleted
                               ? '✅ Entrega confirmada'
                               : passedDelivery
-                              ? '🤝 Juntarse y confirmar recibimiento'
+                              ? `🤝 Comprador (${buyerName}) confirma recibimiento`
                               : '⚪ Pendiente'}
                           </p>
                         </div>
                       </div>
 
-                      {/* Step 5: Completed */}
+                      {/* Step 6: Completed */}
                       <div className="flex items-center gap-4 group">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                           isCompleted
@@ -919,7 +948,20 @@ const Transaction = () => {
                     Progreso de la Transacción
                   </h4>
                   <div className="space-y-4">
-                    {/* Step 1: Buyer Joined */}
+                    {/* Step 1: Room Created */}
+                    <div className="flex items-center gap-4 group">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground scale-110">
+                        <Store className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">Sala Creada</p>
+                        <p className="text-sm text-muted-foreground">
+                          ✅ Vendedor ({sellerName}) creó la sala
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2: Buyer Joined */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                         transaction.state !== 'created' ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
@@ -929,12 +971,12 @@ const Transaction = () => {
                       <div className="flex-1">
                         <p className="font-bold text-lg">Comprador Unido</p>
                         <p className="text-sm text-muted-foreground">
-                          {transaction.buyer_id ? '✅ Comprador confirmado' : '⏳ Esperando comprador...'}
+                          {transaction.buyer_id ? `✅ Comprador (${buyerName}) confirmado` : '⏳ Esperando comprador...'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Step 2: Escrow */}
+                    {/* Step 3: Escrow */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                         passedDelivery || transaction.state === 'funds_secured'
@@ -951,13 +993,13 @@ const Transaction = () => {
                           {passedDelivery || transaction.state === 'funds_secured'
                             ? '✅ Fondos asegurados y protegidos'
                             : transaction.state === 'invited'
-                            ? '⏳ Esperando depósito del comprador...'
+                            ? `⏳ Esperando depósito del comprador (${buyerName})...`
                             : '⚪ Pendiente'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Step 3: Shipped */}
+                    {/* Step 4: Shipped */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                         passedDelivery
@@ -972,15 +1014,15 @@ const Transaction = () => {
                         <p className="font-bold text-lg">Producto Enviado</p>
                         <p className="text-sm text-muted-foreground">
                           {passedDelivery
-                            ? '✅ Producto enviado'
+                            ? `✅ Vendedor (${sellerName}) envió el producto`
                             : transaction.state === 'funds_secured'
-                            ? '⏳ Esperando envío del vendedor...'
+                            ? `⏳ Esperando envío del vendedor (${sellerName})...`
                             : '⚪ Pendiente'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Step 4: Received */}
+                    {/* Step 5: Received */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                         passedReceived
@@ -995,15 +1037,15 @@ const Transaction = () => {
                         <p className="font-bold text-lg">Producto Recibido</p>
                         <p className="text-sm text-muted-foreground">
                           {passedReceived
-                            ? '✅ Comprador recibió el producto'
+                            ? `✅ Comprador (${buyerName}) recibió el producto`
                             : transaction.state === 'in_delivery'
-                            ? '🚚 En camino al comprador...'
+                            ? `🚚 En camino al comprador (${buyerName})...`
                             : '⚪ Pendiente'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Step 5: Review Period */}
+                    {/* Step 6: Review Period */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                         isCompleted
@@ -1022,13 +1064,13 @@ const Transaction = () => {
                             : ['return_requested', 'return_in_progress'].includes(transaction.state)
                             ? '🔄 Devolución en proceso'
                             : transaction.state === 'awaiting_buyer_review'
-                            ? '🔍 Comprador revisando el producto...'
+                            ? `🔍 Comprador (${buyerName}) revisando el producto...`
                             : '⚪ Pendiente'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Step 6: Completed */}
+                    {/* Step 7: Completed */}
                     <div className="flex items-center gap-4 group">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
                         isCompleted
