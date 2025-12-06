@@ -64,6 +64,7 @@ export const ReturnStatusPanel = ({
   const [returnRequest, setReturnRequest] = useState<ReturnRequest | null>(null);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [carrier, setCarrier] = useState("");
+  const [customCarrier, setCustomCarrier] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -95,6 +96,13 @@ export const ReturnStatusPanel = ({
       toast.error("Por favor ingresa el número de seguimiento y el courier");
       return;
     }
+    
+    if (carrier === "otro" && !customCarrier.trim()) {
+      toast.error("Por favor ingresa el nombre del courier");
+      return;
+    }
+
+    const finalCarrier = carrier === "otro" ? customCarrier.trim() : carrier;
 
     setLoading(true);
     try {
@@ -102,7 +110,7 @@ export const ReturnStatusPanel = ({
         .from("return_requests")
         .update({
           tracking_number: trackingNumber.trim(),
-          carrier,
+          carrier: finalCarrier,
           status: "shipped",
           shipped_at: new Date().toISOString(),
         })
@@ -372,7 +380,10 @@ export const ReturnStatusPanel = ({
             </div>
             <div className="space-y-2">
               <Label htmlFor="carrier">Empresa de envío *</Label>
-              <Select value={carrier} onValueChange={setCarrier}>
+              <Select value={carrier} onValueChange={(value) => {
+                setCarrier(value);
+                if (value !== "otro") setCustomCarrier("");
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona courier" />
                 </SelectTrigger>
@@ -385,6 +396,17 @@ export const ReturnStatusPanel = ({
                 </SelectContent>
               </Select>
             </div>
+            {carrier === "otro" && (
+              <div className="space-y-2">
+                <Label htmlFor="customCarrier">Nombre del courier *</Label>
+                <Input
+                  id="customCarrier"
+                  value={customCarrier}
+                  onChange={(e) => setCustomCarrier(e.target.value)}
+                  placeholder="Ej: DHL, FedEx, etc."
+                />
+              </div>
+            )}
             <Button 
               onClick={handleConfirmShipment} 
               disabled={loading}
