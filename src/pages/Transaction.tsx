@@ -1557,8 +1557,8 @@ const Transaction = () => {
               </div>
             )}
 
-            {/* Create Appeal Button - Only show if no active appeal */}
-            {!activeAppeal && transaction && ["funds_secured", "in_delivery"].includes(transaction.state) && (
+            {/* Create Appeal Button - Always show if no active appeal and funds have been deposited */}
+            {!activeAppeal && transaction && ["funds_secured", "in_delivery", "awaiting_buyer_review", "return_requested", "return_in_progress"].includes(transaction.state) && (
               <div className="mt-4">
                 <CreateAppealDialog
                   transactionId={transaction.id}
