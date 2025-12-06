@@ -206,6 +206,21 @@ serve(async (req: Request): Promise<Response> => {
       // This is either the transaction amount or transaction amount + commission depending on who initiated
       const escrowAmount = initiatorRole === 'buyer' ? transactionAmount + commission : transactionAmount;
 
+      // 8.5. Update the original escrow_lock movement to approved
+      const { error: updateEscrowMovementError } = await supabaseClient
+        .from("wallet_movements")
+        .update({ status: "approved" })
+        .eq("transaction_id", transactionId)
+        .eq("type", "escrow_lock")
+        .eq("status", "pending");
+
+      if (updateEscrowMovementError) {
+        console.error("[accept-mutual-resolution] Error updating escrow movement", updateEscrowMovementError);
+        // Non-critical, continue
+      } else {
+        console.log("[accept-mutual-resolution] Original escrow_lock movement updated to approved");
+      }
+
       // 9. Update buyer wallet - release blocked_balance and add their refund if any
       const newBuyerBlockedBalance = Math.max(0, originalBuyerBlockedBalance - escrowAmount);
       const newBuyerBalance = originalBuyerBalance + buyerFinalAmount;
