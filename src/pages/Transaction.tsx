@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -87,6 +88,10 @@ const Transaction = () => {
   const [markingReceived, setMarkingReceived] = useState(false);
   const [cancellingTransaction, setCancellingTransaction] = useState(false);
   const [openingDispute, setOpeningDispute] = useState(false);
+  const [shippingDialogOpen, setShippingDialogOpen] = useState(false);
+  const [shippingTrackingNumber, setShippingTrackingNumber] = useState("");
+  const [shippingCarrier, setShippingCarrier] = useState("");
+  const [shippingCustomCarrier, setShippingCustomCarrier] = useState("");
 
   const [disputeReason, setDisputeReason] = useState("");
 
@@ -307,17 +312,54 @@ const Transaction = () => {
   const handleMarkAsShipped = async () => {
     if (!user || !transaction || !isSeller || markingShipped) return;
 
+    // For producto_envio, require tracking info
+    if (transaction.sale_type === "producto_envio") {
+      if (!shippingTrackingNumber.trim() || !shippingCarrier) {
+        toast.error("Por favor ingresa el número de seguimiento y el courier");
+        return;
+      }
+      
+      if (shippingCarrier === "otro" && !shippingCustomCarrier.trim()) {
+        toast.error("Por favor ingresa el nombre del courier");
+        return;
+      }
+    }
+
     setMarkingShipped(true);
     try {
+      const finalCarrier = shippingCarrier === "otro" ? shippingCustomCarrier.trim() : shippingCarrier;
+      
+      // Store shipping info in product_description as JSON for now (could be separate columns)
+      const shippingInfo = transaction.sale_type === "producto_envio" 
+        ? JSON.stringify({ 
+            tracking_number: shippingTrackingNumber.trim(), 
+            carrier: finalCarrier 
+          })
+        : null;
+      
+      const updateData: any = { 
+        state: "in_delivery",
+        shipped_at: new Date().toISOString()
+      };
+      
+      // Store shipping metadata in product_description if shipping
+      if (shippingInfo && transaction.sale_type === "producto_envio") {
+        // We'll store it separately by appending to description
+        const existingDesc = transaction.product_description || "";
+        updateData.product_description = existingDesc + (existingDesc ? "\n\n" : "") + 
+          `📦 Envío: ${finalCarrier} - Tracking: ${shippingTrackingNumber.trim()}`;
+      }
+      
       await supabase
         .from("transactions")
-        .update({ 
-          state: "in_delivery",
-          shipped_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq("id", transaction.id);
 
       toast.success("¡Marcado como enviado! El comprador será notificado.");
+      setShippingDialogOpen(false);
+      setShippingTrackingNumber("");
+      setShippingCarrier("");
+      setShippingCustomCarrier("");
       loadTransaction();
     } catch (error: any) {
       toast.error("Error al actualizar estado: " + error.message);
@@ -1254,15 +1296,11 @@ const Transaction = () => {
                 <Button 
                   size="lg"
                   className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
-                  onClick={handleMarkAsShipped}
-                  disabled={markingShipped || !!activeAppeal}
+                  onClick={() => setShippingDialogOpen(true)}
+                  disabled={!!activeAppeal}
                 >
-                  {markingShipped ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-2" />
-                  ) : (
-                    <Truck className="mr-2 h-6 w-6" />
-                  )}
-                  {markingShipped ? "Procesando..." : "Marcar Producto como Enviado"}
+                  <Truck className="mr-2 h-6 w-6" />
+                  Marcar Producto como Enviado
                 </Button>
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
                   {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Marca cuando hayas enviado el producto al comprador"}
@@ -1409,6 +1447,16 @@ const Transaction = () => {
                 <p className="text-sm text-muted-foreground mb-3">
                   El vendedor ha enviado el producto. Cuando lo recibas, marca que lo tienes para iniciar el período de revisión.
                 </p>
+                
+                {/* Show tracking info if available */}
+                {transaction.product_description?.includes("📦 Envío:") && (
+                  <div className="p-3 bg-info/10 rounded-lg border border-info/20 mb-3">
+                    <p className="text-sm font-medium text-info">
+                      {transaction.product_description.split("📦 Envío:")[1]?.split("\n")[0] || ""}
+                    </p>
+                  </div>
+                )}
+                
                 <Button 
                   size="lg"
                   className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
@@ -1423,7 +1471,7 @@ const Transaction = () => {
                   {markingReceived ? "Procesando..." : "Ya Recibí el Paquete"}
                 </Button>
                 <p className="text-sm text-muted-foreground text-center">
-                  {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Recuerda pedir el comprobante de envío al vendedor"}
+                  {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Recuerda verificar el producto antes de confirmar"}
                 </p>
               </div>
             )}
@@ -1751,6 +1799,95 @@ const Transaction = () => {
                 disabled={openingDispute}
               >
                 {openingDispute ? "Procesando..." : "Abrir Disputa"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Shipping Dialog - for producto_envio */}
+      <Dialog open={shippingDialogOpen} onOpenChange={setShippingDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="h-5 w-5 text-info" />
+              Información de Envío
+            </DialogTitle>
+            <DialogDescription>
+              Ingresa los datos del envío para que el comprador pueda rastrear su pedido
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="shippingTracking">Número de seguimiento *</Label>
+              <Input
+                id="shippingTracking"
+                value={shippingTrackingNumber}
+                onChange={(e) => setShippingTrackingNumber(e.target.value)}
+                placeholder="Ej: ABC123456789"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="shippingCarrier">Empresa de envío *</Label>
+              <Select 
+                value={shippingCarrier} 
+                onValueChange={(value) => {
+                  setShippingCarrier(value);
+                  if (value !== "otro") setShippingCustomCarrier("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona courier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="starken">Starken</SelectItem>
+                  <SelectItem value="chilexpress">Chilexpress</SelectItem>
+                  <SelectItem value="correos_chile">Correos de Chile</SelectItem>
+                  <SelectItem value="blue_express">Blue Express</SelectItem>
+                  <SelectItem value="otro">Otro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {shippingCarrier === "otro" && (
+              <div className="space-y-2">
+                <Label htmlFor="shippingCustomCarrier">Nombre del courier *</Label>
+                <Input
+                  id="shippingCustomCarrier"
+                  value={shippingCustomCarrier}
+                  onChange={(e) => setShippingCustomCarrier(e.target.value)}
+                  placeholder="Ej: DHL, FedEx, etc."
+                />
+              </div>
+            )}
+            <div className="p-3 bg-info/10 rounded-lg border border-info/20">
+              <p className="text-sm text-muted-foreground">
+                📦 Esta información será visible para el comprador para que pueda rastrear su pedido.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setShippingDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                className="flex-1 bg-info hover:bg-info/90"
+                onClick={handleMarkAsShipped}
+                disabled={markingShipped}
+              >
+                {markingShipped ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <Truck className="mr-2 h-4 w-4" />
+                    Confirmar Envío
+                  </>
+                )}
               </Button>
             </div>
           </div>
