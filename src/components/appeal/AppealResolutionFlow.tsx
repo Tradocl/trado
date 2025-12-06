@@ -37,8 +37,9 @@ export function AppealResolutionFlow({
 }: AppealResolutionFlowProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>("choose");
   const [hasPendingProposalForMe, setHasPendingProposalForMe] = useState(false);
+  const [hasAnyPendingProposal, setHasAnyPendingProposal] = useState(false);
 
-  // Check if there's a pending proposal for the current user
+  // Check if there's a pending proposal
   useEffect(() => {
     const checkPendingProposals = async () => {
       try {
@@ -47,17 +48,19 @@ export function AppealResolutionFlow({
           .select("*")
           .eq("appeal_id", appealId)
           .eq("status", "pending")
-          .neq("proposer_id", currentUserId)
           .limit(1);
 
         if (!error && data && data.length > 0) {
-          setHasPendingProposalForMe(true);
-          // Auto-switch to mutual if there's a pending proposal for me
+          setHasAnyPendingProposal(true);
+          const isForMe = data[0].proposer_id !== currentUserId;
+          setHasPendingProposalForMe(isForMe);
+          // Auto-switch to mutual if there's any pending proposal
           if (currentStep === "choose") {
             setCurrentStep("mutual");
           }
         } else {
           setHasPendingProposalForMe(false);
+          setHasAnyPendingProposal(false);
         }
       } catch (err) {
         console.error("Error checking pending proposals:", err);
