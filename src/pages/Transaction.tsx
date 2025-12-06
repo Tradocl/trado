@@ -82,6 +82,11 @@ const Transaction = () => {
   const [isRatingSeller, setIsRatingSeller] = useState(false);
   const [joiningTransaction, setJoiningTransaction] = useState(false);
   const [confirmingDelivery, setConfirmingDelivery] = useState(false);
+  const [depositingEscrow, setDepositingEscrow] = useState(false);
+  const [markingShipped, setMarkingShipped] = useState(false);
+  const [markingReceived, setMarkingReceived] = useState(false);
+  const [cancellingTransaction, setCancellingTransaction] = useState(false);
+  const [openingDispute, setOpeningDispute] = useState(false);
 
   const [disputeReason, setDisputeReason] = useState("");
 
@@ -231,8 +236,9 @@ const Transaction = () => {
   };
 
   const handleDeposit = async () => {
-    if (!user || !transaction) return;
+    if (!user || !transaction || depositingEscrow) return;
 
+    setDepositingEscrow(true);
     try {
       // Call secure edge function to process escrow deposit
       const { data, error } = await supabase.functions.invoke("process-escrow-deposit", {
@@ -262,6 +268,8 @@ const Transaction = () => {
       loadTransaction();
     } catch (error: any) {
       toast.error("Error al depositar: " + error.message);
+    } finally {
+      setDepositingEscrow(false);
     }
   };
 
@@ -297,8 +305,9 @@ const Transaction = () => {
   };
 
   const handleMarkAsShipped = async () => {
-    if (!user || !transaction || !isSeller) return;
+    if (!user || !transaction || !isSeller || markingShipped) return;
 
+    setMarkingShipped(true);
     try {
       await supabase
         .from("transactions")
@@ -312,12 +321,15 @@ const Transaction = () => {
       loadTransaction();
     } catch (error: any) {
       toast.error("Error al actualizar estado: " + error.message);
+    } finally {
+      setMarkingShipped(false);
     }
   };
 
   const handleMarkAsReceived = async () => {
-    if (!user || !transaction || !isBuyer) return;
+    if (!user || !transaction || !isBuyer || markingReceived) return;
 
+    setMarkingReceived(true);
     try {
       await supabase
         .from("transactions")
@@ -328,6 +340,8 @@ const Transaction = () => {
       loadTransaction();
     } catch (error: any) {
       toast.error("Error al actualizar estado: " + error.message);
+    } finally {
+      setMarkingReceived(false);
     }
   };
 
@@ -339,8 +353,9 @@ const Transaction = () => {
       ? user?.id === transaction?.seller_id 
       : user?.id === transaction?.seller_id; // Pre-swap: creator is in seller_id
     
-    if (!user || !transaction || !isCreator || hasJoiner) return;
+    if (!user || !transaction || !isCreator || hasJoiner || cancellingTransaction) return;
 
+    setCancellingTransaction(true);
     try {
       await supabase
         .from("transactions")
@@ -351,15 +366,20 @@ const Transaction = () => {
       navigate("/dashboard");
     } catch (error: any) {
       toast.error("Error al cancelar la transacción: " + error.message);
+    } finally {
+      setCancellingTransaction(false);
     }
   };
 
   const handleOpenDispute = async () => {
-    if (!user || !transaction || !disputeReason.trim()) {
-      toast.error("Por favor describe el motivo de la disputa");
+    if (!user || !transaction || !disputeReason.trim() || openingDispute) {
+      if (!disputeReason.trim()) {
+        toast.error("Por favor describe el motivo de la disputa");
+      }
       return;
     }
 
+    setOpeningDispute(true);
     try {
       await supabase
         .from("transactions")
@@ -375,6 +395,8 @@ const Transaction = () => {
       loadTransaction();
     } catch (error: any) {
       toast.error("Error al abrir disputa: " + error.message);
+    } finally {
+      setOpeningDispute(false);
     }
   };
 
@@ -621,8 +643,9 @@ const Transaction = () => {
                           variant="destructive"
                           className="font-semibold"
                           onClick={handleCancelTransaction}
+                          disabled={cancellingTransaction}
                         >
-                          Cancelar sala
+                          {cancellingTransaction ? "Cancelando..." : "Cancelar sala"}
                         </Button>
                       )}
                     </div>
@@ -1232,10 +1255,14 @@ const Transaction = () => {
                   size="lg"
                   className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
                   onClick={handleMarkAsShipped}
-                  disabled={!!activeAppeal}
+                  disabled={markingShipped || !!activeAppeal}
                 >
-                  <Truck className="mr-2 h-6 w-6" />
-                  Marcar Producto como Enviado
+                  {markingShipped ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-2" />
+                  ) : (
+                    <Truck className="mr-2 h-6 w-6" />
+                  )}
+                  {markingShipped ? "Procesando..." : "Marcar Producto como Enviado"}
                 </Button>
                 <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
                   {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Marca cuando hayas enviado el producto al comprador"}
@@ -1261,10 +1288,14 @@ const Transaction = () => {
                       size="lg"
                       className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale" 
                       onClick={handleMarkAsShipped}
-                      disabled={!!activeAppeal}
+                      disabled={markingShipped || !!activeAppeal}
                     >
-                      <Check className="mr-2 h-6 w-6" />
-                      Marcar Servicio como Completado
+                      {markingShipped ? (
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-2" />
+                      ) : (
+                        <Check className="mr-2 h-6 w-6" />
+                      )}
+                      {markingShipped ? "Procesando..." : "Marcar Servicio como Completado"}
                     </Button>
                     <p className="text-sm text-muted-foreground text-center">
                       {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "🛠️ Marca cuando hayas finalizado el servicio"}
@@ -1382,10 +1413,14 @@ const Transaction = () => {
                   size="lg"
                   className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
                   onClick={handleMarkAsReceived}
-                  disabled={!!activeAppeal}
+                  disabled={markingReceived || !!activeAppeal}
                 >
-                  <Package className="mr-2 h-6 w-6" />
-                  Ya Recibí el Paquete
+                  {markingReceived ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-2" />
+                  ) : (
+                    <Package className="mr-2 h-6 w-6" />
+                  )}
+                  {markingReceived ? "Procesando..." : "Ya Recibí el Paquete"}
                 </Button>
                 <p className="text-sm text-muted-foreground text-center">
                   {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Recuerda pedir el comprobante de envío al vendedor"}
@@ -1658,9 +1693,17 @@ const Transaction = () => {
               </p>
             </div>
             
-            <Button onClick={handleDeposit} className="w-full bg-success hover:bg-success/90">
-              <DollarSign className="mr-2 h-4 w-4" />
-              Confirmar Depósito de ${formatCLP(buyerPays)}
+            <Button 
+              onClick={handleDeposit} 
+              className="w-full bg-success hover:bg-success/90"
+              disabled={depositingEscrow}
+            >
+              {depositingEscrow ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+              ) : (
+                <DollarSign className="mr-2 h-4 w-4" />
+              )}
+              {depositingEscrow ? "Procesando..." : `Confirmar Depósito de $${formatCLP(buyerPays)}`}
             </Button>
           </div>
         </DialogContent>
@@ -1705,8 +1748,9 @@ const Transaction = () => {
                 variant="destructive" 
                 className="flex-1"
                 onClick={handleOpenDispute}
+                disabled={openingDispute}
               >
-                Abrir Disputa
+                {openingDispute ? "Procesando..." : "Abrir Disputa"}
               </Button>
             </div>
           </div>

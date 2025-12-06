@@ -97,6 +97,7 @@ export default function Admin() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedVerificationId, setSelectedVerificationId] = useState<string>("");
   const [rejectionReason, setRejectionReason] = useState("");
+  const [processingId, setProcessingId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalUsers: 0,
     pendingVerifications: 0,
@@ -363,6 +364,8 @@ export default function Admin() {
   };
 
   const handleApproveMovement = async (movementId: string) => {
+    if (processingId) return;
+    setProcessingId(movementId);
     try {
       // Get the movement details first
       const { data: movement, error: fetchError } = await supabase
@@ -451,10 +454,14 @@ export default function Admin() {
     } catch (error) {
       console.error("Error approving movement:", error);
       toast.error("Error al aprobar el movimiento");
+    } finally {
+      setProcessingId(null);
     }
   };
 
   const handleRejectMovement = async (movementId: string) => {
+    if (processingId) return;
+    setProcessingId(movementId);
     try {
       // Get movement details for email
       const { data: movement } = await supabase
@@ -497,10 +504,14 @@ export default function Admin() {
     } catch (error) {
       console.error("Error rejecting movement:", error);
       toast.error("Error al rechazar el movimiento");
+    } finally {
+      setProcessingId(null);
     }
   };
 
   const handleApproveVerification = async (profileId: string) => {
+    if (processingId) return;
+    setProcessingId(profileId);
     try {
       // Get user data first for notification
       const { data: profile } = await supabase
@@ -540,6 +551,8 @@ export default function Admin() {
     } catch (error) {
       console.error("Error approving verification:", error);
       toast.error("Error al aprobar la verificación");
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -554,6 +567,8 @@ export default function Admin() {
       toast.error("Por favor escribe un motivo de rechazo");
       return;
     }
+    if (processingId) return;
+    setProcessingId(selectedVerificationId);
 
     try {
       // Get user data first for notification
@@ -599,6 +614,8 @@ export default function Admin() {
     } catch (error) {
       console.error("Error rejecting verification:", error);
       toast.error("Error al rechazar la verificación");
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -824,14 +841,20 @@ export default function Admin() {
                           <Button
                             size="sm"
                             variant="default"
+                            disabled={processingId === verification.id}
                             onClick={() => handleApproveVerification(verification.id)}
                           >
-                            <CheckCircle className="h-4 w-4 mr-1" />
+                            {processingId === verification.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                            )}
                             Aprobar
                           </Button>
                           <Button
                             size="sm"
                             variant="destructive"
+                            disabled={!!processingId}
                             onClick={() => openRejectDialog(verification.id)}
                           >
                             <XCircle className="h-4 w-4 mr-1" />
@@ -907,17 +930,27 @@ export default function Admin() {
                               <Button
                                 size="sm"
                                 variant="default"
+                                disabled={processingId === deposit.id}
                                 onClick={() => handleApproveMovement(deposit.id)}
                               >
-                                <CheckCircle className="mr-1 h-4 w-4" />
+                                {processingId === deposit.id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                                ) : (
+                                  <CheckCircle className="mr-1 h-4 w-4" />
+                                )}
                                 Aprobar
                               </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
+                                disabled={processingId === deposit.id}
                                 onClick={() => handleRejectMovement(deposit.id)}
                               >
-                                <XCircle className="mr-1 h-4 w-4" />
+                                {processingId === deposit.id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                                ) : (
+                                  <XCircle className="mr-1 h-4 w-4" />
+                                )}
                                 Rechazar
                               </Button>
                             </div>
@@ -1050,17 +1083,27 @@ export default function Admin() {
                               <Button
                                 size="sm"
                                 variant="default"
+                                disabled={processingId === withdrawal.id}
                                 onClick={() => handleApproveMovement(withdrawal.id)}
                               >
-                                <CheckCircle className="mr-1 h-4 w-4" />
+                                {processingId === withdrawal.id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                                ) : (
+                                  <CheckCircle className="mr-1 h-4 w-4" />
+                                )}
                                 Aprobar
                               </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
+                                disabled={processingId === withdrawal.id}
                                 onClick={() => handleRejectMovement(withdrawal.id)}
                               >
-                                <XCircle className="mr-1 h-4 w-4" />
+                                {processingId === withdrawal.id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
+                                ) : (
+                                  <XCircle className="mr-1 h-4 w-4" />
+                                )}
                                 Rechazar
                               </Button>
                             </div>
