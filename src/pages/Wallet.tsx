@@ -677,13 +677,15 @@ const Wallet = () => {
                   const isDeposit = movement.type === "deposit" || movement.type === "escrow_release";
                   const isEscrowLock = movement.type === "escrow_lock";
                   const isPending = movement.status === "pending";
+                  const isEscrowPending = isEscrowLock && isPending;
                   
-                  // Determine styling based on movement type
+                  // Determine styling based on movement type and status
                   let iconBgClass = "";
                   let textColorClass = "";
                   let amountPrefix = "";
                   
-                  if (isEscrowLock) {
+                  if (isEscrowPending) {
+                    // Pending escrow = blocked funds (yellow/warning)
                     iconBgClass = "bg-warning/10 text-warning";
                     textColorClass = "text-warning";
                     amountPrefix = "";
@@ -692,6 +694,7 @@ const Wallet = () => {
                     textColorClass = "text-success";
                     amountPrefix = "+";
                   } else {
+                    // Approved escrow_lock or withdrawal = expense (red)
                     iconBgClass = "bg-destructive/10 text-destructive";
                     textColorClass = "text-destructive";
                     amountPrefix = "-";
@@ -701,12 +704,12 @@ const Wallet = () => {
                     <div
                       key={movement.id}
                       className={`flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
-                        isEscrowLock && isPending ? "border-warning/50 bg-warning/5" : ""
+                        isEscrowPending ? "border-warning/50 bg-warning/5" : ""
                       }`}
                     >
                       <div className="flex items-center gap-4">
                         <div className={`p-2 rounded-full ${iconBgClass}`}>
-                          {isEscrowLock ? (
+                          {isEscrowPending ? (
                             <Clock className="h-5 w-5" />
                           ) : isDeposit ? (
                             <ArrowDownRight className="h-5 w-5" />
@@ -719,7 +722,7 @@ const Wallet = () => {
                           <p className="text-sm text-muted-foreground">
                             {new Date(movement.created_at).toLocaleDateString("es-CL")}
                           </p>
-                          {isEscrowLock && isPending && (
+                          {isEscrowPending && (
                             <p className="text-xs text-warning font-medium">Bloqueado en escrow</p>
                           )}
                         </div>
@@ -729,7 +732,7 @@ const Wallet = () => {
                           {amountPrefix}${formatCLP(Math.abs(movement.amount))}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {isEscrowLock && isPending ? "En transacción" : `Saldo: $${formatCLP(movement.balance_after)}`}
+                          {isEscrowPending ? "En transacción" : `Saldo: $${formatCLP(movement.balance_after)}`}
                         </p>
                       </div>
                     </div>
