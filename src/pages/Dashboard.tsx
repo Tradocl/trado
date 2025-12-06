@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ interface Profile {
 
 interface WalletData {
   balance: number;
+  blocked_balance: number;
 }
 
 interface Transaction {
@@ -212,14 +213,23 @@ const Dashboard = () => {
               )}
             </div>
           </CardHeader>
-          <CardContent className="flex gap-6">
+          <CardContent className="flex flex-wrap gap-6">
             <div className="flex items-center gap-2">
               <Wallet className="h-5 w-5" />
               <div>
-                <p className="text-sm opacity-80">Saldo</p>
+                <p className="text-sm opacity-80">Saldo Disponible</p>
                 <p className="text-2xl font-bold">${formatCLP(wallet?.balance || 0)}</p>
               </div>
             </div>
+            {(wallet?.blocked_balance || 0) > 0 && (
+              <div className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                <div>
+                  <p className="text-sm opacity-80">Escrow Bloqueado</p>
+                  <p className="text-2xl font-bold">${formatCLP(wallet?.blocked_balance || 0)}</p>
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Star className="h-5 w-5" />
               <div>
