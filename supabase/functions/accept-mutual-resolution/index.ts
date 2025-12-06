@@ -22,6 +22,18 @@ interface AcceptMutualResolutionRequest {
   userId: string;
 }
 
+// Commission calculation matching the frontend logic
+function calculateCommission(amount: number): number {
+  const BASE_RATE = 0.05;
+  const MIN_COMMISSION = 1000;
+  const MAX_COMMISSION = 20000;
+  const ROUNDING_FACTOR = 10;
+
+  const rawCommission = amount * BASE_RATE;
+  const roundedCommission = Math.round(rawCommission / ROUNDING_FACTOR) * ROUNDING_FACTOR;
+  return Math.max(MIN_COMMISSION, Math.min(MAX_COMMISSION, roundedCommission));
+}
+
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -81,10 +93,10 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // 4. Get transaction to verify parties
+    // 4. Get transaction to verify parties and get commission info
     const { data: tx, error: txError } = await supabaseClient
       .from("transactions")
-      .select("id, buyer_id, seller_id, amount")
+      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name")
       .eq("id", transactionId)
       .single();
 
@@ -105,31 +117,53 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // 6. Validate amounts against transaction total
-    const totalAmount = Number(tx.amount);
-    const buyerAmount = Number(proposal.buyer_amount);
-    const sellerAmount = Number(proposal.seller_amount);
+    // 6. Calculate amounts
+    const transactionAmount = Number(tx.amount);
+    const commission = Number(tx.commission) || calculateCommission(transactionAmount);
+    const buyerProposedAmount = Number(proposal.buyer_amount);
+    const sellerProposedAmount = Number(proposal.seller_amount);
 
-    if (buyerAmount + sellerAmount > totalAmount) {
-      console.error(`[accept-mutual-resolution] Invalid amounts: buyer=${buyerAmount}, seller=${sellerAmount}, total=${totalAmount}`);
+    // Validate total doesn't exceed transaction amount
+    if (buyerProposedAmount + sellerProposedAmount > transactionAmount) {
+      console.error(`[accept-mutual-resolution] Invalid amounts: buyer=${buyerProposedAmount}, seller=${sellerProposedAmount}, total=${transactionAmount}`);
       return new Response(JSON.stringify({ error: "Los montos propuestos exceden el total de la transacción" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    console.log(`[accept-mutual-resolution] Validation passed: buyer=${buyerAmount}, seller=${sellerAmount}, total=${totalAmount}`);
+    // Commission is paid by the party who initiated the transaction
+    // If buyer initiated, they already paid commission in their deposit (no deduction from seller)
+    // If seller initiated, commission is deducted from seller's portion
+    const initiatorRole = tx.initiator_role || 'seller';
+    
+    // Calculate actual amounts after commission
+    let buyerFinalAmount = buyerProposedAmount;
+    let sellerFinalAmount = sellerProposedAmount;
+    let commissionToDeduct = 0;
 
-    // 7. Get wallets for both parties BEFORE making any changes
+    // Commission is only applied when seller receives money
+    if (sellerProposedAmount > 0) {
+      if (initiatorRole === 'seller') {
+        // Seller pays commission from their portion
+        commissionToDeduct = Math.min(commission, sellerProposedAmount);
+        sellerFinalAmount = sellerProposedAmount - commissionToDeduct;
+      }
+      // If buyer initiated, commission was already added to their deposit, seller gets full amount
+    }
+
+    console.log(`[accept-mutual-resolution] Amounts - Buyer: ${buyerProposedAmount}->${buyerFinalAmount}, Seller: ${sellerProposedAmount}->${sellerFinalAmount}, Commission: ${commissionToDeduct}`);
+
+    // 7. Get wallets for both parties (including blocked_balance)
     const { data: buyerWallet, error: buyerWalletError } = await supabaseClient
       .from("wallets")
-      .select("id, balance")
+      .select("id, balance, blocked_balance")
       .eq("user_id", tx.buyer_id)
       .single();
 
     const { data: sellerWallet, error: sellerWalletError } = await supabaseClient
       .from("wallets")
-      .select("id, balance")
+      .select("id, balance, blocked_balance")
       .eq("user_id", tx.seller_id)
       .single();
 
@@ -141,14 +175,14 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    console.log(`[accept-mutual-resolution] Wallets found: buyer=${buyerWallet.id}, seller=${sellerWallet.id}`);
+    console.log(`[accept-mutual-resolution] Wallets found: buyer=${buyerWallet.id} (blocked: ${buyerWallet.blocked_balance}), seller=${sellerWallet.id}`);
 
     // === ATOMIC OPERATION STARTS HERE ===
-    // We'll track what we've done so we can rollback if needed
     let proposalUpdated = false;
     let buyerWalletUpdated = false;
     let sellerWalletUpdated = false;
     const originalBuyerBalance = Number(buyerWallet.balance);
+    const originalBuyerBlockedBalance = Number(buyerWallet.blocked_balance);
     const originalSellerBalance = Number(sellerWallet.balance);
 
     try {
@@ -168,45 +202,54 @@ serve(async (req: Request): Promise<Response> => {
       proposalUpdated = true;
       console.log("[accept-mutual-resolution] Proposal updated to accepted");
 
-      // 9. Update buyer wallet if they get money
-      if (buyerAmount > 0) {
-        const newBuyerBalance = originalBuyerBalance + buyerAmount;
-        
-        const { error: updateBuyerError } = await supabaseClient
-          .from("wallets")
-          .update({ balance: newBuyerBalance })
-          .eq("id", buyerWallet.id);
+      // Calculate total escrow to release (the amount that was in blocked_balance for this transaction)
+      // This is either the transaction amount or transaction amount + commission depending on who initiated
+      const escrowAmount = initiatorRole === 'buyer' ? transactionAmount + commission : transactionAmount;
 
-        if (updateBuyerError) {
-          console.error("[accept-mutual-resolution] Error updating buyer wallet", updateBuyerError);
-          throw new Error("No se pudo actualizar la billetera del comprador");
-        }
-        buyerWalletUpdated = true;
+      // 9. Update buyer wallet - release blocked_balance and add their refund if any
+      const newBuyerBlockedBalance = Math.max(0, originalBuyerBlockedBalance - escrowAmount);
+      const newBuyerBalance = originalBuyerBalance + buyerFinalAmount;
+      
+      const { error: updateBuyerError } = await supabaseClient
+        .from("wallets")
+        .update({ 
+          balance: newBuyerBalance,
+          blocked_balance: newBuyerBlockedBalance
+        })
+        .eq("id", buyerWallet.id);
 
-        // Create buyer movement
+      if (updateBuyerError) {
+        console.error("[accept-mutual-resolution] Error updating buyer wallet", updateBuyerError);
+        throw new Error("No se pudo actualizar la billetera del comprador");
+      }
+      buyerWalletUpdated = true;
+      console.log(`[accept-mutual-resolution] Buyer wallet updated: balance ${originalBuyerBalance}->${newBuyerBalance}, blocked ${originalBuyerBlockedBalance}->${newBuyerBlockedBalance}`);
+
+      // Create buyer movement if they get money
+      if (buyerFinalAmount > 0) {
         const { error: buyerMovementError } = await supabaseClient
           .from("wallet_movements")
           .insert({
             wallet_id: buyerWallet.id,
-            type: "refund",
-            amount: buyerAmount,
+            type: "escrow_release",
+            amount: buyerFinalAmount,
             balance_after: newBuyerBalance,
             status: "approved",
-            description: "Acuerdo mutuo - Reembolso",
+            description: `Reembolso "${tx.product_name}"`,
             transaction_id: transactionId,
           });
 
         if (buyerMovementError) {
           console.error("[accept-mutual-resolution] Error creating buyer movement", buyerMovementError);
-          // Movement is not critical, continue
+          // Non-critical, continue
+        } else {
+          console.log("[accept-mutual-resolution] Buyer movement created");
         }
-
-        console.log(`[accept-mutual-resolution] Buyer wallet updated: ${originalBuyerBalance} -> ${newBuyerBalance}`);
       }
 
       // 10. Update seller wallet if they get money
-      if (sellerAmount > 0) {
-        const newSellerBalance = originalSellerBalance + sellerAmount;
+      if (sellerFinalAmount > 0) {
+        const newSellerBalance = originalSellerBalance + sellerFinalAmount;
         
         const { error: updateSellerError } = await supabaseClient
           .from("wallets")
@@ -218,54 +261,85 @@ serve(async (req: Request): Promise<Response> => {
           throw new Error("No se pudo actualizar la billetera del vendedor");
         }
         sellerWalletUpdated = true;
+        console.log(`[accept-mutual-resolution] Seller wallet updated: ${originalSellerBalance} -> ${newSellerBalance}`);
 
         // Create seller movement
+        const movementDescription = commissionToDeduct > 0 
+          ? `Venta "${tx.product_name}" (neto después de comisión)`
+          : `Venta "${tx.product_name}"`;
+
         const { error: sellerMovementError } = await supabaseClient
           .from("wallet_movements")
           .insert({
             wallet_id: sellerWallet.id,
-            type: "sale_release",
-            amount: sellerAmount,
+            type: "escrow_release",
+            amount: sellerFinalAmount,
             balance_after: newSellerBalance,
             status: "approved",
-            description: "Acuerdo mutuo - Liberación",
+            description: movementDescription,
             transaction_id: transactionId,
           });
 
         if (sellerMovementError) {
           console.error("[accept-mutual-resolution] Error creating seller movement", sellerMovementError);
-          // Movement is not critical, continue
+          // Non-critical, continue
+        } else {
+          console.log("[accept-mutual-resolution] Seller movement created");
         }
-
-        console.log(`[accept-mutual-resolution] Seller wallet updated: ${originalSellerBalance} -> ${newSellerBalance}`);
       }
 
-      // 11. Determine resolution type based on amounts
-      const resolution = buyerAmount === totalAmount
+      // 11. Create commission movement if applicable
+      if (commissionToDeduct > 0) {
+        const { error: commissionMovementError } = await supabaseClient
+          .from("wallet_movements")
+          .insert({
+            wallet_id: sellerWallet.id,
+            type: "commission",
+            amount: -commissionToDeduct,
+            balance_after: originalSellerBalance + sellerFinalAmount,
+            status: "approved",
+            description: `Comisión Trado "${tx.product_name}"`,
+            transaction_id: transactionId,
+          });
+
+        if (commissionMovementError) {
+          console.error("[accept-mutual-resolution] Error creating commission movement", commissionMovementError);
+          // Non-critical, continue
+        } else {
+          console.log("[accept-mutual-resolution] Commission movement created");
+        }
+      }
+
+      // 12. Determine resolution type based on amounts
+      const resolution = buyerProposedAmount === transactionAmount
         ? "reembolso_total"
-        : buyerAmount > 0 && sellerAmount > 0
+        : buyerProposedAmount > 0 && sellerProposedAmount > 0
           ? "reembolso_parcial"
           : "liberar_fondos_vendedor";
 
-      const appealStatus = buyerAmount === totalAmount
+      const appealStatus = buyerProposedAmount === transactionAmount
         ? "resuelta_a_favor_comprador"
-        : buyerAmount > 0 && sellerAmount > 0
+        : buyerProposedAmount > 0 && sellerProposedAmount > 0
           ? "resuelta_parcial"
           : "resuelta_a_favor_vendedor";
 
       console.log(`[accept-mutual-resolution] Resolution: ${resolution}, Appeal status: ${appealStatus}`);
 
-      // 12. Create appeal decision record (using service role, bypasses RLS)
+      // 13. Create appeal decision record
+      const resolutionNotes = commissionToDeduct > 0
+        ? `Acuerdo mutuo entre las partes. Comisión de $${commissionToDeduct.toLocaleString('es-CL')} descontada del monto del vendedor. ${proposal.message || ""}`.trim()
+        : `Acuerdo mutuo entre las partes. ${proposal.message || ""}`.trim();
+
       const { error: decisionError } = await supabaseClient
         .from("appeal_decisions")
         .insert({
           appeal_id: appealId,
           resolution,
-          buyer_refund_amount: buyerAmount,
-          seller_payment_amount: sellerAmount,
-          resolution_notes: `Acuerdo mutuo entre las partes. ${proposal.message || ""}`.trim(),
+          buyer_refund_amount: buyerFinalAmount,
+          seller_payment_amount: sellerFinalAmount,
+          resolution_notes: resolutionNotes,
           is_mutual_agreement: true,
-          admin_id: null, // No admin involved in mutual agreement
+          admin_id: null,
         });
 
       if (decisionError) {
@@ -274,7 +348,7 @@ serve(async (req: Request): Promise<Response> => {
       }
       console.log("[accept-mutual-resolution] Decision record created");
 
-      // 13. Update appeal status
+      // 14. Update appeal status
       const { error: appealUpdateError } = await supabaseClient
         .from("appeals")
         .update({ status: appealStatus })
@@ -286,7 +360,7 @@ serve(async (req: Request): Promise<Response> => {
       }
       console.log("[accept-mutual-resolution] Appeal status updated");
 
-      // 14. Update transaction state to completed
+      // 15. Update transaction state to completed
       const { error: txUpdateError } = await supabaseClient
         .from("transactions")
         .update({
@@ -304,17 +378,21 @@ serve(async (req: Request): Promise<Response> => {
 
       console.log(`[accept-mutual-resolution] SUCCESS - Mutual resolution processed for appeal ${appealId}`);
 
-      return new Response(JSON.stringify({ success: true, appealStatus }), {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        appealStatus,
+        buyerRefund: buyerFinalAmount,
+        sellerPayment: sellerFinalAmount,
+        commissionDeducted: commissionToDeduct
+      }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
 
     } catch (atomicError: any) {
-      // ROLLBACK: Try to revert changes if something failed
       console.error("[accept-mutual-resolution] ATOMIC ERROR - Attempting rollback", atomicError);
 
       try {
-        // Revert proposal status
         if (proposalUpdated) {
           await supabaseClient
             .from("appeal_mutual_proposals")
@@ -323,16 +401,17 @@ serve(async (req: Request): Promise<Response> => {
           console.log("[accept-mutual-resolution] ROLLBACK - Proposal reverted to pending");
         }
 
-        // Revert buyer wallet
         if (buyerWalletUpdated) {
           await supabaseClient
             .from("wallets")
-            .update({ balance: originalBuyerBalance })
+            .update({ 
+              balance: originalBuyerBalance,
+              blocked_balance: originalBuyerBlockedBalance
+            })
             .eq("id", buyerWallet.id);
           console.log("[accept-mutual-resolution] ROLLBACK - Buyer wallet reverted");
         }
 
-        // Revert seller wallet
         if (sellerWalletUpdated) {
           await supabaseClient
             .from("wallets")
