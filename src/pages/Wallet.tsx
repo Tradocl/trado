@@ -675,20 +675,40 @@ const Wallet = () => {
               <div className="space-y-4">
                 {movements.map((movement) => {
                   const isDeposit = movement.type === "deposit" || movement.type === "escrow_release";
+                  const isEscrowLock = movement.type === "escrow_lock";
+                  const isPending = movement.status === "pending";
+                  
+                  // Determine styling based on movement type
+                  let iconBgClass = "";
+                  let textColorClass = "";
+                  let amountPrefix = "";
+                  
+                  if (isEscrowLock) {
+                    iconBgClass = "bg-warning/10 text-warning";
+                    textColorClass = "text-warning";
+                    amountPrefix = "";
+                  } else if (isDeposit) {
+                    iconBgClass = "bg-success/10 text-success";
+                    textColorClass = "text-success";
+                    amountPrefix = "+";
+                  } else {
+                    iconBgClass = "bg-destructive/10 text-destructive";
+                    textColorClass = "text-destructive";
+                    amountPrefix = "-";
+                  }
+                  
                   return (
                     <div
                       key={movement.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className={`flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
+                        isEscrowLock && isPending ? "border-warning/50 bg-warning/5" : ""
+                      }`}
                     >
                       <div className="flex items-center gap-4">
-                        <div
-                          className={`p-2 rounded-full ${
-                            isDeposit
-                              ? "bg-success/10 text-success"
-                              : "bg-destructive/10 text-destructive"
-                          }`}
-                        >
-                          {isDeposit ? (
+                        <div className={`p-2 rounded-full ${iconBgClass}`}>
+                          {isEscrowLock ? (
+                            <Clock className="h-5 w-5" />
+                          ) : isDeposit ? (
                             <ArrowDownRight className="h-5 w-5" />
                           ) : (
                             <ArrowUpRight className="h-5 w-5" />
@@ -699,18 +719,17 @@ const Wallet = () => {
                           <p className="text-sm text-muted-foreground">
                             {new Date(movement.created_at).toLocaleDateString("es-CL")}
                           </p>
+                          {isEscrowLock && isPending && (
+                            <p className="text-xs text-warning font-medium">Bloqueado en escrow</p>
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
-                        <p
-                          className={`text-lg font-bold ${
-                            isDeposit ? "text-success" : "text-destructive"
-                          }`}
-                        >
-                          {isDeposit ? "+" : "-"}${formatCLP(Math.abs(movement.amount))}
+                        <p className={`text-lg font-bold ${textColorClass}`}>
+                          {amountPrefix}${formatCLP(Math.abs(movement.amount))}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Saldo: ${formatCLP(movement.balance_after)}
+                          {isEscrowLock && isPending ? "En transacción" : `Saldo: $${formatCLP(movement.balance_after)}`}
                         </p>
                       </div>
                     </div>
