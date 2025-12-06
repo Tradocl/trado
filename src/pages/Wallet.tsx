@@ -673,7 +673,7 @@ const Wallet = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {movements.map((movement) => {
+                {movements.filter(m => m.type !== 'commission').map((movement) => {
                   const isDeposit = movement.type === "deposit" || movement.type === "escrow_release";
                   const isEscrowLock = movement.type === "escrow_lock";
                   const isPending = movement.status === "pending";
