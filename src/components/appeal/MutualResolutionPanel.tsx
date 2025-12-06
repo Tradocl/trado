@@ -25,6 +25,8 @@ interface MutualResolutionPanelProps {
   currentUserId: string;
   buyerId: string;
   sellerId: string;
+  buyerName: string;
+  sellerName: string;
   totalAmount: number;
   appealStatus: string;
   onSwitchToEscalate: () => void;
@@ -47,6 +49,8 @@ export function MutualResolutionPanel({
   currentUserId,
   buyerId,
   sellerId,
+  buyerName,
+  sellerName,
   totalAmount,
   appealStatus,
   onSwitchToEscalate
@@ -54,12 +58,23 @@ export function MutualResolutionPanel({
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<"buyer" | "seller" | null>(null);
   const [message, setMessage] = useState("");
 
   const isBuyer = currentUserId === buyerId;
+  const isSeller = currentUserId === sellerId;
   const buyerAmount = selectedRecipient === "buyer" ? totalAmount : 0;
   const sellerAmount = selectedRecipient === "seller" ? totalAmount : 0;
+
+  // Helper to get display name with "tú" for current user
+  const getBuyerDisplayName = () => isBuyer ? `${buyerName} (tú)` : buyerName;
+  const getSellerDisplayName = () => isSeller ? `${sellerName} (tú)` : sellerName;
+  const getProposerName = (proposerId: string) => {
+    if (proposerId === currentUserId) return "Tú";
+    if (proposerId === buyerId) return `${buyerName} (Comprador)`;
+    return `${sellerName} (Vendedor)`;
+  };
 
   useEffect(() => {
     fetchProposals();
@@ -198,6 +213,29 @@ export function MutualResolutionPanel({
     }
   };
 
+  const handleCancelProposal = async () => {
+    if (!pendingProposal || pendingProposal.proposer_id !== currentUserId) return;
+    
+    setCancelling(true);
+    try {
+      const { error } = await supabase
+        .from("appeal_mutual_proposals")
+        .update({ 
+          status: "cancelled", 
+          responded_at: new Date().toISOString() 
+        })
+        .eq("id", pendingProposal.id);
+
+      if (error) throw error;
+      toast.success("Propuesta cancelada");
+    } catch (error: any) {
+      console.error("Error cancelling proposal:", error);
+      toast.error("Error al cancelar la propuesta");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) {
     return (
       <Card className="border-2 shadow-lg">
@@ -235,18 +273,18 @@ export function MutualResolutionPanel({
                   Propuesta Recibida
                 </p>
                 <p className="text-sm text-amber-700 dark:text-amber-300">
-                  {pendingProposal.proposer_id === buyerId ? "El comprador" : "El vendedor"} propone la siguiente distribución:
+                  {getProposerName(pendingProposal.proposer_id)} propone la siguiente distribución:
                 </p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3 text-center">
-                <p className="text-sm text-muted-foreground mb-1">Comprador recibe</p>
+                <p className="text-sm text-muted-foreground mb-1">{getBuyerDisplayName()} recibe</p>
                 <p className="text-xl font-bold text-primary">{formatCLP(pendingProposal.buyer_amount)}</p>
               </div>
               <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3 text-center">
-                <p className="text-sm text-muted-foreground mb-1">Vendedor recibe</p>
+                <p className="text-sm text-muted-foreground mb-1">{getSellerDisplayName()} recibe</p>
                 <p className="text-xl font-bold text-primary">{formatCLP(pendingProposal.seller_amount)}</p>
               </div>
             </div>
@@ -291,17 +329,31 @@ export function MutualResolutionPanel({
               <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
                 <Send className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="font-semibold text-blue-900 dark:text-blue-100">
                   Tu Propuesta Enviada
                 </p>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-                  Esperando respuesta de la otra parte
+                  Esperando respuesta de {pendingProposal.proposer_id === buyerId ? getSellerDisplayName() : getBuyerDisplayName()}
                 </p>
-                <div className="flex gap-4 text-sm">
-                  <span>Comprador: <strong>{formatCLP(pendingProposal.buyer_amount)}</strong></span>
-                  <span>Vendedor: <strong>{formatCLP(pendingProposal.seller_amount)}</strong></span>
+                <div className="flex gap-4 text-sm mb-4">
+                  <span>{getBuyerDisplayName()}: <strong>{formatCLP(pendingProposal.buyer_amount)}</strong></span>
+                  <span>{getSellerDisplayName()}: <strong>{formatCLP(pendingProposal.seller_amount)}</strong></span>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelProposal}
+                  disabled={cancelling}
+                  className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/20"
+                >
+                  {cancelling ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <X className="h-4 w-4 mr-2" />
+                  )}
+                  Cancelar propuesta
+                </Button>
               </div>
             </div>
           </div>
@@ -334,7 +386,7 @@ export function MutualResolutionPanel({
                       <Label htmlFor="buyer" className="flex-1 cursor-pointer">
                         <div className="font-medium">Reembolsar al Comprador</div>
                         <div className="text-sm text-muted-foreground">
-                          El comprador recibe {formatCLP(totalAmount)}
+                          {getBuyerDisplayName()} recibe {formatCLP(totalAmount)}
                         </div>
                       </Label>
                     </div>
@@ -343,7 +395,7 @@ export function MutualResolutionPanel({
                       <Label htmlFor="seller" className="flex-1 cursor-pointer">
                         <div className="font-medium">Liberar al Vendedor</div>
                         <div className="text-sm text-muted-foreground">
-                          El vendedor recibe {formatCLP(totalAmount)}
+                          {getSellerDisplayName()} recibe {formatCLP(totalAmount)}
                         </div>
                       </Label>
                     </div>
@@ -403,10 +455,10 @@ export function MutualResolutionPanel({
                 {proposals.filter(p => p.status !== "pending").slice(0, 5).map(proposal => (
                   <div key={proposal.id} className="text-xs bg-muted/50 rounded p-2 flex justify-between items-center">
                     <span>
-                      {proposal.proposer_id === buyerId ? "Comprador" : "Vendedor"} propuso: {proposal.buyer_amount === totalAmount ? "Reembolso al comprador" : "Liberar al vendedor"}
+                      {getProposerName(proposal.proposer_id)} propuso: {proposal.buyer_amount === totalAmount ? `Reembolso a ${getBuyerDisplayName()}` : `Liberar a ${getSellerDisplayName()}`}
                     </span>
                     <Badge variant={proposal.status === "accepted" ? "default" : "secondary"} className="text-xs">
-                      {proposal.status === "accepted" ? "Aceptada" : "Rechazada"}
+                      {proposal.status === "accepted" ? "Aceptada" : proposal.status === "cancelled" ? "Cancelada" : "Rechazada"}
                     </Badge>
                   </div>
                 ))}

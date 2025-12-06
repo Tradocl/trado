@@ -18,6 +18,8 @@ interface AppealResolutionFlowProps {
   currentUserId: string;
   buyerId: string;
   sellerId: string;
+  buyerName: string;
+  sellerName: string;
   totalAmount: number;
   appealStatus: string;
   onRefresh: () => void;
@@ -31,6 +33,8 @@ export function AppealResolutionFlow({
   currentUserId,
   buyerId,
   sellerId,
+  buyerName,
+  sellerName,
   totalAmount,
   appealStatus,
   onRefresh
@@ -209,6 +213,8 @@ export function AppealResolutionFlow({
         currentUserId={currentUserId}
         buyerId={buyerId}
         sellerId={sellerId}
+        buyerName={buyerName}
+        sellerName={sellerName}
         totalAmount={totalAmount}
         appealStatus={appealStatus}
         onSwitchToEscalate={() => setCurrentStep("escalate")}
