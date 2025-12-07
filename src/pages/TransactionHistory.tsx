@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ShoppingBag, Store, Calendar, DollarSign, User, Package, Star, Check } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, ShoppingBag, Store, Calendar, DollarSign, User, Package, Star, Check, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -34,6 +35,8 @@ interface Transaction {
   };
 }
 
+type SortOption = 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'pending_rating';
+
 const resolvedAppealStatuses = [
   "resuelta_a_favor_comprador",
   "resuelta_a_favor_vendedor",
@@ -48,6 +51,8 @@ export default function TransactionHistory() {
   const [sales, setSales] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [userRatings, setUserRatings] = useState<Set<string>>(new Set());
+  const [purchasesSort, setPurchasesSort] = useState<SortOption>('date_desc');
+  const [salesSort, setSalesSort] = useState<SortOption>('date_desc');
 
   useEffect(() => {
     if (!user) {
@@ -113,6 +118,61 @@ export default function TransactionHistory() {
       setLoading(false);
     }
   };
+
+  const sortTransactions = (transactions: Transaction[], sortOption: SortOption, isSale: boolean): Transaction[] => {
+    return [...transactions].sort((a, b) => {
+      switch (sortOption) {
+        case 'date_desc':
+          return new Date(b.completed_at || b.created_at).getTime() - new Date(a.completed_at || a.created_at).getTime();
+        case 'date_asc':
+          return new Date(a.completed_at || a.created_at).getTime() - new Date(b.completed_at || b.created_at).getTime();
+        case 'amount_desc':
+          const amountA = isSale ? Number(a.amount) - Number(a.commission) : Number(a.amount);
+          const amountB = isSale ? Number(b.amount) - Number(b.commission) : Number(b.amount);
+          return amountB - amountA;
+        case 'amount_asc':
+          const amountA2 = isSale ? Number(a.amount) - Number(a.commission) : Number(a.amount);
+          const amountB2 = isSale ? Number(b.amount) - Number(b.commission) : Number(b.amount);
+          return amountA2 - amountB2;
+        case 'pending_rating':
+          // Pending ratings first
+          const aPending = !userRatings.has(a.id);
+          const bPending = !userRatings.has(b.id);
+          if (aPending && !bPending) return -1;
+          if (!aPending && bPending) return 1;
+          // Then by date desc
+          return new Date(b.completed_at || b.created_at).getTime() - new Date(a.completed_at || a.created_at).getTime();
+        default:
+          return 0;
+      }
+    });
+  };
+
+  const sortedPurchases = useMemo(() => 
+    sortTransactions(purchases, purchasesSort, false), 
+    [purchases, purchasesSort, userRatings]
+  );
+
+  const sortedSales = useMemo(() => 
+    sortTransactions(sales, salesSort, true), 
+    [sales, salesSort, userRatings]
+  );
+
+  const SortSelector = ({ value, onChange }: { value: SortOption; onChange: (v: SortOption) => void }) => (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="w-[200px]">
+        <ArrowUpDown className="h-4 w-4 mr-2" />
+        <SelectValue placeholder="Ordenar por..." />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="date_desc">Fecha (más reciente)</SelectItem>
+        <SelectItem value="date_asc">Fecha (más antigua)</SelectItem>
+        <SelectItem value="amount_desc">Monto (mayor a menor)</SelectItem>
+        <SelectItem value="amount_asc">Monto (menor a mayor)</SelectItem>
+        <SelectItem value="pending_rating">Calificación pendiente</SelectItem>
+      </SelectContent>
+    </Select>
+  );
 
   const TransactionCard = ({ transaction, isSale }: { transaction: Transaction; isSale: boolean }) => {
     const otherParty = isSale ? transaction.buyer_profile : transaction.seller_profile;
@@ -244,15 +304,20 @@ export default function TransactionHistory() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {purchases.map((transaction) => (
-                <TransactionCard 
-                  key={transaction.id} 
-                  transaction={transaction} 
-                  isSale={false} 
-                />
-              ))}
-            </div>
+            <>
+              <div className="flex justify-end">
+                <SortSelector value={purchasesSort} onChange={setPurchasesSort} />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {sortedPurchases.map((transaction) => (
+                  <TransactionCard 
+                    key={transaction.id} 
+                    transaction={transaction} 
+                    isSale={false} 
+                  />
+                ))}
+              </div>
+            </>
           )}
         </TabsContent>
 
@@ -271,15 +336,20 @@ export default function TransactionHistory() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {sales.map((transaction) => (
-                <TransactionCard 
-                  key={transaction.id} 
-                  transaction={transaction} 
-                  isSale={true} 
-                />
-              ))}
-            </div>
+            <>
+              <div className="flex justify-end">
+                <SortSelector value={salesSort} onChange={setSalesSort} />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {sortedSales.map((transaction) => (
+                  <TransactionCard 
+                    key={transaction.id} 
+                    transaction={transaction} 
+                    isSale={true} 
+                  />
+                ))}
+              </div>
+            </>
           )}
         </TabsContent>
       </Tabs>
