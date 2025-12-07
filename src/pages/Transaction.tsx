@@ -1185,18 +1185,7 @@ const Transaction = () => {
           </CardContent>
         </Card>
 
-        {/* === SECTION 4: CHAT (PROMINENT) === */}
-        {transaction.buyer_id && (
-          <TransactionChat
-            transactionId={transaction.id}
-            sellerId={transaction.seller_id}
-            sellerName={sellerProfile?.full_name || "Vendedor"}
-            buyerId={transaction.buyer_id || undefined}
-            buyerName={buyerProfile?.full_name}
-          />
-        )}
-
-        {/* === SECTION 5: PROGRESS TIMELINE === */}
+        {/* === SECTION 4: PROGRESS TIMELINE === */}
         <Card className="border-2 border-primary/10 shadow-lg">
           <CardContent className="p-6">
             <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
@@ -1600,6 +1589,17 @@ const Transaction = () => {
           </CardContent>
         </Card>
 
+        {/* === SECTION 5: CHAT (PROMINENT) === */}
+        {transaction.buyer_id && (
+          <TransactionChat
+            transactionId={transaction.id}
+            sellerId={transaction.seller_id}
+            sellerName={sellerProfile?.full_name || "Vendedor"}
+            buyerId={transaction.buyer_id || undefined}
+            buyerName={buyerProfile?.full_name}
+          />
+        )}
+
         {/* Create Appeal Button */}
         {!activeAppeal && transaction && ["funds_secured", "in_delivery", "awaiting_buyer_review", "return_requested", "return_in_progress"].includes(transaction.state) && (
           <div className="flex justify-center">
@@ -1611,7 +1611,7 @@ const Transaction = () => {
           </div>
         )}
 
-        {/* === SECTION 6: PARTICIPANTS (simplified) === */}
+        {/* === SECTION 6: PARTICIPANTS WITH RATINGS === */}
         <Card className="border border-muted">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -1620,126 +1620,83 @@ const Transaction = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
+            <Accordion type="single" collapsible className="w-full space-y-2">
               {/* Real Seller/Provider */}
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-gradient-to-br from-success/5 to-transparent">
-                {realSellerProfile ? (
-                  <Avatar className="h-10 w-10 border-2 border-success/30">
-                    <AvatarImage src={realSellerProfile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-success/20 text-success font-bold text-sm">
-                      {realSellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || (isService ? "P" : "V")}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <div className="h-10 w-10 rounded-full bg-success/20 flex items-center justify-center">
-                    <Store className="h-5 w-5 text-success" />
+              <AccordionItem value="seller-ratings" className="border rounded-lg bg-gradient-to-br from-success/5 to-transparent px-3">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <div className="flex items-center gap-3 w-full">
+                    {realSellerProfile ? (
+                      <Avatar className="h-10 w-10 border-2 border-success/30">
+                        <AvatarImage src={realSellerProfile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-success/20 text-success font-bold text-sm">
+                          {realSellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || (isService ? "P" : "V")}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-success/20 flex items-center justify-center">
+                        <Store className="h-5 w-5 text-success" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="font-semibold text-sm">{sellerLabel}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {realSellerProfile?.full_name || "Esperando..."}
+                      </p>
+                    </div>
+                    {realSellerProfile && (
+                      <Badge variant="outline" className="mr-2">
+                        <Star className="h-3 w-3 text-warning fill-warning mr-1" />
+                        {realSellerProfile.reputation_score?.toFixed(1) || "0.0"}
+                      </Badge>
+                    )}
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm">{sellerLabel}</p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {realSellerProfile?.full_name || "Esperando..."}
-                  </p>
-                </div>
+                </AccordionTrigger>
                 {realSellerProfile && (
-                  <div className="flex items-center gap-1 text-sm">
-                    <Star className="h-4 w-4 text-warning fill-warning" />
-                    <span className="font-semibold">{realSellerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
-                  </div>
+                  <AccordionContent className="pt-2 pb-4">
+                    <UserRatings userId={realSellerProfile.id} maxRatings={5} />
+                  </AccordionContent>
                 )}
-              </div>
+              </AccordionItem>
               
               {/* Real Buyer/Client */}
-              <div className="flex items-center gap-3 p-3 border rounded-lg bg-gradient-to-br from-info/5 to-transparent">
-                {realBuyerProfile ? (
-                  <Avatar className="h-10 w-10 border-2 border-info/30">
-                    <AvatarImage src={realBuyerProfile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-info/20 text-info font-bold text-sm">
-                      {realBuyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || "C"}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <div className="h-10 w-10 rounded-full bg-info/20 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-info" />
+              <AccordionItem value="buyer-ratings" className="border rounded-lg bg-gradient-to-br from-info/5 to-transparent px-3">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <div className="flex items-center gap-3 w-full">
+                    {realBuyerProfile ? (
+                      <Avatar className="h-10 w-10 border-2 border-info/30">
+                        <AvatarImage src={realBuyerProfile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-info/20 text-info font-bold text-sm">
+                          {realBuyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || "C"}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-info/20 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-info" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="font-semibold text-sm">{buyerLabel}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {realBuyerProfile?.full_name || "Esperando..."}
+                      </p>
+                    </div>
+                    {realBuyerProfile && (
+                      <Badge variant="outline" className="mr-2">
+                        <Star className="h-3 w-3 text-warning fill-warning mr-1" />
+                        {realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}
+                      </Badge>
+                    )}
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm">{buyerLabel}</p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {realBuyerProfile?.full_name || "Esperando..."}
-                  </p>
-                </div>
+                </AccordionTrigger>
                 {realBuyerProfile && (
-                  <div className="flex items-center gap-1 text-sm">
-                    <Star className="h-4 w-4 text-warning fill-warning" />
-                    <span className="font-semibold">{realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
-                  </div>
+                  <AccordionContent className="pt-2 pb-4">
+                    <UserRatings userId={realBuyerProfile.id} maxRatings={5} />
+                  </AccordionContent>
                 )}
-              </div>
-            </div>
+              </AccordionItem>
+            </Accordion>
           </CardContent>
         </Card>
-
-        {/* === SECTION 7: RATINGS (at the bottom) === */}
-        {(realSellerProfile || realBuyerProfile) && (
-          <Card className="border border-muted">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Star className="h-5 w-5 text-warning" />
-                Historial de Calificaciones
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                {realSellerProfile && (
-                  <AccordionItem value="seller-ratings">
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={realSellerProfile?.avatar_url || undefined} />
-                          <AvatarFallback className="text-xs">
-                            {realSellerProfile?.full_name?.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{realSellerProfile.full_name}</span>
-                        <Badge variant="outline" className="ml-2">
-                          <Star className="h-3 w-3 text-warning fill-warning mr-1" />
-                          {realSellerProfile.reputation_score?.toFixed(1) || "0.0"}
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <UserRatings userId={realSellerProfile.id} maxRatings={5} />
-                    </AccordionContent>
-                  </AccordionItem>
-                )}
-                
-                {realBuyerProfile && (
-                  <AccordionItem value="buyer-ratings">
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={realBuyerProfile?.avatar_url || undefined} />
-                          <AvatarFallback className="text-xs">
-                            {realBuyerProfile?.full_name?.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{realBuyerProfile.full_name}</span>
-                        <Badge variant="outline" className="ml-2">
-                          <Star className="h-3 w-3 text-warning fill-warning mr-1" />
-                          {realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <UserRatings userId={realBuyerProfile.id} maxRatings={5} />
-                    </AccordionContent>
-                  </AccordionItem>
-                )}
-              </Accordion>
-            </CardContent>
-          </Card>
-        )}
       </main>
 
       {/* Rating Dialog */}
