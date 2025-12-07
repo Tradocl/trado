@@ -130,7 +130,7 @@ serve(async (req: Request): Promise<Response> => {
 
     const { data: wallet, error: walletError } = await supabaseClient
       .from("wallets")
-      .select("id, balance")
+      .select("id, balance, blocked_balance")
       .eq("user_id", tx.buyer_id)
       .single();
 
@@ -141,18 +141,36 @@ serve(async (req: Request): Promise<Response> => {
 
     const refundAmount = Number(tx.amount);
     const newBalance = Number(wallet.balance) + refundAmount;
+    // Release the blocked amount (escrow was the transaction amount)
+    const currentBlocked = Number(wallet.blocked_balance ?? 0);
+    const newBlocked = Math.max(0, currentBlocked - refundAmount);
 
-    console.log(`[process-return-refund] Processing refund: amount=${refundAmount}, balance ${wallet.balance} -> ${newBalance}`);
+    console.log(`[process-return-refund] Processing refund: amount=${refundAmount}, balance ${wallet.balance} -> ${newBalance}, blocked ${currentBlocked} -> ${newBlocked}`);
 
-    // Update buyer wallet
+    // Update buyer wallet (balance + blocked_balance)
     const { error: updateWalletError } = await supabaseClient
       .from("wallets")
-      .update({ balance: newBalance })
+      .update({ 
+        balance: newBalance,
+        blocked_balance: newBlocked
+      })
       .eq("id", wallet.id);
 
     if (updateWalletError) {
       console.error("[process-return-refund] Error updating wallet", updateWalletError);
       throw new Error("No se pudo actualizar la billetera");
+    }
+
+    // Mark escrow_lock movement as approved (resolved)
+    const { error: escrowUpdateError } = await supabaseClient
+      .from("wallet_movements")
+      .update({ status: "approved" })
+      .eq("transaction_id", transactionId)
+      .eq("type", "escrow_lock")
+      .eq("status", "pending");
+
+    if (escrowUpdateError) {
+      console.error("[process-return-refund] Error updating escrow_lock movement", escrowUpdateError);
     }
 
     // Create wallet movement
