@@ -720,12 +720,13 @@ const Transaction = () => {
         )}
 
         {/* In-person delivery: Meeting proposal panel */}
-        {transaction.sale_type === "producto_persona" && transaction.state === "funds_secured" && (
+        {transaction.sale_type === "producto_persona" && transaction.state === "funds_secured" && realSellerId && realBuyerId && (
           <MeetingProposalPanel
             transactionId={transaction.id}
-            currentUserId={user?.id || ""}
+            userId={user?.id || ""}
+            sellerId={realSellerId}
+            buyerId={realBuyerId}
             isSeller={isSeller}
-            isBuyer={isBuyer}
             sellerName={realSellerProfile?.full_name || sellerLabel}
             buyerName={realBuyerProfile?.full_name || buyerLabel}
           />
