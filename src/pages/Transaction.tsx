@@ -23,6 +23,7 @@ import { ReturnStatusPanel } from "@/components/ReturnStatusPanel";
 import { MeetingProposalPanel } from "@/components/MeetingProposalPanel";
 import { formatCLP } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface Transaction {
   id: string;
@@ -585,6 +586,20 @@ const Transaction = () => {
     }
   };
 
+  // Helper variables for timeline
+  const resolvedAppealStatuses = ['resuelta_a_favor_comprador', 'resuelta_a_favor_vendedor', 'resuelta_parcial', 'cerrada'];
+  const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
+  const isCompleted = transaction.state === 'completed' || isAppealResolved;
+  const isInPersonDelivery = transaction.sale_type === 'producto_persona';
+  const isInReview = ['awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state);
+  const passedDelivery = ['in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
+  const passedReceived = ['awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
+  
+  const creatorName = creatorProfile?.full_name || creatorRoleLabel;
+  const joinerName = joinerProfile?.full_name || joinerRoleLabel;
+  const realSellerName = realSellerProfile?.full_name || sellerLabel;
+  const realBuyerName = realBuyerProfile?.full_name || buyerLabel;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/10">
       <header className="border-b bg-card/80 backdrop-blur-md shadow-sm">
@@ -597,1116 +612,1109 @@ const Transaction = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
-        {/* Status Card */}
-        <Card className="border-2 border-primary/20 shadow-2xl bg-gradient-to-br from-card to-card/80">
-          <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
+        {/* === SECTION 1: REQUIRED ACTIONS (TOP PRIORITY) === */}
+        
+        {/* Join as buyer action */}
+        {canJoinAsBuyer && (
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="h-6 w-6 text-info" />
+                <h4 className="font-bold text-lg">
+                  {transaction.sale_type === "servicio" 
+                    ? "¿Quieres contratar este servicio?" 
+                    : "¿Quieres comprar este producto?"}
+                </h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                {transaction.sale_type === "servicio"
+                  ? "Únete a esta transacción para contratar el servicio de forma protegida."
+                  : "Únete a esta transacción para iniciar el proceso de compra protegida."}
+              </p>
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
+                onClick={handleJoinAsBuyer}
+                disabled={joiningTransaction}
+              >
+                <Users className="mr-2 h-6 w-6" />
+                {joiningTransaction 
+                  ? "Uniéndose..." 
+                  : transaction.sale_type === "servicio" 
+                    ? "Unirme como Cliente" 
+                    : "Unirme como Comprador"}
+              </Button>
+              <p className="text-sm text-muted-foreground text-center mt-3 flex items-center justify-center gap-2">
+                🔒 {transaction.sale_type === "servicio" ? "Tu pago estará 100% protegido" : "Tu compra estará 100% protegida"}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Buyer deposit action */}
+        {isBuyer && transaction.state === "invited" && (
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="h-6 w-6 text-success" />
+                <h4 className="font-bold text-lg">Acción Requerida</h4>
+              </div>
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale"
+                onClick={() => setDepositDialogOpen(true)}
+              >
+                <DollarSign className="mr-2 h-6 w-6" />
+                Depositar ${formatCLP(buyerPays)} en Escrow
+              </Button>
+              <p className="text-sm text-muted-foreground text-center mt-3 flex items-center justify-center gap-2">
+                🔒 Tus fondos estarán protegidos hasta que confirmes {transaction.sale_type === "servicio" ? "el servicio" : "la entrega"}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seller mark as shipped (envío) */}
+        {isSeller && transaction.state === "funds_secured" && transaction.sale_type === "producto_envio" && (
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Truck className="h-6 w-6 text-info" />
+                <h4 className="font-bold text-lg">Acción Requerida</h4>
+              </div>
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
+                onClick={() => setShippingDialogOpen(true)}
+                disabled={!!activeAppeal}
+              >
+                <Truck className="mr-2 h-6 w-6" />
+                Marcar Producto como Enviado
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Service provider confirm (servicio) */}
+        {isSeller && transaction.state === "funds_secured" && transaction.sale_type === "servicio" && (
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Check className="h-6 w-6 text-info" />
+                <h4 className="font-bold text-lg">Acción Requerida</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                ¿Has completado el servicio? Márcalo como realizado para que el cliente pueda confirmar.
+              </p>
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
+                onClick={handleMarkAsShipped}
+                disabled={markingShipped || !!activeAppeal}
+              >
+                <Check className="mr-2 h-6 w-6" />
+                {markingShipped ? "Procesando..." : "Marcar Servicio como Realizado"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* In-person delivery: Meeting proposal panel */}
+        {transaction.sale_type === "producto_persona" && transaction.state === "funds_secured" && (
+          <MeetingProposalPanel
+            transactionId={transaction.id}
+            currentUserId={user?.id || ""}
+            isSeller={isSeller}
+            isBuyer={isBuyer}
+            sellerName={realSellerProfile?.full_name || sellerLabel}
+            buyerName={realBuyerProfile?.full_name || buyerLabel}
+          />
+        )}
+
+        {/* Buyer: mark as received (envío) */}
+        {isBuyer && transaction.state === "in_delivery" && transaction.sale_type === "producto_envio" && (
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Package className="h-6 w-6 text-success" />
+                <h4 className="font-bold text-lg">¿Recibiste el producto?</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Cuando recibas el producto físicamente, márcalo como recibido para iniciar tu período de revisión.
+              </p>
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
+                onClick={handleMarkAsReceived}
+                disabled={markingReceived || !!activeAppeal}
+              >
+                <Package className="mr-2 h-6 w-6" />
+                {markingReceived ? "Procesando..." : "Marcar como Recibido"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Service client: confirm delivery */}
+        {isBuyer && transaction.state === "in_delivery" && transaction.sale_type === "servicio" && (
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Check className="h-6 w-6 text-success" />
+                <h4 className="font-bold text-lg">¿El servicio fue realizado correctamente?</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Si estás satisfecho con el servicio, confirma para liberar el pago al proveedor.
+              </p>
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
+                onClick={handleConfirmDelivery}
+                disabled={confirmingDelivery || !!activeAppeal}
+              >
+                <Check className="mr-2 h-6 w-6" />
+                {confirmingDelivery ? "Procesando..." : "Confirmar y Liberar Pago"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* In-person delivery: confirm handoff */}
+        {isBuyer && transaction.state === "in_delivery" && transaction.sale_type === "producto_persona" && (
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Handshake className="h-6 w-6 text-success" />
+                <h4 className="font-bold text-lg">¿Recibiste el producto en persona?</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Si ya tienes el producto en tus manos y todo está correcto, confirma para liberar el pago.
+              </p>
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
+                onClick={handleConfirmDelivery}
+                disabled={confirmingDelivery || !!activeAppeal}
+              >
+                <Handshake className="mr-2 h-6 w-6" />
+                {confirmingDelivery ? "Procesando..." : "Confirmar Recepción y Liberar Pago"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Review Period UI */}
+        {isBuyer && transaction.state === "awaiting_buyer_review" && (
+          <Card className="border-2 border-warning/30 shadow-xl bg-gradient-to-br from-warning/10 to-warning/5 animate-scale-in">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Eye className="h-6 w-6 text-warning" />
+                <h4 className="font-bold text-lg">Período de Revisión</h4>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                El producto está en tus manos. Revísalo con calma y decide si todo está correcto.
+              </p>
+              
+              <Button 
+                size="lg"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
+                onClick={handleConfirmDelivery}
+                disabled={confirmingDelivery || !!activeAppeal}
+              >
+                <Check className="mr-2 h-6 w-6" />
+                {confirmingDelivery ? "Procesando..." : "Todo Correcto - Liberar Pago"}
+              </Button>
+
+              <ReturnRequestDialog
+                transactionId={transaction.id}
+                userId={user?.id || ""}
+                onRequestCreated={loadTransaction}
+              />
+
+              <p className="text-xs text-muted-foreground text-center">
+                ⚠️ Solo confirma si el producto está en perfectas condiciones
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seller waiting for review */}
+        {isSeller && transaction.state === "awaiting_buyer_review" && (
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Eye className="h-6 w-6 text-info" />
+                <h4 className="font-bold text-lg">Comprador Revisando</h4>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                El comprador ha recibido el producto y lo está revisando. Cuando confirme que todo está correcto, recibirás el pago.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Return Status Panel */}
+        {["return_requested", "return_in_progress"].includes(transaction.state) && (
+          <ReturnStatusPanel
+            transactionId={transaction.id}
+            isBuyer={isBuyer}
+            isSeller={isSeller}
+            transactionAmount={transaction.amount}
+            onStatusChange={loadTransaction}
+          />
+        )}
+
+        {/* Active Appeal Alert */}
+        {activeAppeal && (
+          <Card className="border-2 border-amber-200 dark:border-amber-800 shadow-xl bg-amber-50 dark:bg-amber-950 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0 mt-1" />
+                <div className="flex-1">
+                  <h4 className="font-bold text-lg text-amber-900 dark:text-amber-100 mb-1">
+                    Apelación Activa
+                  </h4>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+                    Hay una apelación en curso para esta transacción. Puedes revisar los detalles y participar en la resolución.
+                  </p>
+                </div>
+              </div>
+              <Button
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                onClick={() => navigate(`/appeal/${activeAppeal.id}`)}
+              >
+                <AlertCircle className="mr-2 h-4 w-4" />
+                Ir a Sala de Apelación
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Dispute state */}
+        {transaction.state === "in_dispute" && (
+          <Card className="border-2 border-destructive/30 shadow-xl bg-gradient-to-br from-destructive/20 to-destructive/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-destructive/20 rounded-full">
+                  <AlertCircle className="h-8 w-8 text-destructive" />
+                </div>
+                <div>
+                  <p className="font-bold text-xl text-destructive mb-2">⚠️ Disputa Abierta</p>
+                  <p className="text-muted-foreground">
+                    Un administrador está revisando esta transacción. Te contactaremos pronto para resolver el problema.
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Tiempo estimado de respuesta: 24-48 horas
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Completed state */}
+        {(transaction.state === "completed" || isAppealResolved) && (
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/20 to-success/5 animate-scale-in">
+            <CardContent className="p-8 text-center">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 bg-success/20 rounded-full">
+                  <Check className="h-16 w-16 text-success" />
+                </div>
+              </div>
+              <p className="font-bold text-2xl text-success mb-2">🎉 ¡Transacción Completada!</p>
+              <p className="text-muted-foreground">
+                Gracias por usar Trado. Los fondos han sido liberados exitosamente.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Rating CTA after completion */}
+        {(transaction.state === "completed" || isAppealResolved) && ((isSeller && !hasRatedBuyer && transaction.buyer_id) || (isBuyer && !hasRatedSeller)) && (
+          <Card className="border-2 border-warning/30 shadow-xl bg-gradient-to-br from-warning/10 to-warning/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="p-3 bg-warning/20 rounded-full">
+                  <Star className="h-8 w-8 text-warning" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-xl mb-2">¡Ayúdanos a crecer la confianza!</p>
+                  <p className="text-muted-foreground text-sm">
+                    Tu opinión es muy importante. Califica tu experiencia para ayudar a otros usuarios a tomar mejores decisiones.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {isSeller && !hasRatedBuyer && transaction.buyer_id && (
+                  <Button
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
+                    onClick={() => {
+                      handleOpenRatingDialog(transaction.buyer_id!, buyerProfile?.full_name || "Comprador", false);
+                    }}
+                  >
+                    <Star className="mr-2 h-6 w-6" />
+                    Calificar al Comprador
+                  </Button>
+                )}
+                {isBuyer && !hasRatedSeller && (
+                  <Button
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
+                    onClick={() => {
+                      handleOpenRatingDialog(transaction.seller_id, sellerProfile?.full_name || "Vendedor", true);
+                    }}
+                  >
+                    <Star className="mr-2 h-6 w-6" />
+                    Calificar al Vendedor
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Already rated message */}
+        {(transaction.state === "completed" || isAppealResolved) && (
+          <>
+            {isSeller && hasRatedBuyer && isBuyer && hasRatedSeller && (
+              <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                  <Check className="h-4 w-4 text-success" />
+                  Ya has calificado esta transacción
+                </p>
+              </div>
+            )}
+            
+            {isSeller && hasRatedBuyer && !isBuyer && (
+              <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                  <Check className="h-4 w-4 text-success" />
+                  Ya has calificado al comprador
+                </p>
+              </div>
+            )}
+            
+            {isBuyer && hasRatedSeller && !isSeller && (
+              <div className="p-4 bg-muted/50 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                  <Check className="h-4 w-4 text-success" />
+                  Ya has calificado al vendedor
+                </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* === SECTION 2: INVITE CODE (when waiting for other party) === */}
+        {isInitiator && transaction.state === "created" && !joinerProfile && (
+          <Card className="border-2 border-info/30 shadow-lg bg-gradient-to-br from-info/20 to-info/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 bg-info rounded-lg animate-pulse">
+                  <Copy className="h-5 w-5 text-info-foreground" />
+                </div>
+                <h4 className="font-bold text-info text-lg">
+                  ⏳ Esperando {joinerRoleLabel}
+                </h4>
+              </div>
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col md:flex-row gap-2">
+                  <Input
+                    value={transaction.invite_code}
+                    readOnly
+                    className="text-center text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30 flex-1"
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={copyInviteCode} 
+                      variant="outline"
+                      className="border-2 border-info/30 hover:bg-info/20 transition-all"
+                    >
+                      {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
+                    </Button>
+                    {isInitiator && (
+                      <Button
+                        variant="destructive"
+                        className="font-semibold"
+                        onClick={handleCancelTransaction}
+                        disabled={cancellingTransaction}
+                      >
+                        {cancellingTransaction ? "Cancelando..." : "Cancelar sala"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row gap-2">
+                  <Input
+                    value={`${window.location.origin}/transaction/${transaction.id}`}
+                    readOnly
+                    className="text-sm font-mono bg-background/50 border-2 border-primary/30 flex-1"
+                  />
+                  <Button 
+                    onClick={copyInviteLink} 
+                    variant="outline"
+                    className="border-2 border-primary/30 hover:bg-primary/20 transition-all"
+                  >
+                    {copiedLink ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
+                    <span className="ml-2">Copiar enlace</span>
+                  </Button>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mt-3 text-center">
+                📱 Comparte el código o el enlace directo con {joinerRoleLabel.toLowerCase()}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* === SECTION 3: PRODUCT DETAILS (compressed) === */}
+        <Card className="border-2 border-primary/20 shadow-xl bg-gradient-to-br from-card to-card/80">
+          <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5 pb-4">
             <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-3xl mb-2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <div className="flex-1">
+                <CardTitle className="text-2xl mb-1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   {transaction.product_name}
                 </CardTitle>
-                <CardDescription className="text-base">{transaction.product_description}</CardDescription>
+                {transaction.product_description && (
+                  <CardDescription className="text-sm line-clamp-2">{transaction.product_description}</CardDescription>
+                )}
               </div>
-              <div className="flex flex-col gap-2 items-end">
-                {/* Sale type badge */}
+              <div className="flex flex-col gap-2 items-end shrink-0">
                 {transaction.sale_type && (
-                  <Badge variant="outline" className="text-sm px-3 py-1">
+                  <Badge variant="outline" className="text-xs px-2 py-1">
                     {transaction.sale_type === "servicio" && "🛠️ Servicio"}
-                    {transaction.sale_type === "producto_persona" && "🤝 Entrega en Persona"}
+                    {transaction.sale_type === "producto_persona" && "🤝 En Persona"}
                     {transaction.sale_type === "producto_envio" && "📦 Envío"}
                   </Badge>
                 )}
                 {(() => {
-                  const resolvedAppealStatuses = [
-                    "resuelta_a_favor_comprador",
-                    "resuelta_a_favor_vendedor",
-                    "resuelta_parcial",
-                    "cerrada"
-                  ];
-                  const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
-                  
                   if (isAppealResolved) {
                     return (
-                      <Badge className="bg-success text-base px-4 py-2 shadow-lg">
+                      <Badge className="bg-success text-sm px-3 py-1 shadow-lg">
                         Completada
                       </Badge>
                     );
                   }
                   
                   return (
-                    <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-base px-4 py-2 shadow-lg animate-pulse`}>
+                    <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-sm px-3 py-1 shadow-lg`}>
                       {stateLabels[transaction.state]?.label || transaction.state}
                     </Badge>
                   );
                 })()}
                 {activeAppeal && (
-                  <Badge className="bg-amber-500 text-white text-base px-4 py-2 shadow-lg animate-pulse">
+                  <Badge className="bg-amber-500 text-white text-sm px-3 py-1 shadow-lg">
                     En Apelación
                   </Badge>
                 )}
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6 pt-6">
+          <CardContent className="pt-4">
             <div className="relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg blur-xl"></div>
-              <div className="relative flex justify-between items-center p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
+              <div className="relative flex justify-between items-center p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
                 {isBuyer ? (
                   <>
-                    <span className="text-lg font-semibold">Tu pago total</span>
-                    <span className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    <span className="text-base font-semibold">Tu pago total</span>
+                    <span className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                       ${formatCLP(buyerPays)}
                     </span>
                   </>
                 ) : isSeller ? (
                   <>
-                    <span className="text-lg font-semibold">Recibirás</span>
-                    <span className="text-4xl font-bold text-success">
+                    <span className="text-base font-semibold">Recibirás</span>
+                    <span className="text-3xl font-bold text-success">
                       ${formatCLP(sellerReceives)}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-lg font-semibold">Precio acordado</span>
-                    <span className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    <span className="text-base font-semibold">Precio acordado</span>
+                    <span className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                       ${formatCLP(transaction.amount)}
                     </span>
                   </>
                 )}
               </div>
             </div>
-
-            {/* Show invite code to initiator waiting for other party */}
-            {isInitiator && transaction.state === "created" && !joinerProfile && (
-              <div className="p-6 bg-gradient-to-br from-info/20 to-info/5 rounded-xl border-2 border-info/30 shadow-lg animate-scale-in">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-info rounded-lg animate-pulse">
-                    <Copy className="h-5 w-5 text-info-foreground" />
-                  </div>
-                  <h4 className="font-bold text-info text-lg">
-                    ⏳ Esperando {joinerRoleLabel}
-                  </h4>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col md:flex-row gap-2">
-                    <Input
-                      value={transaction.invite_code}
-                      readOnly
-                      className="text-center text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30 flex-1"
-                    />
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={copyInviteCode} 
-                        variant="outline"
-                        className="border-2 border-info/30 hover:bg-info/20 transition-all"
-                      >
-                        {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
-                      </Button>
-                      {isInitiator && (
-                        <Button
-                          variant="destructive"
-                          className="font-semibold"
-                          onClick={handleCancelTransaction}
-                          disabled={cancellingTransaction}
-                        >
-                          {cancellingTransaction ? "Cancelando..." : "Cancelar sala"}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col md:flex-row gap-2">
-                    <Input
-                      value={`${window.location.origin}/transaction/${transaction.id}`}
-                      readOnly
-                      className="text-sm font-mono bg-background/50 border-2 border-primary/30 flex-1"
-                    />
-                    <Button 
-                      onClick={copyInviteLink} 
-                      variant="outline"
-                      className="border-2 border-primary/30 hover:bg-primary/20 transition-all"
-                    >
-                      {copiedLink ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
-                      <span className="ml-2">Copiar enlace</span>
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mt-3 text-center">
-                  📱 Comparte el código o el enlace directo con {joinerRoleLabel.toLowerCase()}
-                </p>
-              </div>
-            )}
-
+            
             {/* Joiner joined notification */}
-            {joinerProfile && !['completed', 'cancelled', 'in_dispute'].includes(transaction.state) && (
-              <div className="p-5 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border-2 border-success/30 shadow-lg animate-scale-in">
+            {joinerProfile && !['completed', 'cancelled', 'in_dispute'].includes(transaction.state) && !isAppealResolved && (
+              <div className="mt-4 p-4 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border border-success/30">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-success/20 rounded-full">
-                    <Check className="h-6 w-6 text-success" />
+                  <div className="p-2 bg-success/20 rounded-full">
+                    <Check className="h-5 w-5 text-success" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg text-success">
+                    <p className="font-semibold text-success">
                       ✅ {joinerRoleLabel} se ha unido
-                    </h4>
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      {joinerProfile?.full_name} se ha unido a la transacción
+                      {joinerProfile?.full_name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* === SECTION 4: CHAT (PROMINENT) === */}
+        {transaction.buyer_id && (
+          <TransactionChat
+            transactionId={transaction.id}
+            sellerId={transaction.seller_id}
+            sellerName={sellerProfile?.full_name || "Vendedor"}
+            buyerId={transaction.buyer_id || undefined}
+            buyerName={buyerProfile?.full_name}
+          />
+        )}
+
+        {/* === SECTION 5: PROGRESS TIMELINE === */}
+        <Card className="border-2 border-primary/10 shadow-lg">
+          <CardContent className="p-6">
+            <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
+              <Package className="h-6 w-6 text-primary" />
+              Progreso de la Transacción
+            </h4>
+            
+            {/* Service timeline */}
+            {transaction.sale_type === 'servicio' && (
+              <div className="space-y-4">
+                {/* Step 1: Room Created */}
+                <div className="flex items-center gap-4 group">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground">
+                    <Store className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Sala Creada</p>
+                    <p className="text-sm text-muted-foreground">
+                      ✅ {creatorRoleLabel} ({creatorName}) creó la sala
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2: Client Joined */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    joinerProfile ? 'bg-success text-success-foreground' : 'bg-muted'
+                  }`}>
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">{joinerRoleLabel} Unido</p>
+                    <p className="text-sm text-muted-foreground">
+                      {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3: Escrow */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    passedDelivery || transaction.state === 'funds_secured'
+                      ? 'bg-success text-success-foreground' 
+                      : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Pago en Escrow</p>
+                    <p className="text-sm text-muted-foreground">
+                      {passedDelivery || transaction.state === 'funds_secured'
+                        ? '✅ Fondos asegurados'
+                        : transaction.state === 'invited'
+                        ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}...`
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 4: Service Performed */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    passedDelivery
+                      ? 'bg-success text-success-foreground'
+                      : transaction.state === 'funds_secured'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <Check className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Servicio Realizado</p>
+                    <p className="text-sm text-muted-foreground">
+                      {passedDelivery
+                        ? `✅ ${sellerLabel} (${realSellerName}) completó el servicio`
+                        : transaction.state === 'funds_secured'
+                        ? `⏳ Esperando que ${sellerLabel.toLowerCase()} complete el servicio...`
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 5: Client Confirms */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    isCompleted
+                      ? 'bg-success text-success-foreground'
+                      : passedDelivery
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <Star className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Cliente Confirma</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isCompleted
+                        ? '✅ Servicio confirmado'
+                        : passedDelivery
+                        ? `⏳ Esperando confirmación del ${buyerLabel.toLowerCase()}...`
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 6: Completed */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    isCompleted
+                      ? 'bg-success text-success-foreground'
+                      : 'bg-muted'
+                  }`}>
+                    <Check className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Transacción Completada</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isCompleted 
+                        ? isAppealResolved 
+                          ? '✅ Caso resuelto por la plataforma' 
+                          : '✅ ¡Todo listo!' 
+                        : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Participants - Show REAL seller and buyer */}
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Real Seller/Provider */}
-              <div className="p-5 border-2 border-success/30 rounded-xl bg-gradient-to-br from-success/10 to-success/5 shadow-md hover-scale">
-                <div className="flex items-center gap-3 mb-3">
-                  {realSellerProfile ? (
-                    <Avatar className="h-12 w-12 border-2 border-success/30">
-                      <AvatarImage src={realSellerProfile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-success/20 text-success font-bold">
-                        {realSellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || (isService ? "P" : "V")}
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <div className="h-12 w-12 rounded-full bg-success/20 flex items-center justify-center">
-                      <Store className="h-6 w-6 text-success" />
-                    </div>
-                  )}
-                  <div>
-                    <h4 className="font-bold text-lg">{sellerLabel}</h4>
-                    {realSellerProfile ? (
-                      <p className="font-semibold">{realSellerProfile.full_name}</p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Esperando...</p>
-                    )}
+            {/* In-person delivery timeline */}
+            {isInPersonDelivery && (
+              <div className="space-y-4">
+                {/* Step 1: Room Created */}
+                <div className="flex items-center gap-4 group">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground">
+                    <Store className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Sala Creada</p>
+                    <p className="text-sm text-muted-foreground">
+                      ✅ {creatorRoleLabel} ({creatorName}) creó la sala
+                    </p>
                   </div>
                 </div>
+
+                {/* Step 2: Buyer Joined */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    joinerProfile ? 'bg-success text-success-foreground' : 'bg-muted'
+                  }`}>
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">{joinerRoleLabel} Unido</p>
+                    <p className="text-sm text-muted-foreground">
+                      {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3: Escrow */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    passedDelivery || transaction.state === 'funds_secured'
+                      ? 'bg-success text-success-foreground' 
+                      : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Pago en Escrow</p>
+                    <p className="text-sm text-muted-foreground">
+                      {passedDelivery || transaction.state === 'funds_secured'
+                        ? '✅ Fondos asegurados'
+                        : transaction.state === 'invited'
+                        ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}...`
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 4: Ready to Meet */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    passedDelivery
+                      ? 'bg-success text-success-foreground'
+                      : transaction.state === 'funds_secured'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Listo para Entregar</p>
+                    <p className="text-sm text-muted-foreground">
+                      {passedDelivery
+                        ? '✅ Encuentro coordinado'
+                        : transaction.state === 'funds_secured'
+                        ? '📍 Coordinen lugar y hora'
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 5: Meeting / Handoff */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    isCompleted
+                      ? 'bg-success text-success-foreground'
+                      : passedDelivery
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <Handshake className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Confirmar Entrega</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isCompleted
+                        ? '✅ Entrega confirmada'
+                        : passedDelivery
+                        ? `🤝 ${buyerLabel} confirma recibimiento`
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 6: Completed */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    isCompleted
+                      ? 'bg-success text-success-foreground'
+                      : 'bg-muted'
+                  }`}>
+                    <Check className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Transacción Completada</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isCompleted 
+                        ? isAppealResolved 
+                          ? '✅ Caso resuelto por la plataforma' 
+                          : '✅ ¡Todo listo!' 
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Standard shipping timeline */}
+            {transaction.sale_type === 'producto_envio' && (
+              <div className="space-y-4">
+                {/* Step 1: Room Created */}
+                <div className="flex items-center gap-4 group">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground">
+                    <Store className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Sala Creada</p>
+                    <p className="text-sm text-muted-foreground">
+                      ✅ {creatorRoleLabel} ({creatorName}) creó la sala
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2: Buyer Joined */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    joinerProfile ? 'bg-success text-success-foreground' : 'bg-muted'
+                  }`}>
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">{joinerRoleLabel} Unido</p>
+                    <p className="text-sm text-muted-foreground">
+                      {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3: Escrow */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    passedDelivery || transaction.state === 'funds_secured'
+                      ? 'bg-success text-success-foreground' 
+                      : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Pago en Escrow</p>
+                    <p className="text-sm text-muted-foreground">
+                      {passedDelivery || transaction.state === 'funds_secured'
+                        ? '✅ Fondos asegurados'
+                        : transaction.state === 'invited'
+                        ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}...`
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 4: Shipped */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    passedDelivery
+                      ? 'bg-success text-success-foreground'
+                      : transaction.state === 'funds_secured'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <Truck className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Producto Enviado</p>
+                    <p className="text-sm text-muted-foreground">
+                      {passedDelivery
+                        ? `✅ ${sellerLabel} envió el producto`
+                        : transaction.state === 'funds_secured'
+                        ? `⏳ Esperando envío...`
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 5: Received */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    passedReceived
+                      ? 'bg-success text-success-foreground'
+                      : transaction.state === 'in_delivery'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <Package className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Producto Recibido</p>
+                    <p className="text-sm text-muted-foreground">
+                      {passedReceived
+                        ? `✅ ${buyerLabel} recibió el producto`
+                        : transaction.state === 'in_delivery'
+                        ? `🚚 En camino...`
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 6: Review Period */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    isCompleted
+                      ? 'bg-success text-success-foreground'
+                      : isInReview
+                      ? 'bg-warning text-warning-foreground animate-pulse'
+                      : 'bg-muted'
+                  }`}>
+                    <Eye className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Período de Revisión</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isCompleted
+                        ? '✅ Revisión completada'
+                        : ['return_requested', 'return_in_progress'].includes(transaction.state)
+                        ? '🔄 Devolución en proceso'
+                        : transaction.state === 'awaiting_buyer_review'
+                        ? `🔍 ${buyerLabel} revisando...`
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 7: Completed */}
+                <div className="flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    isCompleted
+                      ? 'bg-success text-success-foreground'
+                      : 'bg-muted'
+                  }`}>
+                    <Check className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Transacción Completada</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isCompleted 
+                        ? isAppealResolved 
+                          ? '✅ Caso resuelto por la plataforma' 
+                          : '✅ ¡Todo listo!' 
+                        : '⚪ Pendiente'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Create Appeal Button */}
+        {!activeAppeal && transaction && ["funds_secured", "in_delivery", "awaiting_buyer_review", "return_requested", "return_in_progress"].includes(transaction.state) && (
+          <div className="flex justify-center">
+            <CreateAppealDialog
+              transactionId={transaction.id}
+              userId={user?.id || ""}
+              saleType={transaction.sale_type || undefined}
+            />
+          </div>
+        )}
+
+        {/* === SECTION 6: PARTICIPANTS (simplified) === */}
+        <Card className="border border-muted">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Participantes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Real Seller/Provider */}
+              <div className="flex items-center gap-3 p-3 border rounded-lg bg-gradient-to-br from-success/5 to-transparent">
                 {realSellerProfile ? (
-                  <>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Star className="h-5 w-5 text-warning fill-warning" />
-                      <span className="font-bold">{realSellerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
-                    </div>
-                    <UserRatings userId={realSellerProfile.id} maxRatings={3} />
-                  </>
+                  <Avatar className="h-10 w-10 border-2 border-success/30">
+                    <AvatarImage src={realSellerProfile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-success/20 text-success font-bold text-sm">
+                      {realSellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || (isService ? "P" : "V")}
+                    </AvatarFallback>
+                  </Avatar>
                 ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground animate-pulse mt-2">
-                    <div className="h-3 w-3 rounded-full bg-warning"></div>
-                    <p className="text-sm font-medium">Esperando {sellerLabel.toLowerCase()}...</p>
+                  <div className="h-10 w-10 rounded-full bg-success/20 flex items-center justify-center">
+                    <Store className="h-5 w-5 text-success" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm">{sellerLabel}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {realSellerProfile?.full_name || "Esperando..."}
+                  </p>
+                </div>
+                {realSellerProfile && (
+                  <div className="flex items-center gap-1 text-sm">
+                    <Star className="h-4 w-4 text-warning fill-warning" />
+                    <span className="font-semibold">{realSellerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
                   </div>
                 )}
               </div>
               
               {/* Real Buyer/Client */}
-              <div className="p-5 border-2 border-info/30 rounded-xl bg-gradient-to-br from-info/10 to-info/5 shadow-md hover-scale">
-                <div className="flex items-center gap-3 mb-3">
-                  {realBuyerProfile ? (
-                    <Avatar className="h-12 w-12 border-2 border-info/30">
-                      <AvatarImage src={realBuyerProfile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-info/20 text-info font-bold">
-                        {realBuyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || "C"}
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <div className="h-12 w-12 rounded-full bg-info/20 flex items-center justify-center">
-                      <Users className="h-6 w-6 text-info" />
-                    </div>
-                  )}
-                  <div>
-                    <h4 className="font-bold text-lg">{buyerLabel}</h4>
-                    {realBuyerProfile ? (
-                      <p className="font-semibold">{realBuyerProfile.full_name}</p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Esperando...</p>
-                    )}
-                  </div>
-                </div>
+              <div className="flex items-center gap-3 p-3 border rounded-lg bg-gradient-to-br from-info/5 to-transparent">
                 {realBuyerProfile ? (
-                  <>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Star className="h-5 w-5 text-warning fill-warning" />
-                      <span className="font-bold">{realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
-                    </div>
-                    <UserRatings userId={realBuyerProfile.id} maxRatings={3} />
-                  </>
+                  <Avatar className="h-10 w-10 border-2 border-info/30">
+                    <AvatarImage src={realBuyerProfile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-info/20 text-info font-bold text-sm">
+                      {realBuyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || "C"}
+                    </AvatarFallback>
+                  </Avatar>
                 ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground animate-pulse mt-2">
-                    <div className="h-3 w-3 rounded-full bg-warning"></div>
-                    <p className="text-sm font-medium">Esperando {buyerLabel.toLowerCase()}...</p>
+                  <div className="h-10 w-10 rounded-full bg-info/20 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-info" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm">{buyerLabel}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {realBuyerProfile?.full_name || "Esperando..."}
+                  </p>
+                </div>
+                {realBuyerProfile && (
+                  <div className="flex items-center gap-1 text-sm">
+                    <Star className="h-4 w-4 text-warning fill-warning" />
+                    <span className="font-semibold">{realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}</span>
                   </div>
                 )}
               </div>
             </div>
-
-            <Separator className="my-6" />
-
-            {/* Progress Timeline */}
-            {(() => {
-              const resolvedAppealStatuses = ['resuelta_a_favor_comprador', 'resuelta_a_favor_vendedor', 'resuelta_parcial', 'cerrada'];
-              const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
-              const isCompleted = transaction.state === 'completed' || isAppealResolved;
-              const isInPersonDelivery = transaction.sale_type === 'producto_persona';
-              const isInReview = ['awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state);
-              const passedDelivery = ['in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
-              const passedReceived = ['awaiting_buyer_review', 'return_requested', 'return_in_progress', 'completed'].includes(transaction.state) || isAppealResolved;
-              
-              const creatorName = creatorProfile?.full_name || creatorRoleLabel;
-              const joinerName = joinerProfile?.full_name || joinerRoleLabel;
-              const realSellerName = realSellerProfile?.full_name || sellerLabel;
-              const realBuyerName = realBuyerProfile?.full_name || buyerLabel;
-              
-              // For services, simplified flow without shipping or meeting
-              if (isService) {
-                return (
-                  <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
-                    <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
-                      <StoreIcon className="h-6 w-6 text-primary" />
-                      Progreso del Servicio
-                    </h4>
-                    <div className="space-y-4">
-                      {/* Step 1: Room Created */}
-                      <div className="flex items-center gap-4 group">
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground scale-110">
-                          <Store className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">Sala Creada</p>
-                          <p className="text-sm text-muted-foreground">
-                            ✅ {creatorRoleLabel} ({creatorName}) creó la sala
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Step 2: Joiner Joined */}
-                      <div className="flex items-center gap-4 group">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          joinerProfile ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
-                        }`}>
-                          <Users className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">{joinerRoleLabel} Confirmado</p>
-                          <p className="text-sm text-muted-foreground">
-                            {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Step 3: Escrow */}
-                      <div className="flex items-center gap-4 group">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          passedDelivery || transaction.state === 'funds_secured'
-                            ? 'bg-success text-success-foreground scale-110' 
-                            : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
-                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                            : 'bg-muted'
-                        }`}>
-                          <DollarSign className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">Pago en Escrow</p>
-                          <p className="text-sm text-muted-foreground">
-                            {passedDelivery || transaction.state === 'funds_secured'
-                              ? '✅ Fondos asegurados y protegidos'
-                              : transaction.state === 'invited'
-                              ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()} (${realBuyerName})...`
-                              : '⚪ Pendiente'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Step 4: Service in Progress */}
-                      <div className="flex items-center gap-4 group">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          isCompleted
-                            ? 'bg-success text-success-foreground scale-110'
-                            : passedDelivery || transaction.state === 'funds_secured'
-                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                            : 'bg-muted'
-                        }`}>
-                          <StoreIcon className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">Servicio en Progreso</p>
-                          <p className="text-sm text-muted-foreground">
-                            {isCompleted
-                              ? '✅ Servicio completado'
-                              : passedDelivery || transaction.state === 'funds_secured'
-                              ? `🛠️ ${sellerLabel} (${realSellerName}) realiza el servicio`
-                              : '⚪ Pendiente'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Step 5: Completed */}
-                      <div className="flex items-center gap-4 group">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          isCompleted
-                            ? 'bg-success text-success-foreground scale-110'
-                            : 'bg-muted'
-                        }`}>
-                          <Check className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">Servicio Completado</p>
-                          <p className="text-sm text-muted-foreground">
-                            {isCompleted 
-                              ? isAppealResolved 
-                                ? '✅ Caso resuelto por la plataforma' 
-                                : '✅ ¡Servicio finalizado!' 
-                              : '⚪ Pendiente'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              
-              // For in-person delivery, different flow
-              if (isInPersonDelivery) {
-                return (
-                  <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
-                    <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
-                      <Handshake className="h-6 w-6 text-primary" />
-                      Progreso del Encuentro
-                    </h4>
-                    <div className="space-y-4">
-                      {/* Step 1: Room Created */}
-                      <div className="flex items-center gap-4 group">
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground scale-110">
-                          <Store className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">Sala Creada</p>
-                          <p className="text-sm text-muted-foreground">
-                            ✅ {creatorRoleLabel} ({creatorName}) creó la sala
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Step 2: Joiner Joined */}
-                      <div className="flex items-center gap-4 group">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          joinerProfile ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
-                        }`}>
-                          <Users className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">{joinerRoleLabel} Unido</p>
-                          <p className="text-sm text-muted-foreground">
-                            {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Step 3: Escrow */}
-                      <div className="flex items-center gap-4 group">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          passedDelivery || transaction.state === 'funds_secured'
-                            ? 'bg-success text-success-foreground scale-110' 
-                            : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
-                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                            : 'bg-muted'
-                        }`}>
-                          <DollarSign className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">Pago en Escrow</p>
-                          <p className="text-sm text-muted-foreground">
-                            {passedDelivery || transaction.state === 'funds_secured'
-                              ? '✅ Fondos asegurados y protegidos'
-                              : transaction.state === 'invited'
-                              ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()} (${realBuyerName})...`
-                              : '⚪ Pendiente'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Step 4: Ready to Meet / Coordinate */}
-                      <div className="flex items-center gap-4 group">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          passedDelivery
-                            ? 'bg-success text-success-foreground scale-110'
-                            : transaction.state === 'funds_secured'
-                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                            : 'bg-muted'
-                        }`}>
-                          <MapPin className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">Listo para Entregar</p>
-                          <p className="text-sm text-muted-foreground">
-                            {passedDelivery
-                              ? '✅ Encuentro coordinado'
-                              : transaction.state === 'funds_secured'
-                              ? '📍 Coordinen lugar y hora de encuentro'
-                              : '⚪ Pendiente'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Step 5: Meeting / Handoff */}
-                      <div className="flex items-center gap-4 group">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          isCompleted
-                            ? 'bg-success text-success-foreground scale-110'
-                            : passedDelivery
-                            ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                            : 'bg-muted'
-                        }`}>
-                          <Handshake className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">Confirmar Entrega</p>
-                          <p className="text-sm text-muted-foreground">
-                            {isCompleted
-                              ? '✅ Entrega confirmada'
-                              : passedDelivery
-                              ? `🤝 ${buyerLabel} (${realBuyerName}) confirma recibimiento`
-                              : '⚪ Pendiente'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Step 6: Completed */}
-                      <div className="flex items-center gap-4 group">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                          isCompleted
-                            ? 'bg-success text-success-foreground scale-110'
-                            : 'bg-muted'
-                        }`}>
-                          <Check className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-lg">Transacción Completada</p>
-                          <p className="text-sm text-muted-foreground">
-                            {isCompleted 
-                              ? isAppealResolved 
-                                ? '✅ Caso resuelto por la plataforma' 
-                                : '✅ ¡Todo listo!' 
-                              : '⚪ Pendiente'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              
-              // Standard shipping flow
-              return (
-                <div className="space-y-4 bg-gradient-to-br from-muted/50 to-background p-6 rounded-xl border-2 border-primary/10">
-                  <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
-                    <Package className="h-6 w-6 text-primary" />
-                    Progreso de la Transacción
-                  </h4>
-                  <div className="space-y-4">
-                    {/* Step 1: Room Created */}
-                    <div className="flex items-center gap-4 group">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground scale-110">
-                        <Store className="h-6 w-6" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-lg">Sala Creada</p>
-                        <p className="text-sm text-muted-foreground">
-                          ✅ {creatorRoleLabel} ({creatorName}) creó la sala
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Step 2: Joiner Joined */}
-                    <div className="flex items-center gap-4 group">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                        joinerProfile ? 'bg-success text-success-foreground scale-110' : 'bg-muted scale-100'
-                      }`}>
-                        <Users className="h-6 w-6" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-lg">{joinerRoleLabel} Unido</p>
-                        <p className="text-sm text-muted-foreground">
-                          {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Step 3: Escrow */}
-                    <div className="flex items-center gap-4 group">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                        passedDelivery || transaction.state === 'funds_secured'
-                          ? 'bg-success text-success-foreground scale-110' 
-                          : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
-                          ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                          : 'bg-muted'
-                      }`}>
-                        <DollarSign className="h-6 w-6" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-lg">Pago en Escrow</p>
-                        <p className="text-sm text-muted-foreground">
-                          {passedDelivery || transaction.state === 'funds_secured'
-                            ? '✅ Fondos asegurados y protegidos'
-                            : transaction.state === 'invited'
-                            ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()} (${realBuyerName})...`
-                            : '⚪ Pendiente'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Step 4: Shipped */}
-                    <div className="flex items-center gap-4 group">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                        passedDelivery
-                          ? 'bg-success text-success-foreground scale-110'
-                          : transaction.state === 'funds_secured'
-                          ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                          : 'bg-muted'
-                      }`}>
-                        <Truck className="h-6 w-6" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-lg">Producto Enviado</p>
-                        <p className="text-sm text-muted-foreground">
-                          {passedDelivery
-                            ? `✅ ${sellerLabel} (${realSellerName}) envió el producto`
-                            : transaction.state === 'funds_secured'
-                            ? `⏳ Esperando envío del ${sellerLabel.toLowerCase()} (${realSellerName})...`
-                            : '⚪ Pendiente'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Step 5: Received */}
-                    <div className="flex items-center gap-4 group">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                        passedReceived
-                          ? 'bg-success text-success-foreground scale-110'
-                          : transaction.state === 'in_delivery'
-                          ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                          : 'bg-muted'
-                      }`}>
-                        <Package className="h-6 w-6" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-lg">Producto Recibido</p>
-                        <p className="text-sm text-muted-foreground">
-                          {passedReceived
-                            ? `✅ ${buyerLabel} (${realBuyerName}) recibió el producto`
-                            : transaction.state === 'in_delivery'
-                            ? `🚚 En camino al ${buyerLabel.toLowerCase()} (${realBuyerName})...`
-                            : '⚪ Pendiente'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Step 6: Review Period */}
-                    <div className="flex items-center gap-4 group">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                        isCompleted
-                          ? 'bg-success text-success-foreground scale-110'
-                          : isInReview
-                          ? 'bg-warning text-warning-foreground scale-105 animate-pulse'
-                          : 'bg-muted'
-                      }`}>
-                        <Eye className="h-6 w-6" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-lg">Período de Revisión</p>
-                        <p className="text-sm text-muted-foreground">
-                          {isCompleted
-                            ? '✅ Revisión completada'
-                            : ['return_requested', 'return_in_progress'].includes(transaction.state)
-                            ? '🔄 Devolución en proceso'
-                            : transaction.state === 'awaiting_buyer_review'
-                            ? `🔍 ${buyerLabel} (${realBuyerName}) revisando el producto...`
-                            : '⚪ Pendiente'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Step 7: Completed */}
-                    <div className="flex items-center gap-4 group">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                        isCompleted
-                          ? 'bg-success text-success-foreground scale-110'
-                          : 'bg-muted'
-                      }`}>
-                        <Check className="h-6 w-6" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-lg">Transacción Completada</p>
-                        <p className="text-sm text-muted-foreground">
-                          {isCompleted 
-                            ? isAppealResolved 
-                              ? '✅ Caso resuelto por la plataforma' 
-                              : '✅ ¡Todo listo!' 
-                            : '⚪ Pendiente'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
-            <Separator className="my-6" />
-
-            <Separator className="my-6" />
-
-            {/* Join as buyer action - Show when no buyer and user is not seller */}
-            {canJoinAsBuyer && (
-              <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="h-6 w-6 text-info" />
-                  <h4 className="font-bold text-lg">
-                    {transaction.sale_type === "servicio" 
-                      ? "¿Quieres contratar este servicio?" 
-                      : "¿Quieres comprar este producto?"}
-                  </h4>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {transaction.sale_type === "servicio"
-                    ? "Únete a esta transacción para contratar el servicio de forma protegida."
-                    : "Únete a esta transacción para iniciar el proceso de compra protegida."}
-                </p>
-                <Button
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
-                  onClick={handleJoinAsBuyer}
-                  disabled={joiningTransaction}
-                >
-                  <Users className="mr-2 h-6 w-6" />
-                  {joiningTransaction 
-                    ? "Uniéndose..." 
-                    : transaction.sale_type === "servicio" 
-                      ? "Unirme como Cliente" 
-                      : "Unirme como Comprador"}
-                </Button>
-                <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
-                  🔒 {transaction.sale_type === "servicio" ? "Tu pago estará 100% protegido" : "Tu compra estará 100% protegida"}
-                </p>
-              </div>
-            )}
-
-            {/* Actions based on role and state */}
-            {isBuyer && transaction.state === "invited" && (
-              <div className="space-y-3 p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-xl border-2 border-success/30 animate-scale-in">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-6 w-6 text-success" />
-                  <h4 className="font-bold text-lg">Acción Requerida</h4>
-                </div>
-                <Button
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale"
-                  onClick={() => setDepositDialogOpen(true)}
-                >
-                  <DollarSign className="mr-2 h-6 w-6" />
-                  Depositar ${formatCLP(buyerPays)} en Escrow
-                </Button>
-                <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
-                  🔒 Tus fondos estarán protegidos hasta que confirmes {transaction.sale_type === "servicio" ? "el servicio" : "la entrega"}
-                </p>
-              </div>
-            )}
-
-            {isSeller && transaction.state === "funds_secured" && transaction.sale_type === "producto_envio" && (
-              <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
-                <div className="flex items-center gap-2 mb-2">
-                  <Truck className="h-6 w-6 text-info" />
-                  <h4 className="font-bold text-lg">Acción Requerida</h4>
-                </div>
-                <Button 
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
-                  onClick={() => setShippingDialogOpen(true)}
-                  disabled={!!activeAppeal}
-                >
-                  <Truck className="mr-2 h-6 w-6" />
-                  Marcar Producto como Enviado
-                </Button>
-                <p className="text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
-                  {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Marca cuando hayas enviado el producto al comprador"}
-                </p>
-              </div>
-            )}
-
-            {/* Service: Provider marks service as complete, client confirms */}
-            {transaction.sale_type === "servicio" && transaction.state === "funds_secured" && (
-              <div className="space-y-3 p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border-2 border-primary/30 animate-scale-in">
-                <div className="flex items-center gap-2 mb-2">
-                  <StoreIcon className="h-6 w-6 text-primary" />
-                  <h4 className="font-bold text-lg">
-                    {isSeller ? "Servicio en Progreso" : "Esperando Servicio"}
-                  </h4>
-                </div>
-                {isSeller ? (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      Realiza el servicio acordado. Cuando termines, el cliente podrá confirmar y liberar el pago.
-                    </p>
-                    <Button 
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale" 
-                      onClick={handleMarkAsShipped}
-                      disabled={markingShipped || !!activeAppeal}
-                    >
-                      {markingShipped ? (
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-2" />
-                      ) : (
-                        <Check className="mr-2 h-6 w-6" />
-                      )}
-                      {markingShipped ? "Procesando..." : "Marcar Servicio como Completado"}
-                    </Button>
-                    <p className="text-sm text-muted-foreground text-center">
-                      {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "🛠️ Marca cuando hayas finalizado el servicio"}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    El proveedor está realizando el servicio. Cuando termine, podrás confirmar y liberar el pago.
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Service: Client confirms completion */}
-            {transaction.sale_type === "servicio" && transaction.state === "in_delivery" && (
-              <div className="space-y-3 p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-xl border-2 border-success/30 animate-scale-in">
-                <div className="flex items-center gap-2 mb-2">
-                  <Check className="h-6 w-6 text-success" />
-                  <h4 className="font-bold text-lg">
-                    {isBuyer ? "Confirmar Servicio Completado" : "Esperando Confirmación del Cliente"}
-                  </h4>
-                </div>
-                {isBuyer ? (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      El proveedor ha marcado el servicio como completado. Si estás satisfecho, confirma para liberar el pago.
-                    </p>
-                    <Button 
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
-                      onClick={handleConfirmDelivery}
-                      disabled={confirmingDelivery || !!activeAppeal}
-                    >
-                      <Check className="mr-2 h-6 w-6" />
-                      {confirmingDelivery ? "Procesando..." : "Confirmar Servicio - Liberar Pago"}
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      ⚠️ Solo confirma si estás satisfecho con el servicio recibido
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    El cliente debe confirmar que el servicio fue completado satisfactoriamente para que recibas el pago.
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* In-person delivery: Meeting Proposal Panel */}
-            {transaction.sale_type === "producto_persona" && transaction.state === "funds_secured" && transaction.buyer_id && (
-              <MeetingProposalPanel
-                transactionId={transaction.id}
-                userId={user?.id || ""}
-                sellerId={transaction.seller_id}
-                buyerId={transaction.buyer_id}
-                sellerName={sellerProfile?.full_name || "Vendedor"}
-                buyerName={buyerProfile?.full_name || "Comprador"}
-                isSeller={isSeller}
-                onMeetingConfirmed={() => {
-                  // Automatically move to in_delivery when meeting is confirmed
-                  supabase
-                    .from("transactions")
-                    .update({ state: "in_delivery", shipped_at: new Date().toISOString() })
-                    .eq("id", transaction.id)
-                    .then(() => loadTransaction());
-                }}
-              />
-            )}
-
-            {/* In-person delivery: Ready to confirm - both parties */}
-            {transaction.sale_type === "producto_persona" && transaction.state === "in_delivery" && (
-              <div className="space-y-3 p-6 bg-gradient-to-br from-success/10 to-success/5 rounded-xl border-2 border-success/30 animate-scale-in">
-                <div className="flex items-center gap-2 mb-2">
-                  <Handshake className="h-6 w-6 text-success" />
-                  <h4 className="font-bold text-lg">
-                    {isBuyer ? "Confirmar Recepción" : "Esperando Confirmación"}
-                  </h4>
-                </div>
-                {isBuyer ? (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      Cuando recibas el producto en persona y verifiques que está todo bien, confirma para liberar el pago.
-                    </p>
-                    <Button 
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
-                      onClick={handleConfirmDelivery}
-                      disabled={confirmingDelivery || !!activeAppeal}
-                    >
-                      <Check className="mr-2 h-6 w-6" />
-                      {confirmingDelivery ? "Procesando..." : "Confirmar Entrega - Liberar Pago"}
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      ⚠️ Solo confirma si el producto está en perfectas condiciones
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    El comprador debe confirmar la recepción del producto para que recibas el pago.
-                  </p>
-                )}
-              </div>
-            )}
-
-            {isBuyer && transaction.state === "in_delivery" && transaction.sale_type === "producto_envio" && (
-              <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="h-6 w-6 text-info" />
-                  <h4 className="font-bold text-lg">Producto en Camino</h4>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  El vendedor ha enviado el producto. Cuando lo recibas, marca que lo tienes para iniciar el período de revisión.
-                </p>
-                
-                {/* Show tracking info if available */}
-                {transaction.product_description?.includes("📦 Envío:") && (
-                  <div className="p-3 bg-info/10 rounded-lg border border-info/20 mb-3">
-                    <p className="text-sm font-medium text-info">
-                      {transaction.product_description.split("📦 Envío:")[1]?.split("\n")[0] || ""}
-                    </p>
-                  </div>
-                )}
-                
-                <Button 
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
-                  onClick={handleMarkAsReceived}
-                  disabled={markingReceived || !!activeAppeal}
-                >
-                  {markingReceived ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-2" />
-                  ) : (
-                    <Package className="mr-2 h-6 w-6" />
-                  )}
-                  {markingReceived ? "Procesando..." : "Ya Recibí el Paquete"}
-                </Button>
-                <p className="text-sm text-muted-foreground text-center">
-                  {activeAppeal ? "⚠️ Acción bloqueada durante apelación" : "📦 Recuerda verificar el producto antes de confirmar"}
-                </p>
-              </div>
-            )}
-
-            {/* Review Period UI */}
-            {isBuyer && transaction.state === "awaiting_buyer_review" && (
-              <div className="space-y-4 p-6 bg-gradient-to-br from-warning/10 to-warning/5 rounded-xl border-2 border-warning/30 animate-scale-in">
-                <div className="flex items-center gap-2 mb-2">
-                  <Eye className="h-6 w-6 text-warning" />
-                  <h4 className="font-bold text-lg">Período de Revisión</h4>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  El producto está en tus manos. Revísalo con calma y decide si todo está correcto.
-                </p>
-                
-                <Button 
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
-                  onClick={handleConfirmDelivery}
-                  disabled={confirmingDelivery || !!activeAppeal}
-                >
-                  <Check className="mr-2 h-6 w-6" />
-                  {confirmingDelivery ? "Procesando..." : "Todo Correcto - Liberar Pago"}
-                </Button>
-
-                <ReturnRequestDialog
-                  transactionId={transaction.id}
-                  userId={user?.id || ""}
-                  onRequestCreated={loadTransaction}
-                />
-
-                <p className="text-xs text-muted-foreground text-center">
-                  ⚠️ Solo confirma si el producto está en perfectas condiciones
-                </p>
-              </div>
-            )}
-
-            {/* Seller waiting for review */}
-            {isSeller && transaction.state === "awaiting_buyer_review" && (
-              <div className="space-y-3 p-6 bg-gradient-to-br from-info/10 to-info/5 rounded-xl border-2 border-info/30 animate-scale-in">
-                <div className="flex items-center gap-2 mb-2">
-                  <Eye className="h-6 w-6 text-info" />
-                  <h4 className="font-bold text-lg">Comprador Revisando</h4>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  El comprador ha recibido el producto y lo está revisando. Cuando confirme que todo está correcto, recibirás el pago.
-                </p>
-              </div>
-            )}
-
-            {/* Return Status Panel */}
-            {["return_requested", "return_in_progress"].includes(transaction.state) && (
-              <ReturnStatusPanel
-                transactionId={transaction.id}
-                isBuyer={isBuyer}
-                isSeller={isSeller}
-                transactionAmount={transaction.amount}
-                onStatusChange={loadTransaction}
-              />
-            )}
-
-            {/* Active Appeal Alert */}
-            {activeAppeal && (
-              <div className="mt-4 p-6 bg-amber-50 dark:bg-amber-950 border-2 border-amber-200 dark:border-amber-800 rounded-xl animate-scale-in">
-                <div className="flex items-start gap-3 mb-4">
-                  <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0 mt-1" />
-                  <div className="flex-1">
-                    <h4 className="font-bold text-lg text-amber-900 dark:text-amber-100 mb-1">
-                      Apelación Activa
-                    </h4>
-                    <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
-                      Hay una apelación en curso para esta transacción. Puedes revisar los detalles y participar en la resolución.
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  className="w-full bg-amber-600 hover:bg-amber-700 text-white"
-                  onClick={() => navigate(`/appeal/${activeAppeal.id}`)}
-                >
-                  <AlertCircle className="mr-2 h-4 w-4" />
-                  Ir a Sala de Apelación
-                </Button>
-              </div>
-            )}
-
-            {/* Create Appeal Button - Always show if no active appeal and funds have been deposited */}
-            {!activeAppeal && transaction && ["funds_secured", "in_delivery", "awaiting_buyer_review", "return_requested", "return_in_progress"].includes(transaction.state) && (
-              <div className="mt-4">
-                <CreateAppealDialog
-                  transactionId={transaction.id}
-                  userId={user?.id || ""}
-                  saleType={transaction.sale_type || undefined}
-                />
-              </div>
-            )}
-
-            {transaction.state === "in_dispute" && (
-              <div className="p-6 bg-gradient-to-br from-destructive/20 to-destructive/5 rounded-xl border-2 border-destructive/30 animate-scale-in">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-destructive/20 rounded-full">
-                    <AlertCircle className="h-8 w-8 text-destructive" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-xl text-destructive mb-2">⚠️ Disputa Abierta</p>
-                    <p className="text-muted-foreground">
-                      Un administrador está revisando esta transacción. Te contactaremos pronto para resolver el problema.
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-3">
-                      Tiempo estimado de respuesta: 24-48 horas
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {(transaction.state === "completed" || (transaction.appeal_status && ["resuelta_a_favor_comprador", "resuelta_a_favor_vendedor", "resuelta_parcial", "cerrada"].includes(transaction.appeal_status))) && (
-              <>
-                <div className="p-8 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border-2 border-success/30 text-center animate-scale-in">
-                  <div className="flex justify-center mb-4">
-                    <div className="p-4 bg-success/20 rounded-full">
-                      <Check className="h-16 w-16 text-success" />
-                    </div>
-                  </div>
-                  <p className="font-bold text-2xl text-success mb-2">🎉 ¡Transacción Completada!</p>
-                  <p className="text-muted-foreground">
-                    Gracias por usar Trado. Los fondos han sido liberados exitosamente.
-                  </p>
-                </div>
-
-                {((isSeller && !hasRatedBuyer && transaction.buyer_id) || (isBuyer && !hasRatedSeller)) && (
-                  <div className="mt-6 p-6 bg-gradient-to-br from-warning/10 to-warning/5 rounded-xl border-2 border-warning/30 animate-scale-in">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="p-3 bg-warning/20 rounded-full">
-                        <Star className="h-8 w-8 text-warning" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-xl mb-2">¡Ayúdanos a crecer la confianza!</p>
-                        <p className="text-muted-foreground text-sm">
-                          Tu opinión es muy importante. Califica tu experiencia para ayudar a otros usuarios a tomar mejores decisiones.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      {isSeller && !hasRatedBuyer && transaction.buyer_id && (
-                        <Button
-                          size="lg"
-                          className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
-                          onClick={() => {
-                            handleOpenRatingDialog(transaction.buyer_id!, buyerProfile?.full_name || "Comprador", false);
-                          }}
-                        >
-                          <Star className="mr-2 h-6 w-6" />
-                          Calificar al Comprador
-                        </Button>
-                      )}
-                      {isBuyer && !hasRatedSeller && (
-                        <Button
-                          size="lg"
-                          className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
-                          onClick={() => {
-                            handleOpenRatingDialog(transaction.seller_id, sellerProfile?.full_name || "Vendedor", true);
-                          }}
-                        >
-                          <Star className="mr-2 h-6 w-6" />
-                          Calificar al Vendedor
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {isSeller && hasRatedBuyer && isBuyer && hasRatedSeller && (
-                  <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
-                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                      <Check className="h-4 w-4 text-success" />
-                      Ya has calificado esta transacción
-                    </p>
-                  </div>
-                )}
-                
-                {isSeller && hasRatedBuyer && !isBuyer && (
-                  <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
-                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                      <Check className="h-4 w-4 text-success" />
-                      Ya has calificado al comprador
-                    </p>
-                  </div>
-                )}
-                
-                {isBuyer && hasRatedSeller && !isSeller && (
-                  <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
-                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                      <Check className="h-4 w-4 text-success" />
-                      Ya has calificado al vendedor
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
           </CardContent>
         </Card>
 
-        {/* Chat Section - Only show when buyer has joined */}
-        {transaction.buyer_id && (
-          <div className="animate-fade-in">
-            <TransactionChat
-              transactionId={transaction.id}
-              sellerId={transaction.seller_id}
-              sellerName={sellerProfile?.full_name || "Vendedor"}
-              buyerId={transaction.buyer_id || undefined}
-              buyerName={buyerProfile?.full_name}
-            />
-          </div>
+        {/* === SECTION 7: RATINGS (at the bottom) === */}
+        {(realSellerProfile || realBuyerProfile) && (
+          <Card className="border border-muted">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Star className="h-5 w-5 text-warning" />
+                Historial de Calificaciones
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="single" collapsible className="w-full">
+                {realSellerProfile && (
+                  <AccordionItem value="seller-ratings">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={realSellerProfile?.avatar_url || undefined} />
+                          <AvatarFallback className="text-xs">
+                            {realSellerProfile?.full_name?.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium">{realSellerProfile.full_name}</span>
+                        <Badge variant="outline" className="ml-2">
+                          <Star className="h-3 w-3 text-warning fill-warning mr-1" />
+                          {realSellerProfile.reputation_score?.toFixed(1) || "0.0"}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <UserRatings userId={realSellerProfile.id} maxRatings={5} />
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+                
+                {realBuyerProfile && (
+                  <AccordionItem value="buyer-ratings">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={realBuyerProfile?.avatar_url || undefined} />
+                          <AvatarFallback className="text-xs">
+                            {realBuyerProfile?.full_name?.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium">{realBuyerProfile.full_name}</span>
+                        <Badge variant="outline" className="ml-2">
+                          <Star className="h-3 w-3 text-warning fill-warning mr-1" />
+                          {realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <UserRatings userId={realBuyerProfile.id} maxRatings={5} />
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+              </Accordion>
+            </CardContent>
+          </Card>
         )}
       </main>
 
@@ -1881,11 +1889,6 @@ const Transaction = () => {
                 />
               </div>
             )}
-            <div className="p-3 bg-info/10 rounded-lg border border-info/20">
-              <p className="text-sm text-muted-foreground">
-                📦 Esta información será visible para el comprador para que pueda rastrear su pedido.
-              </p>
-            </div>
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
@@ -1899,17 +1902,7 @@ const Transaction = () => {
                 onClick={handleMarkAsShipped}
                 disabled={markingShipped}
               >
-                {markingShipped ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Procesando...
-                  </>
-                ) : (
-                  <>
-                    <Truck className="mr-2 h-4 w-4" />
-                    Confirmar Envío
-                  </>
-                )}
+                {markingShipped ? "Procesando..." : "Confirmar Envío"}
               </Button>
             </div>
           </div>
