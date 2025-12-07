@@ -359,10 +359,12 @@ export type Database = {
           bank_holder_rut: string | null
           bank_name: string | null
           created_at: string | null
+          dashboard_color: string | null
           email: string
           full_name: string
           id: string
           is_verified: boolean | null
+          nickname: string | null
           phone: string | null
           reputation_score: number | null
           rut: string | null
@@ -383,10 +385,12 @@ export type Database = {
           bank_holder_rut?: string | null
           bank_name?: string | null
           created_at?: string | null
+          dashboard_color?: string | null
           email: string
           full_name: string
           id: string
           is_verified?: boolean | null
+          nickname?: string | null
           phone?: string | null
           reputation_score?: number | null
           rut?: string | null
@@ -407,10 +411,12 @@ export type Database = {
           bank_holder_rut?: string | null
           bank_name?: string | null
           created_at?: string | null
+          dashboard_color?: string | null
           email?: string
           full_name?: string
           id?: string
           is_verified?: boolean | null
+          nickname?: string | null
           phone?: string | null
           reputation_score?: number | null
           rut?: string | null

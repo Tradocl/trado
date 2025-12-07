@@ -4,12 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock, Pencil } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { formatCLP } from "@/lib/utils";
 import tradoShield from "@/assets/trado-shield.png";
+import { DashboardCustomizeDialog } from "@/components/DashboardCustomizeDialog";
 
 interface Profile {
   full_name: string;
@@ -17,6 +18,8 @@ interface Profile {
   total_transactions: number;
   is_verified: boolean;
   verification_status: string;
+  nickname: string | null;
+  dashboard_color: string;
 }
 
 interface WalletData {
@@ -57,6 +60,20 @@ const stateLabels: Record<string, { label: string; color: string }> = {
   in_dispute: { label: "En disputa", color: "bg-orange-500" },
 };
 
+const getCardGradient = (color: string): string => {
+  const gradients: Record<string, string> = {
+    primary: "bg-gradient-to-br from-primary to-primary-light",
+    emerald: "bg-gradient-to-br from-emerald-600 to-emerald-400",
+    purple: "bg-gradient-to-br from-purple-600 to-purple-400",
+    orange: "bg-gradient-to-br from-orange-600 to-orange-400",
+    rose: "bg-gradient-to-br from-rose-600 to-rose-400",
+    cyan: "bg-gradient-to-br from-cyan-600 to-cyan-400",
+    amber: "bg-gradient-to-br from-amber-600 to-amber-400",
+    slate: "bg-gradient-to-br from-slate-700 to-slate-500",
+  };
+  return gradients[color] || gradients.primary;
+};
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useAdminRole();
@@ -65,6 +82,7 @@ const Dashboard = () => {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -191,26 +209,36 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 py-8 space-y-8">
         {/* Welcome Card */}
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-primary to-primary-light text-primary-foreground">
+        <Card className={`border-0 shadow-xl text-white ${getCardGradient(profile?.dashboard_color || 'primary')}`}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-2xl flex items-center gap-2">
-                  ¡Hola, {profile?.full_name || "Usuario"}!
+                  ¡Hola, {profile?.nickname || profile?.full_name || "Usuario"}!
                   {profile?.is_verified && (
                     <CheckCircle className="h-6 w-6" />
                   )}
                 </CardTitle>
-                <CardDescription className="text-primary-foreground/80">
+                <CardDescription className="text-white/80">
                   Bienvenido a tu panel de control seguro
                 </CardDescription>
               </div>
-              {profile?.verification_status === 'approved' && (
-                <Badge className="bg-white/20 text-white border-white/30">
-                  <Shield className="w-4 h-4 mr-1" />
-                  Verificado
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white"
+                  onClick={() => setCustomizeOpen(true)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                {profile?.verification_status === 'approved' && (
+                  <Badge className="bg-white/20 text-white border-white/30">
+                    <Shield className="w-4 h-4 mr-1" />
+                    Verificado
+                  </Badge>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-6">
@@ -461,6 +489,19 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </main>
+
+      {profile && user && (
+        <DashboardCustomizeDialog
+          open={customizeOpen}
+          onOpenChange={setCustomizeOpen}
+          userId={user.id}
+          currentNickname={profile.nickname}
+          currentColor={profile.dashboard_color || 'primary'}
+          onSave={(nickname, color) => {
+            setProfile({ ...profile, nickname, dashboard_color: color });
+          }}
+        />
+      )}
     </div>
   );
 };
