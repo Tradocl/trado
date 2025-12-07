@@ -223,11 +223,11 @@ export default function Admin() {
       setPendingWithdrawals(enrichedPendingWithdrawals);
       setApprovedWithdrawals(enrichedApprovedWithdrawals);
 
-      // Load pending verifications
+      // Load pending verifications - only show users who have submitted documents (in_review)
       const { data: verificationsData, error: verificationsError } = await supabase
         .from("profiles")
         .select("id, full_name, email, verification_status, verification_document_url, verification_selfie_url, verification_submitted_at")
-        .in("verification_status", ["pending", "in_review"])
+        .eq("verification_status", "in_review")
         .order("verification_submitted_at", { ascending: false });
 
       if (verificationsError) throw verificationsError;
