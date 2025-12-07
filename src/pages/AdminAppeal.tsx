@@ -312,6 +312,7 @@ export default function AdminAppeal() {
                     appealId={appeal.id}
                     currentUserId={user?.id || ""}
                     appealStatus={appeal.status}
+                    isAdmin={true}
                   />
                 </TabsContent>
               </Tabs>

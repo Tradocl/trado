@@ -14,6 +14,7 @@ interface AppealEvidenceProps {
   appealId: string;
   currentUserId: string;
   appealStatus: string;
+  isAdmin?: boolean;
 }
 
 interface PendingFile {
@@ -21,7 +22,7 @@ interface PendingFile {
   preview: string | null;
 }
 
-export function AppealEvidence({ appealId, currentUserId, appealStatus }: AppealEvidenceProps) {
+export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin = false }: AppealEvidenceProps) {
   const [evidence, setEvidence] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
   const [comment, setComment] = useState("");
@@ -249,7 +250,7 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus }: Appeal
 
   return (
     <div className="space-y-6">
-      {!isResolved && (
+      {!isResolved && !isAdmin && (
         <div className="border rounded-lg p-4 space-y-4">
           <h3 className="font-semibold">Subir nueva evidencia</h3>
           
@@ -407,7 +408,7 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus }: Appeal
         )}
       </div>
 
-      {canSubmitForReview && (
+      {canSubmitForReview && !isAdmin && (
         <>
           <Separator className="my-6" />
           <div className="bg-gradient-to-r from-primary/5 to-accent/5 border rounded-lg p-6">
