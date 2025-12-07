@@ -98,20 +98,27 @@ export default function AdminAppeal() {
       return;
     }
 
-    const buyerAmount = buyerRefund ? parseFloat(buyerRefund) : null;
-    const sellerAmount = sellerPayment ? parseFloat(sellerPayment) : null;
+    let buyerAmount: number | null = null;
+    let sellerAmount: number | null = null;
+    const escrowAmount = transaction?.amount || 0;
 
-    if (
-      (resolution === "reembolso_parcial" || resolution === "reembolso_total") &&
-      (!buyerAmount || buyerAmount <= 0)
-    ) {
-      toast.error("Ingresa el monto del reembolso");
-      return;
-    }
-
-    if (resolution === "liberar_fondos_vendedor" && (!sellerAmount || sellerAmount <= 0)) {
-      toast.error("Ingresa el monto a liberar al vendedor");
-      return;
+    // Para distribución parcial, validar que se ingresen los montos
+    if (resolution === "reembolso_parcial") {
+      buyerAmount = buyerRefund ? parseFloat(buyerRefund) : 0;
+      sellerAmount = sellerPayment ? parseFloat(sellerPayment) : 0;
+      
+      if (buyerAmount + sellerAmount !== escrowAmount) {
+        toast.error(`Los montos deben sumar exactamente ${formatCLP(escrowAmount)}`);
+        return;
+      }
+    } else if (resolution === "reembolso_total") {
+      // Reembolso total al comprador
+      buyerAmount = escrowAmount;
+      sellerAmount = 0;
+    } else if (resolution === "liberar_fondos_vendedor") {
+      // Liberar todo al vendedor
+      buyerAmount = 0;
+      sellerAmount = escrowAmount;
     }
 
     setSubmitting(true);
@@ -250,57 +257,84 @@ export default function AdminAppeal() {
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <Label>Resolución</Label>
-                          <RadioGroup value={resolution} onValueChange={setResolution}>
+                          <RadioGroup value={resolution} onValueChange={(value) => {
+                            setResolution(value);
+                            // Reset amounts when changing resolution
+                            setBuyerRefund("");
+                            setSellerPayment("");
+                          }}>
                             <div className="flex items-center space-x-2">
                               <RadioGroupItem value="liberar_fondos_vendedor" id="seller" />
                               <Label htmlFor="seller" className="font-normal cursor-pointer">
-                                Liberar fondos al vendedor
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="reembolso_parcial" id="partial" />
-                              <Label htmlFor="partial" className="font-normal cursor-pointer">
-                                Reembolso parcial al comprador
+                                Liberar fondos al vendedor ({formatCLP(transaction.amount)})
                               </Label>
                             </div>
                             <div className="flex items-center space-x-2">
                               <RadioGroupItem value="reembolso_total" id="total" />
                               <Label htmlFor="total" className="font-normal cursor-pointer">
-                                Reembolso total al comprador
+                                Reembolso total al comprador ({formatCLP(transaction.amount)})
                               </Label>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="solicitar_mas_evidencia" id="evidence" />
-                              <Label htmlFor="evidence" className="font-normal cursor-pointer">
-                                Solicitar más evidencia
+                              <RadioGroupItem value="reembolso_parcial" id="partial" />
+                              <Label htmlFor="partial" className="font-normal cursor-pointer">
+                                Distribución parcial entre ambas partes
                               </Label>
                             </div>
                           </RadioGroup>
                         </div>
 
                         {resolution === "liberar_fondos_vendedor" && (
-                          <div className="space-y-2">
-                            <Label htmlFor="seller-payment">Monto a liberar al vendedor</Label>
-                            <Input
-                              id="seller-payment"
-                              type="number"
-                              value={sellerPayment}
-                              onChange={(e) => setSellerPayment(e.target.value)}
-                              placeholder="0"
-                            />
+                          <div className="bg-muted/50 p-3 rounded-md">
+                            <p className="text-sm text-muted-foreground">
+                              Se liberará el monto completo de <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span> al vendedor.
+                            </p>
                           </div>
                         )}
 
-                        {(resolution === "reembolso_parcial" || resolution === "reembolso_total") && (
-                          <div className="space-y-2">
-                            <Label htmlFor="buyer-refund">Monto a reembolsar al comprador</Label>
-                            <Input
-                              id="buyer-refund"
-                              type="number"
-                              value={buyerRefund}
-                              onChange={(e) => setBuyerRefund(e.target.value)}
-                              placeholder="0"
-                            />
+                        {resolution === "reembolso_total" && (
+                          <div className="bg-muted/50 p-3 rounded-md">
+                            <p className="text-sm text-muted-foreground">
+                              Se reembolsará el monto completo de <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span> al comprador.
+                            </p>
+                          </div>
+                        )}
+
+                        {resolution === "reembolso_parcial" && (
+                          <div className="space-y-4 bg-muted/50 p-4 rounded-md">
+                            <p className="text-sm text-muted-foreground">
+                              Monto total a distribuir: <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span>
+                            </p>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label htmlFor="buyer-refund">Monto para el comprador</Label>
+                                <Input
+                                  id="buyer-refund"
+                                  type="number"
+                                  value={buyerRefund}
+                                  onChange={(e) => setBuyerRefund(e.target.value)}
+                                  placeholder="0"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="seller-payment">Monto para el vendedor</Label>
+                                <Input
+                                  id="seller-payment"
+                                  type="number"
+                                  value={sellerPayment}
+                                  onChange={(e) => setSellerPayment(e.target.value)}
+                                  placeholder="0"
+                                />
+                              </div>
+                            </div>
+                            {buyerRefund && sellerPayment && (
+                              <p className={`text-sm ${parseFloat(buyerRefund) + parseFloat(sellerPayment) === transaction.amount ? 'text-green-600' : 'text-destructive'}`}>
+                                Suma: {formatCLP(parseFloat(buyerRefund || "0") + parseFloat(sellerPayment || "0"))} 
+                                {parseFloat(buyerRefund) + parseFloat(sellerPayment) !== transaction.amount && 
+                                  ` (debe ser ${formatCLP(transaction.amount)})`
+                                }
+                              </p>
+                            )}
                           </div>
                         )}
 
