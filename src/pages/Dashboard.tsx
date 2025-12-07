@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { formatCLP } from "@/lib/utils";
 import tradoShield from "@/assets/trado-shield.png";
+import { useTheme } from "next-themes";
 
 interface Profile {
   full_name: string;
@@ -19,6 +20,8 @@ interface Profile {
   verification_status: string;
   nickname: string | null;
   dashboard_color: string;
+  dashboard_background_url: string | null;
+  dashboard_theme: string | null;
 }
 
 interface WalletData {
@@ -76,6 +79,7 @@ const getCardGradient = (color: string): string => {
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useAdminRole();
+  const { setTheme } = useTheme();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<WalletData | null>(null);
@@ -121,10 +125,18 @@ const Dashboard = () => {
         resolvedAppealStatuses.includes(t.appeal_status || '')
       ).length || 0;
       
-      setProfile({
+      const profileData = {
         ...profileRes.data,
         total_transactions: completedCount
-      });
+      };
+      setProfile(profileData);
+      
+      // Apply user's theme preference
+      if (profileData.dashboard_theme && profileData.dashboard_theme !== 'system') {
+        setTheme(profileData.dashboard_theme);
+      } else if (profileData.dashboard_theme === 'system') {
+        setTheme('system');
+      }
       setWallet(walletRes.data);
       
       // Filter out transactions with resolved appeals from "in progress" list
@@ -207,7 +219,14 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 py-8 space-y-8">
         {/* Welcome Card */}
-        <Card className={`border-0 shadow-xl text-white ${getCardGradient(profile?.dashboard_color || 'primary')}`}>
+        <Card 
+          className={`border-0 shadow-xl text-white overflow-hidden ${!profile?.dashboard_background_url ? getCardGradient(profile?.dashboard_color || 'primary') : ''}`}
+          style={profile?.dashboard_background_url ? {
+            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${profile.dashboard_background_url})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          } : undefined}
+        >
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>

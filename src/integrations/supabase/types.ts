@@ -359,7 +359,9 @@ export type Database = {
           bank_holder_rut: string | null
           bank_name: string | null
           created_at: string | null
+          dashboard_background_url: string | null
           dashboard_color: string | null
+          dashboard_theme: string | null
           email: string
           full_name: string
           id: string
@@ -385,7 +387,9 @@ export type Database = {
           bank_holder_rut?: string | null
           bank_name?: string | null
           created_at?: string | null
+          dashboard_background_url?: string | null
           dashboard_color?: string | null
+          dashboard_theme?: string | null
           email: string
           full_name: string
           id: string
@@ -411,7 +415,9 @@ export type Database = {
           bank_holder_rut?: string | null
           bank_name?: string | null
           created_at?: string | null
+          dashboard_background_url?: string | null
           dashboard_color?: string | null
+          dashboard_theme?: string | null
           email?: string
           full_name?: string
           id?: string
