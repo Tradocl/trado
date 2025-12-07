@@ -499,13 +499,14 @@ export default function Appeal() {
                   Historial de conversaciones entre las partes
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-4">
                 <TransactionChat
                   transactionId={transaction.id}
                   sellerId={transaction.seller_id}
                   sellerName={transaction.seller?.full_name || "Vendedor"}
                   buyerId={transaction.buyer_id}
                   buyerName={transaction.buyer?.full_name || "Comprador"}
+                  hideHeader
                 />
               </CardContent>
             </Card>

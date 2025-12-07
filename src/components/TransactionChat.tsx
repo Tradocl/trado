@@ -27,9 +27,10 @@ interface TransactionChatProps {
   buyerName?: string;
   isAdmin?: boolean;
   adminName?: string;
+  hideHeader?: boolean;
 }
 
-export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName, isAdmin = false, adminName }: TransactionChatProps) => {
+export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName, isAdmin = false, adminName, hideHeader = false }: TransactionChatProps) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -237,14 +238,16 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
   };
 
   return (
-    <Card className="border-2 border-primary/20 shadow-xl">
-      <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
-        <CardTitle className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5 text-primary" />
-          Chat de la Transacción
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
+    <div className={hideHeader ? "" : "border-2 border-primary/20 shadow-xl rounded-lg"}>
+      {!hideHeader && (
+        <div className="border-b bg-gradient-to-r from-primary/5 to-accent/5 p-6 rounded-t-lg">
+          <h3 className="flex items-center gap-2 text-lg font-semibold">
+            <MessageCircle className="h-5 w-5 text-primary" />
+            Chat de la Transacción
+          </h3>
+        </div>
+      )}
+      <div className={hideHeader ? "" : "p-0"}>
         <ScrollArea ref={scrollRef} className="h-[400px] p-4">
           <div className="space-y-3">
             {messages.length === 0 ? (
@@ -393,7 +396,7 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
