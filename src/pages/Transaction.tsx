@@ -253,7 +253,23 @@ const Transaction = () => {
         },
       });
 
+      // Check for insufficient funds in both error and data responses
       if (error) {
+        // Parse error context if available (edge function 400 responses)
+        try {
+          const errorContext = error.context;
+          if (errorContext) {
+            const body = await errorContext.json?.() || JSON.parse(await errorContext.text?.() || '{}');
+            if (body?.insufficientFunds) {
+              toast.error("Saldo insuficiente. Por favor deposita fondos primero.");
+              navigate("/wallet?action=deposit");
+              return;
+            }
+          }
+        } catch (parseError) {
+          // Ignore parse errors, fall through to generic handling
+        }
+        
         console.error("Edge function error:", error);
         throw new Error(error.message || "Error al procesar el depósito");
       }
@@ -272,6 +288,12 @@ const Transaction = () => {
       setDepositDialogOpen(false);
       loadTransaction();
     } catch (error: any) {
+      // Also check if error message indicates insufficient funds
+      if (error.message?.includes("insuficiente")) {
+        toast.error("Saldo insuficiente. Por favor deposita fondos primero.");
+        navigate("/wallet?action=deposit");
+        return;
+      }
       toast.error("Error al depositar: " + error.message);
     } finally {
       setDepositingEscrow(false);
