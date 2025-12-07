@@ -604,7 +604,7 @@ const Transaction = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/10">
       <header className="border-b bg-card/80 backdrop-blur-md shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/")} className="hover:bg-primary/10">
+          <Button variant="ghost" onClick={() => navigate("/dashboard")} className="hover:bg-primary/10">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a Inicio
           </Button>
