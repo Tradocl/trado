@@ -122,10 +122,10 @@ serve(async (req) => {
       );
     }
 
-    // Fetch transaction data
+    // Fetch transaction data - IMPORTANT: include initiator_role and commission
     const { data: transaction, error: transactionError } = await supabaseAdmin
       .from("transactions")
-      .select("*")
+      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name")
       .eq("id", appeal.transaction_id)
       .single();
 
@@ -137,19 +137,30 @@ serve(async (req) => {
       );
     }
 
+    // Calculate correct escrow amount based on who initiated the transaction
+    const initiatorRole = transaction.initiator_role || 'seller';
+    const transactionAmount = Number(transaction.amount);
+    const commission = Number(transaction.commission) || 0;
+    
+    // If buyer initiated, they paid amount + commission. If seller initiated, buyer paid just amount.
+    const escrowAmount = initiatorRole === 'buyer' 
+      ? transactionAmount + commission 
+      : transactionAmount;
+
+    console.log(`[resolve-appeal] Transaction details: amount=${transactionAmount}, commission=${commission}, initiatorRole=${initiatorRole}, escrowAmount=${escrowAmount}`);
+
     // Validate amounts against transaction amount (don't allow more than escrow)
-    const escrowAmount = transaction.amount + (transaction.commission || 0);
     const totalDistribution = (buyerRefundAmount || 0) + (sellerPaymentAmount || 0);
     
     if (totalDistribution > escrowAmount) {
       console.error("Distribution exceeds escrow:", { totalDistribution, escrowAmount });
       return new Response(
-        JSON.stringify({ error: "Total distribution cannot exceed escrow amount" }),
+        JSON.stringify({ error: `Total distribution (${totalDistribution}) cannot exceed escrow amount (${escrowAmount})` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Processing appeal resolution:", { appealId, resolution, buyerRefundAmount, sellerPaymentAmount });
+    console.log("[resolve-appeal] Processing appeal resolution:", { appealId, resolution, buyerRefundAmount, sellerPaymentAmount, escrowAmount });
 
     // Create decision record
     const { error: decisionError } = await supabaseAdmin
@@ -206,19 +217,20 @@ serve(async (req) => {
       );
     }
 
-    // Calculate the amount that was blocked (escrow amount)
-    const blockedAmount = escrowAmount;
-    const newBuyerBlockedBalance = Math.max(0, (buyerWallet.blocked_balance || 0) - blockedAmount);
+    // Calculate the new blocked balance after releasing escrow
+    const currentBuyerBlocked = Number(buyerWallet.blocked_balance) || 0;
+    const newBuyerBlockedBalance = Math.max(0, currentBuyerBlocked - escrowAmount);
 
-    console.log("Clearing blocked balance:", { 
-      currentBlocked: buyerWallet.blocked_balance, 
-      blockedAmount, 
+    console.log("[resolve-appeal] Clearing blocked balance:", { 
+      currentBlocked: currentBuyerBlocked, 
+      escrowAmount, 
       newBuyerBlockedBalance 
     });
 
     // Process buyer refund if applicable
     if (buyerRefundAmount && buyerRefundAmount > 0) {
-      const newBuyerBalance = (buyerWallet.balance || 0) + buyerRefundAmount;
+      const currentBuyerBalance = Number(buyerWallet.balance) || 0;
+      const newBuyerBalance = currentBuyerBalance + buyerRefundAmount;
 
       const { error: updateBuyerError } = await supabaseAdmin
         .from("wallets")
@@ -236,6 +248,7 @@ serve(async (req) => {
         );
       }
 
+      // Create buyer escrow_release movement
       const { error: buyerMovementError } = await supabaseAdmin
         .from("wallet_movements")
         .insert({
@@ -243,16 +256,19 @@ serve(async (req) => {
           type: "escrow_release",
           amount: buyerRefundAmount,
           balance_after: newBuyerBalance,
-          description: `Reembolso por apelación - ${transaction.product_name}`,
+          description: `Reembolso "${transaction.product_name}"`,
           transaction_id: transaction.id,
           status: "approved",
         });
 
       if (buyerMovementError) {
         console.error("Error creating buyer wallet movement:", buyerMovementError);
+        // Log but don't fail - wallet balance is already updated
+      } else {
+        console.log("[resolve-appeal] Buyer escrow_release movement created successfully");
       }
 
-      console.log("Buyer refund processed:", { buyerRefundAmount, newBuyerBalance, newBuyerBlockedBalance });
+      console.log("[resolve-appeal] Buyer refund processed:", { buyerRefundAmount, newBuyerBalance, newBuyerBlockedBalance });
     } else {
       // Still need to clear blocked balance even if no refund
       const { error: updateBuyerBlockedError } = await supabaseAdmin
@@ -281,7 +297,8 @@ serve(async (req) => {
         );
       }
 
-      const newSellerBalance = (sellerWallet.balance || 0) + sellerPaymentAmount;
+      const currentSellerBalance = Number(sellerWallet.balance) || 0;
+      const newSellerBalance = currentSellerBalance + sellerPaymentAmount;
 
       const { error: updateSellerError } = await supabaseAdmin
         .from("wallets")
@@ -296,6 +313,7 @@ serve(async (req) => {
         );
       }
 
+      // Create seller escrow_release movement
       const { error: sellerMovementError } = await supabaseAdmin
         .from("wallet_movements")
         .insert({
@@ -303,16 +321,19 @@ serve(async (req) => {
           type: "escrow_release",
           amount: sellerPaymentAmount,
           balance_after: newSellerBalance,
-          description: `Pago liberado por apelación - ${transaction.product_name}`,
+          description: `Venta "${transaction.product_name}"`,
           transaction_id: transaction.id,
           status: "approved",
         });
 
       if (sellerMovementError) {
         console.error("Error creating seller wallet movement:", sellerMovementError);
+        // Log but don't fail - wallet balance is already updated
+      } else {
+        console.log("[resolve-appeal] Seller escrow_release movement created successfully");
       }
 
-      console.log("Seller payment processed:", { sellerPaymentAmount, newSellerBalance });
+      console.log("[resolve-appeal] Seller payment processed:", { sellerPaymentAmount, newSellerBalance });
     }
 
     // Mark any pending escrow_lock movements as approved (resolved)
@@ -325,6 +346,8 @@ serve(async (req) => {
 
     if (escrowUpdateError) {
       console.error("Error updating escrow_lock movement:", escrowUpdateError);
+    } else {
+      console.log("[resolve-appeal] escrow_lock movements marked as approved");
     }
 
     // Update transaction state
@@ -345,7 +368,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Appeal resolution completed successfully:", { appealId, newStatus });
+    console.log("[resolve-appeal] Appeal resolution completed successfully:", { appealId, newStatus, escrowAmount, buyerRefundAmount, sellerPaymentAmount });
 
     return new Response(
       JSON.stringify({ 

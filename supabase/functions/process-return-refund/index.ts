@@ -45,10 +45,10 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`[process-return-refund] Processing return: ${returnRequestId}, transaction: ${transactionId}, user: ${userId}`);
 
-    // Get transaction
+    // Get transaction - IMPORTANT: include initiator_role and commission
     const { data: tx, error: txError } = await supabaseClient
       .from("transactions")
-      .select("id, buyer_id, seller_id, amount, state")
+      .select("id, buyer_id, seller_id, amount, commission, initiator_role, state, product_name")
       .eq("id", transactionId)
       .single();
 
@@ -139,13 +139,27 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("Billetera del comprador no encontrada");
     }
 
-    const refundAmount = Number(tx.amount);
-    const newBalance = Number(wallet.balance) + refundAmount;
-    // Release the blocked amount (escrow was the transaction amount)
-    const currentBlocked = Number(wallet.blocked_balance ?? 0);
-    const newBlocked = Math.max(0, currentBlocked - refundAmount);
+    // Calculate correct escrow amount based on initiator_role
+    const initiatorRole = tx.initiator_role || 'seller';
+    const transactionAmount = Number(tx.amount);
+    const commission = Number(tx.commission) || 0;
+    
+    // If buyer initiated, they paid amount + commission. If seller initiated, buyer paid just amount.
+    const escrowAmount = initiatorRole === 'buyer' 
+      ? transactionAmount + commission 
+      : transactionAmount;
 
-    console.log(`[process-return-refund] Processing refund: amount=${refundAmount}, balance ${wallet.balance} -> ${newBalance}, blocked ${currentBlocked} -> ${newBlocked}`);
+    // Refund amount is what the buyer actually paid (escrow amount)
+    const refundAmount = escrowAmount;
+    const currentBalance = Number(wallet.balance);
+    const newBalance = currentBalance + refundAmount;
+    
+    // Release the blocked amount
+    const currentBlocked = Number(wallet.blocked_balance ?? 0);
+    const newBlocked = Math.max(0, currentBlocked - escrowAmount);
+
+    console.log(`[process-return-refund] Processing refund: initiatorRole=${initiatorRole}, escrowAmount=${escrowAmount}, refundAmount=${refundAmount}`);
+    console.log(`[process-return-refund] Balance: ${currentBalance} -> ${newBalance}, Blocked: ${currentBlocked} -> ${newBlocked}`);
 
     // Update buyer wallet (balance + blocked_balance)
     const { error: updateWalletError } = await supabaseClient
@@ -171,23 +185,28 @@ serve(async (req: Request): Promise<Response> => {
 
     if (escrowUpdateError) {
       console.error("[process-return-refund] Error updating escrow_lock movement", escrowUpdateError);
+    } else {
+      console.log("[process-return-refund] escrow_lock movement marked as approved");
     }
 
-    // Create wallet movement
+    // Create wallet movement for the refund
     const { error: movementError } = await supabaseClient
       .from("wallet_movements")
       .insert({
         wallet_id: wallet.id,
         transaction_id: transactionId,
-        type: "refund",
+        type: "escrow_release",
         amount: refundAmount,
         balance_after: newBalance,
-        description: "Reembolso por devolución",
+        description: `Reembolso "${tx.product_name}"`,
         status: "approved",
       });
 
     if (movementError) {
       console.error("[process-return-refund] Error creating movement", movementError);
+      // Log but don't fail - wallet balance is already updated
+    } else {
+      console.log("[process-return-refund] escrow_release movement created successfully");
     }
 
     // Update transaction state to completed
@@ -204,9 +223,9 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("No se pudo actualizar la transacción");
     }
 
-    console.log(`[process-return-refund] Successfully processed refund for transaction ${transactionId}`);
+    console.log(`[process-return-refund] Successfully processed refund for transaction ${transactionId}: refund=${refundAmount}`);
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, refundAmount }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
