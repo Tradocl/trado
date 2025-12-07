@@ -315,6 +315,18 @@ serve(async (req) => {
       console.log("Seller payment processed:", { sellerPaymentAmount, newSellerBalance });
     }
 
+    // Mark any pending escrow_lock movements as approved (resolved)
+    const { error: escrowUpdateError } = await supabaseAdmin
+      .from("wallet_movements")
+      .update({ status: "approved" })
+      .eq("transaction_id", transaction.id)
+      .eq("type", "escrow_lock")
+      .eq("status", "pending");
+
+    if (escrowUpdateError) {
+      console.error("Error updating escrow_lock movement:", escrowUpdateError);
+    }
+
     // Update transaction state
     const { error: updateTransactionError } = await supabaseAdmin
       .from("transactions")
