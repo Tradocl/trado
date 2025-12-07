@@ -64,6 +64,8 @@ const Wallet = () => {
       return `Compra "${getProductName(movement.description)}"`;
     }
     if (type === 'escrow_release') {
+      // Check if it's a refund (reembolso) or a sale (venta)
+      if (desc.includes('reembolso')) return `Reembolso "${getProductName(movement.description)}"`;
       if (desc.includes('servicio')) return `Servicio "${getProductName(movement.description)}"`;
       return `Venta "${getProductName(movement.description)}"`;
     }
