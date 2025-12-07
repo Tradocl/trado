@@ -137,7 +137,8 @@ export const MeetingProposalPanel = ({
 
   const handleAcceptProposal = async (proposalId: string) => {
     try {
-      const { error } = await supabase
+      // Update proposal status
+      const { error: proposalError } = await supabase
         .from("meeting_proposals")
         .update({ 
           status: "accepted",
@@ -145,9 +146,20 @@ export const MeetingProposalPanel = ({
         })
         .eq("id", proposalId);
 
-      if (error) throw error;
+      if (proposalError) throw proposalError;
 
-      toast.success("¡Propuesta aceptada! Coordinen el encuentro.");
+      // Update transaction state to in_delivery so buyer can confirm receipt
+      const { error: txError } = await supabase
+        .from("transactions")
+        .update({ 
+          state: "in_delivery",
+          shipped_at: new Date().toISOString()
+        })
+        .eq("id", transactionId);
+
+      if (txError) throw txError;
+
+      toast.success("¡Encuentro confirmado! Ahora coordinen la entrega.");
       loadProposals();
       onMeetingConfirmed?.();
     } catch (error: any) {

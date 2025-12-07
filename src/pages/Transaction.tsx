@@ -720,7 +720,7 @@ const Transaction = () => {
         )}
 
         {/* In-person delivery: Meeting proposal panel */}
-        {transaction.sale_type === "producto_persona" && transaction.state === "funds_secured" && realSellerId && realBuyerId && (
+        {transaction.sale_type === "producto_persona" && ["funds_secured", "in_delivery"].includes(transaction.state) && realSellerId && realBuyerId && (
           <MeetingProposalPanel
             transactionId={transaction.id}
             userId={user?.id || ""}
