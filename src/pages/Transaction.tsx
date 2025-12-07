@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1141,19 +1141,42 @@ const Transaction = () => {
               </div>
             </div>
             
-            {/* Joiner joined notification */}
+            {/* Current Status Progress Indicator */}
             {joinerProfile && !['completed', 'cancelled', 'in_dispute'].includes(transaction.state) && !isAppealResolved && (
               <div className="mt-4 p-4 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border border-success/30">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-success/20 rounded-full">
-                    <Check className="h-5 w-5 text-success" />
+                    {transaction.state === 'invited' && <DollarSign className="h-5 w-5 text-success" />}
+                    {transaction.state === 'funds_secured' && <Shield className="h-5 w-5 text-success" />}
+                    {transaction.state === 'in_delivery' && <Truck className="h-5 w-5 text-success" />}
+                    {transaction.state === 'awaiting_buyer_review' && <Eye className="h-5 w-5 text-success" />}
+                    {['return_requested', 'return_in_progress'].includes(transaction.state) && <Package className="h-5 w-5 text-warning" />}
+                    {!['invited', 'funds_secured', 'in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state) && <Check className="h-5 w-5 text-success" />}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-semibold text-success">
-                      ✅ {joinerRoleLabel} se ha unido
+                      {transaction.state === 'invited' && `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}`}
+                      {transaction.state === 'funds_secured' && '✅ Fondos asegurados en escrow'}
+                      {transaction.state === 'in_delivery' && `📦 ${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : 'Producto en camino'}`}
+                      {transaction.state === 'awaiting_buyer_review' && '👁️ Período de revisión activo'}
+                      {transaction.state === 'return_requested' && '📦 Devolución solicitada'}
+                      {transaction.state === 'return_in_progress' && '📦 Devolución en progreso'}
+                      {transaction.state === 'created' && `✅ ${joinerRoleLabel} se ha unido`}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {joinerProfile?.full_name}
+                      {transaction.state === 'invited' && `${joinerProfile?.full_name} se ha unido, falta depositar`}
+                      {transaction.state === 'funds_secured' && (
+                        transaction.sale_type === 'servicio' 
+                          ? `El proveedor debe confirmar que realizó el servicio`
+                          : transaction.sale_type === 'producto_persona'
+                          ? `Coordinen punto de encuentro para la entrega`
+                          : `El vendedor debe marcar el producto como enviado`
+                      )}
+                      {transaction.state === 'in_delivery' && `${buyerLabel} debe confirmar la recepción`}
+                      {transaction.state === 'awaiting_buyer_review' && `${buyerLabel} está revisando el producto`}
+                      {transaction.state === 'return_requested' && `Esperando respuesta del ${sellerLabel.toLowerCase()}`}
+                      {transaction.state === 'return_in_progress' && `Devolución en tránsito`}
+                      {transaction.state === 'created' && joinerProfile?.full_name}
                     </p>
                   </div>
                 </div>
