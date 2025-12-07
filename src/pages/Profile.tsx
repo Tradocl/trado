@@ -63,7 +63,20 @@ interface ProfileData {
   bank_name: string | null;
   bank_account_type: string | null;
   bank_account_number: string | null;
+  nickname: string | null;
+  dashboard_color: string | null;
 }
+
+const colorOptions = [
+  { value: "primary", label: "Azul", gradient: "from-primary to-primary-light" },
+  { value: "emerald", label: "Verde", gradient: "from-emerald-600 to-emerald-400" },
+  { value: "purple", label: "Púrpura", gradient: "from-purple-600 to-purple-400" },
+  { value: "orange", label: "Naranja", gradient: "from-orange-600 to-orange-400" },
+  { value: "rose", label: "Rosa", gradient: "from-rose-600 to-rose-400" },
+  { value: "cyan", label: "Cian", gradient: "from-cyan-600 to-cyan-400" },
+  { value: "amber", label: "Ámbar", gradient: "from-amber-600 to-amber-400" },
+  { value: "slate", label: "Gris", gradient: "from-slate-700 to-slate-500" },
+];
 
 const bankAccountSchema = z.object({
   bank_holder_name: z.string().trim().min(3, "Nombre debe tener al menos 3 caracteres").max(100, "Nombre muy largo"),
@@ -125,8 +138,12 @@ const Profile = () => {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [bankSectionOpen, setBankSectionOpen] = useState(false);
   const [passwordSectionOpen, setPasswordSectionOpen] = useState(false);
+  const [dashboardSectionOpen, setDashboardSectionOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [savingDashboard, setSavingDashboard] = useState(false);
+  const [nickname, setNickname] = useState("");
+  const [selectedColor, setSelectedColor] = useState("primary");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -185,6 +202,8 @@ const Profile = () => {
 
       if (data) {
         setProfileData(data);
+        setNickname(data.nickname || "");
+        setSelectedColor(data.dashboard_color || "primary");
         bankForm.reset({
           bank_holder_name: data.bank_holder_name || "",
           bank_holder_rut: data.bank_holder_rut || "",
@@ -348,6 +367,37 @@ const Profile = () => {
       toast.error("Error al guardar: " + error.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const onDashboardSave = async () => {
+    if (!user) return;
+
+    setSavingDashboard(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          nickname: nickname.trim() || null,
+          dashboard_color: selectedColor,
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setProfileData(prev => prev ? {
+        ...prev,
+        nickname: nickname.trim() || null,
+        dashboard_color: selectedColor,
+      } : null);
+
+      toast.success("Personalización guardada");
+      setDashboardSectionOpen(false);
+    } catch (error: any) {
+      console.error("Error saving dashboard:", error);
+      toast.error("Error al guardar: " + error.message);
+    } finally {
+      setSavingDashboard(false);
     }
   };
 
@@ -706,6 +756,92 @@ const Profile = () => {
                     </Button>
                   </form>
                 </Form>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        {/* Dashboard Customization Collapsible */}
+        <Collapsible open={dashboardSectionOpen} onOpenChange={setDashboardSectionOpen}>
+          <Card className="border-0 shadow-lg">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Edit2 className="h-5 w-5 text-primary" />
+                    <div>
+                      <CardTitle className="text-base">Personalizar Dashboard</CardTitle>
+                      <CardDescription className="text-xs">
+                        Cambia tu apodo y color de tarjeta
+                      </CardDescription>
+                    </div>
+                  </div>
+                  {dashboardSectionOpen ? (
+                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nickname">Apodo (opcional)</Label>
+                  <Input
+                    id="nickname"
+                    placeholder="Ej: Juan, JuanDev, etc."
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    maxLength={30}
+                    className="h-9"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Se mostrará en lugar de tu nombre completo en el dashboard
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Color de la tarjeta</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {colorOptions.map((color) => (
+                      <button
+                        key={color.value}
+                        type="button"
+                        onClick={() => setSelectedColor(color.value)}
+                        className={`relative h-10 rounded-lg bg-gradient-to-br ${color.gradient} transition-all duration-200 ${
+                          selectedColor === color.value
+                            ? "ring-2 ring-offset-2 ring-foreground scale-105"
+                            : "hover:scale-105"
+                        }`}
+                        title={color.label}
+                      >
+                        {selectedColor === color.value && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-2.5 h-2.5 bg-white rounded-full" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Vista previa</Label>
+                  <div className={`p-3 rounded-lg bg-gradient-to-br ${
+                    colorOptions.find(c => c.value === selectedColor)?.gradient || colorOptions[0].gradient
+                  } text-white`}>
+                    <p className="font-semibold text-sm">
+                      ¡Hola, {nickname.trim() || profileData?.full_name || "Usuario"}!
+                    </p>
+                    <p className="text-xs opacity-80">Bienvenido a tu panel de control seguro</p>
+                  </div>
+                </div>
+
+                <Button onClick={onDashboardSave} disabled={savingDashboard} className="w-full" size="sm">
+                  <Save className="mr-2 h-4 w-4" />
+                  {savingDashboard ? "Guardando..." : "Guardar Personalización"}
+                </Button>
               </CardContent>
             </CollapsibleContent>
           </Card>

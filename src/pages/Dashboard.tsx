@@ -4,13 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock, Pencil } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { formatCLP } from "@/lib/utils";
 import tradoShield from "@/assets/trado-shield.png";
-import { DashboardCustomizeDialog } from "@/components/DashboardCustomizeDialog";
 
 interface Profile {
   full_name: string;
@@ -82,7 +81,6 @@ const Dashboard = () => {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [customizeOpen, setCustomizeOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -223,22 +221,12 @@ const Dashboard = () => {
                   Bienvenido a tu panel de control seguro
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-8 w-8 bg-white/10 hover:bg-white/20 text-white"
-                  onClick={() => setCustomizeOpen(true)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                {profile?.verification_status === 'approved' && (
-                  <Badge className="bg-white/20 text-white border-white/30">
-                    <Shield className="w-4 h-4 mr-1" />
-                    Verificado
-                  </Badge>
-                )}
-              </div>
+              {profile?.verification_status === 'approved' && (
+                <Badge className="bg-white/20 text-white border-white/30">
+                  <Shield className="w-4 h-4 mr-1" />
+                  Verificado
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-6">
@@ -489,19 +477,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </main>
-
-      {profile && user && (
-        <DashboardCustomizeDialog
-          open={customizeOpen}
-          onOpenChange={setCustomizeOpen}
-          userId={user.id}
-          currentNickname={profile.nickname}
-          currentColor={profile.dashboard_color || 'primary'}
-          onSave={(nickname, color) => {
-            setProfile({ ...profile, nickname, dashboard_color: color });
-          }}
-        />
-      )}
     </div>
   );
 };
