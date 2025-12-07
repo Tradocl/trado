@@ -25,9 +25,11 @@ interface TransactionChatProps {
   sellerName: string;
   buyerId?: string;
   buyerName?: string;
+  isAdmin?: boolean;
+  adminName?: string;
 }
 
-export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName }: TransactionChatProps) => {
+export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName, isAdmin = false, adminName }: TransactionChatProps) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -219,13 +221,17 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
 
   const getSenderName = (userId: string) => {
     if (userId === user?.id) {
-      return "Tú";
+      return isAdmin ? "Tú (Administrador)" : "Tú";
     }
     if (userId === sellerId) {
       return sellerName;
     }
     if (userId === buyerId) {
       return buyerName || "Comprador";
+    }
+    // Check if sender is an admin (not seller or buyer)
+    if (userId !== sellerId && userId !== buyerId) {
+      return "Administrador";
     }
     return "Usuario";
   };
