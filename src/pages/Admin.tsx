@@ -104,6 +104,7 @@ export default function Admin() {
     pendingDeposits: 0,
     pendingWithdrawals: 0,
     totalTransactions: 0,
+    pendingAppeals: 0,
   });
 
   // Token accounting stats
@@ -246,12 +247,19 @@ export default function Admin() {
       if (transactionsError) throw transactionsError;
       setTransactions(transactionsData || []);
 
+      // Load pending appeals count
+      const { data: pendingAppealsData } = await supabase
+        .from("appeals")
+        .select("id")
+        .in("status", ["pendiente_intervencion_plataforma", "en_revision_plataforma"]);
+
       setStats({
         totalUsers: profilesData?.length || 0,
         pendingVerifications: verificationsData?.length || 0,
         pendingDeposits: pendingDepositsData?.length || 0,
         pendingWithdrawals: pendingWithdrawalsData?.length || 0,
         totalTransactions: transactionsData?.length || 0,
+        pendingAppeals: pendingAppealsData?.length || 0,
       });
 
       // Load token accounting stats
@@ -733,6 +741,11 @@ export default function Admin() {
           <TabsTrigger value="appeals">
             <Scale className="h-4 w-4 mr-2" />
             Apelaciones
+            {stats.pendingAppeals > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {stats.pendingAppeals}
+              </Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger value="returns">
             <RotateCcw className="h-4 w-4 mr-2" />
