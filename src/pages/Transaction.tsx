@@ -604,9 +604,9 @@ const Transaction = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/10">
       <header className="border-b bg-card/80 backdrop-blur-md shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")} className="hover:bg-primary/10">
+          <Button variant="ghost" onClick={() => navigate("/")} className="hover:bg-primary/10">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver al Dashboard
+            Volver a Inicio
           </Button>
         </div>
       </header>
@@ -1046,24 +1046,17 @@ const Transaction = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col md:flex-row gap-2">
-                  <Input
-                    value={`${window.location.origin}/transaction/${transaction.id}`}
-                    readOnly
-                    className="text-sm font-mono bg-background/50 border-2 border-primary/30 flex-1"
-                  />
-                  <Button 
-                    onClick={copyInviteLink} 
-                    variant="outline"
-                    className="border-2 border-primary/30 hover:bg-primary/20 transition-all"
-                  >
-                    {copiedLink ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
-                    <span className="ml-2">Copiar enlace</span>
-                  </Button>
-                </div>
+                <Button 
+                  onClick={copyInviteLink} 
+                  variant="outline"
+                  className="border-2 border-primary/30 hover:bg-primary/20 transition-all w-full md:w-auto"
+                >
+                  {copiedLink ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
+                  <span className="ml-2">Copiar enlace de invitación</span>
+                </Button>
               </div>
               <p className="text-sm text-muted-foreground mt-3 text-center">
-                📱 Comparte el código o el enlace directo con {joinerRoleLabel.toLowerCase()}
+                📱 Comparte el código o el enlace con {joinerRoleLabel.toLowerCase()}
               </p>
             </CardContent>
           </Card>
