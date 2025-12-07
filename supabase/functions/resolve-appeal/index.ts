@@ -240,7 +240,7 @@ serve(async (req) => {
         .from("wallet_movements")
         .insert({
           wallet_id: buyerWallet.id,
-          type: "appeal_refund",
+          type: "escrow_release",
           amount: buyerRefundAmount,
           balance_after: newBuyerBalance,
           description: `Reembolso por apelación - ${transaction.product_name}`,
@@ -300,7 +300,7 @@ serve(async (req) => {
         .from("wallet_movements")
         .insert({
           wallet_id: sellerWallet.id,
-          type: "appeal_payment",
+          type: "escrow_release",
           amount: sellerPaymentAmount,
           balance_after: newSellerBalance,
           description: `Pago liberado por apelación - ${transaction.product_name}`,

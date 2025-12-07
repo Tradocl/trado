@@ -865,6 +865,31 @@ const Transaction = () => {
           />
         )}
 
+        {/* Resolved Appeal Alert */}
+        {isAppealResolved && !activeAppeal && (
+          <Card className="border-2 border-green-200 dark:border-green-800 shadow-xl bg-green-50 dark:bg-green-950 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <Check className="h-6 w-6 text-green-600 dark:text-green-400 shrink-0 mt-1" />
+                <div className="flex-1">
+                  <h4 className="font-bold text-lg text-green-900 dark:text-green-100 mb-1">
+                    Apelación Resuelta
+                  </h4>
+                  <p className="text-sm text-green-700 dark:text-green-300 mb-1">
+                    {transaction.appeal_status === 'resuelta_a_favor_comprador' && 'El caso fue resuelto a favor del comprador.'}
+                    {transaction.appeal_status === 'resuelta_a_favor_vendedor' && 'El caso fue resuelto a favor del vendedor.'}
+                    {transaction.appeal_status === 'resuelta_parcial' && 'El caso fue resuelto con una distribución parcial de fondos.'}
+                    {transaction.appeal_status === 'cerrada' && 'El caso ha sido cerrado.'}
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-400">
+                    Los fondos han sido distribuidos según la resolución.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Active Appeal Alert */}
         {activeAppeal && (
           <Card className="border-2 border-amber-200 dark:border-amber-800 shadow-xl bg-amber-50 dark:bg-amber-950 animate-scale-in">
