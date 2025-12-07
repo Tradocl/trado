@@ -191,6 +191,46 @@ export default function AdminAppeal() {
                 </TabsList>
 
                 <TabsContent value="info" className="mt-6 space-y-6">
+                  {/* Appeal Details */}
+                  <div className="bg-muted/50 border rounded-lg p-4 space-y-4">
+                    <h3 className="font-semibold">Detalles de la Apelación</h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Motivo</p>
+                        <p className="font-semibold">
+                          {appeal.reason === "producto_no_llego" && (transaction.sale_type === "servicio" ? "Servicio no realizado" : "Producto nunca llegó")}
+                          {appeal.reason === "producto_diferente" && (transaction.sale_type === "servicio" ? "Servicio distinto al acordado" : "Producto distinto al acordado")}
+                          {appeal.reason === "danos_o_fallas" && (transaction.sale_type === "servicio" ? "Trabajo deficiente" : "Daños o fallas")}
+                          {appeal.reason === "incumplimiento_acuerdo" && "Incumplimiento del acuerdo"}
+                          {appeal.reason === "otro" && "Otro"}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Iniciada por</p>
+                        <p className="font-semibold">
+                          {appeal.initiator_id === transaction.buyer_id 
+                            ? `${transaction.buyer?.full_name || "Comprador"} (Comprador)`
+                            : `${transaction.seller?.full_name || "Vendedor"} (Vendedor)`
+                          }
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Transacción</p>
+                        <p className="font-semibold">{transaction.product_name}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Monto en disputa</p>
+                        <p className="font-semibold text-primary">{formatCLP(transaction.amount)}</p>
+                      </div>
+                    </div>
+                    {appeal.reason_description && (
+                      <div className="space-y-1 pt-2 border-t">
+                        <p className="text-sm font-medium text-muted-foreground">Descripción del problema</p>
+                        <p className="text-sm bg-background p-3 rounded-md">{appeal.reason_description}</p>
+                      </div>
+                    )}
+                  </div>
+
                   {appeal.status === "pendiente_intervencion_plataforma" && (
                     <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg">
                       <p className="text-sm mb-4">
