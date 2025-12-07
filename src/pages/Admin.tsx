@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale, Coins, ArrowDownCircle, ArrowUpCircle, Lock, Receipt, AlertTriangle, CheckCircle2, RotateCcw } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale, Coins, ArrowDownCircle, ArrowUpCircle, Lock, Receipt, AlertTriangle, CheckCircle2, RotateCcw, Building, BadgeDollarSign } from "lucide-react";
 import { formatCLP } from "@/lib/utils";
 import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
 import { AdminReturnMediationList } from "@/components/admin/AdminReturnMediationList";
@@ -113,7 +113,8 @@ export default function Admin() {
     totalWithdrawals: 0,
     activeEscrow: 0,
     totalCommissions: 0,
-    theoreticalBalance: 0,
+    expectedBankBalance: 0, // Depósitos - Retiros (lo que debe haber en cuenta Trado)
+    theoreticalWalletBalance: 0, // Depósitos - Retiros - Comisiones (lo que debería haber en wallets)
     discrepancy: 0,
     movementsByType: [] as { type: string; count: number; total: number }[],
     walletDetails: [] as { user_name: string; user_email: string; balance: number }[],
@@ -342,10 +343,15 @@ export default function Admin() {
         total: data.total,
       }));
 
-      // Calculate theoretical balance
-      // Depositos - Retiros = Balance Teórico (escrow no afecta porque ya está en wallets)
-      const theoreticalBalance = totalDeposits - totalWithdrawals;
-      const discrepancy = theoreticalBalance - totalCirculating;
+      // Calculate balances
+      // expectedBankBalance = Depósitos - Retiros (lo que Trado debe tener en su cuenta bancaria)
+      const expectedBankBalance = totalDeposits - totalWithdrawals;
+      
+      // theoreticalWalletBalance = Depósitos - Retiros - Comisiones (lo que debería estar en wallets de usuarios)
+      const theoreticalWalletBalance = totalDeposits - totalWithdrawals - totalCommissions;
+      
+      // discrepancy = diferencia entre lo teórico y lo real en wallets
+      const discrepancy = theoreticalWalletBalance - totalCirculating;
 
       setTokenStats({
         totalCirculating,
@@ -353,7 +359,8 @@ export default function Admin() {
         totalWithdrawals,
         activeEscrow,
         totalCommissions,
-        theoreticalBalance,
+        expectedBankBalance,
+        theoreticalWalletBalance,
         discrepancy,
         movementsByType,
         walletDetails,
@@ -1285,18 +1292,60 @@ export default function Admin() {
         </TabsContent>
 
         <TabsContent value="tokens" className="space-y-4">
-          {/* Token Summary Cards */}
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-            <Card>
+          {/* Token Summary Cards - Primera fila: Métricas principales */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="border-2 border-primary/30 bg-primary/5">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Circulando</CardTitle>
-                <Coins className="h-4 w-4 text-primary" />
+                <CardTitle className="text-sm font-medium">Cuenta Trado (Obligación)</CardTitle>
+                <Building className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.totalCirculating)}</div>
-                <p className="text-xs text-muted-foreground">En wallets de usuarios</p>
+                <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.expectedBankBalance)}</div>
+                <p className="text-xs text-muted-foreground">Depósitos - Retiros (debe haber en banco)</p>
               </CardContent>
             </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pertenece a Usuarios</CardTitle>
+                <Coins className="h-4 w-4 text-info" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-info">${formatCLP(tokenStats.totalCirculating)}</div>
+                <p className="text-xs text-muted-foreground">Balance actual en wallets</p>
+              </CardContent>
+            </Card>
+            <Card className="border-2 border-success/30 bg-success/5">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pertenece a Trado</CardTitle>
+                <BadgeDollarSign className="h-4 w-4 text-success" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-success">${formatCLP(tokenStats.totalCommissions)}</div>
+                <p className="text-xs text-muted-foreground">Comisiones cobradas (ganancias)</p>
+              </CardContent>
+            </Card>
+            <Card className={tokenStats.discrepancy === 0 ? "border-2 border-success/50 bg-success/5" : "border-2 border-destructive/50 bg-destructive/5"}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Estado Sistema</CardTitle>
+                {tokenStats.discrepancy === 0 ? (
+                  <CheckCircle2 className="h-4 w-4 text-success" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                )}
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${tokenStats.discrepancy === 0 ? "text-success" : "text-destructive"}`}>
+                  {tokenStats.discrepancy === 0 ? "✓ Cuadra" : `$${formatCLP(Math.abs(tokenStats.discrepancy))}`}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {tokenStats.discrepancy === 0 ? "Sistema balanceado" : tokenStats.discrepancy > 0 ? "Faltante en wallets" : "Exceso en wallets"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Segunda fila: Métricas de flujo */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Depósitos Históricos</CardTitle>
@@ -1320,73 +1369,92 @@ export default function Admin() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Escrow Activo</CardTitle>
-                <Lock className="h-4 w-4 text-info" />
+                <Lock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-info">${formatCLP(tokenStats.activeEscrow)}</div>
+                <div className="text-2xl font-bold">${formatCLP(tokenStats.activeEscrow)}</div>
                 <p className="text-xs text-muted-foreground">Bloqueado en transacciones</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Comisiones Cobradas</CardTitle>
-                <Receipt className="h-4 w-4 text-accent" />
+                <CardTitle className="text-sm font-medium">Comisiones</CardTitle>
+                <Receipt className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">${formatCLP(tokenStats.totalCommissions)}</div>
-                <p className="text-xs text-muted-foreground">Ingreso plataforma</p>
-              </CardContent>
-            </Card>
-            <Card className={tokenStats.discrepancy === 0 ? "border-success/50 bg-success/5" : "border-destructive/50 bg-destructive/5"}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Estado Balance</CardTitle>
-                {tokenStats.discrepancy === 0 ? (
-                  <CheckCircle2 className="h-4 w-4 text-success" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${tokenStats.discrepancy === 0 ? "text-success" : "text-destructive"}`}>
-                  {tokenStats.discrepancy === 0 ? "Cuadra" : `$${formatCLP(Math.abs(tokenStats.discrepancy))}`}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {tokenStats.discrepancy === 0 ? "Sistema balanceado" : tokenStats.discrepancy > 0 ? "Faltante en wallets" : "Exceso en wallets"}
-                </p>
+                <p className="text-xs text-muted-foreground">De transacciones completadas</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Reconciliation Panel */}
+          {/* Reconciliation Panel - Mejorado */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Scale className="h-5 w-5" />
-                Reconciliación de Balance
+                Reconciliación Contable
               </CardTitle>
-              <CardDescription>Ecuación de balance del sistema</CardDescription>
+              <CardDescription>Verificación del balance del sistema</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-                    <div className="text-sm text-muted-foreground">+ Depósitos Aprobados</div>
-                    <div className="text-xl font-bold text-success">${formatCLP(tokenStats.totalDeposits)}</div>
+              <div className="space-y-6">
+                {/* Ecuación Principal */}
+                <div className="p-4 rounded-lg bg-muted/50 border">
+                  <h4 className="font-semibold mb-3">Ecuación de Balance:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-center text-center">
+                    <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                      <div className="text-xs text-muted-foreground">Depósitos</div>
+                      <div className="text-lg font-bold text-success">${formatCLP(tokenStats.totalDeposits)}</div>
+                    </div>
+                    <div className="text-xl font-bold hidden md:block">−</div>
+                    <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                      <div className="text-xs text-muted-foreground">Retiros</div>
+                      <div className="text-lg font-bold text-warning">${formatCLP(tokenStats.totalWithdrawals)}</div>
+                    </div>
+                    <div className="text-xl font-bold hidden md:block">−</div>
+                    <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
+                      <div className="text-xs text-muted-foreground">Comisiones</div>
+                      <div className="text-lg font-bold">${formatCLP(tokenStats.totalCommissions)}</div>
+                    </div>
                   </div>
-                  <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
-                    <div className="text-sm text-muted-foreground">- Retiros Aprobados</div>
-                    <div className="text-xl font-bold text-warning">-${formatCLP(tokenStats.totalWithdrawals)}</div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-muted border">
-                    <div className="text-sm text-muted-foreground">= Balance Teórico</div>
-                    <div className="text-xl font-bold">${formatCLP(tokenStats.theoreticalBalance)}</div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                    <div className="text-sm text-muted-foreground">Total en Wallets</div>
-                    <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.totalCirculating)}</div>
+                  <div className="flex items-center justify-center gap-4 mt-4">
+                    <div className="text-2xl font-bold">=</div>
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                      <div className="text-xs text-muted-foreground">Balance Teórico en Wallets</div>
+                      <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.theoreticalWalletBalance)}</div>
+                    </div>
+                    <div className="text-xl">vs</div>
+                    <div className="p-3 rounded-lg bg-info/10 border border-info/20">
+                      <div className="text-xs text-muted-foreground">Balance Real en Wallets</div>
+                      <div className="text-xl font-bold text-info">${formatCLP(tokenStats.totalCirculating)}</div>
+                    </div>
                   </div>
                 </div>
 
+                {/* Desglose de Cuenta Trado */}
+                <div className="p-4 rounded-lg border bg-card">
+                  <h4 className="font-semibold mb-3">Desglose de Cuenta Bancaria Trado:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                      <div className="text-sm text-muted-foreground">Debe haber en cuenta</div>
+                      <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.expectedBankBalance)}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Depósitos - Retiros</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-info/10 border border-info/20">
+                      <div className="text-sm text-muted-foreground">De eso, es de usuarios</div>
+                      <div className="text-xl font-bold text-info">${formatCLP(tokenStats.totalCirculating)}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Obligación con usuarios</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                      <div className="text-sm text-muted-foreground">De eso, es de Trado</div>
+                      <div className="text-xl font-bold text-success">${formatCLP(tokenStats.totalCommissions)}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Comisiones (ganancia)</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Estado de Reconciliación */}
                 {tokenStats.discrepancy !== 0 && (
                   <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30">
                     <div className="flex items-center gap-2 text-destructive">
@@ -1394,10 +1462,10 @@ export default function Admin() {
                       <span className="font-semibold">Discrepancia Detectada</span>
                     </div>
                     <p className="text-sm mt-2">
-                      Diferencia de <strong>${formatCLP(Math.abs(tokenStats.discrepancy))}</strong>. 
+                      Diferencia de <strong>${formatCLP(Math.abs(tokenStats.discrepancy))}</strong> entre el balance teórico y real. 
                       {tokenStats.discrepancy > 0 
-                        ? " El balance teórico es mayor que lo disponible en wallets." 
-                        : " Hay más dinero en wallets de lo esperado."}
+                        ? " Faltan tokens en las wallets de usuarios." 
+                        : " Hay más tokens en wallets de lo que debería haber."}
                     </p>
                   </div>
                 )}
@@ -1406,10 +1474,11 @@ export default function Admin() {
                   <div className="p-4 rounded-lg bg-success/10 border border-success/30">
                     <div className="flex items-center gap-2 text-success">
                       <CheckCircle2 className="h-5 w-5" />
-                      <span className="font-semibold">Balance Correcto</span>
+                      <span className="font-semibold">Sistema Reconciliado</span>
                     </div>
                     <p className="text-sm mt-2">
-                      El sistema está correctamente balanceado. Los depósitos menos retiros coinciden con el total en wallets.
+                      ✓ Depósitos - Retiros - Comisiones = Balance en Wallets<br/>
+                      ✓ Cuenta Trado = Obligación con Usuarios + Ganancias de Trado
                     </p>
                   </div>
                 )}
