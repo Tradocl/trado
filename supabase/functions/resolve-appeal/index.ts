@@ -191,27 +191,41 @@ serve(async (req) => {
       );
     }
 
+    // Get buyer wallet to clear blocked balance
+    const { data: buyerWallet, error: buyerWalletError } = await supabaseAdmin
+      .from("wallets")
+      .select("*")
+      .eq("user_id", transaction.buyer_id)
+      .single();
+
+    if (buyerWalletError || !buyerWallet) {
+      console.error("Buyer wallet not found:", buyerWalletError);
+      return new Response(
+        JSON.stringify({ error: "Buyer wallet not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Calculate the amount that was blocked (escrow amount)
+    const blockedAmount = escrowAmount;
+    const newBuyerBlockedBalance = Math.max(0, (buyerWallet.blocked_balance || 0) - blockedAmount);
+
+    console.log("Clearing blocked balance:", { 
+      currentBlocked: buyerWallet.blocked_balance, 
+      blockedAmount, 
+      newBuyerBlockedBalance 
+    });
+
     // Process buyer refund if applicable
     if (buyerRefundAmount && buyerRefundAmount > 0) {
-      const { data: buyerWallet, error: buyerWalletError } = await supabaseAdmin
-        .from("wallets")
-        .select("*")
-        .eq("user_id", transaction.buyer_id)
-        .single();
-
-      if (buyerWalletError || !buyerWallet) {
-        console.error("Buyer wallet not found:", buyerWalletError);
-        return new Response(
-          JSON.stringify({ error: "Buyer wallet not found" }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
       const newBuyerBalance = (buyerWallet.balance || 0) + buyerRefundAmount;
 
       const { error: updateBuyerError } = await supabaseAdmin
         .from("wallets")
-        .update({ balance: newBuyerBalance })
+        .update({ 
+          balance: newBuyerBalance,
+          blocked_balance: newBuyerBlockedBalance
+        })
         .eq("id", buyerWallet.id);
 
       if (updateBuyerError) {
@@ -238,7 +252,17 @@ serve(async (req) => {
         console.error("Error creating buyer wallet movement:", buyerMovementError);
       }
 
-      console.log("Buyer refund processed:", { buyerRefundAmount, newBuyerBalance });
+      console.log("Buyer refund processed:", { buyerRefundAmount, newBuyerBalance, newBuyerBlockedBalance });
+    } else {
+      // Still need to clear blocked balance even if no refund
+      const { error: updateBuyerBlockedError } = await supabaseAdmin
+        .from("wallets")
+        .update({ blocked_balance: newBuyerBlockedBalance })
+        .eq("id", buyerWallet.id);
+
+      if (updateBuyerBlockedError) {
+        console.error("Error clearing buyer blocked balance:", updateBuyerBlockedError);
+      }
     }
 
     // Process seller payment if applicable
