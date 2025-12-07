@@ -158,19 +158,6 @@ export default function TransactionHistory() {
     [sales, salesSort, userRatings]
   );
 
-  // Calculate pending ratings
-  const pendingPurchaseRatings = useMemo(() => 
-    purchases.filter(t => !userRatings.has(t.id)).length,
-    [purchases, userRatings]
-  );
-
-  const pendingSaleRatings = useMemo(() => 
-    sales.filter(t => !userRatings.has(t.id)).length,
-    [sales, userRatings]
-  );
-
-  const totalPendingRatings = pendingPurchaseRatings + pendingSaleRatings;
-
   const SortSelector = ({ value, onChange }: { value: SortOption; onChange: (v: SortOption) => void }) => (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="w-[200px]">
@@ -186,42 +173,6 @@ export default function TransactionHistory() {
       </SelectContent>
     </Select>
   );
-
-  const PendingRatingsBanner = () => {
-    if (totalPendingRatings === 0) return null;
-    
-    return (
-      <div className="flex items-center gap-3 p-3 rounded-lg bg-warning/10 border border-warning/20 mb-6">
-        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-warning/20">
-          <Star className="h-4 w-4 text-warning" />
-        </div>
-        <div className="flex-1">
-          <p className="text-sm font-medium">
-            Tienes {totalPendingRatings} calificación{totalPendingRatings > 1 ? 'es' : ''} pendiente{totalPendingRatings > 1 ? 's' : ''}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {pendingPurchaseRatings > 0 && `${pendingPurchaseRatings} en compras`}
-            {pendingPurchaseRatings > 0 && pendingSaleRatings > 0 && ' • '}
-            {pendingSaleRatings > 0 && `${pendingSaleRatings} en ventas`}
-          </p>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="text-warning hover:text-warning hover:bg-warning/10"
-          onClick={() => {
-            if (pendingPurchaseRatings > 0) {
-              setPurchasesSort('pending_rating');
-            } else {
-              setSalesSort('pending_rating');
-            }
-          }}
-        >
-          Ver pendientes
-        </Button>
-      </div>
-    );
-  };
 
   const TransactionCard = ({ transaction, isSale }: { transaction: Transaction; isSale: boolean }) => {
     const otherParty = isSale ? transaction.buyer_profile : transaction.seller_profile;
@@ -325,8 +276,6 @@ export default function TransactionHistory() {
           Todas tus compras y ventas completadas
         </p>
       </div>
-
-      <PendingRatingsBanner />
 
       <Tabs defaultValue="purchases" className="space-y-6">
         <TabsList className="grid w-full max-w-md grid-cols-2">
