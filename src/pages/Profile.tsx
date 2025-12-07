@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -65,6 +65,8 @@ interface ProfileData {
   bank_account_number: string | null;
   nickname: string | null;
   dashboard_color: string | null;
+  dashboard_background_url: string | null;
+  dashboard_theme: string | null;
 }
 
 const colorOptions = [
@@ -144,6 +146,9 @@ const Profile = () => {
   const [savingDashboard, setSavingDashboard] = useState(false);
   const [nickname, setNickname] = useState("");
   const [selectedColor, setSelectedColor] = useState("primary");
+  const [selectedTheme, setSelectedTheme] = useState("system");
+  const [backgroundUrl, setBackgroundUrl] = useState("");
+  const [uploadingBackground, setUploadingBackground] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -204,6 +209,8 @@ const Profile = () => {
         setProfileData(data);
         setNickname(data.nickname || "");
         setSelectedColor(data.dashboard_color || "primary");
+        setSelectedTheme(data.dashboard_theme || "system");
+        setBackgroundUrl(data.dashboard_background_url || "");
         bankForm.reset({
           bank_holder_name: data.bank_holder_name || "",
           bank_holder_rut: data.bank_holder_rut || "",
@@ -380,6 +387,8 @@ const Profile = () => {
         .update({
           nickname: nickname.trim() || null,
           dashboard_color: selectedColor,
+          dashboard_theme: selectedTheme,
+          dashboard_background_url: backgroundUrl.trim() || null,
         })
         .eq("id", user.id);
 
@@ -389,6 +398,8 @@ const Profile = () => {
         ...prev,
         nickname: nickname.trim() || null,
         dashboard_color: selectedColor,
+        dashboard_theme: selectedTheme,
+        dashboard_background_url: backgroundUrl.trim() || null,
       } : null);
 
       toast.success("Personalización guardada");
@@ -399,6 +410,50 @@ const Profile = () => {
     } finally {
       setSavingDashboard(false);
     }
+  };
+
+  const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor selecciona una imagen válida");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no debe superar 5MB");
+      return;
+    }
+
+    setUploadingBackground(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `background-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setBackgroundUrl(publicUrl);
+      toast.success("Imagen de fondo subida");
+    } catch (error: any) {
+      console.error("Error uploading background:", error);
+      toast.error("Error al subir imagen: " + error.message);
+    } finally {
+      setUploadingBackground(false);
+    }
+  };
+
+  const removeBackground = () => {
+    setBackgroundUrl("");
   };
 
   const getTimeSinceRegistration = () => {
@@ -772,7 +827,7 @@ const Profile = () => {
                     <div>
                       <CardTitle className="text-base">Personalizar Dashboard</CardTitle>
                       <CardDescription className="text-xs">
-                        Cambia tu apodo y color de tarjeta
+                        Apodo, color, fondo y tema
                       </CardDescription>
                     </div>
                   </div>
@@ -785,7 +840,8 @@ const Profile = () => {
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <CardContent className="pt-0 space-y-4">
+              <CardContent className="pt-0 space-y-5">
+                {/* Nickname */}
                 <div className="space-y-2">
                   <Label htmlFor="nickname">Apodo (opcional)</Label>
                   <Input
@@ -801,6 +857,7 @@ const Profile = () => {
                   </p>
                 </div>
 
+                {/* Color */}
                 <div className="space-y-2">
                   <Label>Color de la tarjeta</Label>
                   <div className="grid grid-cols-4 gap-2">
@@ -826,11 +883,112 @@ const Profile = () => {
                   </div>
                 </div>
 
+                {/* Theme */}
+                <div className="space-y-2">
+                  <Label>Tema</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTheme("light")}
+                      className={`flex items-center justify-center gap-2 h-10 rounded-lg border transition-all duration-200 ${
+                        selectedTheme === "light"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <Sun className="h-4 w-4" />
+                      <span className="text-sm">Claro</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTheme("dark")}
+                      className={`flex items-center justify-center gap-2 h-10 rounded-lg border transition-all duration-200 ${
+                        selectedTheme === "dark"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <Moon className="h-4 w-4" />
+                      <span className="text-sm">Oscuro</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTheme("system")}
+                      className={`flex items-center justify-center gap-2 h-10 rounded-lg border transition-all duration-200 ${
+                        selectedTheme === "system"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <Monitor className="h-4 w-4" />
+                      <span className="text-sm">Sistema</span>
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Elige entre modo claro, oscuro o seguir tu configuración del sistema
+                  </p>
+                </div>
+
+                {/* Background Image */}
+                <div className="space-y-2">
+                  <Label>Imagen de fondo (opcional)</Label>
+                  {backgroundUrl ? (
+                    <div className="relative">
+                      <div 
+                        className="h-24 rounded-lg bg-cover bg-center border border-border"
+                        style={{ backgroundImage: `url(${backgroundUrl})` }}
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={removeBackground}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Eliminar
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex items-center justify-center h-24 rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors">
+                      {uploadingBackground ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                          <span className="text-sm">Subiendo...</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                          <Upload className="h-6 w-6" />
+                          <span className="text-xs">Subir imagen (máx 5MB)</span>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleBackgroundUpload}
+                        disabled={uploadingBackground}
+                      />
+                    </label>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Se mostrará como fondo de tu tarjeta de bienvenida
+                  </p>
+                </div>
+
+                {/* Preview */}
                 <div className="space-y-2">
                   <Label>Vista previa</Label>
-                  <div className={`p-3 rounded-lg bg-gradient-to-br ${
-                    colorOptions.find(c => c.value === selectedColor)?.gradient || colorOptions[0].gradient
-                  } text-white`}>
+                  <div 
+                    className={`relative p-3 rounded-lg overflow-hidden ${
+                      !backgroundUrl ? `bg-gradient-to-br ${colorOptions.find(c => c.value === selectedColor)?.gradient || colorOptions[0].gradient}` : ''
+                    } text-white`}
+                    style={backgroundUrl ? { 
+                      backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${backgroundUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    } : undefined}
+                  >
                     <p className="font-semibold text-sm">
                       ¡Hola, {nickname.trim() || profileData?.full_name || "Usuario"}!
                     </p>
