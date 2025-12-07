@@ -30,6 +30,7 @@ import { AppealEvidence } from "@/components/appeal/AppealEvidence";
 import { AppealTimeline } from "@/components/appeal/AppealTimeline";
 import { AppealRatingDialog } from "@/components/appeal/AppealRatingDialog";
 import { AppealResolutionFlow } from "@/components/appeal/AppealResolutionFlow";
+import { TransactionChat } from "@/components/TransactionChat";
 import { formatCLP } from "@/lib/utils";
 
 export default function Appeal() {
@@ -486,6 +487,28 @@ export default function Appeal() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Transaction Chat - Always visible */}
+            <Card className="border-2 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Chat de la Transacción
+                </CardTitle>
+                <CardDescription>
+                  Historial de conversaciones entre las partes
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <TransactionChat
+                  transactionId={transaction.id}
+                  sellerId={transaction.seller_id}
+                  sellerName={transaction.seller?.full_name || "Vendedor"}
+                  buyerId={transaction.buyer_id}
+                  buyerName={transaction.buyer?.full_name || "Comprador"}
+                />
+              </CardContent>
+            </Card>
 
             {/* Evidences Section - Only show when not in negotiation (evidence is in the resolution flow) */}
             {!canNegotiate && (

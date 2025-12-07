@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, AlertCircle, Gavel } from "lucide-react";
 import { toast } from "sonner";
-import { AppealChat } from "@/components/appeal/AppealChat";
+import { TransactionChat } from "@/components/TransactionChat";
 import { AppealEvidence } from "@/components/appeal/AppealEvidence";
 import { AppealTimeline } from "@/components/appeal/AppealTimeline";
 import { formatCLP } from "@/lib/utils";
@@ -296,9 +296,14 @@ export default function AdminAppeal() {
                 </TabsContent>
 
                 <TabsContent value="chat" className="mt-6">
-                  <AppealChat
-                    appealId={appeal.id}
-                    currentUserId={user?.id || ""}
+                  <TransactionChat
+                    transactionId={transaction.id}
+                    sellerId={transaction.seller_id}
+                    sellerName={transaction.seller?.full_name || "Vendedor"}
+                    buyerId={transaction.buyer_id}
+                    buyerName={transaction.buyer?.full_name || "Comprador"}
+                    isAdmin={true}
+                    adminName="Administrador"
                   />
                 </TabsContent>
 
