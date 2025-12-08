@@ -182,13 +182,16 @@ const Transaction = () => {
       setTransaction(txData);
       checkIfUserHasRated();
 
-      // Check if there's an active appeal
+      // Check if there's an active appeal (not closed)
       if (txData.appeal_status && txData.appeal_status !== "no_hay_apelacion" && txData.appeal_status !== "cerrada") {
         const { data: appealData } = await supabase
           .from("appeals")
           .select("*")
           .eq("transaction_id", id)
-          .single();
+          .neq("status", "cerrada")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
         
         setActiveAppeal(appealData);
       } else {
