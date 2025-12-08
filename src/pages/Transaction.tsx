@@ -829,6 +829,7 @@ const Transaction = () => {
               <ReturnRequestDialog
                 transactionId={transaction.id}
                 userId={user?.id || ""}
+                commission={Number(transaction.commission) || 0}
                 onRequestCreated={loadTransaction}
               />
 
