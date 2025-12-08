@@ -588,7 +588,12 @@ const Transaction = () => {
 
   // Helper variables for timeline
   const resolvedAppealStatuses = ['resuelta_a_favor_comprador', 'resuelta_a_favor_vendedor', 'resuelta_parcial', 'cerrada'];
-  const isAppealResolved = transaction.appeal_status && resolvedAppealStatuses.includes(transaction.appeal_status);
+  const inReturnProcess = ['return_requested', 'return_in_progress'].includes(transaction.state);
+  // Appeal is only considered "resolved" (transaction complete) if NOT in return process
+  // Return mediations close the appeal but transaction continues until refund is processed
+  const isAppealResolved = transaction.appeal_status && 
+    resolvedAppealStatuses.includes(transaction.appeal_status) && 
+    !inReturnProcess;
   const isCompleted = transaction.state === 'completed' || isAppealResolved;
   const isInPersonDelivery = transaction.sale_type === 'producto_persona';
   const isInReview = ['awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state);
