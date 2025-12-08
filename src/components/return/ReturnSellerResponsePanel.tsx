@@ -7,8 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Check, X, Package, Scale } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import type { Database } from "@/integrations/supabase/types";
 
 interface ReturnRequest {
   id: string;
@@ -41,7 +39,6 @@ export const ReturnSellerResponsePanel = ({
   buyerId, 
   onResponse 
 }: ReturnSellerResponsePanelProps) => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -77,7 +74,8 @@ export const ReturnSellerResponsePanel = ({
 
     setLoading(true);
     try {
-      // Update return request status
+      // Only update return request status to disputed - NO appeal creation
+      // This goes to AdminReturnMediationList where admin decides who pays shipping
       const { error: returnError } = await supabase
         .from("return_requests")
         .update({
@@ -89,50 +87,16 @@ export const ReturnSellerResponsePanel = ({
 
       if (returnError) throw returnError;
 
-      // Create an appeal so both parties can submit evidence
-      const deadline = new Date();
-      deadline.setHours(deadline.getHours() + 48);
-
-      const { data: appeal, error: appealError } = await supabase
-        .from("appeals")
-        .insert({
-          transaction_id: transactionId,
-          initiator_id: sellerId, // The seller is rejecting and escalating, so they initiate the appeal
-          reason: "incumplimiento_acuerdo" as Database["public"]["Enums"]["appeal_reason"],
-          reason_description: `Devolución rechazada por el vendedor. Motivo original: ${returnRequest.reason}${returnRequest.reason_description ? ` - ${returnRequest.reason_description}` : ''}. Razón del rechazo del vendedor: ${rejectionReason.trim()}`,
-          status: "pendiente_intervencion_plataforma" as Database["public"]["Enums"]["appeal_status"],
-          negotiation_deadline: deadline.toISOString(),
-        })
-        .select()
-        .single();
-
-      if (appealError) throw appealError;
-
-      // Update transaction appeal status and state
-      const { error: updateError } = await supabase
-        .from("transactions")
-        .update({ 
-          appeal_status: "pendiente_intervencion_plataforma" as Database["public"]["Enums"]["appeal_status"],
-          state: "in_dispute" as Database["public"]["Enums"]["transaction_state"]
-        })
-        .eq("id", transactionId);
-
-      if (updateError) throw updateError;
-
       // Send system message to transaction chat
-      const systemMessage = `[TRADO_SYSTEM]⚖️ SOLICITUD DE DEVOLUCIÓN EN DISPUTA
+      const systemMessage = `[TRADO_SYSTEM]⚖️ SOLICITUD DE DEVOLUCIÓN EN MEDIACIÓN
 
-El vendedor ha rechazado la solicitud de devolución. Se ha abierto una apelación para que un administrador medie el caso.
+El vendedor ha rechazado la solicitud de devolución. Un administrador decidirá quién debe pagar el costo del envío de retorno.
 
-📋 ¿Qué deben hacer ahora?
+📋 ¿Qué pasará ahora?
 
-• Ambas partes deben subir toda la evidencia posible (fotos, capturas, videos) en la sección de evidencia de la apelación
-• Un administrador revisará las pruebas de ambos y el historial de este chat
-• La decisión será tomada de forma imparcial basándose en las pruebas disponibles
-
-📎 Importante:
-
-Mientras más evidencia suban, mejor podrá el administrador tomar una decisión informada.
+• Un administrador revisará los argumentos de ambas partes
+• Se determinará si el vendedor o el comprador debe pagar el envío de retorno
+• Una vez resuelta la mediación, el comprador podrá enviar el producto
 
 ⏱️ El proceso de revisión puede tomar hasta 48 horas.`;
 
@@ -144,14 +108,8 @@ Mientras más evidencia suban, mejor podrá el administrador tomar una decisión
           message: systemMessage,
         });
 
-      toast.success("Se ha abierto una apelación - Un administrador revisará el caso");
-      
-      // Navigate to the appeal page
-      if (appeal) {
-        navigate(`/appeal/${appeal.id}`);
-      } else {
-        onResponse();
-      }
+      toast.success("Caso enviado a mediación - Un administrador decidirá quién paga el envío");
+      onResponse();
     } catch (error: any) {
       console.error("Error rejecting return:", error);
       toast.error("Error: " + error.message);
