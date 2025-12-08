@@ -25,12 +25,17 @@ export default function AdminAppeal() {
   const { isAdmin, loading: adminLoading } = useAdminRole();
   const [appeal, setAppeal] = useState<any>(null);
   const [transaction, setTransaction] = useState<any>(null);
+  const [returnRequest, setReturnRequest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [resolution, setResolution] = useState("");
   const [notes, setNotes] = useState("");
   const [buyerRefund, setBuyerRefund] = useState("");
   const [sellerPayment, setSellerPayment] = useState("");
+  const [shippingPaidBy, setShippingPaidBy] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Detect if this is a return mediation appeal
+  const isReturnMediation = appeal?.reason_description?.startsWith("[MEDIACIÓN DEVOLUCIÓN]");
 
   useEffect(() => {
     if (adminLoading) return;
@@ -63,8 +68,17 @@ export default function AdminAppeal() {
 
       if (transactionError) throw transactionError;
 
+      // Fetch return request if exists
+      const { data: returnData } = await supabase
+        .from("return_requests")
+        .select("*")
+        .eq("transaction_id", appealData.transaction_id)
+        .eq("status", "disputed")
+        .maybeSingle();
+
       setAppeal(appealData);
       setTransaction(transactionData);
+      setReturnRequest(returnData);
     } catch (error: any) {
       console.error("Error fetching appeal:", error);
       toast.error("Error al cargar la apelación");
@@ -93,6 +107,84 @@ export default function AdminAppeal() {
   };
 
   const handleSubmitDecision = async () => {
+    // For return mediation, require shipping decision
+    if (isReturnMediation) {
+      if (!shippingPaidBy || !notes.trim()) {
+        toast.error("Por favor completa todos los campos requeridos");
+        return;
+      }
+
+      setSubmitting(true);
+      try {
+        // Update return request with shipping decision
+        const { error: returnError } = await supabase
+          .from("return_requests")
+          .update({
+            status: "accepted",
+            shipping_paid_by: shippingPaidBy,
+            mediated_at: new Date().toISOString(),
+            mediated_by: user?.id,
+            admin_notes: (returnRequest?.admin_notes || "") + `\n\nDecisión admin: ${shippingPaidBy === 'seller' ? 'Vendedor paga envío' : 'Comprador paga envío'}. ${notes.trim()}`,
+          })
+          .eq("transaction_id", transaction.id)
+          .eq("status", "disputed");
+
+        if (returnError) throw returnError;
+
+        // Close the appeal
+        const { error: appealError } = await supabase
+          .from("appeals")
+          .update({
+            status: "cerrada",
+          })
+          .eq("id", appealId);
+
+        if (appealError) throw appealError;
+
+        // Update transaction appeal status
+        const { error: txError } = await supabase
+          .from("transactions")
+          .update({
+            appeal_status: "cerrada",
+          })
+          .eq("id", transaction.id);
+
+        if (txError) throw txError;
+
+        // Send system message about decision
+        const decisionMessage = `[TRADO_SYSTEM]✅ MEDIACIÓN DE DEVOLUCIÓN RESUELTA
+
+El administrador ha tomado una decisión sobre quién paga el costo del envío de retorno:
+
+📦 ${shippingPaidBy === 'seller' ? 'El VENDEDOR pagará el envío de retorno' : 'El COMPRADOR pagará el envío de retorno'}
+
+📝 Notas: ${notes.trim()}
+
+📋 Próximos pasos:
+• El comprador debe enviar el producto de vuelta
+• El vendedor debe confirmar la recepción
+• Una vez confirmado, se procesará el reembolso`;
+
+        await supabase
+          .from("chat_messages")
+          .insert({
+            transaction_id: transaction.id,
+            user_id: user?.id || "",
+            message: decisionMessage,
+          });
+
+        toast.success("Decisión de mediación registrada correctamente");
+        navigate("/admin");
+      } catch (error: any) {
+        console.error("Error submitting return mediation decision:", error);
+        toast.error(error.message || "Error al registrar la decisión");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // Normal appeal resolution
     if (!resolution || !notes.trim()) {
       toast.error("Por favor completa todos los campos requeridos");
       return;
@@ -187,8 +279,14 @@ export default function AdminAppeal() {
           <div className="lg:col-span-2 space-y-6">
             <Card className="p-6">
               <h1 className="text-2xl font-bold mb-6">
-                Revisión de Apelación #{appeal.id.slice(0, 8)}
+                {isReturnMediation ? "Mediación de Devolución" : "Revisión de Apelación"} #{appeal.id.slice(0, 8)}
               </h1>
+
+              {isReturnMediation && (
+                <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100 px-4 py-2 rounded-lg mb-4 text-sm font-medium">
+                  ⚖️ Esta es una mediación de devolución - Solo decides quién paga el envío de retorno
+                </div>
+              )}
 
               <Tabs defaultValue="info" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
@@ -200,7 +298,7 @@ export default function AdminAppeal() {
                 <TabsContent value="info" className="mt-6 space-y-6">
                   {/* Appeal Details */}
                   <div className="bg-muted/50 border rounded-lg p-4 space-y-4">
-                    <h3 className="font-semibold">Detalles de la Apelación</h3>
+                    <h3 className="font-semibold">{isReturnMediation ? "Detalles de la Devolución" : "Detalles de la Apelación"}</h3>
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-muted-foreground">Motivo</p>
@@ -252,111 +350,165 @@ export default function AdminAppeal() {
 
                   {canDecide && !isResolved && (
                     <div className="space-y-4">
-                      <h3 className="font-semibold">Emitir decisión</h3>
+                      <h3 className="font-semibold">
+                        {isReturnMediation ? "Decidir Costo de Envío de Retorno" : "Emitir decisión"}
+                      </h3>
 
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Resolución</Label>
-                          <RadioGroup value={resolution} onValueChange={(value) => {
-                            setResolution(value);
-                            // Reset amounts when changing resolution
-                            setBuyerRefund("");
-                            setSellerPayment("");
-                          }}>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="liberar_fondos_vendedor" id="seller" />
-                              <Label htmlFor="seller" className="font-normal cursor-pointer">
-                                Liberar fondos al vendedor ({formatCLP(transaction.amount)})
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="reembolso_total" id="total" />
-                              <Label htmlFor="total" className="font-normal cursor-pointer">
-                                Reembolso total al comprador ({formatCLP(transaction.amount)})
-                              </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="reembolso_parcial" id="partial" />
-                              <Label htmlFor="partial" className="font-normal cursor-pointer">
-                                Distribución parcial entre ambas partes
-                              </Label>
-                            </div>
-                          </RadioGroup>
+                      {isReturnMediation ? (
+                        // Return mediation decision - who pays shipping
+                        <div className="space-y-4">
+                          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
+                            <p className="text-sm text-amber-800 dark:text-amber-200">
+                              <strong>Mediación de Devolución:</strong> Debes decidir quién paga el costo del envío de retorno. 
+                              Una vez resuelta esta mediación, el comprador podrá enviar el producto y después se procesará el reembolso.
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>¿Quién paga el envío de retorno?</Label>
+                            <RadioGroup value={shippingPaidBy} onValueChange={setShippingPaidBy}>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="seller" id="seller-pays" />
+                                <Label htmlFor="seller-pays" className="font-normal cursor-pointer">
+                                  <span className="font-semibold">Vendedor paga el envío</span>
+                                  <span className="text-muted-foreground ml-2">(Culpa del vendedor)</span>
+                                </Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="buyer" id="buyer-pays" />
+                                <Label htmlFor="buyer-pays" className="font-normal cursor-pointer">
+                                  <span className="font-semibold">Comprador paga el envío</span>
+                                  <span className="text-muted-foreground ml-2">(Culpa del comprador)</span>
+                                </Label>
+                              </div>
+                            </RadioGroup>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="notes">Notas de la decisión</Label>
+                            <Textarea
+                              id="notes"
+                              value={notes}
+                              onChange={(e) => setNotes(e.target.value)}
+                              placeholder="Explica el razonamiento detrás de tu decisión sobre quién debe pagar el envío..."
+                              className="min-h-[120px]"
+                            />
+                          </div>
+
+                          <Button
+                            onClick={handleSubmitDecision}
+                            disabled={!shippingPaidBy || !notes.trim() || submitting}
+                            className="w-full"
+                          >
+                            {submitting ? "Registrando..." : "Registrar Decisión de Envío"}
+                          </Button>
                         </div>
-
-                        {resolution === "liberar_fondos_vendedor" && (
-                          <div className="bg-muted/50 p-3 rounded-md">
-                            <p className="text-sm text-muted-foreground">
-                              Se liberará el monto completo de <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span> al vendedor.
-                            </p>
-                          </div>
-                        )}
-
-                        {resolution === "reembolso_total" && (
-                          <div className="bg-muted/50 p-3 rounded-md">
-                            <p className="text-sm text-muted-foreground">
-                              Se reembolsará el monto completo de <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span> al comprador.
-                            </p>
-                          </div>
-                        )}
-
-                        {resolution === "reembolso_parcial" && (
-                          <div className="space-y-4 bg-muted/50 p-4 rounded-md">
-                            <p className="text-sm text-muted-foreground">
-                              Monto total a distribuir: <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span>
-                            </p>
-                            <div className="grid gap-4 md:grid-cols-2">
-                              <div className="space-y-2">
-                                <Label htmlFor="buyer-refund">Monto para el comprador</Label>
-                                <Input
-                                  id="buyer-refund"
-                                  type="number"
-                                  value={buyerRefund}
-                                  onChange={(e) => setBuyerRefund(e.target.value)}
-                                  placeholder="0"
-                                />
+                      ) : (
+                        // Normal appeal decision - fund distribution
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>Resolución</Label>
+                            <RadioGroup value={resolution} onValueChange={(value) => {
+                              setResolution(value);
+                              // Reset amounts when changing resolution
+                              setBuyerRefund("");
+                              setSellerPayment("");
+                            }}>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="liberar_fondos_vendedor" id="seller" />
+                                <Label htmlFor="seller" className="font-normal cursor-pointer">
+                                  Liberar fondos al vendedor ({formatCLP(transaction.amount)})
+                                </Label>
                               </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="seller-payment">Monto para el vendedor</Label>
-                                <Input
-                                  id="seller-payment"
-                                  type="number"
-                                  value={sellerPayment}
-                                  onChange={(e) => setSellerPayment(e.target.value)}
-                                  placeholder="0"
-                                />
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="reembolso_total" id="total" />
+                                <Label htmlFor="total" className="font-normal cursor-pointer">
+                                  Reembolso total al comprador ({formatCLP(transaction.amount)})
+                                </Label>
                               </div>
-                            </div>
-                            {buyerRefund && sellerPayment && (
-                              <p className={`text-sm ${parseFloat(buyerRefund) + parseFloat(sellerPayment) === transaction.amount ? 'text-green-600' : 'text-destructive'}`}>
-                                Suma: {formatCLP(parseFloat(buyerRefund || "0") + parseFloat(sellerPayment || "0"))} 
-                                {parseFloat(buyerRefund) + parseFloat(sellerPayment) !== transaction.amount && 
-                                  ` (debe ser ${formatCLP(transaction.amount)})`
-                                }
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="reembolso_parcial" id="partial" />
+                                <Label htmlFor="partial" className="font-normal cursor-pointer">
+                                  Distribución parcial entre ambas partes
+                                </Label>
+                              </div>
+                            </RadioGroup>
+                          </div>
+
+                          {resolution === "liberar_fondos_vendedor" && (
+                            <div className="bg-muted/50 p-3 rounded-md">
+                              <p className="text-sm text-muted-foreground">
+                                Se liberará el monto completo de <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span> al vendedor.
                               </p>
-                            )}
+                            </div>
+                          )}
+
+                          {resolution === "reembolso_total" && (
+                            <div className="bg-muted/50 p-3 rounded-md">
+                              <p className="text-sm text-muted-foreground">
+                                Se reembolsará el monto completo de <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span> al comprador.
+                              </p>
+                            </div>
+                          )}
+
+                          {resolution === "reembolso_parcial" && (
+                            <div className="space-y-4 bg-muted/50 p-4 rounded-md">
+                              <p className="text-sm text-muted-foreground">
+                                Monto total a distribuir: <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span>
+                              </p>
+                              <div className="grid gap-4 md:grid-cols-2">
+                                <div className="space-y-2">
+                                  <Label htmlFor="buyer-refund">Monto para el comprador</Label>
+                                  <Input
+                                    id="buyer-refund"
+                                    type="number"
+                                    value={buyerRefund}
+                                    onChange={(e) => setBuyerRefund(e.target.value)}
+                                    placeholder="0"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="seller-payment">Monto para el vendedor</Label>
+                                  <Input
+                                    id="seller-payment"
+                                    type="number"
+                                    value={sellerPayment}
+                                    onChange={(e) => setSellerPayment(e.target.value)}
+                                    placeholder="0"
+                                  />
+                                </div>
+                              </div>
+                              {buyerRefund && sellerPayment && (
+                                <p className={`text-sm ${parseFloat(buyerRefund) + parseFloat(sellerPayment) === transaction.amount ? 'text-green-600' : 'text-destructive'}`}>
+                                  Suma: {formatCLP(parseFloat(buyerRefund || "0") + parseFloat(sellerPayment || "0"))} 
+                                  {parseFloat(buyerRefund) + parseFloat(sellerPayment) !== transaction.amount && 
+                                    ` (debe ser ${formatCLP(transaction.amount)})`
+                                  }
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="space-y-2">
+                            <Label htmlFor="notes">Notas de la decisión</Label>
+                            <Textarea
+                              id="notes"
+                              value={notes}
+                              onChange={(e) => setNotes(e.target.value)}
+                              placeholder="Explica el razonamiento detrás de tu decisión..."
+                              className="min-h-[150px]"
+                            />
                           </div>
-                        )}
 
-                        <div className="space-y-2">
-                          <Label htmlFor="notes">Notas de la decisión</Label>
-                          <Textarea
-                            id="notes"
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Explica el razonamiento detrás de tu decisión..."
-                            className="min-h-[150px]"
-                          />
+                          <Button
+                            onClick={handleSubmitDecision}
+                            disabled={!resolution || !notes.trim() || submitting}
+                            className="w-full"
+                          >
+                            {submitting ? "Registrando..." : "Registrar Decisión"}
+                          </Button>
                         </div>
-
-                        <Button
-                          onClick={handleSubmitDecision}
-                          disabled={!resolution || !notes.trim() || submitting}
-                          className="w-full"
-                        >
-                          {submitting ? "Registrando..." : "Registrar Decisión"}
-                        </Button>
-                      </div>
+                      )}
                     </div>
                   )}
 

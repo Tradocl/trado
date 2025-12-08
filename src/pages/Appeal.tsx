@@ -43,6 +43,9 @@ export default function Appeal() {
   const [loading, setLoading] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
 
+  // Detect if this is a return mediation appeal
+  const isReturnMediation = appeal?.reason_description?.startsWith("[MEDIACIÓN DEVOLUCIÓN]");
+
   useEffect(() => {
     if (!appealId) return;
     fetchAppealData();
@@ -308,10 +311,17 @@ export default function Appeal() {
               <StatusIcon className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Apelación</h1>
+              <h1 className="text-3xl font-bold">{isReturnMediation ? "Mediación de Devolución" : "Apelación"}</h1>
               <p className="text-muted-foreground">Caso #{appeal.id.slice(0, 8).toUpperCase()}</p>
             </div>
           </div>
+
+          {isReturnMediation && (
+            <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100 px-4 py-3 rounded-lg text-sm">
+              <p className="font-medium mb-1">⚖️ Mediación de Costo de Envío</p>
+              <p>Un administrador decidirá quién debe pagar el envío de retorno. Puedes subir evidencia y comunicarte por el chat mientras esperas la resolución.</p>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -378,8 +388,8 @@ export default function Appeal() {
               </CardContent>
             </Card>
 
-            {/* Appeal Resolution Flow */}
-            {canNegotiate && transaction.buyer_id && (
+            {/* Appeal Resolution Flow - Only for normal appeals, not return mediations */}
+            {canNegotiate && transaction.buyer_id && !isReturnMediation && (
               <AppealResolutionFlow
                 appealId={appeal.id}
                 transactionId={transaction.id}

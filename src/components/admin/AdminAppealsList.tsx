@@ -89,7 +89,12 @@ export function AdminAppealsList() {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const getReasonLabel = (reason: string) => {
+  const getReasonLabel = (reason: string, reasonDescription?: string) => {
+    // Check if it's a return mediation
+    if (reasonDescription?.startsWith("[MEDIACIÓN DEVOLUCIÓN]")) {
+      return "Mediación de Devolución";
+    }
+    
     const reasons: Record<string, string> = {
       producto_no_llego: "Producto no llegó",
       producto_diferente: "Producto diferente",
@@ -98,6 +103,10 @@ export function AdminAppealsList() {
       otro: "Otro",
     };
     return reasons[reason] || reason;
+  };
+
+  const isReturnMediation = (appeal: any) => {
+    return appeal.reason_description?.startsWith("[MEDIACIÓN DEVOLUCIÓN]");
   };
 
   if (loading) {
@@ -145,7 +154,10 @@ export function AdminAppealsList() {
             <div className="grid gap-2 md:grid-cols-3 text-sm">
               <div>
                 <p className="text-muted-foreground">Motivo</p>
-                <p className="font-medium">{getReasonLabel(appeal.reason)}</p>
+                <p className="font-medium">
+                  {isReturnMediation(appeal) && <span className="text-amber-600 dark:text-amber-400">⚖️ </span>}
+                  {getReasonLabel(appeal.reason, appeal.reason_description)}
+                </p>
               </div>
               <div>
                 <p className="text-muted-foreground">Monto</p>
