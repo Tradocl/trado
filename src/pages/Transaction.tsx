@@ -893,8 +893,8 @@ const Transaction = () => {
           </Card>
         )}
 
-        {/* Active Appeal Alert */}
-        {activeAppeal && (
+        {/* Active Appeal Alert - Only show for non-return mediation appeals */}
+        {activeAppeal && !activeAppeal.reason_description?.startsWith("[MEDIACIÓN DEVOLUCIÓN]") && (
           <Card className="border-2 border-amber-200 dark:border-amber-800 shadow-xl bg-amber-50 dark:bg-amber-950 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-start gap-3 mb-4">
