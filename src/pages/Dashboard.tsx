@@ -140,10 +140,16 @@ const Dashboard = () => {
       setWallet(walletRes.data);
       
       // Filter out transactions with resolved appeals from "in progress" list
+      // EXCEPT for return mediations where return is still in progress
       if (transactionsRes.data) {
-        const activeTransactions = transactionsRes.data.filter(t => 
-          !resolvedAppealStatuses.includes(t.appeal_status || '')
-        );
+        const activeTransactions = transactionsRes.data.filter(t => {
+          // If return is still in progress, keep it in active list regardless of appeal status
+          const inReturnProcess = ['return_requested', 'return_in_progress'].includes(t.state);
+          if (inReturnProcess) return true;
+          
+          // Otherwise, exclude resolved appeals
+          return !resolvedAppealStatuses.includes(t.appeal_status || '');
+        });
         setTransactions(activeTransactions);
       }
     } catch (error: any) {
