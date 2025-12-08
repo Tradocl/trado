@@ -488,29 +488,6 @@ export default function Appeal() {
               </Card>
             )}
 
-            {/* Transaction Chat - Always visible */}
-            <Card className="border-2 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Chat de la Transacción
-                </CardTitle>
-                <CardDescription>
-                  Historial de conversaciones entre las partes
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <TransactionChat
-                  transactionId={transaction.id}
-                  sellerId={transaction.seller_id}
-                  sellerName={transaction.seller?.full_name || "Vendedor"}
-                  buyerId={transaction.buyer_id}
-                  buyerName={transaction.buyer?.full_name || "Comprador"}
-                  hideHeader
-                />
-              </CardContent>
-            </Card>
-
             {/* Evidences Section - Only show when not in negotiation (evidence is in the resolution flow) */}
             {!canNegotiate && (
               <Card className={`border-2 shadow-lg ${isResolved ? 'opacity-75' : ''}`}>
@@ -545,6 +522,29 @@ export default function Appeal() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Transaction Chat - Always visible */}
+            <Card className="border-2 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Chat de la Transacción
+                </CardTitle>
+                <CardDescription>
+                  Historial de conversaciones entre las partes
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <TransactionChat
+                  transactionId={transaction.id}
+                  sellerId={transaction.seller_id}
+                  sellerName={transaction.seller?.full_name || "Vendedor"}
+                  buyerId={transaction.buyer_id}
+                  buyerName={transaction.buyer?.full_name || "Comprador"}
+                  hideHeader
+                />
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}

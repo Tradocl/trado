@@ -7,11 +7,22 @@ import {
   ShieldAlert,
   ArrowRight,
   ArrowLeft,
-  Bell
+  Bell,
+  AlertTriangle
 } from "lucide-react";
 import { MutualResolutionPanel } from "./MutualResolutionPanel";
 import { EscalationPanel } from "./EscalationPanel";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface AppealResolutionFlowProps {
   appealId: string;
@@ -44,6 +55,7 @@ export function AppealResolutionFlow({
   const [hasPendingProposalForMe, setHasPendingProposalForMe] = useState(false);
   const [hasAnyPendingProposal, setHasAnyPendingProposal] = useState(false);
   const [requestingIntervention, setRequestingIntervention] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Check if there's a pending proposal
   useEffect(() => {
@@ -97,6 +109,7 @@ export function AppealResolutionFlow({
 
   const handleRequestAdminIntervention = async () => {
     setRequestingIntervention(true);
+    setShowConfirmDialog(false);
     try {
       const { error } = await supabase
         .from("appeals")
@@ -118,6 +131,64 @@ export function AppealResolutionFlow({
       setRequestingIntervention(false);
     }
   };
+
+  const renderConfirmDialog = () => (
+    <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <AlertDialogContent className="max-w-md">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            Solicitar Intervención de Administrador
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-4 pt-2">
+              <p className="text-foreground font-medium">
+                Estás a punto de solicitar que un administrador intervenga en este caso.
+              </p>
+              
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-2">
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                  Ten en cuenta:
+                </p>
+                <ul className="text-sm text-amber-800 dark:text-amber-200 space-y-2 list-disc list-inside">
+                  <li>
+                    <strong>Un administrador tomará la decisión final</strong> basándose en la evidencia que ambas partes presenten.
+                  </li>
+                  <li>
+                    <strong>La comisión se cobrará igualmente</strong>, incluso si el dinero es reembolsado.
+                  </li>
+                  <li>
+                    El proceso puede tomar <strong>hasta 48 horas</strong>.
+                  </li>
+                </ul>
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                ¿Estás seguro de que deseas continuar?
+              </p>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={requestingIntervention}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleRequestAdminIntervention}
+            disabled={requestingIntervention}
+            className="bg-amber-600 hover:bg-amber-700"
+          >
+            {requestingIntervention ? (
+              <>
+                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                Solicitando...
+              </>
+            ) : (
+              "Sí, solicitar intervención"
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 
   const renderChooseStep = () => (
     <Card className="border-2 shadow-lg">
@@ -191,7 +262,7 @@ export function AppealResolutionFlow({
 
         {/* Option 2: Escalate to Admins */}
         <button
-          onClick={handleRequestAdminIntervention}
+          onClick={() => setShowConfirmDialog(true)}
           disabled={requestingIntervention}
           className="w-full text-left border-2 rounded-xl p-5 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-all group disabled:opacity-70 disabled:cursor-not-allowed"
         >
@@ -268,6 +339,7 @@ export function AppealResolutionFlow({
 
   return (
     <>
+      {renderConfirmDialog()}
       {currentStep === "choose" && renderChooseStep()}
       {currentStep === "mutual" && renderMutualStep()}
       {currentStep === "escalate" && renderEscalateStep()}
