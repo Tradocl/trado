@@ -138,9 +138,9 @@ El vendedor ha rechazado la solicitud de devolución. Un administrador decidirá
 
       toast.success("Caso enviado a mediación");
       
-      // Navigate to appeal room
-      if (appealData?.id) {
-        navigate(`/appeal/${appealData.id}`);
+      // Navigate to return room (not appeal room)
+      if (returnRequest?.id) {
+        navigate(`/return/${returnRequest.id}`);
       } else {
         onResponse();
       }

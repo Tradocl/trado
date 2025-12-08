@@ -18,6 +18,8 @@ import TransactionHistory from "./pages/TransactionHistory";
 import Profile from "./pages/Profile";
 import Appeal from "./pages/Appeal";
 import AdminAppeal from "./pages/AdminAppeal";
+import ReturnRoom from "./pages/ReturnRoom";
+import AdminReturnRoom from "./pages/AdminReturnRoom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +47,8 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/appeal/:appealId" element={<Appeal />} />
             <Route path="/admin/appeal/:appealId" element={<AdminAppeal />} />
+            <Route path="/return/:returnId" element={<ReturnRoom />} />
+            <Route path="/admin/return/:returnId" element={<AdminReturnRoom />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
