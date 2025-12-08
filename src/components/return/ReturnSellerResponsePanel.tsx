@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Check, X, Package, Scale } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import type { Database } from "@/integrations/supabase/types";
 
 interface ReturnRequest {
   id: string;
@@ -19,6 +21,9 @@ interface ReturnRequest {
 
 interface ReturnSellerResponsePanelProps {
   returnRequest: ReturnRequest;
+  transactionId: string;
+  sellerId: string;
+  buyerId: string;
   onResponse: () => void;
 }
 
@@ -29,7 +34,14 @@ const reasonLabels: Record<string, string> = {
   incompleto: "Producto incompleto",
 };
 
-export const ReturnSellerResponsePanel = ({ returnRequest, onResponse }: ReturnSellerResponsePanelProps) => {
+export const ReturnSellerResponsePanel = ({ 
+  returnRequest, 
+  transactionId, 
+  sellerId, 
+  buyerId, 
+  onResponse 
+}: ReturnSellerResponsePanelProps) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -65,7 +77,8 @@ export const ReturnSellerResponsePanel = ({ returnRequest, onResponse }: ReturnS
 
     setLoading(true);
     try {
-      const { error } = await supabase
+      // Update return request status
+      const { error: returnError } = await supabase
         .from("return_requests")
         .update({
           seller_response: "rejected",
@@ -74,11 +87,73 @@ export const ReturnSellerResponsePanel = ({ returnRequest, onResponse }: ReturnS
         })
         .eq("id", returnRequest.id);
 
-      if (error) throw error;
+      if (returnError) throw returnError;
 
-      toast.success("Solicitud escalada a mediación - Un administrador revisará el caso");
-      onResponse();
+      // Create an appeal so both parties can submit evidence
+      const deadline = new Date();
+      deadline.setHours(deadline.getHours() + 48);
+
+      const { data: appeal, error: appealError } = await supabase
+        .from("appeals")
+        .insert({
+          transaction_id: transactionId,
+          initiator_id: buyerId, // The buyer initiated the return, so they are the appeal initiator
+          reason: "incumplimiento_acuerdo" as Database["public"]["Enums"]["appeal_reason"],
+          reason_description: `Devolución rechazada por el vendedor. Motivo original: ${returnRequest.reason}${returnRequest.reason_description ? ` - ${returnRequest.reason_description}` : ''}. Razón del rechazo del vendedor: ${rejectionReason.trim()}`,
+          status: "pendiente_intervencion_plataforma" as Database["public"]["Enums"]["appeal_status"],
+          negotiation_deadline: deadline.toISOString(),
+        })
+        .select()
+        .single();
+
+      if (appealError) throw appealError;
+
+      // Update transaction appeal status and state
+      const { error: updateError } = await supabase
+        .from("transactions")
+        .update({ 
+          appeal_status: "pendiente_intervencion_plataforma" as Database["public"]["Enums"]["appeal_status"],
+          state: "in_dispute" as Database["public"]["Enums"]["transaction_state"]
+        })
+        .eq("id", transactionId);
+
+      if (updateError) throw updateError;
+
+      // Send system message to transaction chat
+      const systemMessage = `[TRADO_SYSTEM]⚖️ SOLICITUD DE DEVOLUCIÓN EN DISPUTA
+
+El vendedor ha rechazado la solicitud de devolución. Se ha abierto una apelación para que un administrador medie el caso.
+
+📋 ¿Qué deben hacer ahora?
+
+• Ambas partes deben subir toda la evidencia posible (fotos, capturas, videos) en la sección de evidencia de la apelación
+• Un administrador revisará las pruebas de ambos y el historial de este chat
+• La decisión será tomada de forma imparcial basándose en las pruebas disponibles
+
+📎 Importante:
+
+Mientras más evidencia suban, mejor podrá el administrador tomar una decisión informada.
+
+⏱️ El proceso de revisión puede tomar hasta 48 horas.`;
+
+      await supabase
+        .from("chat_messages")
+        .insert({
+          transaction_id: transactionId,
+          user_id: sellerId,
+          message: systemMessage,
+        });
+
+      toast.success("Se ha abierto una apelación - Un administrador revisará el caso");
+      
+      // Navigate to the appeal page
+      if (appeal) {
+        navigate(`/appeal/${appeal.id}`);
+      } else {
+        onResponse();
+      }
     } catch (error: any) {
+      console.error("Error rejecting return:", error);
       toast.error("Error: " + error.message);
     } finally {
       setLoading(false);

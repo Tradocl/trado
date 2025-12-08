@@ -855,9 +855,11 @@ const Transaction = () => {
         )}
 
         {/* Return Status Panel */}
-        {["return_requested", "return_in_progress"].includes(transaction.state) && (
+        {["return_requested", "return_in_progress"].includes(transaction.state) && transaction.seller_id && transaction.buyer_id && (
           <ReturnStatusPanel
             transactionId={transaction.id}
+            sellerId={transaction.seller_id}
+            buyerId={transaction.buyer_id}
             isBuyer={isBuyer}
             isSeller={isSeller}
             transactionAmount={transaction.amount}
