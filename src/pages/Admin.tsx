@@ -282,17 +282,18 @@ export default function Admin() {
 
   const loadTokenStats = async () => {
     try {
-      // 1. Total circulating (sum of all wallet balances)
+      // 1. Total circulating (sum of all wallet balances + blocked_balance)
       const { data: walletsData } = await supabase
         .from("wallets")
-        .select("balance, user_id, profiles!wallets_user_id_fkey(full_name, email)");
+        .select("balance, blocked_balance, user_id, profiles!wallets_user_id_fkey(full_name, email)");
 
-      const totalCirculating = walletsData?.reduce((sum, w) => sum + (w.balance || 0), 0) || 0;
+      const totalCirculating = walletsData?.reduce((sum, w) => sum + (w.balance || 0) + (w.blocked_balance || 0), 0) || 0;
 
       const walletDetails = walletsData?.map(w => ({
         user_name: w.profiles?.full_name || "Usuario",
         user_email: w.profiles?.email || "",
         balance: w.balance || 0,
+        blocked_balance: w.blocked_balance || 0,
       })).sort((a, b) => b.balance - a.balance) || [];
 
       // 2. Total deposits approved
@@ -313,12 +314,13 @@ export default function Admin() {
 
       const totalWithdrawals = withdrawalsData?.reduce((sum, w) => sum + w.amount, 0) || 0;
 
-      // 4. Active escrow (escrow_lock approved - escrow_release approved)
+      // 4. Active escrow (escrow_lock pending/approved - escrow_release approved)
+      // escrow_lock can be 'pending' when funds are blocked but transaction not yet completed
       const { data: escrowLockData } = await supabase
         .from("wallet_movements")
         .select("amount")
         .eq("type", "escrow_lock")
-        .eq("status", "approved");
+        .in("status", ["pending", "approved"]);
 
       const { data: escrowReleaseData } = await supabase
         .from("wallet_movements")
@@ -326,8 +328,9 @@ export default function Admin() {
         .eq("type", "escrow_release")
         .eq("status", "approved");
 
-      const totalEscrowLock = escrowLockData?.reduce((sum, e) => sum + e.amount, 0) || 0;
-      const totalEscrowRelease = escrowReleaseData?.reduce((sum, e) => sum + e.amount, 0) || 0;
+      // escrow_lock amounts are stored as negative, so we use Math.abs
+      const totalEscrowLock = escrowLockData?.reduce((sum, e) => sum + Math.abs(e.amount), 0) || 0;
+      const totalEscrowRelease = escrowReleaseData?.reduce((sum, e) => sum + Math.abs(e.amount), 0) || 0;
       const activeEscrow = totalEscrowLock - totalEscrowRelease;
 
       // 5. Total commissions from completed transactions
