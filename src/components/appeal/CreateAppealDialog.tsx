@@ -109,14 +109,22 @@ export function CreateAppealDialog({ transactionId, userId, saleType }: CreateAp
           <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
             <div className="flex items-start gap-2">
               <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium text-amber-900 dark:text-amber-100 mb-1">
+              <div className="text-sm space-y-2">
+                <p className="font-medium text-amber-900 dark:text-amber-100">
                   Antes de continuar
                 </p>
-                <p className="text-amber-700 dark:text-amber-300">
-                  Tendrás 48 horas para intentar resolver el problema directamente con la otra parte.
-                  Si no se llega a un acuerdo, la plataforma intervendrá para tomar una decisión.
-                </p>
+                <ul className="text-amber-700 dark:text-amber-300 space-y-1.5 list-disc list-inside">
+                  <li>
+                    Tendrás <strong>48 horas</strong> para intentar resolver el problema directamente con la otra parte. 
+                    Si no llegan a un acuerdo, automáticamente un administrador entrará como mediador.
+                  </li>
+                  <li>
+                    También puedes solicitar la intervención de un administrador antes de que se cumplan las 48 horas si lo deseas.
+                  </li>
+                  <li>
+                    <strong>Importante:</strong> En caso de reembolso, la comisión de la transacción se cobrará igualmente.
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
