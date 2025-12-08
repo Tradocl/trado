@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { MutualResolutionPanel } from "./MutualResolutionPanel";
 import { EscalationPanel } from "./EscalationPanel";
+import { toast } from "sonner";
 
 interface AppealResolutionFlowProps {
   appealId: string;
@@ -42,6 +43,7 @@ export function AppealResolutionFlow({
   const [currentStep, setCurrentStep] = useState<FlowStep>("choose");
   const [hasPendingProposalForMe, setHasPendingProposalForMe] = useState(false);
   const [hasAnyPendingProposal, setHasAnyPendingProposal] = useState(false);
+  const [requestingIntervention, setRequestingIntervention] = useState(false);
 
   // Check if there's a pending proposal
   useEffect(() => {
@@ -92,6 +94,30 @@ export function AppealResolutionFlow({
       supabase.removeChannel(channel);
     };
   }, [appealId, currentUserId, currentStep]);
+
+  const handleRequestAdminIntervention = async () => {
+    setRequestingIntervention(true);
+    try {
+      const { error } = await supabase
+        .from("appeals")
+        .update({
+          status: "pendiente_intervencion_plataforma",
+          escalated_at: new Date().toISOString(),
+        })
+        .eq("id", appealId);
+
+      if (error) throw error;
+      
+      toast.success("Intervención de administrador solicitada. Ahora puedes subir tu evidencia.");
+      setCurrentStep("escalate");
+      onRefresh();
+    } catch (error) {
+      console.error("Error requesting intervention:", error);
+      toast.error("Error al solicitar la intervención");
+    } finally {
+      setRequestingIntervention(false);
+    }
+  };
 
   const renderChooseStep = () => (
     <Card className="border-2 shadow-lg">
@@ -165,21 +191,28 @@ export function AppealResolutionFlow({
 
         {/* Option 2: Escalate to Admins */}
         <button
-          onClick={() => setCurrentStep("escalate")}
-          className="w-full text-left border-2 rounded-xl p-5 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-all group"
+          onClick={handleRequestAdminIntervention}
+          disabled={requestingIntervention}
+          className="w-full text-left border-2 rounded-xl p-5 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-all group disabled:opacity-70 disabled:cursor-not-allowed"
         >
           <div className="flex items-start gap-4">
             <div className="h-12 w-12 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center shrink-0 group-hover:from-amber-500/30 group-hover:to-orange-500/30 transition-colors">
-              <ShieldAlert className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              {requestingIntervention ? (
+                <div className="h-6 w-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <ShieldAlert className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              )}
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg">Enviar Pruebas a Administradores</h3>
+                <h3 className="font-semibold text-lg">
+                  {requestingIntervention ? "Solicitando..." : "Solicitar Intervención de Administrador"}
+                </h3>
                 <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-amber-500 transition-colors" />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Sube evidencia de tu caso y solicita que un administrador revise la situación 
-                y tome una decisión imparcial basada en las pruebas.
+                No llegamos a un acuerdo. Solicita que un administrador revise la situación 
+                y tome una decisión imparcial. Podrás subir evidencia de tu caso.
               </p>
               <div className="flex gap-2 mt-3">
                 <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded-full">
@@ -224,15 +257,6 @@ export function AppealResolutionFlow({
 
   const renderEscalateStep = () => (
     <div className="space-y-4">
-      <Button
-        variant="ghost"
-        onClick={() => setCurrentStep("choose")}
-        className="mb-2"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Volver a opciones
-      </Button>
-      
       <EscalationPanel
         appealId={appealId}
         currentUserId={currentUserId}

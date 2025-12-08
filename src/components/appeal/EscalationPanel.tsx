@@ -257,15 +257,21 @@ export function EscalationPanel({
   const myEvidence = evidence.filter(e => e.user_id === currentUserId);
   const otherEvidence = evidence.filter(e => e.user_id !== currentUserId);
 
+  // Check if already escalated (intervention requested)
+  const isAlreadyEscalated = appealStatus === "pendiente_intervencion_plataforma" || appealStatus === "en_revision_plataforma";
+
   return (
     <Card className="border-2 shadow-lg border-amber-200 dark:border-amber-800">
       <CardHeader className="bg-gradient-to-r from-amber-500/10 to-orange-500/10">
         <CardTitle className="flex items-center gap-2">
           <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-          Enviar Caso a Administradores
+          {isAlreadyEscalated ? "Sube tu Evidencia" : "Enviar Caso a Administradores"}
         </CardTitle>
         <CardDescription>
-          Sube tu evidencia y envía el caso para revisión imparcial
+          {isAlreadyEscalated 
+            ? "El administrador revisará tu caso. Sube la evidencia que tengas para apoyar tu reclamo."
+            : "Sube tu evidencia y envía el caso para revisión imparcial"
+          }
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6 space-y-6">
@@ -415,74 +421,95 @@ export function EscalationPanel({
 
         <Separator />
 
-        {/* Step 2: Additional Notes */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">
-              2
-            </div>
-            <h3 className="font-semibold">Describe tu caso (opcional)</h3>
-          </div>
+        {/* Step 2: Additional Notes - Only show if not already escalated */}
+        {!isAlreadyEscalated && (
+          <>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">
+                  2
+                </div>
+                <h3 className="font-semibold">Describe tu caso (opcional)</h3>
+              </div>
 
-          <div className="pl-10">
-            <Textarea
-              value={additionalNotes}
-              onChange={(e) => setAdditionalNotes(e.target.value)}
-              placeholder="Proporciona cualquier información adicional que ayude al administrador a entender la situación..."
-              rows={3}
-            />
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Step 3: Submit */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">
-              3
-            </div>
-            <h3 className="font-semibold">Enviar a revisión</h3>
-          </div>
-
-          <div className="pl-10 space-y-4">
-            {/* Warning */}
-            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-800 dark:text-amber-200">
-                  Una vez enviado, un administrador revisará toda la evidencia y tomará una decisión final. 
-                  Este proceso puede tomar hasta 48 horas.
-                </p>
+              <div className="pl-10">
+                <Textarea
+                  value={additionalNotes}
+                  onChange={(e) => setAdditionalNotes(e.target.value)}
+                  placeholder="Proporciona cualquier información adicional que ayude al administrador a entender la situación..."
+                  rows={3}
+                />
               </div>
             </div>
 
-            <Button 
-              onClick={handleEscalate}
-              disabled={escalating || evidence.length === 0}
-              className="w-full bg-amber-600 hover:bg-amber-700"
-              size="lg"
-            >
-              {escalating ? (
-                <>
-                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar Caso a Revisión
-                </>
-              )}
-            </Button>
+            <Separator />
 
-            {evidence.length === 0 && (
-              <p className="text-xs text-center text-muted-foreground">
-                Debes subir al menos una evidencia para poder enviar el caso
-              </p>
-            )}
+            {/* Step 3: Submit */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">
+                  3
+                </div>
+                <h3 className="font-semibold">Enviar a revisión</h3>
+              </div>
+
+              <div className="pl-10 space-y-4">
+                {/* Warning */}
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      Una vez enviado, un administrador revisará toda la evidencia y tomará una decisión final. 
+                      Este proceso puede tomar hasta 48 horas.
+                    </p>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleEscalate}
+                  disabled={escalating || evidence.length === 0}
+                  className="w-full bg-amber-600 hover:bg-amber-700"
+                  size="lg"
+                >
+                  {escalating ? (
+                    <>
+                      <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Enviar Caso a Revisión
+                    </>
+                  )}
+                </Button>
+
+                {evidence.length === 0 && (
+                  <p className="text-xs text-center text-muted-foreground">
+                    Debes subir al menos una evidencia para poder enviar el caso
+                  </p>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Already escalated info */}
+        {isAlreadyEscalated && (
+          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-green-900 dark:text-green-100">
+                  Intervención solicitada
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                  Un administrador revisará tu caso pronto. Puedes seguir subiendo evidencia que apoye tu reclamo.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
