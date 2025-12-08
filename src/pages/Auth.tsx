@@ -448,6 +448,7 @@ const Auth = () => {
                       id="signup-phone"
                       name="phone"
                       type="tel"
+                      defaultValue="+56 "
                       placeholder="+56 9 1234 5678"
                       required
                     />

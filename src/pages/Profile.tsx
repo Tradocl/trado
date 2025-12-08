@@ -166,7 +166,7 @@ const Profile = () => {
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      phone: "",
+      phone: "+56 ",
       address: "",
     },
   });
@@ -217,7 +217,7 @@ const Profile = () => {
           bank_account_number: data.bank_account_number || "",
         });
         profileForm.reset({
-          phone: data.phone || "",
+          phone: data.phone || "+56 ",
           address: data.address || "",
         });
       }
