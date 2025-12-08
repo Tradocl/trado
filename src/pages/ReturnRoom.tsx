@@ -351,6 +351,25 @@ export default function ReturnRoom() {
               </Card>
             )}
 
+            {/* Evidence Section - Using Appeal Evidence if appeal exists */}
+            {appeal && (
+              <Card className="border-2 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Subir Evidencia
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AppealEvidence 
+                    appealId={appeal.id} 
+                    currentUserId={user?.id || ""}
+                    appealStatus={appeal.status}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
             {/* Chat - Always visible for communication */}
             <Card className="border-2 shadow-lg">
               <CardHeader>
@@ -370,63 +389,10 @@ export default function ReturnRoom() {
                 />
               </CardContent>
             </Card>
-
-            {/* Evidence Section - Using Appeal Evidence if appeal exists */}
-            {appeal && (
-              <Card className="border-2 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Evidencia
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <AppealEvidence 
-                    appealId={appeal.id} 
-                    currentUserId={user?.id || ""}
-                    appealStatus={appeal.status}
-                  />
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Participants */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Participantes</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Comprador (Solicitante)</p>
-                  <p className="font-medium">{transaction.buyer?.full_name || "Comprador"}</p>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Vendedor</p>
-                  <p className="font-medium">{transaction.seller?.full_name || "Vendedor"}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Acciones</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => navigate(`/transaction/${transaction.id}`)}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Ver Transacción
-                </Button>
-              </CardContent>
-            </Card>
 
             {/* Info Card */}
             <Card className="bg-muted/30">
