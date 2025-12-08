@@ -131,26 +131,29 @@ export function AppealResolutionFlow({
       // Determine who requested the intervention
       const requestedByName = currentUserId === buyerId ? buyerName : sellerName;
 
-      // Send system message to transaction chat
-      const systemMessage = `🛡️ **NOTIFICACIÓN DE TRADO**
+      // Send system message to transaction chat (prefixed with [TRADO_SYSTEM] for special rendering)
+      const systemMessage = `[TRADO_SYSTEM]🛡️ NOTIFICACIÓN DE TRADO
 
 Se ha solicitado la intervención de un administrador para resolver este caso.
 
-📋 **¿Qué sucederá ahora?**
+📋 ¿Qué sucederá ahora?
+
 • Un administrador revisará toda la evidencia presentada por ambas partes
 • También leerá el historial de este chat para verificar cualquier acuerdo previo
 • La decisión será tomada de forma imparcial basándose en las pruebas disponibles
 
-📎 **Importante:**
+📎 Importante:
+
 Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos, documentos) en la sección de evidencia para que el administrador pueda tomar una decisión informada.
 
 ⏱️ El proceso de revisión puede tomar hasta 48 horas.`;
 
+      // Use seller_id as sender - the chat component detects [TRADO_SYSTEM] prefix and shows "Trado" instead
       await supabase
         .from("chat_messages")
         .insert({
           transaction_id: transactionId,
-          user_id: currentUserId,
+          user_id: sellerId,
           message: systemMessage,
         });
 
