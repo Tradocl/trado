@@ -903,25 +903,71 @@ const Transaction = () => {
 
         {/* Active Appeal Alert - Only show for non-return mediation appeals */}
         {activeAppeal && !activeAppeal.reason_description?.startsWith("[MEDIACIÓN DEVOLUCIÓN]") && (
-          <Card className="border-2 border-amber-200 dark:border-amber-800 shadow-xl bg-amber-50 dark:bg-amber-950 animate-scale-in">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-3 mb-4">
-                <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0 mt-1" />
-                <div className="flex-1">
-                  <h4 className="font-bold text-lg text-amber-900 dark:text-amber-100 mb-1">
-                    Apelación Activa
-                  </h4>
-                  <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
-                    Hay una apelación en curso para esta transacción. Puedes revisar los detalles y participar en la resolución.
+          <Card className="border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 animate-scale-in">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                Apelación Activa
+                <Badge variant="outline" className="ml-auto bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700">
+                  {activeAppeal.status === "apelacion_abierta" && "Abierta"}
+                  {activeAppeal.status === "en_negociacion" && "En negociación"}
+                  {activeAppeal.status === "pendiente_intervencion_plataforma" && "Esperando admin"}
+                  {activeAppeal.status === "en_revision_plataforma" && "En revisión"}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Reason Info */}
+              <div className="p-4 bg-background/80 rounded-lg border">
+                <p className="text-sm text-muted-foreground mb-1">Motivo de la apelación:</p>
+                <p className="font-semibold">
+                  {activeAppeal.reason === "producto_no_llego" && "El producto nunca llegó"}
+                  {activeAppeal.reason === "producto_diferente" && "Producto distinto al acordado"}
+                  {activeAppeal.reason === "danos_o_fallas" && "Daños o fallas en el producto"}
+                  {activeAppeal.reason === "incumplimiento_acuerdo" && "Incumplimiento del acuerdo"}
+                  {activeAppeal.reason === "servicio_no_realizado" && "Servicio no realizado"}
+                  {activeAppeal.reason === "trabajo_deficiente" && "Trabajo deficiente"}
+                  {activeAppeal.reason === "otro" && "Otro motivo"}
+                </p>
+                {activeAppeal.reason_description && (
+                  <p className="text-sm text-muted-foreground mt-2 italic">
+                    "{activeAppeal.reason_description}"
                   </p>
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="p-4 bg-amber-100 dark:bg-amber-900/50 rounded-lg border border-amber-200 dark:border-amber-800">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-semibold text-amber-900 dark:text-amber-100 mb-2">
+                      Resolución de conflicto en curso
+                    </p>
+                    <p className="text-amber-700 dark:text-amber-300 mb-3">
+                      Ambas partes pueden negociar una solución o escalar a un administrador para que tome una decisión.
+                    </p>
+                    <div className="bg-amber-50 dark:bg-amber-950/50 rounded-md p-3 mt-2">
+                      <p className="font-medium text-amber-800 dark:text-amber-200 mb-2">📋 ¿Qué pasará después?</p>
+                      <ol className="list-decimal ml-4 space-y-1 text-amber-700 dark:text-amber-300">
+                        <li>Negocia un acuerdo mutuo con la otra parte</li>
+                        <li>Sube evidencia para respaldar tu caso</li>
+                        <li>Si no hay acuerdo, un admin tomará la decisión</li>
+                        <li>Los fondos se distribuirán según la resolución</li>
+                      </ol>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <Button
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+
+              {/* Action Button */}
+              <Button 
+                className="w-full"
+                variant="outline"
                 onClick={() => navigate(`/appeal/${activeAppeal.id}`)}
               >
-                <AlertCircle className="mr-2 h-4 w-4" />
-                Ir a Sala de Apelación
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Ir a la Sala de Apelación
               </Button>
             </CardContent>
           </Card>
