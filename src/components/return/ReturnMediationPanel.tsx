@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scale, Clock, AlertTriangle } from "lucide-react";
+import { Scale, Clock, AlertTriangle, Truck, ArrowRight } from "lucide-react";
 
 interface ReturnRequest {
   id: string;
@@ -32,10 +32,10 @@ export const ReturnMediationPanel = ({ returnRequest, isBuyer, isSeller }: Retur
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Scale className="h-5 w-5 text-primary" />
-          En Mediación
+          Mediación de Costo de Envío
           <Badge variant="outline" className="ml-auto bg-primary/20 text-primary border-primary/30">
             <Clock className="h-3 w-3 mr-1" />
-            Pendiente
+            En revisión
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -45,11 +45,28 @@ export const ReturnMediationPanel = ({ returnRequest, isBuyer, isSeller }: Retur
           <div className="flex items-start gap-2">
             <AlertTriangle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-semibold text-primary mb-1">Caso en revisión por la plataforma</p>
+              <p className="font-semibold text-primary mb-1">¿Quién paga el envío de retorno?</p>
               <p className="text-muted-foreground">
-                Un administrador está evaluando este caso para determinar quién debe pagar el envío de retorno.
+                Un administrador está evaluando este caso para determinar quién debe asumir el costo del envío de retorno del producto.
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* What happens next */}
+        <div className="p-4 bg-muted/30 rounded-lg border">
+          <p className="text-sm font-medium mb-2 flex items-center gap-2">
+            <Truck className="h-4 w-4" />
+            ¿Qué pasará después de la mediación?
+          </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Mediación resuelta</span>
+            <ArrowRight className="h-3 w-3" />
+            <span>Comprador envía producto</span>
+            <ArrowRight className="h-3 w-3" />
+            <span>Vendedor confirma</span>
+            <ArrowRight className="h-3 w-3" />
+            <span>Reembolso</span>
           </div>
         </div>
 
@@ -74,8 +91,8 @@ export const ReturnMediationPanel = ({ returnRequest, isBuyer, isSeller }: Retur
         {isBuyer && (
           <div className="p-4 bg-info/10 rounded-lg border border-info/20 text-center">
             <p className="text-sm text-muted-foreground">
-              El vendedor disputó tu solicitud. Espera mientras un administrador revisa el caso. 
-              Recibirás una notificación cuando se tome una decisión.
+              El vendedor disputó tu solicitud. Cuando el administrador decida, podrás enviar el producto de vuelta.
+              El reembolso se procesará una vez que el vendedor confirme la recepción.
             </p>
           </div>
         )}
@@ -83,8 +100,8 @@ export const ReturnMediationPanel = ({ returnRequest, isBuyer, isSeller }: Retur
         {isSeller && (
           <div className="p-4 bg-warning/10 rounded-lg border border-warning/20 text-center">
             <p className="text-sm text-muted-foreground">
-              Has disputado esta solicitud. Un administrador revisará los argumentos de ambas partes 
-              y determinará quién debe pagar el envío de retorno.
+              Has disputado esta solicitud. Un administrador decidirá quién paga el envío de retorno.
+              Luego el comprador enviará el producto y tú deberás confirmar cuando lo recibas.
             </p>
           </div>
         )}

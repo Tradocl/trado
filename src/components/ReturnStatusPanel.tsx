@@ -205,7 +205,7 @@ export const ReturnStatusPanel = ({
     );
   }
 
-  // Show mediation panel if disputed
+  // Show mediation panel if disputed (awaiting admin decision on shipping cost)
   if (returnRequest.status === "disputed") {
     return (
       <ReturnMediationPanel 
@@ -215,6 +215,9 @@ export const ReturnStatusPanel = ({
       />
     );
   }
+
+  // After mediation resolved: status changed from 'disputed' to 'accepted' with shipping_paid_by set
+  // The normal return flow will continue below (canProceedWithShipping will be true)
 
   // Show waiting for seller response (buyer view)
   if (
