@@ -31,6 +31,8 @@ interface ReturnRequest {
 
 interface ReturnStatusPanelProps {
   transactionId: string;
+  sellerId: string;
+  buyerId: string;
   isBuyer: boolean;
   isSeller: boolean;
   transactionAmount: number;
@@ -56,6 +58,8 @@ const carriers = [
 
 export const ReturnStatusPanel = ({
   transactionId,
+  sellerId,
+  buyerId,
   isBuyer,
   isSeller,
   transactionAmount,
@@ -189,7 +193,10 @@ export const ReturnStatusPanel = ({
   ) {
     return (
       <ReturnSellerResponsePanel 
-        returnRequest={returnRequest} 
+        returnRequest={returnRequest}
+        transactionId={transactionId}
+        sellerId={sellerId}
+        buyerId={buyerId}
         onResponse={() => {
           loadReturnRequest();
           onStatusChange();
