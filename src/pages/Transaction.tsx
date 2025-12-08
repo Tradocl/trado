@@ -934,6 +934,12 @@ const Transaction = () => {
                     "{activeAppeal.reason_description}"
                   </p>
                 )}
+                <p className="text-sm text-muted-foreground mt-3">
+                  <span className="font-medium">Iniciada por:</span>{" "}
+                  {activeAppeal.initiator_id === transaction.seller_id 
+                    ? (sellerProfile?.full_name || "Vendedor")
+                    : (buyerProfile?.full_name || "Comprador")}
+                </p>
               </div>
 
               {/* Info */}
