@@ -193,31 +193,31 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <img src={tradoShield} alt="Trado" className="h-12 w-12" />
-            <h1 className="text-2xl font-bold">Trado</h1>
+        <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img src={tradoShield} alt="Trado" className="h-8 w-8 sm:h-12 sm:w-12" />
+            <h1 className="text-xl sm:text-2xl font-bold">Trado</h1>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate("/profile")}>
-              <User className="mr-2 h-4 w-4" />
-              Perfil
+          <div className="flex gap-1 sm:gap-2">
+            <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/profile")}>
+              <User className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Perfil</span>
             </Button>
             {isAdmin && (
-              <Button variant="outline" onClick={() => navigate("/admin")}>
-                <Settings className="mr-2 h-4 w-4" />
-                Admin
+              <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/admin")}>
+                <Settings className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Admin</span>
               </Button>
             )}
-            <Button variant="ghost" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Salir
+            <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Salir</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
         {/* Welcome Card */}
         <Card 
           className={`border-0 shadow-xl text-white overflow-hidden ${!profile?.dashboard_background_url ? getCardGradient(profile?.dashboard_color || 'primary') : ''}`}
@@ -227,56 +227,56 @@ const Dashboard = () => {
             backgroundPosition: 'center'
           } : undefined}
         >
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="pb-2 sm:pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  ¡Hola, {profile?.nickname || profile?.full_name || "Usuario"}!
+                <CardTitle className="text-lg sm:text-2xl flex items-center gap-2 flex-wrap">
+                  <span className="truncate max-w-[200px] sm:max-w-none">¡Hola, {profile?.nickname || profile?.full_name?.split(' ')[0] || "Usuario"}!</span>
                   {profile?.is_verified && (
-                    <CheckCircle className="h-6 w-6" />
+                    <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
                   )}
                 </CardTitle>
-                <CardDescription className="text-white/80">
-                  Bienvenido a tu panel de control seguro
+                <CardDescription className="text-white/80 text-xs sm:text-sm">
+                  Panel de control seguro
                 </CardDescription>
               </div>
               {profile?.verification_status === 'approved' && (
-                <Badge className="bg-white/20 text-white border-white/30">
-                  <Shield className="w-4 h-4 mr-1" />
+                <Badge className="bg-white/20 text-white border-white/30 w-fit text-xs">
+                  <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                   Verificado
                 </Badge>
               )}
             </div>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-6">
+          <CardContent className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-6 pt-0">
             <div className="flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
-              <div>
-                <p className="text-sm opacity-80">Saldo Disponible</p>
-                <p className="text-2xl font-bold">${formatCLP(wallet?.balance || 0)}</p>
+              <Wallet className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs opacity-80 truncate">Saldo</p>
+                <p className="text-base sm:text-2xl font-bold truncate">${formatCLP(wallet?.balance || 0)}</p>
               </div>
             </div>
             {(wallet?.blocked_balance || 0) > 0 && (
               <div className="flex items-center gap-2">
-                <Lock className="h-5 w-5" />
-                <div>
-                  <p className="text-sm opacity-80">Escrow Bloqueado</p>
-                  <p className="text-2xl font-bold">${formatCLP(wallet?.blocked_balance || 0)}</p>
+                <Lock className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs opacity-80 truncate">Escrow</p>
+                  <p className="text-base sm:text-2xl font-bold truncate">${formatCLP(wallet?.blocked_balance || 0)}</p>
                 </div>
               </div>
             )}
             <div className="flex items-center gap-2">
-              <Star className="h-5 w-5" />
+              <Star className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               <div>
-                <p className="text-sm opacity-80">Reputación</p>
-                <p className="text-2xl font-bold">
+                <p className="text-xs opacity-80">Reputación</p>
+                <p className="text-base sm:text-2xl font-bold">
                   {profile?.reputation_score?.toFixed(1) || "0.0"}
                 </p>
               </div>
             </div>
             <div>
-              <p className="text-sm opacity-80">Transacciones</p>
-              <p className="text-2xl font-bold">{profile?.total_transactions || 0}</p>
+              <p className="text-xs opacity-80">Transacciones</p>
+              <p className="text-base sm:text-2xl font-bold">{profile?.total_transactions || 0}</p>
             </div>
           </CardContent>
         </Card>
@@ -368,25 +368,25 @@ const Dashboard = () => {
         )}
 
         {/* Action Cards */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-success/20 hover:border-success hover:-translate-y-1 bg-gradient-to-br from-success/5 to-transparent"
                 onClick={() => navigate("/create-transaction")}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-br from-success/30 to-success/10 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                  <Plus className="h-8 w-8 text-success" />
+            <CardHeader className="pb-2 sm:pb-3">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 bg-gradient-to-br from-success/30 to-success/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
                 </div>
-                <div>
-                  <CardTitle className="text-xl">Crear Sala</CardTitle>
-                  <CardDescription className="text-xs">Nueva transacción segura</CardDescription>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base sm:text-xl">Crear Sala</CardTitle>
+                  <CardDescription className="text-xs truncate">Nueva transacción segura</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground leading-relaxed">
+            <CardContent className="space-y-3 sm:space-y-4 pt-0">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
                 Inicia una transacción protegida con escrow para intercambiar <span className="font-medium text-success">productos</span> o <span className="font-medium text-success">servicios</span> de forma segura
               </p>
-              <Button className="w-full bg-success hover:bg-success/90 group-hover:shadow-lg transition-shadow">
+              <Button className="w-full bg-success hover:bg-success/90 group-hover:shadow-lg transition-shadow text-sm">
                 <Plus className="mr-2 h-4 w-4" />
                 Crear Sala
               </Button>
@@ -395,46 +395,46 @@ const Dashboard = () => {
 
           <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-info/20 hover:border-info hover:-translate-y-1 bg-gradient-to-br from-info/5 to-transparent"
                 onClick={() => navigate("/join-transaction")}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-br from-info/30 to-info/10 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                  <ShoppingBag className="h-8 w-8 text-info" />
+            <CardHeader className="pb-2 sm:pb-3">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 bg-gradient-to-br from-info/30 to-info/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 text-info" />
                 </div>
-                <div>
-                  <CardTitle className="text-xl">Unirse a Sala</CardTitle>
-                  <CardDescription className="text-xs">Ingresa con código</CardDescription>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base sm:text-xl">Unirse</CardTitle>
+                  <CardDescription className="text-xs truncate">Ingresa con código</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground leading-relaxed">
+            <CardContent className="space-y-3 sm:space-y-4 pt-0">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
                 Ingresa el <span className="font-medium text-info">código de invitación</span> para unirte a una transacción existente
               </p>
-              <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow">
+              <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow text-sm">
                 <ShoppingBag className="mr-2 h-4 w-4" />
-                Unirse a Sala
+                Unirse
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-primary/20 hover:border-primary hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent"
+          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-primary/20 hover:border-primary hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent sm:col-span-2 lg:col-span-1"
                 onClick={() => navigate("/transaction-history")}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-br from-primary/30 to-primary/10 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                  <History className="h-8 w-8 text-primary" />
+            <CardHeader className="pb-2 sm:pb-3">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 bg-gradient-to-br from-primary/30 to-primary/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  <History className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                 </div>
-                <div>
-                  <CardTitle className="text-xl">Historial</CardTitle>
-                  <CardDescription className="text-xs">Revisa tus transacciones</CardDescription>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base sm:text-xl">Historial</CardTitle>
+                  <CardDescription className="text-xs truncate">Revisa tus transacciones</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground leading-relaxed">
+            <CardContent className="space-y-3 sm:space-y-4 pt-0">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
                 Consulta todas tus <span className="font-medium text-primary">transacciones completadas</span> y su detalle
               </p>
-              <Button className="w-full group-hover:shadow-lg transition-shadow">
+              <Button className="w-full group-hover:shadow-lg transition-shadow text-sm">
                 <History className="mr-2 h-4 w-4" />
                 Ver Historial
               </Button>
@@ -444,50 +444,51 @@ const Dashboard = () => {
 
         {/* Wallet Card */}
         <Card className="border-0 shadow-xl overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-primary/10">
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl shadow-sm">
-                <Wallet className="h-5 w-5 text-primary" />
+          <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-primary/10 py-3 sm:py-6">
+            <CardTitle className="flex items-center gap-2 sm:gap-3 text-base sm:text-lg">
+              <div className="p-2 sm:p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg sm:rounded-xl shadow-sm">
+                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
               Mi Billetera
             </CardTitle>
-            <CardDescription>Administra tu saldo virtual</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Administra tu saldo virtual</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 pt-6">
-            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-primary/5 to-muted/50 rounded-xl border border-primary/10">
-              <span className="text-sm font-medium">Saldo disponible</span>
-              <span className="text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
+          <CardContent className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
+            <div className="flex justify-between items-center p-3 sm:p-4 bg-gradient-to-r from-primary/5 to-muted/50 rounded-lg sm:rounded-xl border border-primary/10">
+              <span className="text-xs sm:text-sm font-medium">Saldo disponible</span>
+              <span className="text-lg sm:text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <Button variant="outline" className="border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-colors" onClick={() => navigate("/wallet")}>
-                <History className="mr-2 h-4 w-4 text-primary/70" />
-                Movimientos
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-colors text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet")}>
+                <History className="h-4 w-4 sm:mr-2 text-primary/70" />
+                <span className="hidden sm:inline">Movimientos</span>
               </Button>
-              <Button className="bg-primary hover:bg-primary/90 shadow-md" onClick={() => navigate("/wallet?action=deposit")}>
-                <Plus className="mr-2 h-4 w-4" />
-                Depositar
+              <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-md text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet?action=deposit")}>
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Depositar</span>
               </Button>
-              <Button variant="outline" className="border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-colors" onClick={() => navigate("/wallet?action=withdraw")}>
-                <ArrowUpRight className="mr-2 h-4 w-4 text-primary/70" />
-                Retirar
+              <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-colors text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet?action=withdraw")}>
+                <ArrowUpRight className="h-4 w-4 sm:mr-2 text-primary/70" />
+                <span className="hidden sm:inline">Retirar</span>
               </Button>
             </div>
             
             {profile?.verification_status !== 'approved' && (
-              <div className="mt-4 p-4 bg-info/10 border border-info/20 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-info mt-0.5" />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-sm mb-1">Aumenta tu reputación</h4>
+              <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-info/10 border border-info/20 rounded-lg">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-info mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-xs sm:text-sm mb-1">Aumenta tu reputación</h4>
                     <p className="text-xs text-muted-foreground mb-2">
-                      Verifica tu identidad para ganar más confianza
+                      Verifica tu identidad para ganar confianza
                     </p>
                     <Button 
                       size="sm" 
                       variant="outline"
+                      className="text-xs"
                       onClick={() => navigate("/verification")}
                     >
-                      Verificar ahora
+                      Verificar
                     </Button>
                   </div>
                 </div>

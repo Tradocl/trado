@@ -603,15 +603,15 @@ const Transaction = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/10">
       <header className="border-b bg-card/80 backdrop-blur-md shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")} className="hover:bg-primary/10">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver a Inicio
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <Button variant="ghost" size="sm" className="hover:bg-primary/10 px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Volver a Inicio</span>
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6 animate-fade-in">
         {/* === SECTION 1: REQUIRED ACTIONS (TOP PRIORITY) === */}
         
         {/* Join as buyer action */}

@@ -500,19 +500,19 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
       <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <img src={tradoShield} alt="Trado" className="h-12 w-12" />
-            <h1 className="text-2xl font-bold">Mi Perfil</h1>
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img src={tradoShield} alt="Trado" className="h-8 w-8 sm:h-12 sm:w-12" />
+            <h1 className="text-lg sm:text-2xl font-bold">Mi Perfil</h1>
           </div>
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
+          <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Volver</span>
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-2xl space-y-6">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-2xl space-y-4 sm:space-y-6">
         {/* Profile Card */}
         <Card className="border-0 shadow-xl overflow-hidden">
           <div className="h-24 bg-gradient-to-r from-primary to-primary-light" />
