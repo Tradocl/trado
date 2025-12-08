@@ -148,25 +148,25 @@ const JoinTransaction = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
       <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Volver</span>
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Card className="max-w-2xl mx-auto shadow-xl">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-info/10 rounded-xl">
-                <Handshake className="h-8 w-8 text-info" />
+          <CardHeader className="pb-3 sm:pb-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2">
+              <div className="p-2 sm:p-3 bg-info/10 rounded-lg sm:rounded-xl">
+                <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-info" />
               </div>
-              <div>
-                <CardTitle className="text-2xl">Unirse a Sala de Transacción</CardTitle>
-                <CardDescription>
-                  Ingresa el código de invitación compartido
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-2xl">Unirse a Sala</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Ingresa el código de invitación
                 </CardDescription>
               </div>
             </div>

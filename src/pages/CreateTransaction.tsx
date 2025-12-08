@@ -182,50 +182,50 @@ const CreateTransaction = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
       <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Volver</span>
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Card className="max-w-2xl mx-auto shadow-xl">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <Handshake className="h-8 w-8 text-primary" />
+          <CardHeader className="pb-3 sm:pb-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2">
+              <div className="p-2 sm:p-3 bg-primary/10 rounded-lg sm:rounded-xl">
+                <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
-              <div>
-                <CardTitle className="text-2xl">Crear Sala de Transacción</CardTitle>
-                <CardDescription>
-                  Genera una sala de transacción protegida con escrow
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-2xl">Crear Sala</CardTitle>
+                <CardDescription className="text-xs sm:text-sm truncate">
+                  Transacción protegida con escrow
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleCreateTransaction} className="space-y-6">
+            <form onSubmit={handleCreateTransaction} className="space-y-4 sm:space-y-6">
               {/* Step 1: Transaction Type */}
-              <div className="space-y-4">
-                <Label className="text-base font-semibold">1. ¿Qué tipo de transacción es?</Label>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3 sm:space-y-4">
+                <Label className="text-sm sm:text-base font-semibold">1. ¿Qué tipo de transacción es?</Label>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => {
                       setMainType("producto");
                       setSaleType("producto_envio");
                     }}
-                    className={`p-4 rounded-xl border-2 transition-all text-left ${
+                    className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all text-left ${
                       mainType === "producto"
                         ? "border-primary bg-primary/10"
                         : "border-border hover:border-primary/50"
                     }`}
                   >
-                    <Package className={`h-8 w-8 mb-2 ${mainType === "producto" ? "text-primary" : "text-muted-foreground"}`} />
-                    <p className="font-semibold">Producto</p>
-                    <p className="text-xs text-muted-foreground">Artículo físico</p>
+                    <Package className={`h-6 w-6 sm:h-8 sm:w-8 mb-1 sm:mb-2 ${mainType === "producto" ? "text-primary" : "text-muted-foreground"}`} />
+                    <p className="font-semibold text-sm sm:text-base">Producto</p>
+                    <p className="text-xs text-muted-foreground hidden sm:block">Artículo físico</p>
                   </button>
                   <button
                     type="button"
@@ -233,15 +233,15 @@ const CreateTransaction = () => {
                       setMainType("servicio");
                       setSaleType("servicio");
                     }}
-                    className={`p-4 rounded-xl border-2 transition-all text-left ${
+                    className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all text-left ${
                       mainType === "servicio"
                         ? "border-primary bg-primary/10"
                         : "border-border hover:border-primary/50"
                     }`}
                   >
-                    <Wrench className={`h-8 w-8 mb-2 ${mainType === "servicio" ? "text-primary" : "text-muted-foreground"}`} />
-                    <p className="font-semibold">Servicio</p>
-                    <p className="text-xs text-muted-foreground">Reparación, diseño, etc.</p>
+                    <Wrench className={`h-6 w-6 sm:h-8 sm:w-8 mb-1 sm:mb-2 ${mainType === "servicio" ? "text-primary" : "text-muted-foreground"}`} />
+                    <p className="font-semibold text-sm sm:text-base">Servicio</p>
+                    <p className="text-xs text-muted-foreground hidden sm:block">Reparación, diseño, etc.</p>
                   </button>
                 </div>
               </div>

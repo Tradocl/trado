@@ -525,55 +525,55 @@ const Wallet = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
       <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Volver</span>
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
           <Button
-            size="lg"
-            className="bg-success hover:bg-success/90 h-16"
+            size="default"
+            className="bg-success hover:bg-success/90 h-12 sm:h-16 text-xs sm:text-base"
             onClick={() => setDepositOpen(true)}
           >
-            <Plus className="mr-2 h-5 w-5" />
-            Depositar Dinero
+            <Plus className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="truncate">Depositar</span>
           </Button>
           <Button
-            size="lg"
+            size="default"
             variant="outline"
-            className="h-16 border-2"
+            className="h-12 sm:h-16 border-2 text-xs sm:text-base"
             onClick={() => {
               loadBankDetails();
               setWithdrawOpen(true);
             }}
           >
-            <ArrowUpRight className="mr-2 h-5 w-5" />
-            Retirar Dinero
+            <ArrowUpRight className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="truncate">Retirar</span>
           </Button>
         </div>
 
         <Card className="border-0 shadow-xl bg-gradient-to-br from-primary to-primary-light text-primary-foreground">
-          <CardHeader>
-            <CardTitle className="text-3xl">Mi Billetera</CardTitle>
-            <CardDescription className="text-primary-foreground/80">
+          <CardHeader className="pb-2 sm:pb-6">
+            <CardTitle className="text-xl sm:text-3xl">Mi Billetera</CardTitle>
+            <CardDescription className="text-primary-foreground/80 text-xs sm:text-sm">
               Resumen de fondos
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4 pt-0">
             <div>
-              <p className="text-sm opacity-80 mb-1">Saldo disponible</p>
-              <p className="text-5xl font-bold">${formatCLP(balance)}</p>
+              <p className="text-xs sm:text-sm opacity-80 mb-1">Saldo disponible</p>
+              <p className="text-3xl sm:text-5xl font-bold">${formatCLP(balance)}</p>
             </div>
             {blockedBalance > 0 && (
-              <div className="pt-3 border-t border-primary-foreground/20">
-                <p className="text-sm opacity-80 mb-1">Escrow bloqueado</p>
-                <p className="text-2xl font-semibold">${formatCLP(blockedBalance)}</p>
-                <p className="text-xs opacity-60 mt-1">Liberados al completar transacciones</p>
+              <div className="pt-2 sm:pt-3 border-t border-primary-foreground/20">
+                <p className="text-xs sm:text-sm opacity-80 mb-1">Escrow bloqueado</p>
+                <p className="text-lg sm:text-2xl font-semibold">${formatCLP(blockedBalance)}</p>
+                <p className="text-xs opacity-60 mt-1 hidden sm:block">Liberados al completar transacciones</p>
               </div>
             )}
           </CardContent>
@@ -581,17 +581,17 @@ const Wallet = () => {
 
         {pendingMovements.filter((m) => m.type === "deposit" || m.type === "withdrawal").length > 0 && (
           <Card className="border-warning/50 bg-warning/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-warning">
-                <Clock className="h-5 w-5" />
-                Movimientos Pendientes de Aprobación
+            <CardHeader className="py-3 sm:py-6">
+              <CardTitle className="flex items-center gap-2 text-warning text-sm sm:text-base">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
+                Pendientes de Aprobación
               </CardTitle>
-              <CardDescription>
-                Estos movimientos están esperando revisión del administrador
+              <CardDescription className="text-xs sm:text-sm">
+                Esperando revisión del administrador
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            <CardContent className="pt-0">
+              <div className="space-y-2 sm:space-y-3">
                 {pendingMovements
                   .filter((movement) => movement.type === "deposit" || movement.type === "withdrawal")
                   .map((movement) => {
@@ -599,34 +599,32 @@ const Wallet = () => {
                     return (
                       <div
                         key={movement.id}
-                        className="flex items-center justify-between p-4 border border-warning/30 rounded-lg bg-background"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-warning/30 rounded-lg bg-background gap-3"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="p-2 rounded-full bg-warning/10 text-warning">
-                            <Clock className="h-5 w-5" />
+                        <div className="flex items-center gap-3 sm:gap-4">
+                          <div className="p-1.5 sm:p-2 rounded-full bg-warning/10 text-warning">
+                            <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                           </div>
-                          <div>
-                            <p className="font-medium">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm sm:text-base">
                               {isDeposit ? "Depósito" : "Retiro"} Pendiente
                             </p>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(movement.created_at).toLocaleDateString("es-CL")} - {new Date(movement.created_at).toLocaleTimeString("es-CL")}
+                            <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                              {new Date(movement.created_at).toLocaleDateString("es-CL")}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-warning">
+                        <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
+                          <div className="text-left sm:text-right">
+                            <p className="text-base sm:text-lg font-bold text-warning">
                               {isDeposit ? "+" : "-"}${formatCLP(Math.abs(movement.amount))}
                             </p>
-                            <p className="text-sm text-muted-foreground">
-                              En revisión
-                            </p>
                           </div>
-                          <div className="flex flex-col gap-2">
+                          <div className="flex gap-2">
                             <Button
                               size="sm"
                               variant="outline"
+                              className="text-xs px-2"
                               onClick={() => handleEditMovement(movement)}
                             >
                               Editar
@@ -634,6 +632,7 @@ const Wallet = () => {
                             <Button
                               size="sm"
                               variant="destructive"
+                              className="text-xs px-2"
                               onClick={() => handleCancelMovement(movement.id)}
                             >
                               Cancelar
