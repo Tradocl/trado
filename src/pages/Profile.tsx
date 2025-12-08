@@ -89,7 +89,6 @@ const bankAccountSchema = z.object({
 });
 
 const profileSchema = z.object({
-  full_name: z.string().trim().min(3, "Nombre debe tener al menos 3 caracteres").max(100, "Nombre muy largo"),
   phone: z.string().trim().min(8, "Teléfono inválido").max(20, "Teléfono muy largo"),
   address: z.string().trim().min(5, "Dirección muy corta").max(200, "Dirección muy larga"),
 });
@@ -167,7 +166,6 @@ const Profile = () => {
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      full_name: "",
       phone: "",
       address: "",
     },
@@ -219,7 +217,6 @@ const Profile = () => {
           bank_account_number: data.bank_account_number || "",
         });
         profileForm.reset({
-          full_name: data.full_name || "",
           phone: data.phone || "",
           address: data.address || "",
         });
@@ -287,7 +284,6 @@ const Profile = () => {
       const { error } = await supabase
         .from("profiles")
         .update({
-          full_name: values.full_name.trim(),
           phone: values.phone.trim(),
           address: values.address.trim(),
         })
@@ -297,7 +293,6 @@ const Profile = () => {
 
       setProfileData(prev => prev ? {
         ...prev,
-        full_name: values.full_name.trim(),
         phone: values.phone.trim(),
         address: values.address.trim(),
       } : null);
@@ -615,19 +610,18 @@ const Profile = () => {
             ) : (
               <Form {...profileForm}>
                 <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-                  <FormField
-                    control={profileForm.control}
-                    name="full_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nombre completo</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Juan Pérez" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Nombre completo - Solo lectura */}
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Nombre completo</Label>
+                    <Input 
+                      value={profileData?.full_name || ""} 
+                      disabled 
+                      className="bg-muted cursor-not-allowed"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      El nombre no puede ser modificado
+                    </p>
+                  </div>
 
                   <FormField
                     control={profileForm.control}
@@ -668,7 +662,6 @@ const Profile = () => {
                       onClick={() => {
                         setEditingProfile(false);
                         profileForm.reset({
-                          full_name: profileData?.full_name || "",
                           phone: profileData?.phone || "",
                           address: profileData?.address || "",
                         });
