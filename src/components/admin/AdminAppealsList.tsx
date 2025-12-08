@@ -53,9 +53,14 @@ export function AdminAppealsList() {
 
       if (error) throw error;
 
+      // Filter out return mediations - they should only appear in the Returns section
+      const filteredAppeals = (data || []).filter(
+        (appeal) => !appeal.reason_description?.startsWith("[MEDIACIÓN DEVOLUCIÓN]")
+      );
+
       // Fetch initiator names separately
       const appealsWithInitiators = await Promise.all(
-        (data || []).map(async (appeal) => {
+        filteredAppeals.map(async (appeal) => {
           const { data: initiatorData } = await supabase
             .from("profiles")
             .select("full_name")
