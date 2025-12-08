@@ -314,24 +314,16 @@ export default function Admin() {
 
       const totalWithdrawals = withdrawalsData?.reduce((sum, w) => sum + w.amount, 0) || 0;
 
-      // 4. Active escrow (escrow_lock pending/approved - escrow_release approved)
-      // escrow_lock can be 'pending' when funds are blocked but transaction not yet completed
+      // 4. Active escrow - only count escrow_lock with status 'pending' 
+      // When transaction completes, escrow_lock changes to 'approved', so it's no longer active
       const { data: escrowLockData } = await supabase
         .from("wallet_movements")
         .select("amount")
         .eq("type", "escrow_lock")
-        .in("status", ["pending", "approved"]);
-
-      const { data: escrowReleaseData } = await supabase
-        .from("wallet_movements")
-        .select("amount")
-        .eq("type", "escrow_release")
-        .eq("status", "approved");
+        .eq("status", "pending");
 
       // escrow_lock amounts are stored as negative, so we use Math.abs
-      const totalEscrowLock = escrowLockData?.reduce((sum, e) => sum + Math.abs(e.amount), 0) || 0;
-      const totalEscrowRelease = escrowReleaseData?.reduce((sum, e) => sum + Math.abs(e.amount), 0) || 0;
-      const activeEscrow = totalEscrowLock - totalEscrowRelease;
+      const activeEscrow = escrowLockData?.reduce((sum, e) => sum + Math.abs(e.amount), 0) || 0;
 
       // 5. Total commissions from completed transactions
       const { data: commissionsData } = await supabase
