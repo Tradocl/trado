@@ -610,19 +610,6 @@ const Profile = () => {
             ) : (
               <Form {...profileForm}>
                 <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-                  {/* Nombre completo - Solo lectura */}
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">Nombre completo</Label>
-                    <Input 
-                      value={profileData?.full_name || ""} 
-                      disabled 
-                      className="bg-muted cursor-not-allowed"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      El nombre no puede ser modificado
-                    </p>
-                  </div>
-
                   <FormField
                     control={profileForm.control}
                     name="phone"
