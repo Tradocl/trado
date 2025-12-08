@@ -97,7 +97,7 @@ export const ReturnSellerResponsePanel = ({
         .from("appeals")
         .insert({
           transaction_id: transactionId,
-          initiator_id: buyerId, // The buyer initiated the return, so they are the appeal initiator
+          initiator_id: sellerId, // The seller is rejecting and escalating, so they initiate the appeal
           reason: "incumplimiento_acuerdo" as Database["public"]["Enums"]["appeal_reason"],
           reason_description: `Devolución rechazada por el vendedor. Motivo original: ${returnRequest.reason}${returnRequest.reason_description ? ` - ${returnRequest.reason_description}` : ''}. Razón del rechazo del vendedor: ${rejectionReason.trim()}`,
           status: "pendiente_intervencion_plataforma" as Database["public"]["Enums"]["appeal_status"],
