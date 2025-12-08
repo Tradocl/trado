@@ -388,6 +388,9 @@ export default function Appeal() {
                 sellerId={transaction.seller_id}
                 buyerName={transaction.buyer?.full_name || "Comprador"}
                 sellerName={transaction.seller?.full_name || "Vendedor"}
+                buyerEmail={transaction.buyer?.email || ""}
+                sellerEmail={transaction.seller?.email || ""}
+                productName={transaction.product_name}
                 totalAmount={Number(transaction.amount)}
                 appealStatus={appeal.status}
                 onRefresh={fetchAppealData}

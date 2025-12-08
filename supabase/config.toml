@@ -32,3 +32,6 @@ verify_jwt = true
 
 [functions.resolve-appeal]
 verify_jwt = true
+
+[functions.notify-appeal-escalation]
+verify_jwt = false
