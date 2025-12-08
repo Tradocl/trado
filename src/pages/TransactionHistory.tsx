@@ -105,9 +105,18 @@ export default function TransactionHistory() {
 
       if (salesError) throw salesError;
 
-      // Filter to only completed or resolved appeals
-      const isCompletedOrResolved = (t: Transaction) => 
-        t.state === 'completed' || resolvedAppealStatuses.includes(t.appeal_status || '');
+      // Filter to only completed or resolved appeals (but not return mediations still in progress)
+      const isCompletedOrResolved = (t: Transaction) => {
+        // If state is completed, it's done
+        if (t.state === 'completed') return true;
+        
+        // For resolved appeals, only count if state is also completed (not return_requested or return_in_progress)
+        const inReturnProcess = ['return_requested', 'return_in_progress'].includes(t.state);
+        if (inReturnProcess) return false; // Don't show in history if return is still in progress
+        
+        // Otherwise check if appeal was resolved
+        return resolvedAppealStatuses.includes(t.appeal_status || '');
+      };
 
       setPurchases((purchaseData || []).filter(isCompletedOrResolved));
       setSales((salesData || []).filter(isCompletedOrResolved));
