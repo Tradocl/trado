@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, AlertCircle, Gavel, Package, Truck, User } from "lucide-react";
+import { ArrowLeft, AlertCircle, Gavel, Package, User } from "lucide-react";
 import { toast } from "sonner";
 import { TransactionChat } from "@/components/TransactionChat";
 import { AppealEvidence } from "@/components/appeal/AppealEvidence";
@@ -198,8 +198,8 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
           Volver al panel de admin
         </Button>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6">
+          <div className="space-y-6">
             <Card className="p-6">
               <h1 className="text-2xl font-bold mb-2">
                 Mediación de Devolución #{returnRequest.id.slice(0, 8)}
@@ -398,38 +398,6 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                   )}
                 </TabsContent>
               </Tabs>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <Card className="p-6">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Truck className="h-5 w-5" />
-                Flujo de Devolución
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div className={`flex items-center gap-2 ${returnRequest.status !== 'pending' ? 'text-muted-foreground line-through' : 'text-primary font-medium'}`}>
-                  <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">1</span>
-                  Comprador solicita devolución
-                </div>
-                <div className={`flex items-center gap-2 ${returnRequest.status !== 'disputed' ? 'text-muted-foreground line-through' : 'text-primary font-medium'}`}>
-                  <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">2</span>
-                  Vendedor rechaza → Mediación
-                </div>
-                <div className={`flex items-center gap-2 ${!isResolved ? 'text-muted-foreground' : 'text-primary font-medium'}`}>
-                  <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">3</span>
-                  Admin decide costo envío
-                </div>
-                <div className={`flex items-center gap-2 ${returnRequest.status !== 'shipped' && returnRequest.status !== 'completed' ? 'text-muted-foreground' : 'text-primary font-medium'}`}>
-                  <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">4</span>
-                  Comprador envía producto
-                </div>
-                <div className={`flex items-center gap-2 ${returnRequest.status !== 'completed' ? 'text-muted-foreground' : 'text-primary font-medium'}`}>
-                  <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">5</span>
-                  Vendedor confirma → Reembolso
-                </div>
-              </div>
             </Card>
           </div>
         </div>
