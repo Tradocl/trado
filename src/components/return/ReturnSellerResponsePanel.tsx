@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Check, X, Package, Scale } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-
+import type { Database } from "@/integrations/supabase/types";
 interface ReturnRequest {
   id: string;
   reason: string;
@@ -39,6 +40,7 @@ export const ReturnSellerResponsePanel = ({
   buyerId, 
   onResponse 
 }: ReturnSellerResponsePanelProps) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -74,8 +76,7 @@ export const ReturnSellerResponsePanel = ({
 
     setLoading(true);
     try {
-      // Only update return request status to disputed - NO appeal creation
-      // This goes to AdminReturnMediationList where admin decides who pays shipping
+      // Update return request status to disputed
       const { error: returnError } = await supabase
         .from("return_requests")
         .update({
@@ -87,6 +88,32 @@ export const ReturnSellerResponsePanel = ({
 
       if (returnError) throw returnError;
 
+      // Create appeal for return mediation - uses special reason "mediacion_devolucion"
+      // This opens the appeal room with chat and evidence but resolves with shipping cost decision
+      const { data: appealData, error: appealError } = await supabase
+        .from("appeals")
+        .insert({
+          transaction_id: transactionId,
+          initiator_id: sellerId, // Seller initiates the mediation appeal
+          reason: "otro" as Database["public"]["Enums"]["appeal_reason"],
+          reason_description: `[MEDIACIÓN DEVOLUCIÓN] El vendedor rechazó la solicitud de devolución. Motivo del rechazo: ${rejectionReason.trim()}`,
+          status: "pendiente_intervencion_plataforma" as Database["public"]["Enums"]["appeal_status"],
+        })
+        .select()
+        .single();
+
+      if (appealError) throw appealError;
+
+      // Update transaction appeal status
+      const { error: txError } = await supabase
+        .from("transactions")
+        .update({
+          appeal_status: "pendiente_intervencion_plataforma" as Database["public"]["Enums"]["appeal_status"],
+        })
+        .eq("id", transactionId);
+
+      if (txError) throw txError;
+
       // Send system message to transaction chat
       const systemMessage = `[TRADO_SYSTEM]⚖️ SOLICITUD DE DEVOLUCIÓN EN MEDIACIÓN
 
@@ -94,7 +121,8 @@ El vendedor ha rechazado la solicitud de devolución. Un administrador decidirá
 
 📋 ¿Qué pasará ahora?
 
-• Un administrador revisará los argumentos de ambas partes
+• Ambas partes pueden subir evidencia en la sala de mediación
+• El administrador puede comunicarse con ustedes por el chat
 • Se determinará si el vendedor o el comprador debe pagar el envío de retorno
 • Una vez resuelta la mediación, el comprador podrá enviar el producto
 
@@ -108,8 +136,14 @@ El vendedor ha rechazado la solicitud de devolución. Un administrador decidirá
           message: systemMessage,
         });
 
-      toast.success("Caso enviado a mediación - Un administrador decidirá quién paga el envío");
-      onResponse();
+      toast.success("Caso enviado a mediación");
+      
+      // Navigate to appeal room
+      if (appealData?.id) {
+        navigate(`/appeal/${appealData.id}`);
+      } else {
+        onResponse();
+      }
     } catch (error: any) {
       console.error("Error rejecting return:", error);
       toast.error("Error: " + error.message);
