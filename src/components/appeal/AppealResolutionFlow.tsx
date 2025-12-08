@@ -32,6 +32,9 @@ interface AppealResolutionFlowProps {
   sellerId: string;
   buyerName: string;
   sellerName: string;
+  buyerEmail: string;
+  sellerEmail: string;
+  productName: string;
   totalAmount: number;
   appealStatus: string;
   onRefresh: () => void;
@@ -47,6 +50,9 @@ export function AppealResolutionFlow({
   sellerId,
   buyerName,
   sellerName,
+  buyerEmail,
+  sellerEmail,
+  productName,
   totalAmount,
   appealStatus,
   onRefresh
@@ -122,6 +128,9 @@ export function AppealResolutionFlow({
 
       if (error) throw error;
 
+      // Determine who requested the intervention
+      const requestedByName = currentUserId === buyerId ? buyerName : sellerName;
+
       // Send system message to transaction chat
       const systemMessage = `🛡️ **NOTIFICACIÓN DE TRADO**
 
@@ -144,6 +153,26 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
           user_id: currentUserId,
           message: systemMessage,
         });
+
+      // Send email notifications to both parties
+      try {
+        await supabase.functions.invoke("notify-appeal-escalation", {
+          body: {
+            buyerEmail,
+            buyerName,
+            sellerEmail,
+            sellerName,
+            productName,
+            amount: totalAmount,
+            appealId,
+            requestedByName,
+          },
+        });
+        console.log("Escalation emails sent successfully");
+      } catch (emailError) {
+        console.error("Error sending escalation emails:", emailError);
+        // Don't fail the whole operation if emails fail
+      }
       
       toast.success("Intervención de administrador solicitada. Ahora puedes subir tu evidencia.");
       setCurrentStep("escalate");
