@@ -259,6 +259,39 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
             ) : (
               messages.map((msg) => {
                 const isOwn = msg.user_id === user?.id;
+                const isSystemMessage = msg.message.startsWith("[TRADO_SYSTEM]");
+                const displayMessage = isSystemMessage 
+                  ? msg.message.replace("[TRADO_SYSTEM]", "").trim()
+                  : msg.message;
+
+                // System message from Trado - special formatting
+                if (isSystemMessage) {
+                  return (
+                    <div key={msg.id} className="flex justify-center my-4">
+                      <div className="max-w-[85%] rounded-xl border-2 border-amber-500/30 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 p-4 shadow-lg">
+                        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-amber-300/50 dark:border-amber-700/50">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">T</span>
+                          </div>
+                          <span className="font-bold text-amber-800 dark:text-amber-200">Trado</span>
+                          <span className="text-xs text-amber-600 dark:text-amber-400 ml-auto">
+                            Notificación del Sistema
+                          </span>
+                        </div>
+                        <div className="text-sm text-amber-900 dark:text-amber-100 space-y-3 whitespace-pre-line">
+                          {displayMessage}
+                        </div>
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-3 pt-2 border-t border-amber-300/50 dark:border-amber-700/50">
+                          {new Date(msg.created_at).toLocaleTimeString("es-CL", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={msg.id}
