@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { RotateCcw, AlertTriangle, AlertCircle, Info } from "lucide-react";
+import { RotateCcw, AlertTriangle, AlertCircle, Info, DollarSign } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { formatCLP } from "@/lib/utils";
 
 interface ReturnRequestDialogProps {
   transactionId: string;
   userId: string;
+  commission: number;
   onRequestCreated: () => void;
 }
 
@@ -30,7 +32,7 @@ const buyerFaultReasons = [
 
 type ResponsibilityType = "seller_fault" | "buyer_fault" | null;
 
-export const ReturnRequestDialog = ({ transactionId, userId, onRequestCreated }: ReturnRequestDialogProps) => {
+export const ReturnRequestDialog = ({ transactionId, userId, commission, onRequestCreated }: ReturnRequestDialogProps) => {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"category" | "reason" | "confirm">("category");
   const [responsibilityType, setResponsibilityType] = useState<ResponsibilityType>(null);
@@ -267,6 +269,22 @@ export const ReturnRequestDialog = ({ transactionId, userId, onRequestCreated }:
                   </div>
                 </div>
               )}
+
+              {/* Commission warning - always shown */}
+              <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                <div className="flex items-start gap-2">
+                  <DollarSign className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-semibold text-destructive mb-1">
+                      Comisión de {formatCLP(commission)} será cobrada
+                    </p>
+                    <p className="text-muted-foreground">
+                      Al solicitar una devolución, la comisión de la plataforma será descontada de tu reembolso. 
+                      Recibirás el monto depositado menos la comisión.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               {/* Optional description */}
               <div className="space-y-2">

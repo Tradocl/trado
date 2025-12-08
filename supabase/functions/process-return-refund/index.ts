@@ -149,16 +149,17 @@ serve(async (req: Request): Promise<Response> => {
       ? transactionAmount + commission 
       : transactionAmount;
 
-    // Refund amount is what the buyer actually paid (escrow amount)
-    const refundAmount = escrowAmount;
+    // IMPORTANT: Commission is ALWAYS charged on returns
+    // Refund amount = what they paid MINUS commission
+    const refundAmount = escrowAmount - commission;
     const currentBalance = Number(wallet.balance);
     const newBalance = currentBalance + refundAmount;
     
-    // Release the blocked amount
+    // Release the blocked amount (full escrow)
     const currentBlocked = Number(wallet.blocked_balance ?? 0);
     const newBlocked = Math.max(0, currentBlocked - escrowAmount);
 
-    console.log(`[process-return-refund] Processing refund: initiatorRole=${initiatorRole}, escrowAmount=${escrowAmount}, refundAmount=${refundAmount}`);
+    console.log(`[process-return-refund] Processing refund: initiatorRole=${initiatorRole}, escrowAmount=${escrowAmount}, commission=${commission}, refundAmount=${refundAmount}`);
     console.log(`[process-return-refund] Balance: ${currentBalance} -> ${newBalance}, Blocked: ${currentBlocked} -> ${newBlocked}`);
 
     // Update buyer wallet (balance + blocked_balance)
@@ -189,7 +190,7 @@ serve(async (req: Request): Promise<Response> => {
       console.log("[process-return-refund] escrow_lock movement marked as approved");
     }
 
-    // Create wallet movement for the refund
+    // Create wallet movement for the refund (minus commission)
     const { error: movementError } = await supabaseClient
       .from("wallet_movements")
       .insert({
@@ -198,7 +199,7 @@ serve(async (req: Request): Promise<Response> => {
         type: "escrow_release",
         amount: refundAmount,
         balance_after: newBalance,
-        description: `Reembolso "${tx.product_name}"`,
+        description: `Reembolso "${tx.product_name}" (menos comisión)`,
         status: "approved",
       });
 
@@ -207,6 +208,27 @@ serve(async (req: Request): Promise<Response> => {
       // Log but don't fail - wallet balance is already updated
     } else {
       console.log("[process-return-refund] escrow_release movement created successfully");
+    }
+
+    // Create commission movement to track platform revenue
+    if (commission > 0) {
+      const { error: commissionError } = await supabaseClient
+        .from("wallet_movements")
+        .insert({
+          wallet_id: wallet.id,
+          transaction_id: transactionId,
+          type: "commission",
+          amount: -commission,
+          balance_after: newBalance,
+          description: `Comisión "${tx.product_name}"`,
+          status: "approved",
+        });
+
+      if (commissionError) {
+        console.error("[process-return-refund] Error creating commission movement", commissionError);
+      } else {
+        console.log("[process-return-refund] commission movement created successfully");
+      }
     }
 
     // Update transaction state to completed
