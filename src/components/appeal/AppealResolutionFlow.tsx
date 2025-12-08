@@ -111,6 +111,7 @@ export function AppealResolutionFlow({
     setRequestingIntervention(true);
     setShowConfirmDialog(false);
     try {
+      // Update appeal status
       const { error } = await supabase
         .from("appeals")
         .update({
@@ -120,6 +121,29 @@ export function AppealResolutionFlow({
         .eq("id", appealId);
 
       if (error) throw error;
+
+      // Send system message to transaction chat
+      const systemMessage = `🛡️ **NOTIFICACIÓN DE TRADO**
+
+Se ha solicitado la intervención de un administrador para resolver este caso.
+
+📋 **¿Qué sucederá ahora?**
+• Un administrador revisará toda la evidencia presentada por ambas partes
+• También leerá el historial de este chat para verificar cualquier acuerdo previo
+• La decisión será tomada de forma imparcial basándose en las pruebas disponibles
+
+📎 **Importante:**
+Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos, documentos) en la sección de evidencia para que el administrador pueda tomar una decisión informada.
+
+⏱️ El proceso de revisión puede tomar hasta 48 horas.`;
+
+      await supabase
+        .from("chat_messages")
+        .insert({
+          transaction_id: transactionId,
+          user_id: currentUserId,
+          message: systemMessage,
+        });
       
       toast.success("Intervención de administrador solicitada. Ahora puedes subir tu evidencia.");
       setCurrentStep("escalate");
