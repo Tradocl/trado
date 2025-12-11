@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -47,7 +47,6 @@ interface Profile {
   full_name: string;
   reputation_score: number;
   avatar_url: string | null;
-  is_verified: boolean | null;
 }
 
 const stateLabels: Record<string, { label: string; color: string }> = {
@@ -1720,14 +1719,7 @@ const Transaction = () => {
                       </div>
                     )}
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="font-semibold text-sm flex items-center gap-1.5">
-                        {sellerLabel}
-                        {realSellerProfile?.is_verified ? (
-                          <ShieldCheck className="h-4 w-4 text-success" />
-                        ) : realSellerProfile ? (
-                          <ShieldAlert className="h-4 w-4 text-warning" />
-                        ) : null}
-                      </p>
+                      <p className="font-semibold text-sm">{sellerLabel}</p>
                       <p className="text-sm text-muted-foreground truncate">
                         {realSellerProfile?.full_name || "Esperando..."}
                       </p>
@@ -1741,16 +1733,7 @@ const Transaction = () => {
                   </div>
                 </AccordionTrigger>
                 {realSellerProfile && (
-                  <AccordionContent className="pt-2 pb-4 space-y-3">
-                    {!realSellerProfile.is_verified && (
-                      <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/30 rounded-lg">
-                        <ShieldAlert className="h-5 w-5 text-warning shrink-0 mt-0.5" />
-                        <div className="text-sm">
-                          <p className="font-medium text-warning">Usuario no verificado</p>
-                          <p className="text-muted-foreground">Esta persona no ha completado la verificación de identidad. Se recomienda verificar la cuenta para mayor seguridad.</p>
-                        </div>
-                      </div>
-                    )}
+                  <AccordionContent className="pt-2 pb-4">
                     <UserRatings userId={realSellerProfile.id} maxRatings={5} />
                   </AccordionContent>
                 )}
@@ -1773,14 +1756,7 @@ const Transaction = () => {
                       </div>
                     )}
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="font-semibold text-sm flex items-center gap-1.5">
-                        {buyerLabel}
-                        {realBuyerProfile?.is_verified ? (
-                          <ShieldCheck className="h-4 w-4 text-success" />
-                        ) : realBuyerProfile ? (
-                          <ShieldAlert className="h-4 w-4 text-warning" />
-                        ) : null}
-                      </p>
+                      <p className="font-semibold text-sm">{buyerLabel}</p>
                       <p className="text-sm text-muted-foreground truncate">
                         {realBuyerProfile?.full_name || "Esperando..."}
                       </p>
@@ -1794,16 +1770,7 @@ const Transaction = () => {
                   </div>
                 </AccordionTrigger>
                 {realBuyerProfile && (
-                  <AccordionContent className="pt-2 pb-4 space-y-3">
-                    {!realBuyerProfile.is_verified && (
-                      <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/30 rounded-lg">
-                        <ShieldAlert className="h-5 w-5 text-warning shrink-0 mt-0.5" />
-                        <div className="text-sm">
-                          <p className="font-medium text-warning">Usuario no verificado</p>
-                          <p className="text-muted-foreground">Esta persona no ha completado la verificación de identidad. Se recomienda verificar la cuenta para mayor seguridad.</p>
-                        </div>
-                      </div>
-                    )}
+                  <AccordionContent className="pt-2 pb-4">
                     <UserRatings userId={realBuyerProfile.id} maxRatings={5} />
                   </AccordionContent>
                 )}
