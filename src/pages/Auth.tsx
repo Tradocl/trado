@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff } from "lucide-react";
+import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { validateRUT, validateChileanPhone } from "@/lib/validators";
 import tradoLogo from "@/assets/trado-logo.png";
 
@@ -300,8 +300,17 @@ const Auth = () => {
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info p-4">
-        <Card className="w-full max-w-md shadow-2xl border-0">
+        <Card className="w-full max-w-md shadow-2xl border-0 relative">
           <CardHeader className="text-center space-y-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/")}
+              className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Inicio
+            </Button>
             <div className="flex justify-center mb-4">
               <img src={tradoLogo} alt="Trado" className="h-32 w-auto" />
             </div>
