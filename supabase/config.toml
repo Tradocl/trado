@@ -7,13 +7,13 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.notify-wallet-movement]
-verify_jwt = false
+verify_jwt = true
 
 [functions.notify-transaction-created]
-verify_jwt = false
+verify_jwt = true
 
 [functions.notify-verification-submitted]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-payment-instructions]
 verify_jwt = true

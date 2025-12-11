@@ -125,29 +125,11 @@ const CreateTransaction = () => {
 
       if (error) throw error;
 
-      // Get profile for notification
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", user.id)
-        .single();
-
       // Send notification email
       try {
         await supabase.functions.invoke("notify-transaction-created", {
           body: {
             transactionId: transaction.id,
-            sellerEmail: profile?.email || user.email || "",
-            sellerName: profile?.full_name || "Usuario",
-            productName: formData.productName,
-            productDescription: formData.productDescription,
-            amount: formData.amount,
-            commission: orderDetails.appFee,
-            sellerReceives: formData.initiatorRole === "seller" 
-              ? orderDetails.sellerReceives 
-              : formData.amount, // If buyer initiated, seller receives full amount
-            inviteCode: inviteCode,
-            initiatorRole: formData.initiatorRole,
           },
         });
       } catch (emailError) {

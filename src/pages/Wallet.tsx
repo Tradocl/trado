@@ -280,22 +280,11 @@ const Wallet = () => {
 
       if (movementError) throw movementError;
 
-      // Get user profile for email
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", user.id)
-        .single();
-
       // Send notification email
       try {
         await supabase.functions.invoke("notify-wallet-movement", {
           body: {
             movementId: movement.id,
-            userEmail: profile?.email || user.email,
-            userName: profile?.full_name || "Usuario",
-            type: "deposit",
-            amount: depositAmount,
           },
         });
       } catch (emailError) {
@@ -364,29 +353,11 @@ const Wallet = () => {
 
       if (movementError) throw movementError;
 
-      // Get user profile for email
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", user.id)
-        .single();
-
       // Send notification email
       try {
         await supabase.functions.invoke("notify-wallet-movement", {
           body: {
             movementId: movement.id,
-            userEmail: profile?.email || user.email,
-            userName: profile?.full_name || "Usuario",
-            type: "withdrawal",
-            amount: withdrawAmount,
-            bankDetails: {
-              holderName: bankHolderName,
-              holderRut: bankHolderRut,
-              bankName: bankName,
-              accountType: bankAccountType,
-              accountNumber: bankAccountNumber,
-            },
           },
         });
       } catch (emailError) {

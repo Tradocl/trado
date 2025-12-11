@@ -137,17 +137,7 @@ const Verification = () => {
 
       // Notificar al admin
       try {
-        await supabase.functions.invoke('notify-verification-submitted', {
-          body: {
-            userName: profile.full_name,
-            userEmail: profile.email,
-            userRut: profile.rut || 'No especificado',
-            userPhone: profile.phone || 'No especificado',
-            documentUrl: docUrlData.publicUrl,
-            selfieUrl: selfieUrlData.publicUrl,
-            userId: user.id
-          }
-        });
+        await supabase.functions.invoke('notify-verification-submitted', {});
       } catch (notifError) {
         console.error('Error sending notification:', notifError);
         // No mostramos error al usuario, el documento fue subido correctamente

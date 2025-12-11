@@ -10,16 +10,36 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Validation helpers
+function sanitizeHtml(str: string | undefined | null): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function validateString(value: unknown, maxLength: number = 500): string {
+  if (typeof value !== 'string') return '';
+  return sanitizeHtml(value.substring(0, maxLength));
+}
+
+function isValidUuid(uuid: unknown): boolean {
+  if (typeof uuid !== 'string') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
+function validateAmount(value: unknown): number {
+  const num = Number(value);
+  if (isNaN(num) || num < 0) return 0;
+  return Math.min(num, 999999999);
+}
+
 interface TransactionCreatedRequest {
   transactionId: string;
-  sellerEmail: string;
-  sellerName: string;
-  productName: string;
-  productDescription?: string;
-  amount: number;
-  commission: number;
-  sellerReceives: number;
-  inviteCode: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -33,17 +53,83 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const {
-      transactionId,
-      sellerEmail,
-      sellerName,
-      productName,
-      productDescription,
-      amount,
-      commission,
-      sellerReceives,
-      inviteCode,
-    }: TransactionCreatedRequest = await req.json();
+    // Verify JWT and get user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("No authorization header provided");
+      return new Response(
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error("Invalid token:", authError);
+      return new Response(
+        JSON.stringify({ error: "Invalid authorization token" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { transactionId }: TransactionCreatedRequest = await req.json();
+
+    // Validate transaction ID
+    if (!isValidUuid(transactionId)) {
+      console.error("Invalid transaction ID format");
+      return new Response(
+        JSON.stringify({ error: "Invalid transaction ID format" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Fetch transaction data from database with seller profile
+    const { data: transaction, error: txError } = await supabase
+      .from("transactions")
+      .select(`
+        id,
+        product_name,
+        product_description,
+        amount,
+        commission,
+        invite_code,
+        seller_id,
+        profiles!transactions_seller_id_fkey (
+          full_name,
+          email
+        )
+      `)
+      .eq("id", transactionId)
+      .single();
+
+    if (txError || !transaction) {
+      console.error("Transaction not found:", txError);
+      return new Response(
+        JSON.stringify({ error: "Transaction not found" }),
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Verify the user is the seller of this transaction
+    if (transaction.seller_id !== user.id) {
+      console.error("User is not authorized for this transaction");
+      return new Response(
+        JSON.stringify({ error: "Not authorized to send notification for this transaction" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const sellerProfile = transaction.profiles as any;
+    const sellerEmail = validateString(sellerProfile?.email, 254);
+    const sellerName = validateString(sellerProfile?.full_name, 200) || 'Vendedor';
+    const productName = validateString(transaction.product_name, 200);
+    const amount = validateAmount(transaction.amount);
+    const commission = validateAmount(transaction.commission);
+    const inviteCode = validateString(transaction.invite_code, 20);
+    const sellerReceives = amount;
+    const totalAmount = amount + commission;
 
     console.log("Sending transaction created notification:", {
       transactionId,
@@ -51,8 +137,6 @@ const handler = async (req: Request): Promise<Response> => {
       productName,
       amount,
     });
-
-    const totalAmount = amount + commission;
 
     const emailHtml = `
       <!DOCTYPE html>

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -23,18 +24,6 @@ function validateString(value: unknown, maxLength: number = 500): string {
   return sanitizeHtml(value.substring(0, maxLength));
 }
 
-function isValidEmail(email: unknown): boolean {
-  if (typeof email !== 'string') return false;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 254;
-}
-
-function isValidUuid(uuid: unknown): boolean {
-  if (typeof uuid !== 'string') return false;
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
-}
-
 function isValidUrl(url: unknown): boolean {
   if (typeof url !== 'string') return false;
   try {
@@ -45,51 +34,62 @@ function isValidUrl(url: unknown): boolean {
   }
 }
 
-interface VerificationNotificationRequest {
-  userName: string;
-  userEmail: string;
-  userRut: string;
-  userPhone: string;
-  documentUrl: string;
-  selfieUrl: string;
-  userId: string;
-}
-
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const body = await req.json();
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Validate required fields
-    if (!isValidEmail(body.userEmail)) {
-      console.error("Invalid email format:", body.userEmail);
+    // Verify JWT and get user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("No authorization header provided");
       return new Response(
-        JSON.stringify({ error: "Invalid email format" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    if (!isValidUuid(body.userId)) {
-      console.error("Invalid user ID format");
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error("Invalid token:", authError);
       return new Response(
-        JSON.stringify({ error: "Invalid user ID format" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ error: "Invalid authorization token" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Sanitize inputs
-    const userName = validateString(body.userName, 200) || 'Usuario';
-    const userEmail = body.userEmail;
-    const userRut = validateString(body.userRut, 20) || 'No especificado';
-    const userPhone = validateString(body.userPhone, 20) || 'No especificado';
-    const userId = body.userId;
+    // Fetch user profile from database
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("full_name, email, rut, phone, verification_document_url, verification_selfie_url")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      console.error("Profile not found:", profileError);
+      return new Response(
+        JSON.stringify({ error: "User profile not found" }),
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Sanitize inputs from database
+    const userName = validateString(profile.full_name, 200) || 'Usuario';
+    const userEmail = sanitizeHtml(profile.email || '');
+    const userRut = validateString(profile.rut, 20) || 'No especificado';
+    const userPhone = validateString(profile.phone, 20) || 'No especificado';
+    const userId = user.id;
 
     // Validate and sanitize URLs
-    const documentUrl = isValidUrl(body.documentUrl) ? body.documentUrl : '#';
-    const selfieUrl = isValidUrl(body.selfieUrl) ? body.selfieUrl : '#';
+    const documentUrl = isValidUrl(profile.verification_document_url) ? profile.verification_document_url : '#';
+    const selfieUrl = isValidUrl(profile.verification_selfie_url) ? profile.verification_selfie_url : '#';
 
     console.log("Sending verification notification:", { userName, userEmail, userId });
 
@@ -103,7 +103,7 @@ const handler = async (req: Request): Promise<Response> => {
         <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
           <h3 style="margin-top: 0;">Datos del Usuario:</h3>
           <p style="margin: 5px 0;"><strong>Nombre:</strong> ${userName}</p>
-          <p style="margin: 5px 0;"><strong>Email:</strong> ${sanitizeHtml(userEmail)}</p>
+          <p style="margin: 5px 0;"><strong>Email:</strong> ${userEmail}</p>
           <p style="margin: 5px 0;"><strong>RUT:</strong> ${userRut}</p>
           <p style="margin: 5px 0;"><strong>Teléfono:</strong> ${userPhone}</p>
           <p style="margin: 5px 0;"><strong>ID Usuario:</strong> ${userId}</p>
