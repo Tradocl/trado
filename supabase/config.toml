@@ -16,7 +16,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.send-payment-instructions]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-verification-result]
 verify_jwt = true
@@ -34,4 +34,4 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.notify-appeal-escalation]
-verify_jwt = false
+verify_jwt = true

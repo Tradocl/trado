@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -8,12 +9,7 @@ const corsHeaders = {
 };
 
 interface PaymentInstructionsRequest {
-  buyerEmail: string;
-  buyerName: string;
-  referenceCode: string;
-  totalAmount: number;
-  productName: string;
-  sellerName: string;
+  transactionId: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -22,14 +18,92 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const {
-      buyerEmail,
-      buyerName,
-      referenceCode,
-      totalAmount,
-      productName,
-      sellerName,
-    }: PaymentInstructionsRequest = await req.json();
+    // Get auth header and verify JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("No authorization header provided");
+      return new Response(
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Initialize Supabase client with auth
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Verify the JWT and get user
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error("Auth error:", authError);
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { transactionId }: PaymentInstructionsRequest = await req.json();
+
+    if (!transactionId) {
+      return new Response(
+        JSON.stringify({ error: "Transaction ID is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Fetch transaction with buyer and seller profiles - server-side lookup
+    const { data: transaction, error: txError } = await supabase
+      .from("transactions")
+      .select(`
+        id,
+        amount,
+        product_name,
+        invite_code,
+        buyer_id,
+        seller_id,
+        buyer:profiles!transactions_buyer_id_fkey(email, full_name),
+        seller:profiles!transactions_seller_id_fkey(email, full_name)
+      `)
+      .eq("id", transactionId)
+      .single();
+
+    if (txError || !transaction) {
+      console.error("Transaction fetch error:", txError);
+      return new Response(
+        JSON.stringify({ error: "Transaction not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify the authenticated user is a participant in this transaction
+    if (user.id !== transaction.buyer_id && user.id !== transaction.seller_id) {
+      console.error("User is not a participant in this transaction");
+      return new Response(
+        JSON.stringify({ error: "Not authorized for this transaction" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Extract data from server-side lookup (not from client request)
+    const buyerProfile = Array.isArray(transaction.buyer) ? transaction.buyer[0] : transaction.buyer;
+    const sellerProfile = Array.isArray(transaction.seller) ? transaction.seller[0] : transaction.seller;
+    const buyerEmail = buyerProfile?.email;
+    const buyerName = buyerProfile?.full_name || "Comprador";
+    const sellerName = sellerProfile?.full_name || "Vendedor";
+    const referenceCode = transaction.invite_code || transaction.id.substring(0, 8).toUpperCase();
+    const totalAmount = transaction.amount;
+    const productName = transaction.product_name;
+
+    if (!buyerEmail) {
+      console.error("Buyer email not found for transaction:", transactionId);
+      return new Response(
+        JSON.stringify({ error: "Buyer email not found" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     console.log("Sending payment instructions to:", buyerEmail);
 

@@ -97,12 +97,7 @@ const JoinTransaction = () => {
         try {
           await supabase.functions.invoke("send-payment-instructions", {
             body: {
-              buyerEmail: joinerProfile?.email || user.email || "",
-              buyerName: joinerProfile?.full_name || "Comprador",
-              referenceCode: transaction.invite_code,
-              totalAmount: transaction.amount,
-              productName: transaction.product_name,
-              sellerName: creatorProfile?.full_name || "Vendedor",
+              transactionId: transaction.id,
             },
           });
         } catch (emailError) {
@@ -110,21 +105,10 @@ const JoinTransaction = () => {
         }
       } else {
         // Joiner is seller, send payment instructions to the creator (buyer)
-        const { data: buyerProfile } = await supabase
-          .from("profiles")
-          .select("full_name, email")
-          .eq("id", creatorId)
-          .single();
-          
         try {
           await supabase.functions.invoke("send-payment-instructions", {
             body: {
-              buyerEmail: buyerProfile?.email || "",
-              buyerName: buyerProfile?.full_name || "Comprador",
-              referenceCode: transaction.invite_code,
-              totalAmount: transaction.amount + transaction.commission, // Buyer pays price + commission when they initiated
-              productName: transaction.product_name,
-              sellerName: joinerProfile?.full_name || "Vendedor",
+              transactionId: transaction.id,
             },
           });
         } catch (emailError) {
