@@ -770,10 +770,93 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      wallet_movements_safe: {
+        Row: {
+          amount: number | null
+          balance_after: number | null
+          bank_account_number: string | null
+          bank_account_type: string | null
+          bank_holder_name: string | null
+          bank_holder_rut: string | null
+          bank_name: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          transaction_id: string | null
+          type: string | null
+          wallet_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          balance_after?: number | null
+          bank_account_number?: never
+          bank_account_type?: string | null
+          bank_holder_name?: string | null
+          bank_holder_rut?: never
+          bank_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          type?: string | null
+          wallet_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          balance_after?: number | null
+          bank_account_number?: never
+          bank_account_type?: string | null
+          bank_holder_name?: string | null
+          bank_holder_rut?: never
+          bank_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          type?: string | null
+          wallet_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_movements_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_movements_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       generate_invite_code: { Args: never; Returns: string }
+      get_safe_profile: {
+        Args: { profile_id: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          id: string
+          is_verified: boolean
+          nickname: string
+          reputation_score: number
+          total_transactions: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -781,6 +864,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      mask_bank_account: { Args: { account_number: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
