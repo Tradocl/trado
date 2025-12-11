@@ -161,14 +161,7 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
       try {
         await supabase.functions.invoke("notify-appeal-escalation", {
           body: {
-            buyerEmail,
-            buyerName,
-            sellerEmail,
-            sellerName,
-            productName,
-            amount: totalAmount,
             appealId,
-            requestedByName,
           },
         });
         console.log("Escalation emails sent successfully");

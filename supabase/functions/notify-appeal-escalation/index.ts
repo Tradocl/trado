@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -10,14 +11,7 @@ const corsHeaders = {
 };
 
 interface AppealEscalationRequest {
-  buyerEmail: string;
-  buyerName: string;
-  sellerEmail: string;
-  sellerName: string;
-  productName: string;
-  amount: number;
   appealId: string;
-  requestedByName: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,25 +20,110 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const {
-      buyerEmail,
-      buyerName,
-      sellerEmail,
-      sellerName,
-      productName,
-      amount,
-      appealId,
-      requestedByName,
-    }: AppealEscalationRequest = await req.json();
+    // Get auth header and verify JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("No authorization header provided");
+      return new Response(
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Verify the JWT and get user
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error("Auth error:", authError);
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { appealId }: AppealEscalationRequest = await req.json();
+
+    if (!appealId) {
+      return new Response(
+        JSON.stringify({ error: "Appeal ID is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Fetch appeal with transaction and user profiles - server-side lookup
+    const { data: appeal, error: appealError } = await supabase
+      .from("appeals")
+      .select(`
+        id,
+        initiator_id,
+        transaction:transactions!appeals_transaction_id_fkey(
+          id,
+          amount,
+          product_name,
+          buyer_id,
+          seller_id,
+          buyer:profiles!transactions_buyer_id_fkey(email, full_name),
+          seller:profiles!transactions_seller_id_fkey(email, full_name)
+        )
+      `)
+      .eq("id", appealId)
+      .single();
+
+    if (appealError || !appeal) {
+      console.error("Appeal fetch error:", appealError);
+      return new Response(
+        JSON.stringify({ error: "Appeal not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Handle case where transaction might be returned as array
+    const txData = Array.isArray(appeal.transaction) ? appeal.transaction[0] : appeal.transaction;
+    if (!txData) {
+      console.error("Transaction not found for appeal:", appealId);
+      return new Response(
+        JSON.stringify({ error: "Transaction not found for appeal" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify the authenticated user is a participant in this appeal/transaction
+    const isParticipant = user.id === txData.buyer_id || 
+                          user.id === txData.seller_id || 
+                          user.id === appeal.initiator_id;
+    
+    if (!isParticipant) {
+      console.error("User is not a participant in this appeal");
+      return new Response(
+        JSON.stringify({ error: "Not authorized for this appeal" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Extract data from server-side lookup (not from client request)
+    const buyerProfile = Array.isArray(txData.buyer) ? txData.buyer[0] : txData.buyer;
+    const sellerProfile = Array.isArray(txData.seller) ? txData.seller[0] : txData.seller;
+    const buyerEmail = buyerProfile?.email;
+    const sellerEmail = sellerProfile?.email;
+    const buyerName = buyerProfile?.full_name || "Comprador";
+    const sellerName = sellerProfile?.full_name || "Vendedor";
+    const productName = txData.product_name;
+    const amount = txData.amount;
+    
+    // Determine who requested the escalation
+    const requestedByName = user.id === txData.buyer_id ? buyerName : sellerName;
 
     console.log("Sending appeal escalation notifications:", {
-      buyerEmail,
-      sellerEmail,
-      productName,
       appealId,
+      productName,
     });
 
-    const baseUrl = Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", "") || "";
     const appealUrl = `https://uohlyccjugbqsxiwerrv.lovableproject.com/appeal/${appealId}`;
 
     const createEmailHtml = (recipientName: string, isRequester: boolean) => `
@@ -113,24 +192,28 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     // Send email to buyer
-    const buyerEmailResponse = await resend.emails.send({
+    const buyerEmailResponse = buyerEmail ? await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
       to: [buyerEmail],
       subject: `🛡️ Intervención de administrador solicitada - ${productName}`,
       html: createEmailHtml(buyerName, requestedByName === buyerName),
-    });
+    }) : null;
 
-    console.log("Buyer email sent:", buyerEmailResponse);
+    if (buyerEmailResponse) {
+      console.log("Buyer email sent:", buyerEmailResponse);
+    }
 
     // Send email to seller
-    const sellerEmailResponse = await resend.emails.send({
+    const sellerEmailResponse = sellerEmail ? await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
       to: [sellerEmail],
       subject: `🛡️ Intervención de administrador solicitada - ${productName}`,
       html: createEmailHtml(sellerName, requestedByName === sellerName),
-    });
+    }) : null;
 
-    console.log("Seller email sent:", sellerEmailResponse);
+    if (sellerEmailResponse) {
+      console.log("Seller email sent:", sellerEmailResponse);
+    }
 
     // Also notify admin
     const adminEmailResponse = await resend.emails.send({
@@ -162,8 +245,8 @@ const handler = async (req: Request): Promise<Response> => {
                   <ul>
                     <li><strong>Producto:</strong> ${productName}</li>
                     <li><strong>Monto:</strong> $${amount.toLocaleString('es-CL')} CLP</li>
-                    <li><strong>Comprador:</strong> ${buyerName} (${buyerEmail})</li>
-                    <li><strong>Vendedor:</strong> ${sellerName} (${sellerEmail})</li>
+                    <li><strong>Comprador:</strong> ${buyerName} (${buyerEmail || 'N/A'})</li>
+                    <li><strong>Vendedor:</strong> ${sellerName} (${sellerEmail || 'N/A'})</li>
                     <li><strong>Solicitado por:</strong> ${requestedByName}</li>
                   </ul>
                 </div>
