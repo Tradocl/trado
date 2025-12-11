@@ -198,21 +198,17 @@ const Transaction = () => {
         setActiveAppeal(null);
       }
 
-      // Load seller profile
+      // Load seller profile using safe function (only non-sensitive fields)
       const { data: sellerData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", txData.seller_id)
+        .rpc("get_safe_profile", { profile_id: txData.seller_id })
         .single();
 
       setSellerProfile(sellerData);
 
-      // Load buyer profile if exists
+      // Load buyer profile if exists using safe function
       if (txData.buyer_id) {
         const { data: buyerData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", txData.buyer_id)
+          .rpc("get_safe_profile", { profile_id: txData.buyer_id })
           .single();
 
         setBuyerProfile(buyerData);
