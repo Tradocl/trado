@@ -465,16 +465,16 @@ const Dashboard = () => {
               <span className="text-lg sm:text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-colors text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet")}>
-                <History className="h-4 w-4 sm:mr-2 text-primary/70" />
+              <Button variant="outline" size="sm" className="border-muted-foreground/20 hover:bg-muted/50 transition-colors text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet")}>
+                <History className="h-4 w-4 sm:mr-2 text-muted-foreground" />
                 <span className="hidden sm:inline">Movimientos</span>
               </Button>
-              <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-md text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet?action=deposit")}>
+              <Button size="sm" className="bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet?action=deposit")}>
                 <Plus className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Depositar</span>
               </Button>
-              <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5 hover:border-primary/30 transition-colors text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet?action=withdraw")}>
-                <ArrowUpRight className="h-4 w-4 sm:mr-2 text-primary/70" />
+              <Button size="sm" className="bg-destructive hover:bg-destructive/90 shadow-md text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet?action=withdraw")}>
+                <ArrowUpRight className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Retirar</span>
               </Button>
             </div>
