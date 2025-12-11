@@ -59,8 +59,9 @@ export default function MovementHistory() {
 
       if (!wallet) return;
 
+      // Use safe view that masks sensitive banking data
       const { data, error } = await supabase
-        .from("wallet_movements")
+        .from("wallet_movements_safe")
         .select("*")
         .eq("wallet_id", wallet.id)
         .order("created_at", { ascending: false });
