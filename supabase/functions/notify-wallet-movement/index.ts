@@ -10,6 +10,40 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Validation helpers
+function sanitizeHtml(str: string | undefined | null): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function validateString(value: unknown, maxLength: number = 500): string {
+  if (typeof value !== 'string') return '';
+  return sanitizeHtml(value.substring(0, maxLength));
+}
+
+function isValidEmail(email: unknown): boolean {
+  if (typeof email !== 'string') return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+}
+
+function isValidUuid(uuid: unknown): boolean {
+  if (typeof uuid !== 'string') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
+function validateAmount(value: unknown): number {
+  const num = Number(value);
+  if (isNaN(num) || num < 0) return 0;
+  return Math.min(num, 999999999);
+}
+
 interface WalletMovementRequest {
   movementId: string;
   userEmail: string;
@@ -26,24 +60,48 @@ interface WalletMovementRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const body = await req.json();
 
-    const {
-      movementId,
-      userEmail,
-      userName,
-      type,
-      amount,
-      bankDetails,
-    }: WalletMovementRequest = await req.json();
+    // Validate required fields
+    if (!isValidUuid(body.movementId)) {
+      console.error("Invalid movement ID format");
+      return new Response(
+        JSON.stringify({ error: "Invalid movement ID format" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!isValidEmail(body.userEmail)) {
+      console.error("Invalid email format:", body.userEmail);
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Sanitize inputs
+    const movementId = body.movementId;
+    const userEmail = body.userEmail;
+    const userName = validateString(body.userName, 200) || 'Usuario';
+    const type = body.type === 'deposit' || body.type === 'withdrawal' ? body.type : 'deposit';
+    const amount = validateAmount(body.amount);
+    
+    // Sanitize bank details if provided
+    let bankDetails = undefined;
+    if (body.bankDetails && type === 'withdrawal') {
+      bankDetails = {
+        holderName: validateString(body.bankDetails.holderName, 200),
+        holderRut: validateString(body.bankDetails.holderRut, 20),
+        bankName: validateString(body.bankDetails.bankName, 100),
+        accountType: validateString(body.bankDetails.accountType, 50),
+        accountNumber: validateString(body.bankDetails.accountNumber, 30),
+      };
+    }
 
     console.log("Sending wallet movement notification:", {
       movementId,
@@ -88,8 +146,6 @@ const handler = async (req: Request): Promise<Response> => {
       `;
     }
 
-    const adminUrl = `${supabaseUrl.replace("https://", "https://lovable.app/")}admin`;
-
     const html = `
       <!DOCTYPE html>
       <html>
@@ -126,7 +182,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; font-weight: bold; color: #6c757d;">Email:</td>
-                  <td style="padding: 10px 0;">${userEmail}</td>
+                  <td style="padding: 10px 0;">${sanitizeHtml(userEmail)}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; font-weight: bold; color: #6c757d;">ID Movimiento:</td>
@@ -144,13 +200,6 @@ const handler = async (req: Request): Promise<Response> => {
                 </p>
               </div>
             ` : ""}
-
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef;">
-              <a href="${adminUrl}" 
-                 style="display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                🔐 Ir al Panel de Administración
-              </a>
-            </div>
 
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; text-align: center; color: #6c757d; font-size: 12px;">
               <p style="margin: 5px 0;">Esta es una notificación automática del sistema Trado</p>
