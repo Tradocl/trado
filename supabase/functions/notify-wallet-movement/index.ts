@@ -26,12 +26,6 @@ function validateString(value: unknown, maxLength: number = 500): string {
   return sanitizeHtml(value.substring(0, maxLength));
 }
 
-function isValidEmail(email: unknown): boolean {
-  if (typeof email !== 'string') return false;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 254;
-}
-
 function isValidUuid(uuid: unknown): boolean {
   if (typeof uuid !== 'string') return false;
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -46,17 +40,6 @@ function validateAmount(value: unknown): number {
 
 interface WalletMovementRequest {
   movementId: string;
-  userEmail: string;
-  userName: string;
-  type: "deposit" | "withdrawal";
-  amount: number;
-  bankDetails?: {
-    holderName: string;
-    holderRut: string;
-    bankName: string;
-    accountType: string;
-    accountNumber: string;
-  };
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -65,9 +48,34 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Verify JWT and get user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("No authorization header provided");
+      return new Response(
+        JSON.stringify({ error: "Authorization required" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error("Invalid token:", authError);
+      return new Response(
+        JSON.stringify({ error: "Invalid authorization token" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const body = await req.json();
 
-    // Validate required fields
+    // Validate movement ID
     if (!isValidUuid(body.movementId)) {
       console.error("Invalid movement ID format");
       return new Response(
@@ -76,30 +84,64 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    if (!isValidEmail(body.userEmail)) {
-      console.error("Invalid email format:", body.userEmail);
+    const movementId = body.movementId;
+
+    // Fetch movement data from database with wallet and profile info
+    const { data: movement, error: mvError } = await supabase
+      .from("wallet_movements")
+      .select(`
+        id,
+        type,
+        amount,
+        bank_holder_name,
+        bank_holder_rut,
+        bank_name,
+        bank_account_type,
+        bank_account_number,
+        wallets!inner (
+          user_id,
+          profiles!inner (
+            full_name,
+            email
+          )
+        )
+      `)
+      .eq("id", movementId)
+      .single();
+
+    if (mvError || !movement) {
+      console.error("Movement not found:", mvError);
       return new Response(
-        JSON.stringify({ error: "Invalid email format" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ error: "Movement not found" }),
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Sanitize inputs
-    const movementId = body.movementId;
-    const userEmail = body.userEmail;
-    const userName = validateString(body.userName, 200) || 'Usuario';
-    const type = body.type === 'deposit' || body.type === 'withdrawal' ? body.type : 'deposit';
-    const amount = validateAmount(body.amount);
+    // Verify the user owns this wallet movement
+    const wallet = movement.wallets as any;
+    if (wallet.user_id !== user.id) {
+      console.error("User is not authorized for this movement");
+      return new Response(
+        JSON.stringify({ error: "Not authorized to send notification for this movement" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const profile = wallet.profiles as any;
+    const userEmail = sanitizeHtml(profile?.email || '');
+    const userName = validateString(profile?.full_name, 200) || 'Usuario';
+    const type = movement.type === 'deposit' || movement.type === 'withdrawal' ? movement.type : 'deposit';
+    const amount = validateAmount(movement.amount);
     
-    // Sanitize bank details if provided
+    // Get bank details from movement record
     let bankDetails = undefined;
-    if (body.bankDetails && type === 'withdrawal') {
+    if (type === 'withdrawal') {
       bankDetails = {
-        holderName: validateString(body.bankDetails.holderName, 200),
-        holderRut: validateString(body.bankDetails.holderRut, 20),
-        bankName: validateString(body.bankDetails.bankName, 100),
-        accountType: validateString(body.bankDetails.accountType, 50),
-        accountNumber: validateString(body.bankDetails.accountNumber, 30),
+        holderName: validateString(movement.bank_holder_name, 200),
+        holderRut: validateString(movement.bank_holder_rut, 20),
+        bankName: validateString(movement.bank_name, 100),
+        accountType: validateString(movement.bank_account_type, 50),
+        accountNumber: validateString(movement.bank_account_number, 30),
       };
     }
 
@@ -182,7 +224,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; font-weight: bold; color: #6c757d;">Email:</td>
-                  <td style="padding: 10px 0;">${sanitizeHtml(userEmail)}</td>
+                  <td style="padding: 10px 0;">${userEmail}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; font-weight: bold; color: #6c757d;">ID Movimiento:</td>

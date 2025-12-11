@@ -253,31 +253,12 @@ const Auth = () => {
 
       if (updateError) throw updateError;
 
-      // Obtener datos del perfil para la notificación
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('full_name, email, rut, phone')
-        .eq('id', newUserId)
-        .single();
-
       // Notificar al admin
-      if (profileData) {
-        try {
-          await supabase.functions.invoke('notify-verification-submitted', {
-            body: {
-              userName: profileData.full_name,
-              userEmail: profileData.email,
-              userRut: profileData.rut || 'No especificado',
-              userPhone: profileData.phone || 'No especificado',
-              documentUrl: publicUrl,
-              selfieUrl: selfiePublicUrl,
-              userId: newUserId
-            }
-          });
-        } catch (notifError) {
-          console.error('Error sending notification:', notifError);
-          // No mostramos error al usuario, el documento fue subido correctamente
-        }
+      try {
+        await supabase.functions.invoke('notify-verification-submitted', {});
+      } catch (notifError) {
+        console.error('Error sending notification:', notifError);
+        // No mostramos error al usuario, el documento fue subido correctamente
       }
 
       toast.success("¡Documentos enviados! Tu verificación será revisada pronto");
