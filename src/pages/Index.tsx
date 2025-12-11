@@ -50,50 +50,52 @@ const Index = () => {
       </div>
 
       {/* Features Section */}
-      <div className="container mx-auto px-4 py-16 bg-background">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            ¿Por qué elegir Trado?
-          </h2>
-          <p className="text-xl text-muted-foreground">
-            La forma más segura de comprar y vender en Chile
-          </p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="bg-card rounded-2xl p-8 border border-border shadow-lg hover:shadow-xl transition-shadow">
-            <div className="p-4 bg-success/10 rounded-xl w-fit mb-4">
-              <Shield className="h-8 w-8 text-success" />
-            </div>
-            <h3 className="text-2xl font-bold mb-3 text-foreground">100% Seguro</h3>
-            <p className="text-muted-foreground">
-              Tu dinero queda retenido hasta que confirmes que recibiste lo que compraste. Sin riesgos.
+      <div className="bg-gradient-to-b from-primary/5 to-background py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              ¿Por qué elegir Trado?
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              La forma más segura de comprar y vender en Chile
             </p>
           </div>
-
-          <div className="bg-card rounded-2xl p-8 border border-border shadow-lg hover:shadow-xl transition-shadow">
-            <div className="p-4 bg-info/10 rounded-xl w-fit mb-4">
-              <Users className="h-8 w-8 text-info" />
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="bg-gradient-to-br from-success/10 to-success/5 rounded-2xl p-8 border border-success/20 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+              <div className="p-4 bg-success/20 rounded-xl w-fit mb-4">
+                <Shield className="h-8 w-8 text-success" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">100% Seguro</h3>
+              <p className="text-muted-foreground">
+                Tu dinero queda retenido hasta que confirmes que recibiste lo que compraste. Sin riesgos.
+              </p>
             </div>
-            <h3 className="text-2xl font-bold mb-3 text-foreground">Reputación</h3>
-            <p className="text-muted-foreground">
-              Sistema de calificaciones para comprar y vender con confianza. Verifica a quién le compras.
-            </p>
-          </div>
 
-          <div className="bg-card rounded-2xl p-8 border border-border shadow-lg hover:shadow-xl transition-shadow">
-            <div className="p-4 bg-warning/10 rounded-xl w-fit mb-4">
-              <TrendingUp className="h-8 w-8 text-warning" />
+            <div className="bg-gradient-to-br from-info/10 to-info/5 rounded-2xl p-8 border border-info/20 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+              <div className="p-4 bg-info/20 rounded-xl w-fit mb-4">
+                <Users className="h-8 w-8 text-info" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">Reputación</h3>
+              <p className="text-muted-foreground">
+                Sistema de calificaciones para comprar y vender con confianza. Verifica a quién le compras.
+              </p>
             </div>
-            <h3 className="text-2xl font-bold mb-3 text-foreground">Simple y Rápido</h3>
-            <p className="text-muted-foreground">
-              Crea una sala, comparte el código y listo. Vende sin complicaciones en minutos.
-            </p>
+
+            <div className="bg-gradient-to-br from-warning/10 to-warning/5 rounded-2xl p-8 border border-warning/20 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+              <div className="p-4 bg-warning/20 rounded-xl w-fit mb-4">
+                <TrendingUp className="h-8 w-8 text-warning" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">Simple y Rápido</h3>
+              <p className="text-muted-foreground">
+                Crea una sala, comparte el código y listo. Vende sin complicaciones en minutos.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Testimonials Section */}
-      <div className="bg-muted/30 py-16">
+      <div className="bg-gradient-to-b from-background to-primary/5 py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -105,8 +107,8 @@ const Index = () => {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="bg-card rounded-2xl p-8 border border-border shadow-lg">
-              <Quote className="h-8 w-8 text-muted-foreground/40 mb-4" />
+            <div className="bg-card rounded-2xl p-8 border border-primary/10 shadow-lg hover:shadow-xl transition-all">
+              <Quote className="h-8 w-8 text-primary/30 mb-4" />
               <p className="text-muted-foreground mb-6 italic">
                 "Compré un notebook usado y el vendedor me lo envió sin problemas. El dinero estuvo seguro hasta que confirmé que todo estaba perfecto."
               </p>
@@ -125,8 +127,8 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="bg-card rounded-2xl p-8 border border-border shadow-lg">
-              <Quote className="h-8 w-8 text-muted-foreground/40 mb-4" />
+            <div className="bg-card rounded-2xl p-8 border border-primary/10 shadow-lg hover:shadow-xl transition-all">
+              <Quote className="h-8 w-8 text-primary/30 mb-4" />
               <p className="text-muted-foreground mb-6 italic">
                 "Como vendedor me da mucha confianza. El comprador deposita primero y yo puedo enviar tranquilo sabiendo que el pago está asegurado."
               </p>
@@ -145,8 +147,8 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="bg-card rounded-2xl p-8 border border-border shadow-lg">
-              <Quote className="h-8 w-8 text-muted-foreground/40 mb-4" />
+            <div className="bg-card rounded-2xl p-8 border border-primary/10 shadow-lg hover:shadow-xl transition-all">
+              <Quote className="h-8 w-8 text-primary/30 mb-4" />
               <p className="text-muted-foreground mb-6 italic">
                 "Excelente plataforma. Vendí mi consola y todo fue super rápido. El sistema de calificaciones me ayudó a elegir un comprador confiable."
               </p>
@@ -169,74 +171,76 @@ const Index = () => {
       </div>
 
       {/* FAQ Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Preguntas Frecuentes
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Todo lo que necesitas saber sobre Trado
-            </p>
-          </div>
+      <div className="bg-gradient-to-b from-primary/5 to-background py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Preguntas Frecuentes
+              </h2>
+              <p className="text-xl text-muted-foreground">
+                Todo lo que necesitas saber sobre Trado
+              </p>
+            </div>
 
-          <div className="bg-card rounded-2xl p-8 border border-border shadow-lg">
-            <Accordion type="single" collapsible className="space-y-4">
-              <AccordionItem value="item-1" className="border-b border-border">
-                <AccordionTrigger className="text-foreground hover:text-foreground/80 text-left">
-                  ¿Cómo funciona el sistema de seguridad?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  El comprador deposita el dinero en la plataforma, donde queda retenido de forma segura. 
-                  El vendedor envía el producto y cuando el comprador confirma que lo recibió correctamente, 
-                  liberamos el pago al vendedor. Si hay algún problema, mediamos la disputa.
-                </AccordionContent>
-              </AccordionItem>
+            <div className="bg-card rounded-2xl p-8 border border-primary/10 shadow-lg">
+              <Accordion type="single" collapsible className="space-y-4">
+                <AccordionItem value="item-1" className="border-b border-border/50">
+                  <AccordionTrigger className="text-foreground hover:text-primary text-left">
+                    ¿Cómo funciona el sistema de seguridad?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">
+                    El comprador deposita el dinero en la plataforma, donde queda retenido de forma segura. 
+                    El vendedor envía el producto y cuando el comprador confirma que lo recibió correctamente, 
+                    liberamos el pago al vendedor. Si hay algún problema, mediamos la disputa.
+                  </AccordionContent>
+                </AccordionItem>
 
-              <AccordionItem value="item-2" className="border-b border-border">
-                <AccordionTrigger className="text-foreground hover:text-foreground/80 text-left">
-                  ¿Cuánto cobran por usar la plataforma?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Cobramos una pequeña comisión del 3% sobre el valor de la transacción. 
-                  Esta comisión se descuenta automáticamente cuando se libera el pago al vendedor. 
-                  No hay costos ocultos ni sorpresas.
-                </AccordionContent>
-              </AccordionItem>
+                <AccordionItem value="item-2" className="border-b border-border/50">
+                  <AccordionTrigger className="text-foreground hover:text-primary text-left">
+                    ¿Cuánto cobran por usar la plataforma?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">
+                    Cobramos una pequeña comisión del 3% sobre el valor de la transacción. 
+                    Esta comisión se descuenta automáticamente cuando se libera el pago al vendedor. 
+                    No hay costos ocultos ni sorpresas.
+                  </AccordionContent>
+                </AccordionItem>
 
-              <AccordionItem value="item-3" className="border-b border-border">
-                <AccordionTrigger className="text-foreground hover:text-foreground/80 text-left">
-                  ¿Qué pasa si el producto llega dañado?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Si el producto llega dañado o no corresponde a lo acordado, el comprador puede abrir 
-                  una disputa antes de confirmar la recepción. Nuestro equipo revisará el caso y mediará 
-                  para encontrar una solución justa. El dinero permanece retenido hasta resolver la disputa.
-                </AccordionContent>
-              </AccordionItem>
+                <AccordionItem value="item-3" className="border-b border-border/50">
+                  <AccordionTrigger className="text-foreground hover:text-primary text-left">
+                    ¿Qué pasa si el producto llega dañado?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">
+                    Si el producto llega dañado o no corresponde a lo acordado, el comprador puede abrir 
+                    una disputa antes de confirmar la recepción. Nuestro equipo revisará el caso y mediará 
+                    para encontrar una solución justa. El dinero permanece retenido hasta resolver la disputa.
+                  </AccordionContent>
+                </AccordionItem>
 
-              <AccordionItem value="item-4" className="border-b border-border">
-                <AccordionTrigger className="text-foreground hover:text-foreground/80 text-left">
-                  ¿Cuánto tiempo tarda en liberarse el pago?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Una vez que el comprador confirma que recibió el producto en buen estado, 
-                  el pago se libera inmediatamente al vendedor. El vendedor puede entonces retirar 
-                  su dinero a su cuenta bancaria, proceso que toma entre 1-2 días hábiles.
-                </AccordionContent>
-              </AccordionItem>
+                <AccordionItem value="item-4" className="border-b border-border/50">
+                  <AccordionTrigger className="text-foreground hover:text-primary text-left">
+                    ¿Cuánto tiempo tarda en liberarse el pago?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">
+                    Una vez que el comprador confirma que recibió el producto en buen estado, 
+                    el pago se libera inmediatamente al vendedor. El vendedor puede entonces retirar 
+                    su dinero a su cuenta bancaria, proceso que toma entre 1-2 días hábiles.
+                  </AccordionContent>
+                </AccordionItem>
 
-              <AccordionItem value="item-5" className="border-b-0">
-                <AccordionTrigger className="text-foreground hover:text-foreground/80 text-left">
-                  ¿Necesito verificar mi identidad?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Para transacciones pequeñas no es necesario, pero recomendamos verificar tu identidad 
-                  para aumentar tu reputación y generar más confianza con otros usuarios. Los usuarios 
-                  verificados tienen acceso a transacciones de mayor valor y más beneficios.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                <AccordionItem value="item-5" className="border-b-0">
+                  <AccordionTrigger className="text-foreground hover:text-primary text-left">
+                    ¿Necesito verificar mi identidad?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">
+                    Para transacciones pequeñas no es necesario, pero recomendamos verificar tu identidad 
+                    para aumentar tu reputación y generar más confianza con otros usuarios. Los usuarios 
+                    verificados tienen acceso a transacciones de mayor valor y más beneficios.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
           </div>
         </div>
       </div>
