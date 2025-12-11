@@ -7,6 +7,34 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Validation helpers
+function sanitizeHtml(str: string | undefined | null): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function validateString(value: unknown, maxLength: number = 500): string {
+  if (typeof value !== 'string') return '';
+  return sanitizeHtml(value.substring(0, maxLength));
+}
+
+function isValidEmail(email: unknown): boolean {
+  if (typeof email !== 'string') return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+}
+
+function validateAmount(value: unknown): number {
+  const num = Number(value);
+  if (isNaN(num) || num < 0) return 0;
+  return Math.min(num, 999999999);
+}
+
 interface NotificationRequest {
   userEmail: string;
   userName: string;
@@ -22,7 +50,30 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userEmail, userName, movementType, amount, status, description }: NotificationRequest = await req.json();
+    const body = await req.json();
+    
+    // Validate email
+    const userEmail = body.userEmail;
+    if (!isValidEmail(userEmail)) {
+      console.error("Invalid email format:", userEmail);
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Sanitize inputs
+    const userName = validateString(body.userName, 200) || 'Usuario';
+    const movementType = body.movementType === 'deposit' || body.movementType === 'withdrawal' 
+      ? body.movementType 
+      : 'deposit';
+    const amount = validateAmount(body.amount);
+    const status = body.status === 'approved' || body.status === 'rejected' 
+      ? body.status 
+      : 'rejected';
+    const description = body.description ? validateString(body.description, 500) : undefined;
+
+    console.log(`Processing movement notification for: ${userEmail}`);
 
     const statusText = status === "approved" ? "aprobado" : "rechazado";
     const statusEmoji = status === "approved" ? "✅" : "❌";
@@ -48,7 +99,7 @@ const handler = async (req: Request): Promise<Response> => {
           : `<p>Si tienes alguna pregunta sobre este rechazo, por favor contacta con soporte.</p>`
         }
         
-        <p>Saludos,<br>El equipo de SafeTransaction</p>
+        <p>Saludos,<br>El equipo de Trado</p>
       </div>
     `;
 
@@ -70,6 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!response.ok) {
       const error = await response.text();
+      console.error("Resend API error:", error);
       throw new Error(`Resend API error: ${error}`);
     }
 
