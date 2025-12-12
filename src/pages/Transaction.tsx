@@ -128,9 +128,8 @@ const Transaction = () => {
 
   useEffect(() => {
     if (!user) {
-      // Save current URL to redirect back after login
-      sessionStorage.setItem('redirectAfterLogin', `/transaction/${id}`);
-      navigate("/auth");
+      // Redirect to welcome page for non-authenticated users
+      navigate(`/invite/${id}`);
       return;
     }
     loadTransaction();
@@ -234,7 +233,18 @@ const Transaction = () => {
 
   const copyInviteLink = () => {
     if (transaction?.id) {
-      const link = `${window.location.origin}/transaction/${transaction.id}`;
+      // Use /invite/ path for the invitation link
+      const origin = window.location.origin;
+      let appUrl = origin;
+      if (origin.includes('id-preview--') || origin.includes('localhost')) {
+        const match = origin.match(/id-preview--([^.]+)/);
+        if (match) {
+          appUrl = `https://${match[1]}.lovable.app`;
+        } else {
+          appUrl = 'https://wpczgwxsriezaubncuom.lovable.app';
+        }
+      }
+      const link = `${appUrl}/invite/${transaction.id}`;
       navigator.clipboard.writeText(link);
       setCopiedLink(true);
       toast.success("Enlace copiado al portapapeles");

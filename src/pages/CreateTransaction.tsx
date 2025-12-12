@@ -168,7 +168,7 @@ const CreateTransaction = () => {
   const copyInviteLink = () => {
     if (createdTransactionId) {
       const appUrl = getAppUrl();
-      const link = `${appUrl}/transaction/${createdTransactionId}`;
+      const link = `${appUrl}/invite/${createdTransactionId}`;
       navigator.clipboard.writeText(link);
       setCopiedLink(true);
       toast.success("Enlace copiado al portapapeles");
@@ -179,7 +179,7 @@ const CreateTransaction = () => {
   const shareInviteLink = async () => {
     if (createdTransactionId && formData) {
       const appUrl = getAppUrl();
-      const link = `${appUrl}/transaction/${createdTransactionId}`;
+      const link = `${appUrl}/invite/${createdTransactionId}`;
       const text = `Te invito a unirte a mi transacción segura en Trado para: ${formData.productName}`;
       
       if (navigator.share) {
