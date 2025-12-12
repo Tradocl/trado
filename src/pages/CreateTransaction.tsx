@@ -149,19 +149,37 @@ const CreateTransaction = () => {
     }
   };
 
+  // Get the correct app URL (production or staging, not preview)
+  const getAppUrl = () => {
+    const origin = window.location.origin;
+    // If we're in the Lovable preview, use the staging URL
+    if (origin.includes('id-preview--') || origin.includes('localhost')) {
+      // Extract project ID from preview URL or use known staging domain
+      const match = origin.match(/id-preview--([^.]+)/);
+      if (match) {
+        return `https://${match[1]}.lovable.app`;
+      }
+      // Fallback for localhost - use a known staging URL
+      return 'https://wpczgwxsriezaubncuom.lovable.app';
+    }
+    return origin;
+  };
+
   const copyInviteLink = () => {
     if (createdTransactionId) {
-      const link = `${window.location.origin}/transaction/${createdTransactionId}`;
+      const appUrl = getAppUrl();
+      const link = `${appUrl}/transaction/${createdTransactionId}`;
       navigator.clipboard.writeText(link);
       setCopiedLink(true);
-      toast.success("¡Enlace copiado al portapapeles!");
+      toast.success("Enlace copiado al portapapeles");
       setTimeout(() => setCopiedLink(false), 2000);
     }
   };
 
   const shareInviteLink = async () => {
     if (createdTransactionId && formData) {
-      const link = `${window.location.origin}/transaction/${createdTransactionId}`;
+      const appUrl = getAppUrl();
+      const link = `${appUrl}/transaction/${createdTransactionId}`;
       const text = `Te invito a unirte a mi transacción segura en Trado para: ${formData.productName}`;
       
       if (navigator.share) {
@@ -183,9 +201,10 @@ const CreateTransaction = () => {
 
   const shareViaWhatsApp = () => {
     if (createdTransactionId && formData) {
-      const link = `${window.location.origin}/transaction/${createdTransactionId}`;
+      const appUrl = getAppUrl();
+      const link = `${appUrl}/transaction/${createdTransactionId}`;
       const text = `¡Hola! Te invito a unirte a mi transacción segura en Trado para: *${formData.productName}*\n\nÚnete aquí: ${link}`;
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(whatsappUrl, '_blank');
     }
   };
