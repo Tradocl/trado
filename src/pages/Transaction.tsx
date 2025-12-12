@@ -128,6 +128,8 @@ const Transaction = () => {
 
   useEffect(() => {
     if (!user) {
+      // Save current URL to redirect back after login
+      sessionStorage.setItem('redirectAfterLogin', `/transaction/${id}`);
       navigate("/auth");
       return;
     }
