@@ -465,8 +465,8 @@ const Dashboard = () => {
               <span className="text-lg sm:text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <Button variant="outline" size="sm" className="border-muted-foreground/20 hover:bg-muted/50 transition-colors text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet")}>
-                <History className="h-4 w-4 sm:mr-2 text-muted-foreground" />
+              <Button size="sm" className="bg-gray-500 hover:bg-gray-600 text-white shadow-md text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet")}>
+                <History className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Movimientos</span>
               </Button>
               <Button size="sm" className="bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet?action=deposit")}>
