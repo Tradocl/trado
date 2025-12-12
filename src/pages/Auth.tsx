@@ -67,7 +67,14 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      // Check if there's a redirect URL saved
+      const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+      if (redirectUrl) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        navigate(redirectUrl);
+      } else {
+        navigate("/dashboard");
+      }
     }
   }, [user, navigate]);
 
@@ -85,7 +92,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success("¡Bienvenido a Trado!");
-      navigate("/dashboard");
+      // Redirect is handled by useEffect when user state changes
     }
 
     setLoading(false);
@@ -93,16 +100,25 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+    // Check for saved redirect URL and append to redirectTo
+    const savedRedirect = sessionStorage.getItem('redirectAfterLogin');
+    const redirectTo = savedRedirect 
+      ? `${window.location.origin}${savedRedirect}`
+      : window.location.origin;
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin
+        redirectTo
       }
     });
     
     if (error) {
       toast.error("Error al iniciar sesión con Google: " + error.message);
       setLoading(false);
+    } else {
+      // Clear the redirect after initiating OAuth
+      sessionStorage.removeItem('redirectAfterLogin');
     }
   };
 
