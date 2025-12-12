@@ -11,6 +11,7 @@ import Wallet from "./pages/Wallet";
 import CreateTransaction from "./pages/CreateTransaction";
 import JoinTransaction from "./pages/JoinTransaction";
 import Transaction from "./pages/Transaction";
+import InviteWelcome from "./pages/InviteWelcome";
 import Verification from "./pages/Verification";
 import Admin from "./pages/Admin";
 import MovementHistory from "./pages/MovementHistory";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/create-sale" element={<CreateTransaction />} />
             <Route path="/join-transaction" element={<JoinTransaction />} />
             <Route path="/transaction/:id" element={<Transaction />} />
+            <Route path="/invite/:id" element={<InviteWelcome />} />
             <Route path="/verification" element={<Verification />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/movement-history" element={<MovementHistory />} />
