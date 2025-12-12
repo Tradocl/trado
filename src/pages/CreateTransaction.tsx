@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link } from "lucide-react";
+import { ArrowLeft, ArrowRight, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
@@ -652,57 +652,119 @@ const CreateTransaction = () => {
         }
         setShowSuccessModal(open);
       }}>
-        <DialogContent className="max-w-sm">
-          <div className="flex flex-col items-center text-center pt-4">
-            <div className="p-4 bg-success/10 rounded-full mb-4">
-              <CheckCircle2 className="h-12 w-12 text-success" />
+        <DialogContent className="max-w-sm overflow-hidden p-0">
+          {/* Animated background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-success/5 via-transparent to-primary/5 pointer-events-none" />
+          
+          {/* Confetti-like decorative elements */}
+          <div className="absolute top-0 left-0 w-full h-32 overflow-hidden pointer-events-none">
+            <div 
+              className="absolute top-4 left-8 w-2 h-2 bg-success/40 rounded-full animate-bounce"
+              style={{ animationDelay: '0.1s', animationDuration: '2s' }}
+            />
+            <div 
+              className="absolute top-8 left-16 w-3 h-3 bg-primary/30 rounded-full animate-bounce"
+              style={{ animationDelay: '0.3s', animationDuration: '2.5s' }}
+            />
+            <div 
+              className="absolute top-6 right-12 w-2 h-2 bg-warning/40 rounded-full animate-bounce"
+              style={{ animationDelay: '0.5s', animationDuration: '2.2s' }}
+            />
+            <div 
+              className="absolute top-12 right-20 w-2.5 h-2.5 bg-success/30 rounded-full animate-bounce"
+              style={{ animationDelay: '0.2s', animationDuration: '2.8s' }}
+            />
+            <div 
+              className="absolute top-3 left-1/2 w-1.5 h-1.5 bg-info/40 rounded-full animate-bounce"
+              style={{ animationDelay: '0.4s', animationDuration: '2.3s' }}
+            />
+          </div>
+
+          <div className="relative p-6">
+            <div 
+              className="flex flex-col items-center text-center animate-scale-in"
+              style={{ animationDuration: '0.4s' }}
+            >
+              {/* Animated success icon with pulse ring */}
+              <div className="relative mb-6">
+                <div 
+                  className="absolute inset-0 bg-success/20 rounded-full animate-ping"
+                  style={{ animationDuration: '1.5s' }}
+                />
+                <div 
+                  className="relative p-5 bg-gradient-to-br from-success/20 to-success/10 rounded-full border-2 border-success/30 shadow-lg shadow-success/20 animate-scale-in"
+                  style={{ animationDelay: '0.2s', animationFillMode: 'backwards' }}
+                >
+                  <CheckCircle2 className="h-14 w-14 text-success drop-shadow-sm" />
+                </div>
+              </div>
+              
+              <DialogTitle 
+                className="text-2xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text animate-fade-in"
+                style={{ animationDelay: '0.3s', animationFillMode: 'backwards' }}
+              >
+                ¡Sala Creada!
+              </DialogTitle>
+              <DialogDescription 
+                className="text-muted-foreground animate-fade-in"
+                style={{ animationDelay: '0.4s', animationFillMode: 'backwards' }}
+              >
+                Comparte el enlace para invitar a la otra persona
+              </DialogDescription>
             </div>
-            <DialogTitle className="text-2xl font-bold mb-1">¡Sala Creada!</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Comparte el enlace para invitar a la otra persona
-            </DialogDescription>
-          </div>
 
-          <div className="space-y-3 py-4">
-            <Button
-              variant="default"
-              className="w-full h-12"
-              onClick={copyInviteLink}
+            <div 
+              className="space-y-3 py-6 animate-fade-in"
+              style={{ animationDelay: '0.5s', animationFillMode: 'backwards' }}
             >
-              {copiedLink ? (
-                <>
-                  <Check className="mr-2 h-5 w-5" />
-                  ¡Enlace copiado!
-                </>
-              ) : (
-                <>
-                  <Copy className="mr-2 h-5 w-5" />
-                  Copiar enlace de invitación
-                </>
-              )}
-            </Button>
+              <Button
+                variant="default"
+                className={`w-full h-14 text-base font-semibold transition-all duration-300 ${
+                  copiedLink 
+                    ? 'bg-success hover:bg-success/90 shadow-lg shadow-success/25' 
+                    : 'shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02]'
+                }`}
+                onClick={copyInviteLink}
+              >
+                {copiedLink ? (
+                  <span className="flex items-center gap-2 animate-scale-in">
+                    <Check className="h-5 w-5" />
+                    ¡Enlace copiado!
+                  </span>
+                ) : (
+                  <>
+                    <Copy className="mr-2 h-5 w-5" />
+                    Copiar enlace de invitación
+                  </>
+                )}
+              </Button>
 
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={shareInviteLink}
-            >
-              <Share2 className="mr-2 h-4 w-4" />
-              Compartir enlace
-            </Button>
-          </div>
+              <Button
+                variant="outline"
+                className="w-full h-12 hover:bg-muted/50 transition-all duration-200 hover:scale-[1.01]"
+                onClick={shareInviteLink}
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Compartir enlace
+              </Button>
+            </div>
 
-          <div className="border-t pt-4">
-            <Button 
-              variant="default"
-              onClick={() => {
-                setShowSuccessModal(false);
-                navigate(`/transaction/${createdTransactionId}`);
-              }}
-              className="w-full"
+            <div 
+              className="border-t border-border/50 pt-4 animate-fade-in"
+              style={{ animationDelay: '0.6s', animationFillMode: 'backwards' }}
             >
-              Ir a la Sala de Transacción
-            </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate(`/transaction/${createdTransactionId}`);
+                }}
+                className="w-full text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Ir a la Sala de Transacción
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
