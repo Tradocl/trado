@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake } from "lucide-react";
+import { ArrowLeft, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
@@ -26,6 +26,9 @@ const CreateTransaction = () => {
   const [orderDetails, setOrderDetails] = useState<ReturnType<typeof calculateOrderDetails> | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdTransactionId, setCreatedTransactionId] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [saleType, setSaleType] = useState<SaleType>("producto_envio");
   const [mainType, setMainType] = useState<MainType>("producto");
   const [initiatorRole, setInitiatorRole] = useState<InitiatorRole>("seller");
@@ -136,13 +139,45 @@ const CreateTransaction = () => {
         console.error("Error sending notification email:", emailError);
       }
 
-      toast.success("¡Sala de transacción creada exitosamente!");
       setShowConfirmModal(false);
-      navigate(`/transaction/${transaction.id}`);
+      setCreatedTransactionId(transaction.id);
+      setShowSuccessModal(true);
     } catch (error: any) {
       toast.error("Error al crear transacción: " + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const copyInviteLink = () => {
+    if (createdTransactionId) {
+      const link = `${window.location.origin}/transaction/${createdTransactionId}`;
+      navigator.clipboard.writeText(link);
+      setCopiedLink(true);
+      toast.success("¡Enlace copiado al portapapeles!");
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const shareInviteLink = async () => {
+    if (createdTransactionId && formData) {
+      const link = `${window.location.origin}/transaction/${createdTransactionId}`;
+      const text = `Te invito a unirte a mi transacción segura en Trado para: ${formData.productName}`;
+      
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Invitación a Trado',
+            text: text,
+            url: link,
+          });
+        } catch (err) {
+          // User cancelled or share failed, fallback to copy
+          copyInviteLink();
+        }
+      } else {
+        copyInviteLink();
+      }
     }
   };
 
@@ -577,6 +612,88 @@ const CreateTransaction = () => {
               disabled={loading}
             >
               {loading ? "Creando..." : "Confirmar y Crear"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal with Invite Link */}
+      <Dialog open={showSuccessModal} onOpenChange={(open) => {
+        if (!open) {
+          navigate(`/transaction/${createdTransactionId}`);
+        }
+        setShowSuccessModal(open);
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-success/10 rounded-full">
+                <CheckCircle2 className="h-8 w-8 text-success" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">¡Sala Creada!</DialogTitle>
+                <DialogDescription>
+                  Comparte el enlace con la otra persona
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-primary/5 rounded-xl border-2 border-primary/20">
+              <p className="text-sm text-muted-foreground mb-3">
+                Envía este enlace a la persona con quien harás la transacción:
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 p-3 bg-background rounded-lg border text-sm font-mono truncate">
+                  {createdTransactionId && `${window.location.origin}/transaction/${createdTransactionId}`}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={copyInviteLink}
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4 text-success" />
+                    ¡Copiado!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copiar enlace
+                  </>
+                )}
+              </Button>
+              <Button
+                className="w-full"
+                onClick={shareInviteLink}
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Compartir
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+              La otra persona podrá unirse haciendo clic en el enlace
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setShowSuccessModal(false);
+                navigate(`/transaction/${createdTransactionId}`);
+              }}
+              className="w-full"
+            >
+              <Link className="mr-2 h-4 w-4" />
+              Ir a la Sala de Transacción
             </Button>
           </DialogFooter>
         </DialogContent>
