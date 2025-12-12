@@ -1885,21 +1885,47 @@ const Transaction = () => {
 
       {/* Dispute Dialog */}
       <Dialog open={disputeDialogOpen} onOpenChange={setDisputeDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Abrir Disputa</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-destructive/10 rounded-full blur-xl animate-pulse" />
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-warning/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+          </div>
+          
+          <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+            {/* Animated icon */}
+            <div className="mx-auto mb-4 relative">
+              <div className="absolute inset-0 bg-destructive/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+              <div className="relative w-16 h-16 bg-gradient-to-br from-destructive to-destructive/80 rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+                <AlertCircle className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl">Abrir Disputa</DialogTitle>
+            <DialogDescription className="text-center">
               Describe el problema con esta transacción. Un administrador lo revisará.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
-              <p className="text-sm">
-                <strong>Importante:</strong> Solo abre una disputa si hay un problema real. 
-                El uso indebido puede afectar tu reputación.
-              </p>
+          
+          <div className="space-y-4 relative">
+            <div 
+              className="p-4 bg-warning/10 rounded-lg border border-warning/20 animate-fade-in transition-all duration-200 hover:bg-warning/15"
+              style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-4 h-4 text-warning" />
+                </div>
+                <p className="text-sm">
+                  <strong>Importante:</strong> Solo abre una disputa si hay un problema real. 
+                  El uso indebido puede afectar tu reputación.
+                </p>
+              </div>
             </div>
-            <div>
+            
+            <div 
+              className="animate-fade-in"
+              style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+            >
               <Label htmlFor="disputeReason">Motivo de la Disputa</Label>
               <Textarea
                 id="disputeReason"
@@ -1908,23 +1934,35 @@ const Transaction = () => {
                 placeholder="Describe detalladamente el problema..."
                 rows={4}
                 required
+                className="mt-2 transition-all duration-200 focus:ring-2 focus:ring-destructive/20"
               />
             </div>
-            <div className="flex gap-2">
+            
+            <div 
+              className="flex gap-2 animate-fade-in"
+              style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
+            >
               <Button 
                 variant="outline" 
-                className="flex-1"
+                className="flex-1 transition-all duration-200 hover:scale-[1.02]"
                 onClick={() => setDisputeDialogOpen(false)}
               >
                 Cancelar
               </Button>
               <Button 
                 variant="destructive" 
-                className="flex-1"
+                className="flex-1 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-destructive/25"
                 onClick={handleOpenDispute}
                 disabled={openingDispute}
               >
-                {openingDispute ? "Procesando..." : "Abrir Disputa"}
+                {openingDispute ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Procesando...
+                  </>
+                ) : (
+                  "Abrir Disputa"
+                )}
               </Button>
             </div>
           </div>
