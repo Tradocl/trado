@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1803,16 +1803,33 @@ const Transaction = () => {
 
       {/* Deposit Confirmation Dialog */}
       <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Depósito en Escrow</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-success/10 rounded-full blur-xl animate-pulse" />
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+          </div>
+          
+          <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+            {/* Animated icon */}
+            <div className="mx-auto mb-4 relative">
+              <div className="absolute inset-0 bg-success/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+              <div className="relative w-16 h-16 bg-gradient-to-br from-success to-success/80 rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl">Confirmar Depósito en Escrow</DialogTitle>
+            <DialogDescription className="text-center">
               Revisa el desglose antes de confirmar
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          
+          <div className="space-y-4 relative">
             {/* Desglose financiero */}
-            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+            <div 
+              className="space-y-3 p-4 bg-muted/50 rounded-lg border border-border/50 animate-fade-in transition-all duration-200 hover:bg-muted/70" 
+              style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
+            >
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Precio del {transaction.sale_type === "servicio" ? "servicio" : "producto"}</span>
                 <span className="font-medium">${formatCLP(transaction.amount)}</span>
@@ -1834,22 +1851,31 @@ const Transaction = () => {
               </div>
             </div>
             
-            <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
-              <p className="text-sm">
-                🔒 Tu dinero estará 100% seguro. Solo se liberará al {sellerLabel.toLowerCase()} cuando confirmes que
-                recibiste {transaction.sale_type === "servicio" ? "el servicio" : "el producto"}.
-              </p>
+            <div 
+              className="p-4 bg-warning/10 rounded-lg border border-warning/20 animate-fade-in transition-all duration-200 hover:bg-warning/15"
+              style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-4 h-4 text-warning" />
+                </div>
+                <p className="text-sm">
+                  Tu dinero estará 100% seguro. Solo se liberará al {sellerLabel.toLowerCase()} cuando confirmes que
+                  recibiste {transaction.sale_type === "servicio" ? "el servicio" : "el producto"}.
+                </p>
+              </div>
             </div>
             
             <Button 
               onClick={handleDeposit} 
-              className="w-full bg-success hover:bg-success/90"
+              className="w-full bg-success hover:bg-success/90 animate-fade-in group transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-success/25"
+              style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
               disabled={depositingEscrow}
             >
               {depositingEscrow ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
               ) : (
-                <DollarSign className="mr-2 h-4 w-4" />
+                <DollarSign className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
               )}
               {depositingEscrow ? "Procesando..." : `Confirmar Depósito de $${formatCLP(buyerPays)}`}
             </Button>
