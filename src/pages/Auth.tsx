@@ -354,13 +354,14 @@ const Auth = () => {
                         toast.error("Por favor ingresa tu email primero");
                         return;
                       }
-                      try {
-                        await supabase.auth.resetPasswordForEmail(email, {
-                          redirectTo: `${window.location.origin}/auth`
-                        });
+                      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: `${window.location.origin}/auth`
+                      });
+                      if (error) {
+                        console.error("Password reset error:", error);
+                        toast.error("Error al enviar email de recuperación: " + error.message);
+                      } else {
                         toast.success("Te hemos enviado un email con instrucciones para recuperar tu contraseña");
-                      } catch (error: any) {
-                        toast.error("Error al enviar email de recuperación");
                       }
                     }}
                   >
