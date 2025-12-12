@@ -1971,27 +1971,46 @@ const Transaction = () => {
 
       {/* Shipping Dialog - for producto_envio */}
       <Dialog open={shippingDialogOpen} onOpenChange={setShippingDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Truck className="h-5 w-5 text-info" />
-              Información de Envío
-            </DialogTitle>
-            <DialogDescription>
+        <DialogContent className="overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-info/10 rounded-full blur-xl animate-pulse" />
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+          </div>
+          
+          <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+            {/* Animated icon */}
+            <div className="mx-auto mb-4 relative">
+              <div className="absolute inset-0 bg-info/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+              <div className="relative w-16 h-16 bg-gradient-to-br from-info to-info/80 rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+                <Truck className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl">Información de Envío</DialogTitle>
+            <DialogDescription className="text-center">
               Ingresa los datos del envío para que el comprador pueda rastrear su pedido
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
+          
+          <div className="space-y-4 relative">
+            <div 
+              className="space-y-2 animate-fade-in"
+              style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
+            >
               <Label htmlFor="shippingTracking">Número de seguimiento *</Label>
               <Input
                 id="shippingTracking"
                 value={shippingTrackingNumber}
                 onChange={(e) => setShippingTrackingNumber(e.target.value)}
                 placeholder="Ej: ABC123456789"
+                className="transition-all duration-200 focus:ring-2 focus:ring-info/20"
               />
             </div>
-            <div className="space-y-2">
+            
+            <div 
+              className="space-y-2 animate-fade-in"
+              style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+            >
               <Label htmlFor="shippingCarrier">Empresa de envío *</Label>
               <Select 
                 value={shippingCarrier} 
@@ -2000,7 +2019,7 @@ const Transaction = () => {
                   if (value !== "otro") setShippingCustomCarrier("");
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-info/20">
                   <SelectValue placeholder="Selecciona courier" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2012,31 +2031,47 @@ const Transaction = () => {
                 </SelectContent>
               </Select>
             </div>
+            
             {shippingCarrier === "otro" && (
-              <div className="space-y-2">
+              <div 
+                className="space-y-2 animate-fade-in"
+                style={{ animationFillMode: 'both' }}
+              >
                 <Label htmlFor="shippingCustomCarrier">Nombre del courier *</Label>
                 <Input
                   id="shippingCustomCarrier"
                   value={shippingCustomCarrier}
                   onChange={(e) => setShippingCustomCarrier(e.target.value)}
                   placeholder="Ej: DHL, FedEx, etc."
+                  className="transition-all duration-200 focus:ring-2 focus:ring-info/20"
                 />
               </div>
             )}
-            <div className="flex gap-2">
+            
+            <div 
+              className="flex gap-2 animate-fade-in"
+              style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
+            >
               <Button 
                 variant="outline" 
-                className="flex-1"
+                className="flex-1 transition-all duration-200 hover:scale-[1.02]"
                 onClick={() => setShippingDialogOpen(false)}
               >
                 Cancelar
               </Button>
               <Button 
-                className="flex-1 bg-info hover:bg-info/90"
+                className="flex-1 bg-info hover:bg-info/90 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-info/25"
                 onClick={handleMarkAsShipped}
                 disabled={markingShipped}
               >
-                {markingShipped ? "Procesando..." : "Confirmar Envío"}
+                {markingShipped ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Procesando...
+                  </>
+                ) : (
+                  "Confirmar Envío"
+                )}
               </Button>
             </div>
           </div>
