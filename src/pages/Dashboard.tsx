@@ -226,12 +226,16 @@ const Dashboard = () => {
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
         {/* Welcome Card */}
         <Card 
-          className={`border-0 shadow-xl text-white overflow-hidden ${!profile?.dashboard_background_url ? getCardGradient(profile?.dashboard_color || 'primary') : ''}`}
-          style={profile?.dashboard_background_url ? {
-            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${profile.dashboard_background_url})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          } : undefined}
+          className={`border-0 shadow-xl text-white overflow-hidden animate-fade-in ${!profile?.dashboard_background_url ? getCardGradient(profile?.dashboard_color || 'primary') : ''}`}
+          style={{
+            animationDelay: '0.1s',
+            animationFillMode: 'both',
+            ...(profile?.dashboard_background_url ? {
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${profile.dashboard_background_url})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            } : {})
+          }}
         >
           <CardHeader className="pb-2 sm:pb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -247,7 +251,7 @@ const Dashboard = () => {
                 </CardDescription>
               </div>
               {profile?.verification_status === 'approved' && (
-                <Badge className="bg-white/20 text-white border-white/30 w-fit text-xs">
+                <Badge className="bg-white/20 text-white border-white/30 w-fit text-xs animate-scale-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
                   <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                   Verificado
                 </Badge>
@@ -255,7 +259,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-6 pt-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               <Wallet className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs opacity-80 truncate">Saldo</p>
@@ -263,7 +267,7 @@ const Dashboard = () => {
               </div>
             </div>
             {(wallet?.blocked_balance || 0) > 0 && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
                 <Lock className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs opacity-80 truncate">Escrow</p>
@@ -271,7 +275,7 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
               <Star className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               <div>
                 <p className="text-xs opacity-80">Reputación</p>
@@ -280,7 +284,7 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-            <div>
+            <div className="animate-fade-in" style={{ animationDelay: '0.35s', animationFillMode: 'both' }}>
               <p className="text-xs opacity-80">Transacciones</p>
               <p className="text-base sm:text-2xl font-bold">{profile?.total_transactions || 0}</p>
             </div>
@@ -289,7 +293,7 @@ const Dashboard = () => {
 
         {/* Transactions in Progress */}
         {transactions.length > 0 && (
-          <Card className="border-0 shadow-xl overflow-hidden">
+          <Card className="border-0 shadow-xl overflow-hidden animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
             <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b border-border/50">
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
@@ -328,8 +332,8 @@ const Dashboard = () => {
                     <div
                       key={transaction.id}
                       onClick={() => navigate(`/transaction/${transaction.id}`)}
-                      className="group p-4 hover:bg-muted/30 cursor-pointer transition-all duration-200"
-                      style={{ animationDelay: `${index * 50}ms` }}
+                      className="group p-4 hover:bg-muted/30 cursor-pointer transition-all duration-200 animate-fade-in"
+                      style={{ animationDelay: `${0.3 + index * 0.05}s`, animationFillMode: 'both' }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
@@ -375,8 +379,11 @@ const Dashboard = () => {
 
         {/* Action Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-success/20 hover:border-success hover:-translate-y-1 bg-gradient-to-br from-success/5 to-transparent"
-                onClick={() => navigate("/create-transaction")}>
+          <Card 
+            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-success/20 hover:border-success hover:-translate-y-1 bg-gradient-to-br from-success/5 to-transparent animate-fade-in"
+            style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+            onClick={() => navigate("/create-transaction")}
+          >
             <CardHeader className="pb-2 sm:pb-3">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-3 sm:p-4 bg-gradient-to-br from-success/30 to-success/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
@@ -399,8 +406,11 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-info/20 hover:border-info hover:-translate-y-1 bg-gradient-to-br from-info/5 to-transparent"
-                onClick={() => navigate("/join-transaction")}>
+          <Card 
+            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-info/20 hover:border-info hover:-translate-y-1 bg-gradient-to-br from-info/5 to-transparent animate-fade-in"
+            style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
+            onClick={() => navigate("/join-transaction")}
+          >
             <CardHeader className="pb-2 sm:pb-3">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-3 sm:p-4 bg-gradient-to-br from-info/30 to-info/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
@@ -423,8 +433,11 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-primary/20 hover:border-primary hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent sm:col-span-2 lg:col-span-1"
-                onClick={() => navigate("/transaction-history")}>
+          <Card 
+            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-primary/20 hover:border-primary hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent sm:col-span-2 lg:col-span-1 animate-fade-in"
+            style={{ animationDelay: '0.5s', animationFillMode: 'both' }}
+            onClick={() => navigate("/transaction-history")}
+          >
             <CardHeader className="pb-2 sm:pb-3">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-3 sm:p-4 bg-gradient-to-br from-primary/30 to-primary/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
@@ -449,7 +462,7 @@ const Dashboard = () => {
         </div>
 
         {/* Wallet Card */}
-        <Card className="border-0 shadow-xl overflow-hidden">
+        <Card className="border-0 shadow-xl overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
           <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-primary/10 py-3 sm:py-6">
             <CardTitle className="flex items-center gap-2 sm:gap-3 text-base sm:text-lg">
               <div className="p-2 sm:p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg sm:rounded-xl shadow-sm">
@@ -460,27 +473,27 @@ const Dashboard = () => {
             <CardDescription className="text-xs sm:text-sm">Administra tu saldo virtual</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
-            <div className="flex justify-between items-center p-3 sm:p-4 bg-gradient-to-r from-primary/5 to-muted/50 rounded-lg sm:rounded-xl border border-primary/10">
+            <div className="flex justify-between items-center p-3 sm:p-4 bg-gradient-to-r from-primary/5 to-muted/50 rounded-lg sm:rounded-xl border border-primary/10 animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
               <span className="text-xs sm:text-sm font-medium">Saldo disponible</span>
               <span className="text-lg sm:text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
             </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <Button size="sm" className="bg-gray-500 hover:bg-gray-600 text-white shadow-md text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet")}>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.75s', animationFillMode: 'both' }}>
+              <Button size="sm" className="bg-gray-500 hover:bg-gray-600 text-white shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => navigate("/wallet")}>
                 <History className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Movimientos</span>
               </Button>
-              <Button size="sm" className="bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet?action=deposit")}>
+              <Button size="sm" className="bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => navigate("/wallet?action=deposit")}>
                 <Plus className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Depositar</span>
               </Button>
-              <Button size="sm" className="bg-destructive hover:bg-destructive/90 shadow-md text-xs sm:text-sm px-2 sm:px-4" onClick={() => navigate("/wallet?action=withdraw")}>
+              <Button size="sm" className="bg-destructive hover:bg-destructive/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => navigate("/wallet?action=withdraw")}>
                 <ArrowUpRight className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Retirar</span>
               </Button>
             </div>
             
             {profile?.verification_status !== 'approved' && (
-              <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-info/10 border border-info/20 rounded-lg">
+              <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-info/10 border border-info/20 rounded-lg animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'both' }}>
                 <div className="flex items-start gap-2 sm:gap-3">
                   <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-info mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -491,7 +504,7 @@ const Dashboard = () => {
                     <Button 
                       size="sm" 
                       variant="outline"
-                      className="text-xs"
+                      className="text-xs transition-all duration-200 hover:scale-[1.02]"
                       onClick={() => navigate("/verification")}
                     >
                       Verificar
