@@ -127,10 +127,10 @@ const InviteWelcome = () => {
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Invitation Card */}
-        <Card className="mb-8 border-2 border-primary/20 shadow-xl overflow-hidden">
+        <Card className="mb-8 border-2 border-primary/20 shadow-xl overflow-hidden animate-fade-in">
           <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 border-b">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-xl">
+              <div className="p-3 bg-primary/10 rounded-xl animate-scale-in">
                 <Handshake className="h-8 w-8 text-primary" />
               </div>
               <div>
@@ -141,7 +141,7 @@ const InviteWelcome = () => {
           </div>
           <CardContent className="p-6">
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg transition-transform hover:scale-[1.02]">
                 <div className="p-2 bg-background rounded-lg">
                   {isService ? <Wrench className="h-5 w-5 text-info" /> : <Package className="h-5 w-5 text-info" />}
                 </div>
@@ -150,7 +150,7 @@ const InviteWelcome = () => {
                   <p className="font-medium">{isService ? "Servicio" : "Producto"}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg transition-transform hover:scale-[1.02]">
                 <div className="p-2 bg-background rounded-lg">
                   <DollarSign className="h-5 w-5 text-success" />
                 </div>
@@ -174,7 +174,7 @@ const InviteWelcome = () => {
         </Card>
 
         {/* What is Trado Section */}
-        <div className="mb-8">
+        <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
           <div className="text-center mb-6">
             <Badge variant="secondary" className="mb-3">¿Qué es Trado?</Badge>
             <h2 className="text-2xl font-bold mb-2">La forma más segura de comprar y vender entre personas</h2>
@@ -185,7 +185,7 @@ const InviteWelcome = () => {
           </div>
 
           <div className="grid sm:grid-cols-3 gap-4">
-            <Card className="bg-card/50">
+            <Card className="bg-card/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               <CardContent className="pt-6 text-center">
                 <div className="p-3 bg-success/10 rounded-full w-fit mx-auto mb-3">
                   <Lock className="h-6 w-6 text-success" />
@@ -196,7 +196,7 @@ const InviteWelcome = () => {
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-card/50">
+            <Card className="bg-card/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
               <CardContent className="pt-6 text-center">
                 <div className="p-3 bg-info/10 rounded-full w-fit mx-auto mb-3">
                   <Shield className="h-6 w-6 text-info" />
@@ -207,7 +207,7 @@ const InviteWelcome = () => {
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-card/50">
+            <Card className="bg-card/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
               <CardContent className="pt-6 text-center">
                 <div className="p-3 bg-warning/10 rounded-full w-fit mx-auto mb-3">
                   <Users className="h-6 w-6 text-warning" />
@@ -222,13 +222,13 @@ const InviteWelcome = () => {
         </div>
 
         {/* How it works */}
-        <Card className="mb-8 bg-muted/30">
+        <Card className="mb-8 bg-muted/30 animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
           <CardHeader>
             <CardTitle className="text-lg">¿Cómo funciona?</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
                 <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex-shrink-0">
                   1
                 </div>
@@ -237,7 +237,7 @@ const InviteWelcome = () => {
                   <p className="text-sm text-muted-foreground">Solo necesitas email y contraseña</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
                 <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex-shrink-0">
                   2
                 </div>
@@ -246,7 +246,7 @@ const InviteWelcome = () => {
                   <p className="text-sm text-muted-foreground">Revisa los detalles y confirma tu participación</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'both' }}>
                 <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex-shrink-0">
                   3
                 </div>
@@ -260,8 +260,8 @@ const InviteWelcome = () => {
         </Card>
 
         {/* CTA */}
-        <div className="text-center">
-          <Button size="lg" className="px-8" onClick={handleContinue}>
+        <div className="text-center animate-fade-in" style={{ animationDelay: '0.9s', animationFillMode: 'both' }}>
+          <Button size="lg" className="px-8 transition-transform hover:scale-105" onClick={handleContinue}>
             Continuar
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
