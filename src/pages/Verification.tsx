@@ -241,7 +241,7 @@ const Verification = () => {
                   <div>
                     <h3 className="font-semibold mb-2">Instrucciones:</h3>
                     <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                      <li>Sube una foto clara de tu cédula de identidad (por ambos lados)</li>
+                      <li>Sube una foto clara de la parte frontal de tu cédula de identidad</li>
                       <li>Sube una selfie donde aparezcas sosteniendo tu carnet al lado de tu rostro</li>
                       <li>Asegúrate de que toda la información sea legible en ambas fotos</li>
                       <li>Cada archivo debe ser menor a 5MB</li>
