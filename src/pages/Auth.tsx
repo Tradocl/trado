@@ -613,13 +613,13 @@ const Auth = () => {
               Verificación de Identidad
             </DialogTitle>
             <DialogDescription>
-              Sube tu cédula de identidad y una selfie sosteniendo el carnet
+              Sube la parte frontal de tu cédula de identidad y una selfie sosteniendo el carnet
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium mb-2 block">Foto de tu Carnet</Label>
+              <Label className="text-sm font-medium mb-2 block">Parte Frontal de tu Carnet</Label>
               {previewUrl && (
                 <div className="relative w-full h-32 bg-muted rounded-lg overflow-hidden mb-2">
                   <img 
@@ -633,7 +633,7 @@ const Auth = () => {
                 <div className="flex flex-col items-center justify-center">
                   <Upload className="h-6 w-6 text-muted-foreground mb-1" />
                   <p className="text-xs text-muted-foreground">
-                    {verificationFile ? verificationFile.name : "Sube tu carnet"}
+                    {verificationFile ? verificationFile.name : "Sube la parte frontal de tu carnet"}
                   </p>
                 </div>
                 <input
