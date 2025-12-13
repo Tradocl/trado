@@ -59,24 +59,33 @@ const Verification = () => {
       setConverting(true);
       toast.info("Convirtiendo imagen HEIC a JPEG...");
       
+      // First, try to read as blob to ensure it's valid
+      const arrayBuffer = await file.arrayBuffer();
+      const blob = new Blob([arrayBuffer], { type: file.type || 'image/heic' });
+      
       const convertedBlob = await heic2any({
-        blob: file,
+        blob: blob,
         toType: "image/jpeg",
-        quality: 0.9
+        quality: 0.8
       });
       
       // heic2any can return an array of blobs for multi-page HEIC files
-      const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+      const resultBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
       
       // Create new file with .jpg extension
       const newFileName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
-      const convertedFile = new File([blob], newFileName, { type: 'image/jpeg' });
+      const convertedFile = new File([resultBlob], newFileName, { type: 'image/jpeg' });
       
       toast.success("Imagen convertida exitosamente");
       return convertedFile;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error converting HEIC:", error);
-      throw new Error("Error al convertir la imagen HEIC. Por favor, intenta con otro formato.");
+      // Provide more helpful error message
+      const errorMsg = error?.message || '';
+      if (errorMsg.includes('ERR_USER_ABORT') || errorMsg.includes('abort')) {
+        throw new Error("Conversión cancelada. Por favor, intenta de nuevo.");
+      }
+      throw new Error("No se pudo convertir la imagen HEIC. Por favor, convierte la foto a JPG en tu iPhone (Ajustes > Cámara > Formatos > Más compatible) o envíatela por email/WhatsApp antes de subirla.");
     } finally {
       setConverting(false);
     }
