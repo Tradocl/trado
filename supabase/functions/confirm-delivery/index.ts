@@ -32,6 +32,26 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Extract and verify user from JWT token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error("[confirm-delivery] Auth error:", authError);
+      return new Response(JSON.stringify({ error: "Token inválido" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const { transactionId }: ConfirmDeliveryRequest = await req.json();
 
     if (!transactionId) {
@@ -41,7 +61,7 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    console.log(`[confirm-delivery] Processing transaction: ${transactionId}`);
+    console.log(`[confirm-delivery] User ${user.id} processing transaction: ${transactionId}`);
 
     // Get transaction with initiator_role
     const { data: tx, error: txError } = await supabaseClient
@@ -57,6 +77,15 @@ serve(async (req: Request): Promise<Response> => {
 
     if (!tx.buyer_id || !tx.seller_id) {
       throw new Error("Transacción inválida");
+    }
+
+    // SECURITY: Verify the authenticated user is the buyer of this transaction
+    if (user.id !== tx.buyer_id) {
+      console.error(`[confirm-delivery] Unauthorized: user ${user.id} is not buyer ${tx.buyer_id}`);
+      return new Response(JSON.stringify({ error: "No tienes permiso para confirmar esta entrega" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Allow completion from funds_secured (legacy), in_delivery (legacy), or awaiting_buyer_review (new flow)
