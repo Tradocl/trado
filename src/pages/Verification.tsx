@@ -9,12 +9,14 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Upload, CheckCircle, Clock, XCircle, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import heic2any from "heic2any";
 
 const Verification = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedSelfie, setSelectedSelfie] = useState<File | null>(null);
@@ -44,43 +46,103 @@ const Verification = () => {
     setProfile(data);
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+  // Check if file is HEIC/HEIF format
+  const isHeicFile = (file: File): boolean => {
+    const extension = file.name.toLowerCase().split('.').pop();
+    return extension === 'heic' || extension === 'heif' || 
+           file.type === 'image/heic' || file.type === 'image/heif';
+  };
+
+  // Convert HEIC to JPEG
+  const convertHeicToJpeg = async (file: File): Promise<File> => {
+    try {
+      setConverting(true);
+      toast.info("Convirtiendo imagen HEIC a JPEG...");
       
-      // Validar tipo de archivo
-      if (!file.type.startsWith('image/')) {
-        toast.error("Solo se permiten imágenes");
-        return;
-      }
+      const convertedBlob = await heic2any({
+        blob: file,
+        toType: "image/jpeg",
+        quality: 0.9
+      });
       
-      // Validar tamaño (máximo 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("La imagen debe ser menor a 5MB");
-        return;
-      }
+      // heic2any can return an array of blobs for multi-page HEIC files
+      const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
       
-      setSelectedFile(file);
+      // Create new file with .jpg extension
+      const newFileName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
+      const convertedFile = new File([blob], newFileName, { type: 'image/jpeg' });
+      
+      toast.success("Imagen convertida exitosamente");
+      return convertedFile;
+    } catch (error) {
+      console.error("Error converting HEIC:", error);
+      throw new Error("Error al convertir la imagen HEIC. Por favor, intenta con otro formato.");
+    } finally {
+      setConverting(false);
     }
   };
 
-  const handleSelfieSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const processFile = async (file: File): Promise<File> => {
+    // Convert HEIC/HEIF to JPEG
+    if (isHeicFile(file)) {
+      return await convertHeicToJpeg(file);
+    }
+    return file;
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+      let file = e.target.files[0];
       
-      // Validar tipo de archivo
-      if (!file.type.startsWith('image/')) {
+      // Validar tipo de archivo (incluyendo HEIC/HEIF)
+      const isValidImage = file.type.startsWith('image/') || isHeicFile(file);
+      if (!isValidImage) {
         toast.error("Solo se permiten imágenes");
         return;
       }
       
-      // Validar tamaño (máximo 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("La imagen debe ser menor a 5MB");
+      // Validar tamaño (máximo 10MB para HEIC, ya que puede necesitar conversión)
+      const maxSize = isHeicFile(file) ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error(`La imagen debe ser menor a ${isHeicFile(file) ? '10' : '5'}MB`);
         return;
       }
       
-      setSelectedSelfie(file);
+      try {
+        // Process file (convert if HEIC)
+        file = await processFile(file);
+        setSelectedFile(file);
+      } catch (error: any) {
+        toast.error(error.message || "Error al procesar la imagen");
+      }
+    }
+  };
+
+  const handleSelfieSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      let file = e.target.files[0];
+      
+      // Validar tipo de archivo (incluyendo HEIC/HEIF)
+      const isValidImage = file.type.startsWith('image/') || isHeicFile(file);
+      if (!isValidImage) {
+        toast.error("Solo se permiten imágenes");
+        return;
+      }
+      
+      // Validar tamaño (máximo 10MB para HEIC, ya que puede necesitar conversión)
+      const maxSize = isHeicFile(file) ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error(`La imagen debe ser menor a ${isHeicFile(file) ? '10' : '5'}MB`);
+        return;
+      }
+      
+      try {
+        // Process file (convert if HEIC)
+        file = await processFile(file);
+        setSelectedSelfie(file);
+      } catch (error: any) {
+        toast.error(error.message || "Error al procesar la imagen");
+      }
     }
   };
 
@@ -245,7 +307,7 @@ const Verification = () => {
                       <li>Sube una selfie donde aparezcas sosteniendo tu carnet al lado de tu rostro</li>
                       <li>Asegúrate de que toda la información sea legible</li>
                       <li>Cada archivo debe ser menor a 5MB</li>
-                      <li>Formatos aceptados: JPG, PNG, WEBP</li>
+                      <li>Formatos aceptados: JPG, PNG, WEBP, HEIC (iPhone)</li>
                     </ul>
                   </div>
 
@@ -254,9 +316,9 @@ const Verification = () => {
                     <Input
                       id="document"
                       type="file"
-                      accept="image/*"
+                      accept="image/*,.heic,.heif"
                       onChange={handleFileSelect}
-                      disabled={uploading}
+                      disabled={uploading || converting}
                     />
                     {selectedFile && (
                       <p className="text-sm text-muted-foreground">
@@ -270,9 +332,9 @@ const Verification = () => {
                     <Input
                       id="selfie"
                       type="file"
-                      accept="image/*"
+                      accept="image/*,.heic,.heif"
                       onChange={handleSelfieSelect}
-                      disabled={uploading}
+                      disabled={uploading || converting}
                     />
                     {selectedSelfie && (
                       <p className="text-sm text-muted-foreground">
@@ -283,11 +345,11 @@ const Verification = () => {
 
                   <Button
                     onClick={handleUpload}
-                    disabled={!selectedFile || !selectedSelfie || uploading}
+                    disabled={!selectedFile || !selectedSelfie || uploading || converting}
                     className="w-full"
                   >
                     <Upload className="mr-2 h-4 w-4" />
-                    {uploading ? "Subiendo..." : "Enviar para Verificación"}
+                    {converting ? "Convirtiendo imagen..." : uploading ? "Subiendo..." : "Enviar para Verificación"}
                   </Button>
                 </div>
 
