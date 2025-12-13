@@ -844,9 +844,19 @@ export default function Admin() {
                             <Button
                               variant="link"
                               size="sm"
-                              onClick={() =>
-                                window.open(verification.verification_document_url!, "_blank")
-                              }
+                              onClick={async () => {
+                                const path = verification.verification_document_url!.split('/verification-documents/')[1];
+                                if (path) {
+                                  const { data } = await supabase.storage
+                                    .from('verification-documents')
+                                    .createSignedUrl(path, 3600);
+                                  if (data?.signedUrl) {
+                                    window.open(data.signedUrl, "_blank");
+                                  } else {
+                                    toast.error("Error al abrir el documento");
+                                  }
+                                }
+                              }}
                             >
                               Ver Carnet
                             </Button>
@@ -855,9 +865,19 @@ export default function Admin() {
                             <Button
                               variant="link"
                               size="sm"
-                              onClick={() =>
-                                window.open(verification.verification_selfie_url!, "_blank")
-                              }
+                              onClick={async () => {
+                                const path = verification.verification_selfie_url!.split('/verification-documents/')[1];
+                                if (path) {
+                                  const { data } = await supabase.storage
+                                    .from('verification-documents')
+                                    .createSignedUrl(path, 3600);
+                                  if (data?.signedUrl) {
+                                    window.open(data.signedUrl, "_blank");
+                                  } else {
+                                    toast.error("Error al abrir la selfie");
+                                  }
+                                }
+                              }}
                             >
                               Ver Selfie
                             </Button>
