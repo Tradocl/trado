@@ -988,14 +988,14 @@ const Auth = () => {
 
       {/* Verification Choice Dialog */}
       <Dialog open={showVerificationChoice} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Shield className="h-6 w-6 text-primary" />
               ¡Cuenta creada exitosamente!
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
-              Para poder comprar y vender en Trado, necesitas verificar tu identidad.
+              Te recomendamos verificar tu identidad para generar mayor confianza con otros usuarios.
             </DialogDescription>
           </DialogHeader>
 
@@ -1003,15 +1003,15 @@ const Auth = () => {
             <div className="bg-success/10 border border-success/20 rounded-lg p-4">
               <h4 className="font-medium text-success mb-2">✓ Beneficios de verificarte</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Podrás crear y unirte a transacciones</li>
-                <li>• Mayor confianza de otros usuarios</li>
-                <li>• Acceso completo a la plataforma</li>
+                <li>• Mayor confianza de la contraparte en tus transacciones</li>
+                <li>• Tu perfil mostrará un distintivo de usuario verificado</li>
+                <li>• Los demás usuarios podrán ver que eres una persona real</li>
               </ul>
             </div>
 
-            <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+            <div className="bg-muted/50 border border-border rounded-lg p-4">
               <p className="text-sm text-muted-foreground">
-                ⚠️ Sin verificación no podrás realizar transacciones en Trado.
+                💡 <strong>Nota:</strong> Puedes realizar transacciones sin estar verificado, pero la otra parte siempre podrá ver si lo estás o no. La verificación aumenta la confianza y seguridad en tus operaciones.
               </p>
             </div>
           </div>
