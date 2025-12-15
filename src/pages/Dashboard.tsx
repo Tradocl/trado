@@ -4,13 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { formatCLP } from "@/lib/utils";
 import tradoShield from "@/assets/trado-shield.png";
 import { useTheme } from "next-themes";
+import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 
 interface Profile {
   full_name: string;
@@ -85,6 +86,7 @@ const Dashboard = () => {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accumulatedTotal, setAccumulatedTotal] = useState<number>(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -144,6 +146,12 @@ const Dashboard = () => {
         setTheme('system');
       }
       setWallet(walletRes.data);
+      
+      // Load accumulated total for unverified users
+      if (!profileData.is_verified) {
+        const total = await calculateUserTotalTransactions(user.id);
+        setAccumulatedTotal(total);
+      }
       
       // Filter out transactions with resolved appeals from "in progress" list
       // EXCEPT for return mediations where return is still in progress
@@ -294,6 +302,28 @@ const Dashboard = () => {
               <p className="text-xs opacity-80">Transacciones</p>
               <p className="text-base sm:text-2xl font-bold">{profile?.total_transactions || 0}</p>
             </div>
+            
+            {/* Límites de transacción para usuarios no verificados */}
+            {!profile?.is_verified && (
+              <div className="col-span-2 w-full mt-2 animate-fade-in" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0 text-warning" />
+                  <div className="flex justify-between w-full text-xs opacity-80">
+                    <span>Límite acumulado</span>
+                    <span>${formatCLP(accumulatedTotal)} / ${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)}</span>
+                  </div>
+                </div>
+                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-warning rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(100, (accumulatedTotal / UNVERIFIED_LIMITS.TOTAL_ACCUMULATED) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs opacity-70 mt-1">
+                  Disponible: <strong>${formatCLP(Math.max(0, UNVERIFIED_LIMITS.TOTAL_ACCUMULATED - accumulatedTotal))}</strong> • Máx. $100.000/tx
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
