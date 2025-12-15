@@ -21,6 +21,7 @@ import Appeal from "./pages/Appeal";
 import AdminAppeal from "./pages/AdminAppeal";
 import ReturnRoom from "./pages/ReturnRoom";
 import AdminReturnRoom from "./pages/AdminReturnRoom";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,7 +52,9 @@ const App = () => (
             <Route path="/admin/appeal/:appealId" element={<AdminAppeal />} />
             <Route path="/return/:returnId" element={<ReturnRoom />} />
             <Route path="/admin/return/:returnId" element={<AdminReturnRoom />} />
+            <Route path="/terms" element={<Terms />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
