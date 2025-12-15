@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { formatCLP } from "@/lib/utils";
-import tradoShield from "@/assets/trado-shield.png";
+import tradoLogo from "@/assets/trado-logo.png";
 import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 
@@ -215,8 +215,7 @@ const Dashboard = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 sm:gap-3">
-            <img src={tradoShield} alt="Trado" className="h-8 w-8 sm:h-12 sm:w-12" />
-            <h1 className="text-xl sm:text-2xl font-bold">Trado</h1>
+            <img src={tradoLogo} alt="Trado" className="h-10 sm:h-12 w-auto" />
           </div>
           <div className="flex gap-1 sm:gap-2">
             <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/profile")}>
