@@ -99,7 +99,7 @@ const Auth = () => {
           } else {
             // New user - redirect to signup
             setActiveTab("signup");
-            toast.info("Tu correo no está registrado. Por favor, crea una cuenta.");
+            toast.info("No existe una cuenta con este correo. Debes registrarte para continuar.");
           }
           return;
         }
