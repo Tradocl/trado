@@ -92,14 +92,18 @@ const Auth = () => {
           // Sign out the Google user first
           await supabase.auth.signOut();
           
+          // Clear any localStorage remnants
+          const keysToRemove = Object.keys(localStorage).filter(key => key.startsWith('sb-'));
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+          
           if (existingProfile) {
             // Email already registered with another account
             setActiveTab("signin");
             toast.error("Este correo ya está registrado. Por favor, inicia sesión con tu contraseña.");
           } else {
-            // New user - redirect to signup
+            // New user - redirect to signup with error message
             setActiveTab("signup");
-            toast.info("No existe una cuenta con este correo. Debes registrarte para continuar.");
+            toast.error("No existe una cuenta con este correo. Debes crear una cuenta primero.");
           }
           return;
         }
