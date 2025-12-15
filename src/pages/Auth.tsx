@@ -318,17 +318,23 @@ const Auth = () => {
     if (error) {
       // Handle specific error messages
       const errorMsg = error.message.toLowerCase();
-      if (errorMsg.includes("user already registered") || errorMsg.includes("already registered")) {
-        setEmailError("Este correo ya está registrado");
-        toast.error("Este correo ya está registrado. Intenta iniciar sesión.");
-      } else if (errorMsg.includes("email")) {
-        setEmailError("Error con el correo");
-        toast.error(error.message);
+      if (errorMsg.includes("user already registered") || errorMsg.includes("already registered") || errorMsg.includes("user_already_exists") || errorMsg.includes("already exists")) {
+        setEmailError("Esta cuenta ya existe. Intenta iniciar sesión o recuperar contraseña.");
+        toast.error("Esta cuenta ya existe en el sistema.", {
+          description: "Si no recuerdas tu contraseña, usa 'Recuperar contraseña' en Iniciar Sesión.",
+          duration: 6000
+        });
+      } else if (errorMsg.includes("email") || (errorMsg.includes("invalid") && errorMsg.includes("email"))) {
+        setEmailError("Correo electrónico inválido");
+        toast.error("El formato del correo electrónico no es válido");
       } else if (errorMsg.includes("password")) {
         setPasswordError("Error con la contraseña");
         toast.error(error.message);
-      } else {
+      } else if (errorMsg.includes("phone")) {
+        setPhoneError("Error con el teléfono");
         toast.error(error.message);
+      } else {
+        toast.error("Error al crear cuenta: " + error.message);
       }
       setLoading(false);
     } else if (data.user) {
