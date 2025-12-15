@@ -121,8 +121,12 @@ const Auth = () => {
 
   useEffect(() => {
     const checkGoogleUser = async () => {
-      // Don't redirect if verification dialogs are open
+      // Bloquear redirección si estamos en flujo de verificación post-registro
       if (showVerificationChoice || showVerificationDialog) {
+        return;
+      }
+      const blockRedirect = sessionStorage.getItem('blockRedirectAfterSignup') === 'true';
+      if (blockRedirect) {
         return;
       }
 
@@ -332,6 +336,9 @@ const Auth = () => {
       return;
     }
 
+    // Bloquear redirección automática tras registro hasta que el usuario decida
+    sessionStorage.setItem('blockRedirectAfterSignup', 'true');
+
     // Normal registration flow
     const { data, error } = await signUp(email, password, fullName, phone, rut, address);
 
@@ -374,6 +381,7 @@ const Auth = () => {
       } else {
         toast.error("Error al crear cuenta: " + error.message);
       }
+      sessionStorage.removeItem('blockRedirectAfterSignup');
       setLoading(false);
     } else if (data.user) {
       toast.success("¡Cuenta creada exitosamente!");
@@ -488,6 +496,7 @@ const Auth = () => {
 
       toast.success("¡Documentos enviados! Tu verificación será revisada pronto");
       setShowVerificationDialog(false);
+      sessionStorage.removeItem('blockRedirectAfterSignup');
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error uploading document:", error);
@@ -510,6 +519,7 @@ const Auth = () => {
   };
 
   const handleChooseVerifyLater = () => {
+    sessionStorage.removeItem('blockRedirectAfterSignup');
     setShowVerificationChoice(false);
     toast.info("Puedes verificar tu cuenta más tarde desde tu perfil");
     navigate("/dashboard");
