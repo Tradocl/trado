@@ -64,18 +64,45 @@ const Auth = () => {
   const [showSigninPassword, setShowSigninPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState("signin");
+  const [googleEmail, setGoogleEmail] = useState<string>("");
+  const [isNewGoogleUser, setIsNewGoogleUser] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      // Check if there's a redirect URL saved
-      const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
-      if (redirectUrl) {
-        sessionStorage.removeItem('redirectAfterLogin');
-        navigate(redirectUrl);
-      } else {
-        navigate("/dashboard");
+    const checkGoogleUser = async () => {
+      if (user) {
+        // Check if this is a Google user who just signed up (no profile data yet)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('rut, phone, address')
+          .eq('id', user.id)
+          .single();
+
+        // If Google user has no RUT/phone, they need to complete registration
+        const isGoogleProvider = user.app_metadata?.provider === 'google';
+        const needsRegistration = isGoogleProvider && (!profile?.rut || !profile?.phone);
+
+        if (needsRegistration) {
+          // New Google user - show registration form with email pre-filled
+          setGoogleEmail(user.email || '');
+          setIsNewGoogleUser(true);
+          setActiveTab("signup");
+          setNewUserId(user.id);
+          return; // Don't redirect, let them complete registration
+        }
+
+        // Existing user with complete profile - redirect to dashboard
+        const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+        if (redirectUrl) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(redirectUrl);
+        } else {
+          navigate("/dashboard");
+        }
       }
-    }
+    };
+
+    checkGoogleUser();
   }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -100,25 +127,17 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    // Check for saved redirect URL and append to redirectTo
-    const savedRedirect = sessionStorage.getItem('redirectAfterLogin');
-    const redirectTo = savedRedirect 
-      ? `${window.location.origin}${savedRedirect}`
-      : window.location.origin;
-    
+    // Always redirect back to /auth so we can check if user needs registration
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo
+        redirectTo: `${window.location.origin}/auth`
       }
     });
     
     if (error) {
       toast.error("Error al iniciar sesión con Google: " + error.message);
       setLoading(false);
-    } else {
-      // Clear the redirect after initiating OAuth
-      sessionStorage.removeItem('redirectAfterLogin');
     }
   };
 
@@ -134,19 +153,22 @@ const Auth = () => {
     const rut = formData.get("rut") as string;
     const address = formData.get("address") as string;
 
-    // Validar que las contraseñas coincidan
-    if (password !== confirmPassword) {
-      toast.error("Las contraseñas no coinciden");
-      setLoading(false);
-      return;
-    }
+    // For Google users completing registration, we don't need password
+    if (!isNewGoogleUser) {
+      // Validar que las contraseñas coincidan
+      if (password !== confirmPassword) {
+        toast.error("Las contraseñas no coinciden");
+        setLoading(false);
+        return;
+      }
 
-    // Validar requisitos de contraseña
-    const failedRequirements = passwordRequirements.filter(req => !req.test(password));
-    if (failedRequirements.length > 0) {
-      toast.error("La contraseña no cumple con los requisitos de seguridad");
-      setLoading(false);
-      return;
+      // Validar requisitos de contraseña
+      const failedRequirements = passwordRequirements.filter(req => !req.test(password));
+      if (failedRequirements.length > 0) {
+        toast.error("La contraseña no cumple con los requisitos de seguridad");
+        setLoading(false);
+        return;
+      }
     }
 
     // Validar RUT
@@ -163,6 +185,34 @@ const Auth = () => {
       return;
     }
 
+    // If this is a Google user completing registration, just update their profile
+    if (isNewGoogleUser && user) {
+      try {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            full_name: fullName,
+            phone,
+            rut,
+            address
+          })
+          .eq('id', user.id);
+
+        if (updateError) throw updateError;
+
+        toast.success("¡Registro completado! Ahora sube tu documento de identidad");
+        setShowVerificationDialog(true);
+        setIsNewGoogleUser(false);
+        setLoading(false);
+        return;
+      } catch (error: any) {
+        toast.error("Error al completar registro: " + error.message);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Normal registration flow
     const { data, error } = await signUp(email, password, fullName, phone, rut, address);
 
     if (error) {
@@ -316,8 +366,8 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className={`grid w-full grid-cols-2 mb-6 ${isNewGoogleUser ? 'hidden' : ''}`}>
                 <TabsTrigger value="signin">Iniciar Sesión</TabsTrigger>
                 <TabsTrigger value="signup">Registrarse</TabsTrigger>
               </TabsList>
@@ -428,6 +478,13 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="signup">
+                {isNewGoogleUser && (
+                  <div className="mb-4 p-3 bg-info/10 border border-info/20 rounded-lg">
+                    <p className="text-sm text-info">
+                      Completa tu registro con los datos adicionales para continuar.
+                    </p>
+                  </div>
+                )}
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Nombre Completo</Label>
@@ -436,6 +493,7 @@ const Auth = () => {
                       name="fullName"
                       type="text"
                       placeholder="Juan Pérez"
+                      defaultValue={isNewGoogleUser ? user?.user_metadata?.full_name || '' : ''}
                       required
                     />
                   </div>
@@ -477,125 +535,136 @@ const Auth = () => {
                       name="email"
                       type="email"
                       placeholder="tu@email.com"
+                      value={isNewGoogleUser ? googleEmail : undefined}
+                      defaultValue={isNewGoogleUser ? undefined : ''}
+                      readOnly={isNewGoogleUser}
+                      className={isNewGoogleUser ? 'bg-muted' : ''}
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Contraseña</Label>
-                    <div className="relative">
-                      <Input
-                        id="signup-password"
-                        name="password"
-                        type={showSignupPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        required
-                        className="pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowSignupPassword(!showSignupPassword)}
-                      >
-                        {showSignupPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
-                    {signupPassword && (
-                      <div className="space-y-2 mt-2">
-                        {/* Password Strength Bar */}
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-muted-foreground">Fortaleza:</span>
-                            <span className={`text-xs font-medium ${
-                              getPasswordStrength(signupPassword).score <= 25 ? "text-destructive" :
-                              getPasswordStrength(signupPassword).score <= 50 ? "text-warning" :
-                              getPasswordStrength(signupPassword).score <= 75 ? "text-info" : "text-success"
-                            }`}>
-                              {getPasswordStrength(signupPassword).label}
-                            </span>
-                          </div>
-                          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full transition-all duration-300 ${getPasswordStrength(signupPassword).color}`}
-                              style={{ width: `${getPasswordStrength(signupPassword).score}%` }}
-                            />
-                          </div>
+                  
+                  {/* Password fields - hidden for Google users */}
+                  {!isNewGoogleUser && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-password">Contraseña</Label>
+                        <div className="relative">
+                          <Input
+                            id="signup-password"
+                            name="password"
+                            type={showSignupPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            value={signupPassword}
+                            onChange={(e) => setSignupPassword(e.target.value)}
+                            required
+                            className="pr-10"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                            onClick={() => setShowSignupPassword(!showSignupPassword)}
+                          >
+                            {showSignupPassword ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
                         </div>
-                        
-                        {/* Requirements List */}
-                        <div className="space-y-1">
-                          {passwordRequirements.map((req, index) => {
-                            const passed = req.test(signupPassword);
-                            return (
-                              <div key={index} className="flex items-center gap-2 text-xs">
-                                {passed ? (
-                                  <Check className="h-3 w-3 text-success" />
-                                ) : (
-                                  <X className="h-3 w-3 text-destructive" />
-                                )}
-                                <span className={passed ? "text-success" : "text-muted-foreground"}>
-                                  {req.label}
+                        {signupPassword && (
+                          <div className="space-y-2 mt-2">
+                            {/* Password Strength Bar */}
+                            <div className="space-y-1">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-muted-foreground">Fortaleza:</span>
+                                <span className={`text-xs font-medium ${
+                                  getPasswordStrength(signupPassword).score <= 25 ? "text-destructive" :
+                                  getPasswordStrength(signupPassword).score <= 50 ? "text-warning" :
+                                  getPasswordStrength(signupPassword).score <= 75 ? "text-info" : "text-success"
+                                }`}>
+                                  {getPasswordStrength(signupPassword).label}
                                 </span>
                               </div>
-                            );
-                          })}
+                              <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full transition-all duration-300 ${getPasswordStrength(signupPassword).color}`}
+                                  style={{ width: `${getPasswordStrength(signupPassword).score}%` }}
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Requirements List */}
+                            <div className="space-y-1">
+                              {passwordRequirements.map((req, index) => {
+                                const passed = req.test(signupPassword);
+                                return (
+                                  <div key={index} className="flex items-center gap-2 text-xs">
+                                    {passed ? (
+                                      <Check className="h-3 w-3 text-success" />
+                                    ) : (
+                                      <X className="h-3 w-3 text-destructive" />
+                                    )}
+                                    <span className={passed ? "text-success" : "text-muted-foreground"}>
+                                      {req.label}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-confirm-password">Confirmar Contraseña</Label>
+                        <div className="relative">
+                          <Input
+                            id="signup-confirm-password"
+                            name="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                            className="pr-10"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm-password">Confirmar Contraseña</Label>
-                    <div className="relative">
-                      <Input
-                        id="signup-confirm-password"
-                        name="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                        className="pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
-                    {confirmPassword && signupPassword && (
-                      <div className="flex items-center gap-2 text-xs mt-1">
-                        {confirmPassword === signupPassword ? (
-                          <>
-                            <Check className="h-3 w-3 text-success" />
-                            <span className="text-success">Las contraseñas coinciden</span>
-                          </>
-                        ) : (
-                          <>
-                            <X className="h-3 w-3 text-destructive" />
-                            <span className="text-destructive">Las contraseñas no coinciden</span>
-                          </>
+                        {confirmPassword && signupPassword && (
+                          <div className="flex items-center gap-2 text-xs mt-1">
+                            {confirmPassword === signupPassword ? (
+                              <>
+                                <Check className="h-3 w-3 text-success" />
+                                <span className="text-success">Las contraseñas coinciden</span>
+                              </>
+                            ) : (
+                              <>
+                                <X className="h-3 w-3 text-destructive" />
+                                <span className="text-destructive">Las contraseñas no coinciden</span>
+                              </>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
+                  
                   <Button type="submit" className="w-full" disabled={loading}>
                     <Shield className="mr-2 h-4 w-4" />
-                    {loading ? "Creando cuenta..." : "Crear Cuenta"}
+                    {loading ? "Creando cuenta..." : isNewGoogleUser ? "Completar Registro" : "Crear Cuenta"}
                   </Button>
                 </form>
               </TabsContent>
