@@ -13,10 +13,8 @@ const Index = () => {
       <div className="bg-gradient-to-br from-primary via-primary-light to-info">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="text-center text-white space-y-8 max-w-4xl mx-auto">
-            <div className="flex justify-center mb-8">
-              <div className="p-5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl">
-                <img src={tradoShield} alt="Trado" className="h-20 w-20" />
-              </div>
+            <div className="flex justify-center mb-6">
+              <img src={tradoShield} alt="Trado" className="h-24 w-24 drop-shadow-2xl" />
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
