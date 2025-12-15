@@ -338,6 +338,18 @@ const Auth = () => {
           description: "Si no recuerdas tu contraseña, usa 'Recuperar contraseña' en Iniciar Sesión.",
           duration: 6000
         });
+      } else if (errorMsg.includes("profiles_rut_unique") || (errorMsg.includes("duplicate") && errorMsg.includes("rut"))) {
+        setRutError("RUT ya registrado");
+        toast.error("Este RUT ya está registrado en otra cuenta.", {
+          description: "Si ya tienes una cuenta, intenta iniciar sesión.",
+          duration: 5000
+        });
+      } else if (errorMsg.includes("profiles_phone_unique") || (errorMsg.includes("duplicate") && errorMsg.includes("phone"))) {
+        setPhoneError("Teléfono ya registrado");
+        toast.error("Este teléfono ya está registrado en otra cuenta.", {
+          description: "Si ya tienes una cuenta, intenta iniciar sesión.",
+          duration: 5000
+        });
       } else if (errorMsg.includes("email") || (errorMsg.includes("invalid") && errorMsg.includes("email"))) {
         setEmailError("Correo electrónico inválido");
         toast.error("El formato del correo electrónico no es válido");
@@ -347,6 +359,12 @@ const Auth = () => {
       } else if (errorMsg.includes("phone")) {
         setPhoneError("Error con el teléfono");
         toast.error(error.message);
+      } else if (errorMsg.includes("database error")) {
+        // Generic database error - likely a unique constraint violation
+        toast.error("Error al crear cuenta: Datos duplicados", {
+          description: "Verifica que tu RUT y teléfono no estén registrados en otra cuenta.",
+          duration: 5000
+        });
       } else {
         toast.error("Error al crear cuenta: " + error.message);
       }
