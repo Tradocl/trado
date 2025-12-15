@@ -3,18 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Shield, Lock, Users, TrendingUp, ArrowRight, Star, Quote } from "lucide-react";
 import tradoShield from "@/assets/trado-shield.png";
-
 const Index = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary via-primary-light to-info">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="text-center text-white space-y-8 max-w-4xl mx-auto">
             <div className="flex justify-center mb-6">
-              <img src={tradoShield} alt="Trado" className="h-24 w-24 drop-shadow-2xl" />
+              <img src={tradoShield} alt="Trado" className="h-24 w-24 drop-shadow-2xl border-primary shadow" />
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
@@ -26,19 +23,11 @@ const Index = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button
-                size="lg"
-                onClick={() => navigate("/auth")}
-                className="bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-8 py-6 h-auto"
-              >
+              <Button size="lg" onClick={() => navigate("/auth")} className="bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-8 py-6 h-auto">
                 Comenzar Ahora
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button
-                size="lg"
-                onClick={() => navigate("/auth")}
-                className="bg-primary-foreground/20 backdrop-blur-md border-2 border-white text-white hover:bg-primary-foreground/30 shadow-xl text-lg px-8 py-6 h-auto"
-              >
+              <Button size="lg" onClick={() => navigate("/auth")} className="bg-primary-foreground/20 backdrop-blur-md border-2 border-white text-white hover:bg-primary-foreground/30 shadow-xl text-lg px-8 py-6 h-auto">
                 Iniciar Sesión
                 <Lock className="ml-2 h-5 w-5" />
               </Button>
@@ -117,9 +106,7 @@ const Index = () => {
                 <div>
                   <p className="font-semibold text-foreground">María Contreras</p>
                   <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star key={star} className="h-4 w-4 fill-warning text-warning" />
-                    ))}
+                    {[1, 2, 3, 4, 5].map(star => <Star key={star} className="h-4 w-4 fill-warning text-warning" />)}
                   </div>
                 </div>
               </div>
@@ -137,9 +124,7 @@ const Index = () => {
                 <div>
                   <p className="font-semibold text-foreground">Juan Rodríguez</p>
                   <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star key={star} className="h-4 w-4 fill-warning text-warning" />
-                    ))}
+                    {[1, 2, 3, 4, 5].map(star => <Star key={star} className="h-4 w-4 fill-warning text-warning" />)}
                   </div>
                 </div>
               </div>
@@ -157,9 +142,7 @@ const Index = () => {
                 <div>
                   <p className="font-semibold text-foreground">Andrea Pizarro</p>
                   <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star key={star} className="h-4 w-4 fill-warning text-warning" />
-                    ))}
+                    {[1, 2, 3, 4, 5].map(star => <Star key={star} className="h-4 w-4 fill-warning text-warning" />)}
                   </div>
                 </div>
               </div>
@@ -253,11 +236,7 @@ const Index = () => {
             <p className="text-xl text-white/80 mb-8">
               Únete a miles de usuarios que ya confían en Trado
             </p>
-            <Button
-              size="lg"
-              onClick={() => navigate("/auth")}
-              className="bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-12 py-6 h-auto"
-            >
+            <Button size="lg" onClick={() => navigate("/auth")} className="bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-12 py-6 h-auto">
               Crear Cuenta Gratis
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -275,16 +254,10 @@ const Index = () => {
               <span className="text-muted-foreground text-sm">© 2024</span>
             </div>
             <div className="flex items-center gap-6">
-              <button
-                onClick={() => navigate("/terms")}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <button onClick={() => navigate("/terms")} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Términos y Condiciones
               </button>
-              <button
-                onClick={() => navigate("/privacy")}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <button onClick={() => navigate("/privacy")} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Política de Privacidad
               </button>
               <span className="text-muted-foreground text-sm">soporte@trado.cl</span>
@@ -292,8 +265,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
