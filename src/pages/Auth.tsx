@@ -56,6 +56,7 @@ const Auth = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
+  const [showVerificationChoice, setShowVerificationChoice] = useState(false);
   const [verificationFile, setVerificationFile] = useState<File | null>(null);
   const [verificationSelfie, setVerificationSelfie] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -370,9 +371,9 @@ const Auth = () => {
       }
       setLoading(false);
     } else if (data.user) {
-      toast.success("¡Cuenta creada! Ahora sube tu documento de identidad");
+      toast.success("¡Cuenta creada exitosamente!");
       setNewUserId(data.user.id);
-      setShowVerificationDialog(true);
+      setShowVerificationChoice(true);
       setSignupPassword("");
       setConfirmPassword("");
       setRutValue("");
@@ -494,6 +495,18 @@ const Auth = () => {
   const handleSkipVerification = () => {
     toast.info("Puedes verificar tu cuenta más tarde desde tu perfil");
     setShowVerificationDialog(false);
+    setShowVerificationChoice(false);
+    navigate("/dashboard");
+  };
+
+  const handleChooseVerifyNow = () => {
+    setShowVerificationChoice(false);
+    setShowVerificationDialog(true);
+  };
+
+  const handleChooseVerifyLater = () => {
+    setShowVerificationChoice(false);
+    toast.info("Puedes verificar tu cuenta más tarde desde tu perfil");
     navigate("/dashboard");
   };
 
@@ -958,9 +971,59 @@ const Auth = () => {
         </Card>
       </div>
 
+      {/* Verification Choice Dialog */}
+      <Dialog open={showVerificationChoice} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Shield className="h-6 w-6 text-primary" />
+              ¡Cuenta creada exitosamente!
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Para poder comprar y vender en Trado, necesitas verificar tu identidad.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-success/10 border border-success/20 rounded-lg p-4">
+              <h4 className="font-medium text-success mb-2">✓ Beneficios de verificarte</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Podrás crear y unirte a transacciones</li>
+                <li>• Mayor confianza de otros usuarios</li>
+                <li>• Acceso completo a la plataforma</li>
+              </ul>
+            </div>
+
+            <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+              <p className="text-sm text-muted-foreground">
+                ⚠️ Sin verificación no podrás realizar transacciones en Trado.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={handleChooseVerifyNow}
+              className="w-full"
+              size="lg"
+            >
+              <Camera className="mr-2 h-5 w-5" />
+              Verificar Ahora
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleChooseVerifyLater}
+              className="w-full"
+            >
+              Verificar Después
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Verification Document Dialog */}
-      <Dialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={showVerificationDialog} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Camera className="h-5 w-5" />
