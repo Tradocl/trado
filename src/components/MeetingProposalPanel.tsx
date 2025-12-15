@@ -121,6 +121,32 @@ export const MeetingProposalPanel = ({
 
       if (error) throw error;
 
+      // Get recipient info and send notification
+      const recipientId = isSeller ? buyerId : sellerId;
+      const recipientName = isSeller ? buyerName : sellerName;
+      const proposerName = isSeller ? sellerName : buyerName;
+      
+      // Fetch recipient email and product name
+      const [profileResult, transactionResult] = await Promise.all([
+        supabase.from("profiles").select("email").eq("id", recipientId).single(),
+        supabase.from("transactions").select("product_name").eq("id", transactionId).single()
+      ]);
+
+      if (profileResult.data?.email && transactionResult.data?.product_name) {
+        await supabase.functions.invoke("notify-meeting-proposal", {
+          body: {
+            transactionId,
+            proposerName,
+            recipientEmail: profileResult.data.email,
+            recipientName,
+            productName: transactionResult.data.product_name,
+            location: location.trim(),
+            datetime: proposedDatetime.toISOString(),
+            message: message.trim() || undefined,
+          },
+        });
+      }
+
       toast.success("¡Propuesta de encuentro enviada!");
       setShowForm(false);
       setLocation("");
