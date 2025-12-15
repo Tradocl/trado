@@ -79,6 +79,11 @@ const Auth = () => {
   const [numero, setNumero] = useState("");
   const [depto, setDepto] = useState("");
   const [referencia, setReferencia] = useState("");
+  
+  // Field error states
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
   const formatPhoneInput = (value: string) => {
     // Remove all non-digits except +
@@ -225,8 +230,16 @@ const Auth = () => {
     address += `, ${ciudad}, ${region}`;
     if (referencia) address += ` (${referencia})`;
 
+    // Reset all field errors
+    setRutError("");
+    setPhoneError("");
+    setEmailError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
+      setConfirmPasswordError("Las contraseñas no coinciden");
       toast.error("Las contraseñas no coinciden");
       setLoading(false);
       return;
@@ -235,6 +248,7 @@ const Auth = () => {
     // Validar requisitos de contraseña
     const failedRequirements = passwordRequirements.filter(req => !req.test(password));
     if (failedRequirements.length > 0) {
+      setPasswordError("No cumple con los requisitos");
       toast.error("La contraseña no cumple con los requisitos de seguridad");
       setLoading(false);
       return;
@@ -242,6 +256,7 @@ const Auth = () => {
 
     // Validar RUT
     if (!validateRUT(rut)) {
+      setRutError("RUT inválido");
       toast.error("RUT inválido. Verifica el formato y dígito verificador.");
       setLoading(false);
       return;
@@ -249,6 +264,7 @@ const Auth = () => {
 
     // Validar teléfono
     if (!validateChileanPhone(phone)) {
+      setPhoneError("Teléfono inválido");
       toast.error("Teléfono inválido. Debe ser un número chileno válido.");
       setLoading(false);
       return;
@@ -262,6 +278,7 @@ const Auth = () => {
       .maybeSingle();
 
     if (existingRut) {
+      setRutError("RUT ya registrado");
       toast.error("Este RUT ya está registrado en otra cuenta.");
       setLoading(false);
       return;
@@ -275,6 +292,7 @@ const Auth = () => {
       .maybeSingle();
 
     if (existingPhone) {
+      setPhoneError("Teléfono ya registrado");
       toast.error("Este teléfono ya está registrado en otra cuenta.");
       setLoading(false);
       return;
@@ -288,6 +306,7 @@ const Auth = () => {
       .maybeSingle();
 
     if (existingEmail) {
+      setEmailError("Correo ya registrado");
       toast.error("Este correo ya está registrado. Intenta iniciar sesión.");
       setLoading(false);
       return;
@@ -739,7 +758,12 @@ const Auth = () => {
                       type="email"
                       placeholder="tu@email.com"
                       required
+                      className={emailError ? "border-destructive" : ""}
+                      onChange={() => setEmailError("")}
                     />
+                    {emailError && (
+                      <p className="text-xs text-destructive">{emailError}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
@@ -751,9 +775,12 @@ const Auth = () => {
                         type={showSignupPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
+                        onChange={(e) => {
+                          setSignupPassword(e.target.value);
+                          setPasswordError("");
+                        }}
                         required
-                        className="pr-10"
+                        className={`pr-10 ${passwordError ? "border-destructive" : ""}`}
                       />
                       <Button
                         type="button"
@@ -821,9 +848,12 @@ const Auth = () => {
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          setConfirmPasswordError("");
+                        }}
                         required
-                        className="pr-10"
+                        className={`pr-10 ${confirmPasswordError ? "border-destructive" : ""}`}
                       />
                       <Button
                         type="button"
