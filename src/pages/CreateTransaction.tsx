@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, ArrowRight, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link } from "lucide-react";
+import { ArrowLeft, ArrowRight, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link, ShieldAlert, Shield } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
+import { UNVERIFIED_LIMITS, checkTransactionLimits, getUserVerificationStatus } from "@/lib/transaction-limits";
 
 type SaleType = "servicio" | "producto_persona" | "producto_envio";
 type MainType = "servicio" | "producto";
@@ -32,6 +33,7 @@ const CreateTransaction = () => {
   const [saleType, setSaleType] = useState<SaleType>("producto_envio");
   const [mainType, setMainType] = useState<MainType>("producto");
   const [initiatorRole, setInitiatorRole] = useState<InitiatorRole>("seller");
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [formData, setFormData] = useState<{
     productName: string;
     productDescription: string;
@@ -39,6 +41,17 @@ const CreateTransaction = () => {
     saleType: SaleType;
     initiatorRole: InitiatorRole;
   } | null>(null);
+
+  // Load user verification status
+  useEffect(() => {
+    const loadVerificationStatus = async () => {
+      if (user) {
+        const verified = await getUserVerificationStatus(user.id);
+        setIsVerified(verified);
+      }
+    };
+    loadVerificationStatus();
+  }, [user]);
 
   // Dynamic labels based on type and role
   const isService = mainType === "servicio";
@@ -83,6 +96,15 @@ const CreateTransaction = () => {
     if (!termsAccepted) {
       toast.error("Debes aceptar los términos para continuar");
       return;
+    }
+
+    // Check transaction limits for unverified users
+    if (isVerified === false) {
+      const limitCheck = await checkTransactionLimits(user.id, parsedAmount, false);
+      if (!limitCheck.allowed) {
+        toast.error(limitCheck.message);
+        return;
+      }
     }
 
     setFormData({
@@ -251,6 +273,30 @@ const CreateTransaction = () => {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Unverified user warning banner */}
+            {isVerified === false && (
+              <div className="mb-6 p-4 bg-warning/10 border border-warning/30 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <ShieldAlert className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-warning mb-1">Usuario no verificado</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Máximo <strong>${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)}</strong> por transacción</li>
+                      <li>• Máximo <strong>${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)}</strong> acumulado total</li>
+                    </ul>
+                    <Button 
+                      variant="link" 
+                      className="p-0 h-auto text-warning hover:text-warning/80 mt-2"
+                      onClick={() => navigate("/verification")}
+                    >
+                      <Shield className="h-4 w-4 mr-1" />
+                      Verificarme ahora
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleCreateTransaction} className="space-y-4 sm:space-y-6">
               {/* Step 1: Transaction Type */}
               <div className="space-y-3 sm:space-y-4">
