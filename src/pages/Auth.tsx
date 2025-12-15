@@ -72,20 +72,35 @@ const Auth = () => {
         // Check if this is a Google user who just signed up (no profile data yet)
         const { data: profile } = await supabase
           .from('profiles')
-          .select('rut, phone, address')
+          .select('rut, phone, address, email')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         // If Google user has no RUT/phone, they need to complete registration
         const isGoogleProvider = user.app_metadata?.provider === 'google';
         const needsRegistration = isGoogleProvider && (!profile?.rut || !profile?.phone);
 
         if (needsRegistration) {
-          // New Google user - sign them out and redirect to signup tab
-          // They need to register normally with password
+          // Check if email already exists in another profile (registered via email/password)
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', user.email || '')
+            .neq('id', user.id)
+            .maybeSingle();
+
+          // Sign out the Google user first
           await supabase.auth.signOut();
-          setActiveTab("signup");
-          toast.info("Tu correo no está registrado. Por favor, crea una cuenta.");
+          
+          if (existingProfile) {
+            // Email already registered with another account
+            setActiveTab("signin");
+            toast.error("Este correo ya está registrado. Por favor, inicia sesión con tu contraseña.");
+          } else {
+            // New user - redirect to signup
+            setActiveTab("signup");
+            toast.info("Tu correo no está registrado. Por favor, crea una cuenta.");
+          }
           return;
         }
 
