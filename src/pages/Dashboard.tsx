@@ -102,8 +102,8 @@ const Dashboard = () => {
 
     try {
       const [profileRes, walletRes, transactionsRes, completedTransactionsRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user.id).single(),
-        supabase.from("wallets").select("*").eq("user_id", user.id).single(),
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
         supabase
           .from("transactions")
           .select("*")
@@ -118,7 +118,13 @@ const Dashboard = () => {
 
       if (profileRes.error) throw profileRes.error;
       if (walletRes.error) throw walletRes.error;
-
+      
+      if (!profileRes.data || !walletRes.data) {
+        // User profile or wallet doesn't exist - sign out and redirect
+        await supabase.auth.signOut();
+        window.location.href = "/auth";
+        return;
+      }
       // Calculate total completed transactions (state = completed OR appeal resolved)
       const completedCount = completedTransactionsRes.data?.filter(t => 
         (t as any).state === 'completed' || 
