@@ -975,6 +975,27 @@ const Auth = () => {
                     )}
                   </div>
                   
+                  {/* Terms and Privacy Agreement */}
+                  <p className="text-xs text-muted-foreground text-center">
+                    Al crear una cuenta, aceptas nuestros{" "}
+                    <button
+                      type="button"
+                      onClick={() => navigate("/terms")}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Términos y Condiciones
+                    </button>{" "}
+                    y nuestra{" "}
+                    <button
+                      type="button"
+                      onClick={() => navigate("/privacy")}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Política de Privacidad
+                    </button>
+                    .
+                  </p>
+                  
                   <Button type="submit" className="w-full" disabled={loading}>
                     <Shield className="mr-2 h-4 w-4" />
                     {loading ? "Creando cuenta..." : "Crear Cuenta"}
