@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.notify-transaction-completed]
 verify_jwt = true
+
+[functions.notify-meeting-proposal]
+verify_jwt = true
