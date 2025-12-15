@@ -292,7 +292,7 @@ const Auth = () => {
       .maybeSingle();
 
     if (existingRut) {
-      setRutError("RUT ya registrado");
+      setRutError("Este RUT ya existe. Intenta iniciar sesión o recuperar contraseña.");
       toast.error("Este RUT ya está registrado en otra cuenta.");
       setLoading(false);
       return;
@@ -306,7 +306,7 @@ const Auth = () => {
       .maybeSingle();
 
     if (existingPhone) {
-      setPhoneError("Teléfono ya registrado");
+      setPhoneError("Este teléfono ya existe. Intenta iniciar sesión o recuperar contraseña.");
       toast.error("Este teléfono ya está registrado en otra cuenta.");
       setLoading(false);
       return;
@@ -320,7 +320,7 @@ const Auth = () => {
       .maybeSingle();
 
     if (existingEmail) {
-      setEmailError("Correo ya registrado");
+      setEmailError("Esta cuenta ya existe. Intenta iniciar sesión o recuperar contraseña.");
       toast.error("Este correo ya está registrado. Intenta iniciar sesión.");
       setLoading(false);
       return;
@@ -339,13 +339,13 @@ const Auth = () => {
           duration: 6000
         });
       } else if (errorMsg.includes("profiles_rut_unique") || (errorMsg.includes("duplicate") && errorMsg.includes("rut"))) {
-        setRutError("RUT ya registrado");
+        setRutError("Este RUT ya existe. Intenta iniciar sesión o recuperar contraseña.");
         toast.error("Este RUT ya está registrado en otra cuenta.", {
           description: "Si ya tienes una cuenta, intenta iniciar sesión.",
           duration: 5000
         });
       } else if (errorMsg.includes("profiles_phone_unique") || (errorMsg.includes("duplicate") && errorMsg.includes("phone"))) {
-        setPhoneError("Teléfono ya registrado");
+        setPhoneError("Este teléfono ya existe. Intenta iniciar sesión o recuperar contraseña.");
         toast.error("Este teléfono ya está registrado en otra cuenta.", {
           description: "Si ya tienes una cuenta, intenta iniciar sesión.",
           duration: 5000
