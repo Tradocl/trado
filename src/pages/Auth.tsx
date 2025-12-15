@@ -656,6 +656,10 @@ const Auth = () => {
                         if (rawValue.length <= 9) {
                           const formatted = formatRUT(rawValue);
                           setRutValue(formatted);
+                          // Limpiar error de duplicado al modificar
+                          if (rutError.includes("ya existe")) {
+                            setRutError("");
+                          }
                           // Validar RUT en tiempo real
                           if (rawValue.length >= 8) {
                             if (validateRUT(rawValue)) {
@@ -663,7 +667,7 @@ const Auth = () => {
                             } else {
                               setRutError("RUT inválido");
                             }
-                          } else {
+                          } else if (!rutError.includes("ya existe")) {
                             setRutError("");
                           }
                         }
@@ -685,6 +689,10 @@ const Auth = () => {
                       onChange={(e) => {
                         const formatted = formatPhoneInput(e.target.value);
                         setPhoneValue(formatted);
+                        // Limpiar error de duplicado al modificar
+                        if (phoneError.includes("ya existe")) {
+                          setPhoneError("");
+                        }
                         // Validar teléfono
                         const digits = formatted.replace(/\D/g, '');
                         if (digits.length >= 11) {
@@ -693,7 +701,7 @@ const Auth = () => {
                           } else {
                             setPhoneError("Teléfono inválido");
                           }
-                        } else {
+                        } else if (!phoneError.includes("ya existe")) {
                           setPhoneError("");
                         }
                       }}
