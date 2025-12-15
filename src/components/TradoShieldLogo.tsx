@@ -18,45 +18,35 @@ const TradoShieldLogo = ({ className = "h-24 w-24" }: TradoShieldLogoProps) => {
         strokeWidth="2"
       />
       
-      {/* Circular arrows - three arrows forming exchange/recycle symbol */}
-      <g transform="translate(50, 60)">
-        {/* Arrow 1 - pointing right (top) */}
+      {/* Two semi-square circular arrows */}
+      <g transform="translate(50, 58)">
+        {/* Arrow 1 - clockwise from top-right to bottom-left */}
         <path
-          d="M-2 -22 Q18 -22 18 0"
+          d="M5 -20 L22 -20 L22 -3 Q22 12 8 12 L-8 12"
           stroke="#22c55e"
-          strokeWidth="6"
+          strokeWidth="7"
           strokeLinecap="round"
+          strokeLinejoin="round"
           fill="none"
         />
+        {/* Arrowhead 1 */}
         <polygon
-          points="22,-4 14,4 22,8"
-          fill="#22c55e"
-          transform="translate(0, 2)"
-        />
-        
-        {/* Arrow 2 - pointing bottom-left */}
-        <path
-          d="M14 4 Q14 22 -8 16"
-          stroke="#22c55e"
-          strokeWidth="6"
-          strokeLinecap="round"
-          fill="none"
-        />
-        <polygon
-          points="-12,20 -8,8 -18,10"
+          points="-8,4 -20,12 -8,20"
           fill="#22c55e"
         />
         
-        {/* Arrow 3 - pointing top-left */}
+        {/* Arrow 2 - clockwise from bottom-left to top-right */}
         <path
-          d="M-12 12 Q-22 0 -8 -16"
+          d="M-5 20 L-22 20 L-22 3 Q-22 -12 -8 -12 L8 -12"
           stroke="#22c55e"
-          strokeWidth="6"
+          strokeWidth="7"
           strokeLinecap="round"
+          strokeLinejoin="round"
           fill="none"
         />
+        {/* Arrowhead 2 */}
         <polygon
-          points="-6,-22 2,-14 -10,-12"
+          points="8,-4 20,-12 8,-20"
           fill="#22c55e"
         />
       </g>
