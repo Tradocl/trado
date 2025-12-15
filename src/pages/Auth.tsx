@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { validateRUT, validateChileanPhone, formatRUT } from "@/lib/validators";
 import { regiones, ciudadesPorRegion } from "@/lib/chilean-locations";
-import tradoLogo from "@/assets/trado-logo.png";
+import tradoShield from "@/assets/trado-shield.png";
 
 interface PasswordRequirement {
   label: string;
@@ -558,7 +558,7 @@ const Auth = () => {
               Inicio
             </Button>
             <div className="flex justify-center mb-4">
-              <img src={tradoLogo} alt="Trado" className="h-32 w-auto" />
+              <img src={tradoShield} alt="Trado" className="h-24 w-24" />
             </div>
             <CardDescription className="text-base">
               Compra y vende con seguridad
