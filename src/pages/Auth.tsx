@@ -67,6 +67,49 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState("signin");
   const [rutValue, setRutValue] = useState("");
   const [rutError, setRutError] = useState("");
+  const [phoneValue, setPhoneValue] = useState("+56 9 ");
+  const [phoneError, setPhoneError] = useState("");
+  
+  // Address fields
+  const [region, setRegion] = useState("");
+  const [ciudad, setCiudad] = useState("");
+  const [calle, setCalle] = useState("");
+  const [numero, setNumero] = useState("");
+  const [depto, setDepto] = useState("");
+  const [referencia, setReferencia] = useState("");
+
+  const formatPhoneInput = (value: string) => {
+    // Remove all non-digits except +
+    let digits = value.replace(/[^\d+]/g, '');
+    
+    // Ensure it starts with +56
+    if (!digits.startsWith('+56')) {
+      if (digits.startsWith('56')) {
+        digits = '+' + digits;
+      } else if (digits.startsWith('+')) {
+        digits = '+56' + digits.slice(1).replace(/\D/g, '');
+      } else {
+        digits = '+56' + digits;
+      }
+    }
+    
+    // Get just the numbers after +56
+    const afterPrefix = digits.slice(3).replace(/\D/g, '');
+    
+    // Format: +56 9 XXXX XXXX
+    let formatted = '+56';
+    if (afterPrefix.length > 0) {
+      formatted += ' ' + afterPrefix.slice(0, 1);
+    }
+    if (afterPrefix.length > 1) {
+      formatted += ' ' + afterPrefix.slice(1, 5);
+    }
+    if (afterPrefix.length > 5) {
+      formatted += ' ' + afterPrefix.slice(5, 9);
+    }
+    
+    return formatted;
+  };
 
   useEffect(() => {
     const checkGoogleUser = async () => {
@@ -171,9 +214,14 @@ const Auth = () => {
     const email = formData.get("email") as string;
     const password = signupPassword;
     const fullName = formData.get("fullName") as string;
-    const phone = formData.get("phone") as string;
-    const rut = formData.get("rut") as string;
-    const address = formData.get("address") as string;
+    const phone = phoneValue;
+    const rut = rutValue;
+    
+    // Construir dirección completa
+    let address = `${calle} ${numero}`;
+    if (depto) address += `, ${depto}`;
+    address += `, ${ciudad}, ${region}`;
+    if (referencia) address += ` (${referencia})`;
 
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
@@ -559,20 +607,107 @@ const Auth = () => {
                       id="signup-phone"
                       name="phone"
                       type="tel"
-                      defaultValue="+56 "
+                      value={phoneValue}
+                      onChange={(e) => {
+                        const formatted = formatPhoneInput(e.target.value);
+                        setPhoneValue(formatted);
+                        // Validar teléfono
+                        const digits = formatted.replace(/\D/g, '');
+                        if (digits.length >= 11) {
+                          if (validateChileanPhone(formatted)) {
+                            setPhoneError("");
+                          } else {
+                            setPhoneError("Teléfono inválido");
+                          }
+                        } else {
+                          setPhoneError("");
+                        }
+                      }}
                       placeholder="+56 9 1234 5678"
                       required
+                      className={phoneError ? "border-destructive" : ""}
                     />
+                    {phoneError && (
+                      <p className="text-xs text-destructive">{phoneError}</p>
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-address">Dirección</Label>
-                    <Input
-                      id="signup-address"
-                      name="address"
-                      type="text"
-                      placeholder="Av. Principal 123, Santiago"
-                      required
-                    />
+                  
+                  {/* Address fields */}
+                  <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                    <Label className="text-sm font-medium">Dirección</Label>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label htmlFor="signup-region" className="text-xs text-muted-foreground">Región *</Label>
+                        <Input
+                          id="signup-region"
+                          type="text"
+                          placeholder="Metropolitana"
+                          value={region}
+                          onChange={(e) => setRegion(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="signup-ciudad" className="text-xs text-muted-foreground">Ciudad *</Label>
+                        <Input
+                          id="signup-ciudad"
+                          type="text"
+                          placeholder="Santiago"
+                          value={ciudad}
+                          onChange={(e) => setCiudad(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="col-span-2 space-y-1">
+                        <Label htmlFor="signup-calle" className="text-xs text-muted-foreground">Calle *</Label>
+                        <Input
+                          id="signup-calle"
+                          type="text"
+                          placeholder="Av. Principal"
+                          value={calle}
+                          onChange={(e) => setCalle(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="signup-numero" className="text-xs text-muted-foreground">Número *</Label>
+                        <Input
+                          id="signup-numero"
+                          type="text"
+                          placeholder="123"
+                          value={numero}
+                          onChange={(e) => setNumero(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label htmlFor="signup-depto" className="text-xs text-muted-foreground">Depto/Casa</Label>
+                        <Input
+                          id="signup-depto"
+                          type="text"
+                          placeholder="Depto 501"
+                          value={depto}
+                          onChange={(e) => setDepto(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="signup-referencia" className="text-xs text-muted-foreground">Referencia</Label>
+                        <Input
+                          id="signup-referencia"
+                          type="text"
+                          placeholder="Cerca del metro"
+                          value={referencia}
+                          onChange={(e) => setReferencia(e.target.value)}
+                        />
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
