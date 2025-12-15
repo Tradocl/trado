@@ -133,7 +133,22 @@ const Auth = () => {
     const { error } = await signIn(email, password);
 
     if (error) {
-      toast.error(error.message);
+      if (error.message === "Invalid login credentials" || error.message === "Invalid login credentials.") {
+        // Diferenciar entre correo inexistente y contraseña incorrecta
+        const { data: existingEmail } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", email)
+          .maybeSingle();
+
+        if (existingEmail) {
+          toast.error("La contraseña es incorrecta. Por favor, intenta nuevamente.");
+        } else {
+          toast.error("No existe una cuenta con este correo. Regístrate para poder iniciar sesión.");
+        }
+      } else {
+        toast.error(error.message);
+      }
     } else {
       toast.success("¡Bienvenido a Trado!");
       // Redirect is handled by useEffect when user state changes
@@ -141,7 +156,6 @@ const Auth = () => {
 
     setLoading(false);
   };
-
   const handleGoogleSignIn = async () => {
     setLoading(true);
     // Always redirect back to /auth so we can check if user needs registration
