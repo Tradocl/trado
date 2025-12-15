@@ -383,6 +383,37 @@ const Dashboard = () => {
           </Card>
         )}
 
+        {/* Verification Card - Show for unverified users */}
+        {profile?.verification_status !== 'approved' && (
+          <Card className="border-2 border-warning/30 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-warning/5 to-transparent" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
+            <CardContent className="py-4 sm:py-5">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-warning/10 rounded-xl flex-shrink-0">
+                  <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-warning" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm sm:text-base mb-1">Verifica tu identidad</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                    Genera mayor confianza y elimina los límites de transacción
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-0.5 mb-3">
+                    <li>• Sin verificar: máx <strong>$100.000</strong> por transacción, <strong>$200.000</strong> acumulado</li>
+                    <li>• Verificado: <strong>sin límites</strong> de monto</li>
+                  </ul>
+                  <Button 
+                    size="sm" 
+                    className="bg-warning hover:bg-warning/90 text-warning-foreground transition-all duration-200 hover:scale-[1.02]"
+                    onClick={() => navigate("/verification")}
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Verificar Ahora
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Action Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           <Card 
@@ -498,27 +529,6 @@ const Dashboard = () => {
               </Button>
             </div>
             
-            {profile?.verification_status !== 'approved' && (
-              <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-info/10 border border-info/20 rounded-lg animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'both' }}>
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-info mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-xs sm:text-sm mb-1">Aumenta tu reputación</h4>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Verifica tu identidad para ganar confianza
-                    </p>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="text-xs transition-all duration-200 hover:scale-[1.02]"
-                      onClick={() => navigate("/verification")}
-                    >
-                      Verificar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       </main>
