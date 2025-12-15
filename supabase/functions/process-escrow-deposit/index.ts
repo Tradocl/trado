@@ -17,7 +17,6 @@ const corsHeaders = {
 
 interface ProcessEscrowDepositRequest {
   transactionId: string;
-  userId: string;
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -33,10 +32,31 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { transactionId, userId }: ProcessEscrowDepositRequest = await req.json();
+    // SECURITY: Extract and verify user from JWT token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
-    if (!transactionId || !userId) {
-      return new Response(JSON.stringify({ error: "transactionId y userId requeridos" }), {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error("[process-escrow-deposit] Auth error:", authError);
+      return new Response(JSON.stringify({ error: "Token inválido" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const userId = user.id;
+    const { transactionId }: ProcessEscrowDepositRequest = await req.json();
+
+    if (!transactionId) {
+      return new Response(JSON.stringify({ error: "transactionId requerido" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -56,10 +76,13 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("Transacción no encontrada");
     }
 
-    // Verify user is the buyer
+    // SECURITY: Verify authenticated user is the buyer
     if (tx.buyer_id !== userId) {
       console.error("[process-escrow-deposit] User is not the buyer");
-      throw new Error("No autorizado - solo el comprador puede depositar");
+      return new Response(JSON.stringify({ error: "No autorizado - solo el comprador puede depositar" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Verify transaction state - accept both "invited" and "awaiting_deposit"

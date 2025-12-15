@@ -18,7 +18,6 @@ const corsHeaders = {
 interface ProcessReturnRefundRequest {
   returnRequestId: string;
   transactionId: string;
-  userId: string;
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -34,9 +33,30 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { returnRequestId, transactionId, userId }: ProcessReturnRefundRequest = await req.json();
+    // SECURITY: Extract and verify user from JWT token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
-    if (!returnRequestId || !transactionId || !userId) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error("[process-return-refund] Auth error:", authError);
+      return new Response(JSON.stringify({ error: "Token inválido" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const userId = user.id;
+    const { returnRequestId, transactionId }: ProcessReturnRefundRequest = await req.json();
+
+    if (!returnRequestId || !transactionId) {
       return new Response(JSON.stringify({ error: "Faltan parámetros requeridos" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -57,10 +77,13 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("Transacción no encontrada");
     }
 
-    // Verify user is the seller (only seller can confirm receipt)
+    // SECURITY: Verify authenticated user is the seller (only seller can confirm receipt)
     if (tx.seller_id !== userId) {
       console.error("[process-return-refund] User is not the seller");
-      throw new Error("No autorizado - solo el vendedor puede confirmar la recepción");
+      return new Response(JSON.stringify({ error: "No autorizado - solo el vendedor puede confirmar la recepción" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Verify transaction state

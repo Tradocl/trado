@@ -19,7 +19,6 @@ interface AcceptMutualResolutionRequest {
   proposalId: string;
   appealId: string;
   transactionId: string;
-  userId: string;
 }
 
 // Commission calculation matching the frontend logic
@@ -47,10 +46,31 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { proposalId, appealId, transactionId, userId }: AcceptMutualResolutionRequest = await req.json();
+    // SECURITY: Extract and verify user from JWT token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
-    if (!proposalId || !appealId || !transactionId || !userId) {
-      console.error("[accept-mutual-resolution] Missing required parameters", { proposalId, appealId, transactionId, userId });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error("[accept-mutual-resolution] Auth error:", authError);
+      return new Response(JSON.stringify({ error: "Token inválido" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const userId = user.id;
+    const { proposalId, appealId, transactionId }: AcceptMutualResolutionRequest = await req.json();
+
+    if (!proposalId || !appealId || !transactionId) {
+      console.error("[accept-mutual-resolution] Missing required parameters", { proposalId, appealId, transactionId });
       return new Response(JSON.stringify({ error: "Faltan parámetros requeridos" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -84,7 +104,7 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // 3. Verify user is not the proposer (must be the other party)
+    // 3. SECURITY: Verify authenticated user is not the proposer (must be the other party)
     if (proposal.proposer_id === userId) {
       console.error("[accept-mutual-resolution] User is the proposer", { proposer_id: proposal.proposer_id, userId });
       return new Response(JSON.stringify({ error: "No puedes aceptar tu propia propuesta" }), {
@@ -108,7 +128,7 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // 5. Verify user is either buyer or seller
+    // 5. SECURITY: Verify authenticated user is either buyer or seller
     if (tx.buyer_id !== userId && tx.seller_id !== userId) {
       console.error("[accept-mutual-resolution] User is not part of transaction", { buyer_id: tx.buyer_id, seller_id: tx.seller_id, userId });
       return new Response(JSON.stringify({ error: "No autorizado - no eres parte de esta transacción" }), {
@@ -434,19 +454,25 @@ serve(async (req: Request): Promise<Response> => {
             .eq("id", sellerWallet.id);
           console.log("[accept-mutual-resolution] ROLLBACK - Seller wallet reverted");
         }
+
+        // Also try to delete any wallet movements created for this transaction
+        await supabaseClient
+          .from("wallet_movements")
+          .delete()
+          .eq("transaction_id", transactionId)
+          .in("type", ["escrow_release", "commission"])
+          .eq("status", "approved");
+        console.log("[accept-mutual-resolution] ROLLBACK - Wallet movements deleted");
+
       } catch (rollbackError) {
-        console.error("[accept-mutual-resolution] ROLLBACK FAILED", rollbackError);
+        console.error("[accept-mutual-resolution] CRITICAL - Rollback failed", rollbackError);
       }
 
-      return new Response(JSON.stringify({ error: atomicError.message || "Error al procesar el acuerdo" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      throw atomicError;
     }
-
   } catch (error: any) {
-    console.error("[accept-mutual-resolution] UNEXPECTED ERROR:", error);
-    return new Response(JSON.stringify({ error: error.message ?? "Error interno del servidor" }), {
+    console.error("[accept-mutual-resolution] Error:", error);
+    return new Response(JSON.stringify({ error: error.message ?? "Error interno" }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });

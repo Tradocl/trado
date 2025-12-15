@@ -147,7 +147,6 @@ export const ReturnStatusPanel = ({
         body: {
           returnRequestId: returnRequest.id,
           transactionId,
-          userId: (await supabase.auth.getUser()).data.user?.id,
         },
       });
 
