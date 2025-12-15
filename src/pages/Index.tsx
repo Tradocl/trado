@@ -266,6 +266,28 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-background border-t border-border py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <img src={tradoShield} alt="Trado" className="h-6 w-6" />
+              <span className="font-semibold text-foreground">Trado</span>
+              <span className="text-muted-foreground text-sm">© 2024</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <button
+                onClick={() => navigate("/terms")}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Términos y Condiciones
+              </button>
+              <span className="text-muted-foreground text-sm">soporte@trado.cl</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
