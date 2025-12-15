@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { validateRUT, validateChileanPhone } from "@/lib/validators";
+import { validateRUT, validateChileanPhone, formatRUT } from "@/lib/validators";
 import tradoLogo from "@/assets/trado-logo.png";
 
 interface PasswordRequirement {
@@ -65,6 +65,8 @@ const Auth = () => {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("signin");
+  const [rutValue, setRutValue] = useState("");
+  const [rutError, setRutError] = useState("");
 
   useEffect(() => {
     const checkGoogleUser = async () => {
@@ -134,18 +136,7 @@ const Auth = () => {
 
     if (error) {
       if (error.message === "Invalid login credentials" || error.message === "Invalid login credentials.") {
-        // Diferenciar entre correo inexistente y contraseña incorrecta
-        const { data: existingEmail } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("email", email)
-          .maybeSingle();
-
-        if (existingEmail) {
-          toast.error("La contraseña es incorrecta. Por favor, intenta nuevamente.");
-        } else {
-          toast.error("No existe una cuenta con este correo. Regístrate para poder iniciar sesión.");
-        }
+        toast.error("Credenciales incorrectas. Verifica tu correo y contraseña o regístrate si no tienes cuenta.");
       } else {
         toast.error(error.message);
       }
@@ -536,8 +527,31 @@ const Auth = () => {
                       name="rut"
                       type="text"
                       placeholder="12.345.678-9"
+                      value={rutValue}
+                      onChange={(e) => {
+                        // Solo permitir números y K
+                        const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
+                        if (rawValue.length <= 9) {
+                          const formatted = formatRUT(rawValue);
+                          setRutValue(formatted);
+                          // Validar RUT en tiempo real
+                          if (rawValue.length >= 8) {
+                            if (validateRUT(rawValue)) {
+                              setRutError("");
+                            } else {
+                              setRutError("RUT inválido");
+                            }
+                          } else {
+                            setRutError("");
+                          }
+                        }
+                      }}
                       required
+                      className={rutError ? "border-destructive" : ""}
                     />
+                    {rutError && (
+                      <p className="text-xs text-destructive">{rutError}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-phone">Teléfono</Label>
