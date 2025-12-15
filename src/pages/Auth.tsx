@@ -8,9 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { validateRUT, validateChileanPhone, formatRUT } from "@/lib/validators";
+import { regiones, ciudadesPorRegion } from "@/lib/chilean-locations";
 import tradoLogo from "@/assets/trado-logo.png";
 
 interface PasswordRequirement {
@@ -639,25 +641,45 @@ const Auth = () => {
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <Label htmlFor="signup-region" className="text-xs text-muted-foreground">Región *</Label>
-                        <Input
-                          id="signup-region"
-                          type="text"
-                          placeholder="Metropolitana"
-                          value={region}
-                          onChange={(e) => setRegion(e.target.value)}
+                        <Select 
+                          value={region} 
+                          onValueChange={(value) => {
+                            setRegion(value);
+                            setCiudad(""); // Reset city when region changes
+                          }}
                           required
-                        />
+                        >
+                          <SelectTrigger id="signup-region" className="bg-background">
+                            <SelectValue placeholder="Selecciona región" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50 max-h-60">
+                            {regiones.map((reg) => (
+                              <SelectItem key={reg} value={reg}>
+                                {reg}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label htmlFor="signup-ciudad" className="text-xs text-muted-foreground">Ciudad *</Label>
-                        <Input
-                          id="signup-ciudad"
-                          type="text"
-                          placeholder="Santiago"
-                          value={ciudad}
-                          onChange={(e) => setCiudad(e.target.value)}
+                        <Select 
+                          value={ciudad} 
+                          onValueChange={setCiudad}
+                          disabled={!region}
                           required
-                        />
+                        >
+                          <SelectTrigger id="signup-ciudad" className="bg-background">
+                            <SelectValue placeholder={region ? "Selecciona ciudad" : "Primero selecciona región"} />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50 max-h-60">
+                            {region && ciudadesPorRegion[region]?.map((city) => (
+                              <SelectItem key={city} value={city}>
+                                {city}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     
