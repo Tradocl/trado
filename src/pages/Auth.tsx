@@ -185,6 +185,49 @@ const Auth = () => {
       return;
     }
 
+    // Check for duplicate RUT (exclude current user for Google users completing registration)
+    const { data: existingRut } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('rut', rut)
+      .neq('id', isNewGoogleUser && user ? user.id : '00000000-0000-0000-0000-000000000000')
+      .maybeSingle();
+
+    if (existingRut) {
+      toast.error("Este RUT ya está registrado en otra cuenta.");
+      setLoading(false);
+      return;
+    }
+
+    // Check for duplicate phone (exclude current user for Google users completing registration)
+    const { data: existingPhone } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('phone', phone)
+      .neq('id', isNewGoogleUser && user ? user.id : '00000000-0000-0000-0000-000000000000')
+      .maybeSingle();
+
+    if (existingPhone) {
+      toast.error("Este teléfono ya está registrado en otra cuenta.");
+      setLoading(false);
+      return;
+    }
+
+    // Check for duplicate email (only for new registrations, not Google users)
+    if (!isNewGoogleUser) {
+      const { data: existingEmail } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (existingEmail) {
+        toast.error("Este correo ya está registrado. Intenta iniciar sesión.");
+        setLoading(false);
+        return;
+      }
+    }
+
     // If this is a Google user completing registration, just update their profile
     if (isNewGoogleUser && user) {
       try {
