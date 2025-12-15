@@ -662,7 +662,7 @@ const Auth = () => {
                         </Select>
                       </div>
                       <div className="space-y-1">
-                        <Label htmlFor="signup-ciudad" className="text-xs text-muted-foreground">Ciudad *</Label>
+                        <Label htmlFor="signup-ciudad" className="text-xs text-muted-foreground">Comuna *</Label>
                         <Select 
                           value={ciudad} 
                           onValueChange={setCiudad}
@@ -670,7 +670,7 @@ const Auth = () => {
                           required
                         >
                           <SelectTrigger id="signup-ciudad" className="bg-background">
-                            <SelectValue placeholder={region ? "Selecciona ciudad" : "Primero selecciona región"} />
+                            <SelectValue placeholder={region ? "Selecciona comuna" : "Primero selecciona región"} />
                           </SelectTrigger>
                           <SelectContent className="bg-background z-50 max-h-60">
                             {region && ciudadesPorRegion[region]?.map((city) => (
