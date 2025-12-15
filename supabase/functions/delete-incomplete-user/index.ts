@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { userId } = await req.json();
+    const { userId, force } = await req.json();
 
     if (!userId) {
       return new Response(
@@ -22,7 +22,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Attempting to delete incomplete user:", userId);
+    console.log("Attempting to delete user:", userId, "force:", force);
 
     // Create admin client with service role key
     const supabaseAdmin = createClient(
@@ -31,25 +31,27 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // First verify the user is actually incomplete (no RUT or phone in profile)
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .select("rut, phone")
-      .eq("id", userId)
-      .maybeSingle();
+    // If not forcing, verify the user is actually incomplete (no RUT or phone in profile)
+    if (!force) {
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .select("rut, phone")
+        .eq("id", userId)
+        .maybeSingle();
 
-    if (profileError) {
-      console.error("Error fetching profile:", profileError);
-      // If no profile exists, the user is definitely incomplete - proceed with deletion
-    }
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        // If no profile exists, the user is definitely incomplete - proceed with deletion
+      }
 
-    // Only delete if user has no RUT and no phone (incomplete registration)
-    if (profile && profile.rut && profile.phone) {
-      console.log("User has complete profile, not deleting:", userId);
-      return new Response(
-        JSON.stringify({ error: "User has complete profile, cannot delete" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      // Only delete if user has no RUT and no phone (incomplete registration)
+      if (profile && profile.rut && profile.phone) {
+        console.log("User has complete profile, not deleting:", userId);
+        return new Response(
+          JSON.stringify({ error: "User has complete profile, cannot delete" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
     }
 
     // Delete the incomplete user from auth.users
