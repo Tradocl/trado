@@ -168,7 +168,6 @@ export function MutualResolutionPanel({
           proposalId: pendingProposal.id,
           appealId,
           transactionId,
-          userId: currentUserId,
         },
       });
 

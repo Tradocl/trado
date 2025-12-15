@@ -261,7 +261,6 @@ const Transaction = () => {
       const { data, error } = await supabase.functions.invoke("process-escrow-deposit", {
         body: {
           transactionId: transaction.id,
-          userId: user.id,
         },
       });
 
