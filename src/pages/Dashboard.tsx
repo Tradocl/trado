@@ -415,29 +415,56 @@ const Dashboard = () => {
 
         {/* Verification Card - Show for unverified users */}
         {profile?.verification_status !== 'approved' && (
-          <Card className="border-2 border-warning/30 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-warning/5 to-transparent" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
+          <Card className={`border-2 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br ${
+            profile?.verification_status === 'in_review' 
+              ? 'border-info/30 from-info/5' 
+              : 'border-warning/30 from-warning/5'
+          } to-transparent`} style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
             <CardContent className="py-4 sm:py-5">
               <div className="flex items-start gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 bg-warning/10 rounded-xl flex-shrink-0">
-                  <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-warning" />
+                <div className={`p-2 sm:p-3 rounded-xl flex-shrink-0 ${
+                  profile?.verification_status === 'in_review' ? 'bg-info/10' : 'bg-warning/10'
+                }`}>
+                  <Shield className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                    profile?.verification_status === 'in_review' ? 'text-info' : 'text-warning'
+                  }`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-sm sm:text-base mb-1">Verifica tu identidad</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">
-                    Genera mayor confianza y elimina los límites de transacción
-                  </p>
-                  <ul className="text-xs text-muted-foreground space-y-0.5 mb-3">
-                    <li>• Sin verificar: máx <strong>$100.000</strong> por transacción, <strong>$200.000</strong> acumulado</li>
-                    <li>• Verificado: <strong>sin límites</strong> de monto</li>
-                  </ul>
-                  <Button 
-                    size="sm" 
-                    className="bg-warning hover:bg-warning/90 text-warning-foreground transition-all duration-200 hover:scale-[1.02]"
-                    onClick={() => navigate("/verification")}
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    Verificar Ahora
-                  </Button>
+                  {profile?.verification_status === 'in_review' ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-sm sm:text-base">Verificación en revisión</h4>
+                        <Badge variant="outline" className="border-info text-info text-xs">
+                          En proceso
+                        </Badge>
+                      </div>
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+                        Estamos revisando tus documentos. Te notificaremos cuando el proceso esté completo.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Mientras tanto, puedes seguir usando Trado con los límites actuales.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="font-semibold text-sm sm:text-base mb-1">Verifica tu identidad</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                        Genera mayor confianza y elimina los límites de transacción
+                      </p>
+                      <ul className="text-xs text-muted-foreground space-y-0.5 mb-3">
+                        <li>• Sin verificar: máx <strong>$100.000</strong> por transacción, <strong>$200.000</strong> acumulado</li>
+                        <li>• Verificado: <strong>sin límites</strong> de monto</li>
+                      </ul>
+                      <Button 
+                        size="sm" 
+                        className="bg-warning hover:bg-warning/90 text-warning-foreground transition-all duration-200 hover:scale-[1.02]"
+                        onClick={() => navigate("/verification")}
+                      >
+                        <Shield className="h-4 w-4 mr-2" />
+                        Verificar Ahora
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>
