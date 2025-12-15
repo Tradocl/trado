@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { validateRUT, validateChileanPhone, formatRUT } from "@/lib/validators";
@@ -85,6 +86,7 @@ const Auth = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const formatPhoneInput = (value: string) => {
     // Remove all non-digits except +
@@ -975,31 +977,45 @@ const Auth = () => {
                     )}
                   </div>
                   
-                  {/* Terms and Privacy Agreement */}
-                  <p className="text-xs text-muted-foreground text-center">
-                    Al crear una cuenta, aceptas nuestros{" "}
-                    <button
-                      type="button"
-                      onClick={() => navigate("/terms")}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      Términos y Condiciones
-                    </button>{" "}
-                    y nuestra{" "}
-                    <button
-                      type="button"
-                      onClick={() => navigate("/privacy")}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      Política de Privacidad
-                    </button>
-                    .
-                  </p>
+                  {/* Terms and Privacy Agreement Checkbox */}
+                  <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border">
+                    <Checkbox
+                      id="accept-terms"
+                      checked={acceptedTerms}
+                      onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <label htmlFor="accept-terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                      He leído y acepto los{" "}
+                      <button
+                        type="button"
+                        onClick={() => navigate("/terms")}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Términos y Condiciones
+                      </button>{" "}
+                      y la{" "}
+                      <button
+                        type="button"
+                        onClick={() => navigate("/privacy")}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Política de Privacidad
+                      </button>{" "}
+                      de Trado.
+                    </label>
+                  </div>
                   
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button type="submit" className="w-full" disabled={loading || !acceptedTerms}>
                     <Shield className="mr-2 h-4 w-4" />
                     {loading ? "Creando cuenta..." : "Crear Cuenta"}
                   </Button>
+                  
+                  {!acceptedTerms && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Debes aceptar los términos para continuar
+                    </p>
+                  )}
                 </form>
               </TabsContent>
             </Tabs>
