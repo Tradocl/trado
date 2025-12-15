@@ -316,7 +316,20 @@ const Auth = () => {
     const { data, error } = await signUp(email, password, fullName, phone, rut, address);
 
     if (error) {
-      toast.error(error.message);
+      // Handle specific error messages
+      const errorMsg = error.message.toLowerCase();
+      if (errorMsg.includes("user already registered") || errorMsg.includes("already registered")) {
+        setEmailError("Este correo ya está registrado");
+        toast.error("Este correo ya está registrado. Intenta iniciar sesión.");
+      } else if (errorMsg.includes("email")) {
+        setEmailError("Error con el correo");
+        toast.error(error.message);
+      } else if (errorMsg.includes("password")) {
+        setPasswordError("Error con la contraseña");
+        toast.error(error.message);
+      } else {
+        toast.error(error.message);
+      }
       setLoading(false);
     } else if (data.user) {
       toast.success("¡Cuenta creada! Ahora sube tu documento de identidad");
@@ -324,6 +337,8 @@ const Auth = () => {
       setShowVerificationDialog(true);
       setSignupPassword("");
       setConfirmPassword("");
+      setRutValue("");
+      setPhoneValue("+56 9 ");
       setLoading(false);
     }
   };
