@@ -121,6 +121,11 @@ const Auth = () => {
 
   useEffect(() => {
     const checkGoogleUser = async () => {
+      // Don't redirect if verification dialogs are open
+      if (showVerificationChoice || showVerificationDialog) {
+        return;
+      }
+
       if (user) {
         // Check if this is a Google user who just signed up (no profile data yet)
         const { data: profile } = await supabase
@@ -187,7 +192,7 @@ const Auth = () => {
     };
 
     checkGoogleUser();
-  }, [user, navigate]);
+  }, [user, navigate, showVerificationChoice, showVerificationDialog]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
