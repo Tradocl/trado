@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.notify-appeal-escalation]
 verify_jwt = true
+
+[functions.delete-incomplete-user]
+verify_jwt = false

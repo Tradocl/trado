@@ -141,12 +141,26 @@ const Auth = () => {
             .neq('id', user.id)
             .maybeSingle();
 
+          // Save the incomplete user's ID before signing out
+          const incompleteUserId = user.id;
+
           // Sign out the Google user first
           await supabase.auth.signOut();
           
           // Clear any localStorage remnants
           const keysToRemove = Object.keys(localStorage).filter(key => key.startsWith('sb-'));
           keysToRemove.forEach(key => localStorage.removeItem(key));
+
+          // Delete the incomplete user from auth.users so email is free for registration
+          try {
+            await supabase.functions.invoke('delete-incomplete-user', {
+              body: { userId: incompleteUserId }
+            });
+            console.log("Deleted incomplete Google user:", incompleteUserId);
+          } catch (deleteError) {
+            console.error("Error deleting incomplete user:", deleteError);
+            // Continue anyway - worst case user will see "already registered" error
+          }
           
           if (existingProfile) {
             // Email already registered with another account
