@@ -282,6 +282,48 @@ serve(async (req: Request): Promise<Response> => {
       }
     }
 
+    // Send notification emails to both buyer and seller
+    try {
+      // Get profiles for email data
+      const { data: sellerProfileData } = await supabaseClient
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", tx.seller_id)
+        .single();
+
+      const { data: buyerProfileData } = await supabaseClient
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", tx.buyer_id)
+        .single();
+
+      if (sellerProfileData && buyerProfileData) {
+        // Call the notification edge function
+        const notifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/notify-transaction-completed`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({
+            buyerEmail: buyerProfileData.email,
+            buyerName: buyerProfileData.full_name,
+            sellerEmail: sellerProfileData.email,
+            sellerName: sellerProfileData.full_name,
+            productName: tx.product_name,
+            amount: transactionAmount,
+            transactionId: tx.id,
+          }),
+        });
+
+        const notifyData = await notifyResponse.json();
+        console.log("[confirm-delivery] Transaction notification sent:", notifyData);
+      }
+    } catch (notifyError) {
+      console.error("[confirm-delivery] Error sending notification emails:", notifyError);
+      // Don't fail the transaction if notifications fail
+    }
+
     console.log(`[confirm-delivery] Successfully completed transaction ${transactionId}`);
 
     return new Response(JSON.stringify({ success: true }), {
