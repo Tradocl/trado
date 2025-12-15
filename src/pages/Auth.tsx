@@ -1005,13 +1005,22 @@ const Auth = () => {
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Mayor confianza de la contraparte en tus transacciones</li>
                 <li>• Tu perfil mostrará un distintivo de usuario verificado</li>
-                <li>• Los demás usuarios podrán ver que eres una persona real</li>
+                <li>• <strong>Transacciones sin límite de monto</strong></li>
+              </ul>
+            </div>
+
+            <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+              <h4 className="font-medium text-warning mb-2">⚠️ Sin verificación</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Máximo <strong>$100.000 CLP</strong> por transacción</li>
+                <li>• Máximo <strong>$200.000 CLP</strong> en total acumulado</li>
+                <li>• La otra parte verá que no estás verificado</li>
               </ul>
             </div>
 
             <div className="bg-muted/50 border border-border rounded-lg p-4">
               <p className="text-sm text-muted-foreground">
-                💡 <strong>Nota:</strong> Puedes realizar transacciones sin estar verificado, pero la otra parte siempre podrá ver si lo estás o no. La verificación aumenta la confianza y seguridad en tus operaciones.
+                💡 <strong>Nota:</strong> Puedes realizar transacciones sin estar verificado, pero con límites de monto. La verificación aumenta la confianza y elimina estas restricciones.
               </p>
             </div>
           </div>
