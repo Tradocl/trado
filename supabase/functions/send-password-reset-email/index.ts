@@ -166,7 +166,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Trado <onboarding@resend.dev>",
+        from: "Trado <no-reply@trado.cl>",
         to: [email],
         subject: "🔐 Recupera tu contraseña - Trado",
         html: emailHtml,
