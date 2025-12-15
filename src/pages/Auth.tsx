@@ -388,6 +388,22 @@ const Auth = () => {
     } else if (data.user) {
       toast.success("¡Cuenta creada exitosamente!");
       setNewUserId(data.user.id);
+      
+      // Send welcome email
+      const fullName = formData.get("fullName") as string;
+      try {
+        await supabase.functions.invoke('send-welcome-email', {
+          body: { 
+            email,
+            userName: fullName
+          }
+        });
+        console.log("Welcome email sent successfully");
+      } catch (welcomeEmailError) {
+        console.log("Welcome email sending failed:", welcomeEmailError);
+        // Don't fail registration if email fails
+      }
+      
       setShowVerificationChoice(true);
       setSignupPassword("");
       setConfirmPassword("");
