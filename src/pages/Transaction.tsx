@@ -733,51 +733,13 @@ const Transaction = () => {
                   : (transaction.sale_type === "servicio"
                       ? "Únete a esta transacción para proveer el servicio de forma protegida."
                       : "Únete a esta transacción para vender el producto de forma protegida.")}
+                {" "}
+                <span className="text-info">
+                  Revisa la información del {canJoinAsBuyer 
+                    ? (transaction.sale_type === "servicio" ? "proveedor" : "vendedor")
+                    : (transaction.sale_type === "servicio" ? "cliente" : "comprador")} en la sección de Participantes abajo.
+                </span>
               </p>
-              
-              {/* Creator info section */}
-              {creatorProfile && (
-                <div className="bg-background/70 rounded-lg p-3 mb-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">
-                        {canJoinAsBuyer 
-                          ? (transaction.sale_type === "servicio" ? "Proveedor" : "Vendedor")
-                          : (transaction.sale_type === "servicio" ? "Cliente" : "Comprador")}:
-                      </span>
-                      <span className="text-sm">{creatorProfile.full_name}</span>
-                      {creatorProfile.is_verified && (
-                        <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
-                          <ShieldCheck className="h-3 w-3 mr-1" />
-                          Verificado
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-3.5 w-3.5 text-warning" />
-                      <span className="text-muted-foreground">Reputación:</span>
-                      {creatorProfile.reputation_score > 0 ? (
-                        <span className="font-medium">{creatorProfile.reputation_score.toFixed(1)} / 5</span>
-                      ) : (
-                        <span className="text-muted-foreground">Sin calificaciones</span>
-                      )}
-                    </div>
-                    <span className="text-muted-foreground">
-                      {creatorProfile.total_transactions || 0} transacciones
-                    </span>
-                  </div>
-                  
-                  {!creatorProfile.is_verified && (
-                    <div className="flex items-center gap-2 p-2 bg-warning/10 rounded text-warning text-xs mt-2">
-                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                      <span>Este usuario aún no ha verificado su identidad</span>
-                    </div>
-                  )}
-                </div>
-              )}
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   size="lg"
@@ -1874,10 +1836,21 @@ const Transaction = () => {
                       </p>
                     </div>
                     {realSellerProfile && (
-                      <Badge variant="outline" className="mr-2">
-                        <Star className="h-3 w-3 text-warning fill-warning mr-1" />
-                        {realSellerProfile.reputation_score?.toFixed(1) || "0.0"}
-                      </Badge>
+                      <div className="flex items-center gap-1 mr-2">
+                        {realSellerProfile.is_verified ? (
+                          <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
+                            <ShieldCheck className="h-3 w-3" />
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs bg-warning/10 text-warning border-warning/30">
+                            <AlertTriangle className="h-3 w-3" />
+                          </Badge>
+                        )}
+                        <Badge variant="outline">
+                          <Star className="h-3 w-3 text-warning fill-warning mr-1" />
+                          {realSellerProfile.reputation_score?.toFixed(1) || "0.0"}
+                        </Badge>
+                      </div>
                     )}
                   </div>
                 </AccordionTrigger>
@@ -1911,10 +1884,21 @@ const Transaction = () => {
                       </p>
                     </div>
                     {realBuyerProfile && (
-                      <Badge variant="outline" className="mr-2">
-                        <Star className="h-3 w-3 text-warning fill-warning mr-1" />
-                        {realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}
-                      </Badge>
+                      <div className="flex items-center gap-1 mr-2">
+                        {realBuyerProfile.is_verified ? (
+                          <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
+                            <ShieldCheck className="h-3 w-3" />
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs bg-warning/10 text-warning border-warning/30">
+                            <AlertTriangle className="h-3 w-3" />
+                          </Badge>
+                        )}
+                        <Badge variant="outline">
+                          <Star className="h-3 w-3 text-warning fill-warning mr-1" />
+                          {realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}
+                        </Badge>
+                      </div>
                     )}
                   </div>
                 </AccordionTrigger>
