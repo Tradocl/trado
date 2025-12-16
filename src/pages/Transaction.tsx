@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
@@ -24,6 +24,7 @@ import { MeetingProposalPanel } from "@/components/MeetingProposalPanel";
 import { formatCLP } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { checkTransactionLimits, getUserVerificationStatus, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 
 interface Transaction {
   id: string;
@@ -93,6 +94,8 @@ const Transaction = () => {
   const [shippingTrackingNumber, setShippingTrackingNumber] = useState("");
   const [shippingCarrier, setShippingCarrier] = useState("");
   const [shippingCustomCarrier, setShippingCustomCarrier] = useState("");
+  const [joinConfirmDialogOpen, setJoinConfirmDialogOpen] = useState(false);
+  const [isUserVerified, setIsUserVerified] = useState<boolean | null>(null);
 
   const [disputeReason, setDisputeReason] = useState("");
 
@@ -167,6 +170,16 @@ const Transaction = () => {
       supabase.removeChannel(channel);
     };
   }, [user, id, navigate]);
+
+  // Load user verification status
+  useEffect(() => {
+    const loadVerificationStatus = async () => {
+      if (!user?.id) return;
+      const verified = await getUserVerificationStatus(user.id);
+      setIsUserVerified(verified);
+    };
+    loadVerificationStatus();
+  }, [user?.id]);
 
   const loadTransaction = async () => {
     if (!id) return;
@@ -576,6 +589,19 @@ const Transaction = () => {
 
     setJoiningTransaction(true);
     try {
+      // Check transaction limits for unverified users
+      const limitCheck = await checkTransactionLimits(
+        user.id,
+        buyerPays,
+        isUserVerified || false
+      );
+
+      if (!limitCheck.allowed) {
+        toast.error(limitCheck.message);
+        setJoiningTransaction(false);
+        return;
+      }
+
       const { error: updateError } = await supabase
         .from("transactions")
         .update({
@@ -587,6 +613,7 @@ const Transaction = () => {
       if (updateError) throw updateError;
 
       toast.success("¡Te uniste a la transacción exitosamente!");
+      setJoinConfirmDialogOpen(false);
       await loadTransaction();
     } catch (error: any) {
       console.error("Error joining transaction:", error);
@@ -650,15 +677,12 @@ const Transaction = () => {
                 <Button
                   size="lg"
                   className="flex-1 bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
-                  onClick={handleJoinAsBuyer}
-                  disabled={joiningTransaction}
+                  onClick={() => setJoinConfirmDialogOpen(true)}
                 >
                   <Users className="mr-2 h-6 w-6" />
-                  {joiningTransaction 
-                    ? "Uniéndose..." 
-                    : transaction.sale_type === "servicio" 
-                      ? "Unirme como Cliente" 
-                      : "Unirme como Comprador"}
+                  {transaction.sale_type === "servicio" 
+                    ? "Unirme como Cliente" 
+                    : "Unirme como Comprador"}
                 </Button>
                 <Button
                   size="lg"
@@ -2085,6 +2109,182 @@ const Transaction = () => {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Join Confirmation Dialog */}
+      <Dialog open={joinConfirmDialogOpen} onOpenChange={setJoinConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="text-center pb-4">
+            <div 
+              className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-info to-info/60 flex items-center justify-center mb-4 animate-scale-in"
+              style={{ animationFillMode: 'both' }}
+            >
+              <ShieldCheck className="h-8 w-8 text-white animate-pulse" />
+            </div>
+            <DialogTitle className="text-xl">
+              Confirmar {transaction?.sale_type === "servicio" ? "Contratación" : "Compra"}
+            </DialogTitle>
+            <DialogDescription>
+              Revisa los detalles antes de unirte a esta transacción
+            </DialogDescription>
+          </DialogHeader>
+
+          {transaction && (
+            <div className="space-y-4">
+              {/* Product/Service Details */}
+              <div 
+                className="bg-muted/50 rounded-lg p-4 space-y-3 animate-fade-in"
+                style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
+              >
+                <div className="flex items-start gap-3">
+                  <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium">{transaction.product_name}</p>
+                    {transaction.product_description && (
+                      <p className="text-sm text-muted-foreground mt-1">{transaction.product_description}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="flex items-center gap-3">
+                  <Store className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {initiatorRole === 'seller' 
+                        ? (isService ? 'Proveedor' : 'Vendedor')
+                        : (isService ? 'Cliente' : 'Comprador')}
+                    </p>
+                    <p className="font-medium">{creatorProfile?.full_name || 'Cargando...'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Badge variant="secondary" className="text-xs">
+                    {transaction.sale_type === "servicio" 
+                      ? "Servicio" 
+                      : transaction.sale_type === "producto_envio" 
+                        ? "Producto con envío" 
+                        : "Producto en persona"}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Financial Breakdown */}
+              <div 
+                className="bg-success/10 border border-success/20 rounded-lg p-4 space-y-3 animate-fade-in"
+                style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
+              >
+                <h4 className="font-semibold flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-success" />
+                  Desglose Financiero
+                </h4>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Precio del {isService ? 'servicio' : 'producto'}</span>
+                    <span>${formatCLP(transaction.amount)}</span>
+                  </div>
+                  
+                  {initiatorRole === 'buyer' && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Comisión Trado (5%)</span>
+                      <span>${formatCLP(transaction.commission)}</span>
+                    </div>
+                  )}
+                  
+                  <Separator />
+                  
+                  <div className="flex justify-between font-bold text-base">
+                    <span>Total a depositar</span>
+                    <span className="text-success">${formatCLP(buyerPays)}</span>
+                  </div>
+                  
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Lo que recibe el {isService ? 'proveedor' : 'vendedor'}</span>
+                    <span>${formatCLP(sellerReceives)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Verification Warning for Unverified Users */}
+              {isUserVerified === false && (
+                <div 
+                  className="bg-warning/10 border border-warning/30 rounded-lg p-4 space-y-3 animate-fade-in"
+                  style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+                >
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+                    <div className="space-y-2">
+                      <p className="font-medium text-warning">Usuario no verificado</p>
+                      <p className="text-sm text-muted-foreground">
+                        Tienes límites de transacción activos:
+                      </p>
+                      <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                        <li>Máximo ${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)} por transacción</li>
+                        <li>Máximo ${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)} acumulado total</li>
+                      </ul>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 border-warning/50 text-warning hover:bg-warning/10"
+                        onClick={() => {
+                          setJoinConfirmDialogOpen(false);
+                          navigate("/verification");
+                        }}
+                      >
+                        <Shield className="mr-2 h-4 w-4" />
+                        Verificar identidad
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Protection Message */}
+              <div 
+                className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 rounded-lg p-3 animate-fade-in"
+                style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
+              >
+                <Lock className="h-4 w-4 text-info" />
+                <p>
+                  Tu pago estará 100% protegido hasta que confirmes {isService ? 'el servicio' : 'la recepción del producto'}.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter 
+            className="flex gap-3 pt-4 animate-fade-in"
+            style={{ animationDelay: '0.5s', animationFillMode: 'both' }}
+          >
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setJoinConfirmDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="flex-1 bg-info hover:bg-info/90"
+              onClick={handleJoinAsBuyer}
+              disabled={joiningTransaction}
+            >
+              {joiningTransaction ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Uniéndose...
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Confirmar y Unirme
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
