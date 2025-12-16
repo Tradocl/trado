@@ -72,22 +72,22 @@ export const UserRatings = ({ userId, maxRatings = 3 }: UserRatingsProps) => {
   }
 
   return (
-    <div className="mt-4 space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        <MessageSquare className="h-4 w-4" />
+    <div className="mt-2 sm:mt-4 space-y-2 sm:space-y-3">
+      <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
+        <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
         <span>Calificaciones recientes</span>
       </div>
       {ratings.map((rating) => (
         <div
           key={rating.id}
-          className="p-3 bg-background/50 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+          className="p-2 sm:p-3 bg-background/50 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
         >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-3.5 w-3.5 ${
+                  className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${
                     i < rating.stars
                       ? "text-warning fill-warning"
                       : "text-muted-foreground/30"
@@ -95,17 +95,17 @@ export const UserRatings = ({ userId, maxRatings = 3 }: UserRatingsProps) => {
                 />
               ))}
             </div>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[10px] sm:text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(rating.created_at), {
                 addSuffix: true,
                 locale: es,
               })}
             </span>
           </div>
-          <p className="text-sm text-foreground/90 line-clamp-2 mb-1">
+          <p className="text-xs sm:text-sm text-foreground/90 line-clamp-2 mb-0.5 sm:mb-1">
             "{rating.comment}"
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
             por {rating.rater?.full_name || "Usuario"}
           </p>
         </div>

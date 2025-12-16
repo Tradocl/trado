@@ -1808,49 +1808,49 @@ const Transaction = () => {
 
         {/* === SECTION 6: PARTICIPANTS WITH RATINGS === */}
         <Card className="border border-muted">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Participantes
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6">
             <Accordion type="single" collapsible className="w-full space-y-2">
               {/* Real Seller/Provider */}
-              <AccordionItem value="seller-ratings" className="border rounded-lg bg-gradient-to-br from-success/5 to-transparent px-3">
-                <AccordionTrigger className="hover:no-underline py-3">
-                  <div className="flex items-center gap-3 w-full">
+              <AccordionItem value="seller-ratings" className="border rounded-lg bg-gradient-to-br from-success/5 to-transparent px-2 sm:px-3">
+                <AccordionTrigger className="hover:no-underline py-2 sm:py-3">
+                  <div className="flex items-center gap-2 sm:gap-3 w-full">
                     {realSellerProfile ? (
-                      <Avatar className="h-10 w-10 border-2 border-success/30">
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-success/30 shrink-0">
                         <AvatarImage src={realSellerProfile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-success/20 text-success font-bold text-sm">
+                        <AvatarFallback className="bg-success/20 text-success font-bold text-xs sm:text-sm">
                           {realSellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || (isService ? "P" : "V")}
                         </AvatarFallback>
                       </Avatar>
                     ) : (
-                      <div className="h-10 w-10 rounded-full bg-success/20 flex items-center justify-center">
-                        <Store className="h-5 w-5 text-success" />
+                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-success/20 flex items-center justify-center shrink-0">
+                        <Store className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="font-semibold text-sm">{sellerLabel}</p>
-                      <p className="text-sm text-muted-foreground truncate">
+                      <p className="font-semibold text-xs sm:text-sm">{sellerLabel}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
                         {realSellerProfile?.full_name || "Esperando..."}
                       </p>
                     </div>
                     {realSellerProfile && (
-                      <div className="flex items-center gap-1 mr-2">
+                      <div className="flex items-center gap-1 mr-1 sm:mr-2 shrink-0">
                         {realSellerProfile.is_verified ? (
-                          <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
-                            <ShieldCheck className="h-3 w-3" />
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 bg-success/10 text-success border-success/30">
+                            <ShieldCheck className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-xs bg-warning/10 text-warning border-warning/30">
-                            <AlertTriangle className="h-3 w-3" />
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 bg-warning/10 text-warning border-warning/30">
+                            <AlertTriangle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           </Badge>
                         )}
-                        <Badge variant="outline">
-                          <Star className="h-3 w-3 text-warning fill-warning mr-1" />
+                        <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
+                          <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
                           {realSellerProfile.reputation_score?.toFixed(1) || "0.0"}
                         </Badge>
                       </div>
@@ -1858,47 +1858,47 @@ const Transaction = () => {
                   </div>
                 </AccordionTrigger>
                 {realSellerProfile && (
-                  <AccordionContent className="pt-2 pb-4">
+                  <AccordionContent className="pt-2 pb-3 sm:pb-4">
                     <UserRatings userId={realSellerProfile.id} maxRatings={5} />
                   </AccordionContent>
                 )}
               </AccordionItem>
               
               {/* Real Buyer/Client */}
-              <AccordionItem value="buyer-ratings" className="border rounded-lg bg-gradient-to-br from-info/5 to-transparent px-3">
-                <AccordionTrigger className="hover:no-underline py-3">
-                  <div className="flex items-center gap-3 w-full">
+              <AccordionItem value="buyer-ratings" className="border rounded-lg bg-gradient-to-br from-info/5 to-transparent px-2 sm:px-3">
+                <AccordionTrigger className="hover:no-underline py-2 sm:py-3">
+                  <div className="flex items-center gap-2 sm:gap-3 w-full">
                     {realBuyerProfile ? (
-                      <Avatar className="h-10 w-10 border-2 border-info/30">
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-info/30 shrink-0">
                         <AvatarImage src={realBuyerProfile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-info/20 text-info font-bold text-sm">
+                        <AvatarFallback className="bg-info/20 text-info font-bold text-xs sm:text-sm">
                           {realBuyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || "C"}
                         </AvatarFallback>
                       </Avatar>
                     ) : (
-                      <div className="h-10 w-10 rounded-full bg-info/20 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-info" />
+                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-info/20 flex items-center justify-center shrink-0">
+                        <Users className="h-4 w-4 sm:h-5 sm:w-5 text-info" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="font-semibold text-sm">{buyerLabel}</p>
-                      <p className="text-sm text-muted-foreground truncate">
+                      <p className="font-semibold text-xs sm:text-sm">{buyerLabel}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
                         {realBuyerProfile?.full_name || "Esperando..."}
                       </p>
                     </div>
                     {realBuyerProfile && (
-                      <div className="flex items-center gap-1 mr-2">
+                      <div className="flex items-center gap-1 mr-1 sm:mr-2 shrink-0">
                         {realBuyerProfile.is_verified ? (
-                          <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
-                            <ShieldCheck className="h-3 w-3" />
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 bg-success/10 text-success border-success/30">
+                            <ShieldCheck className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-xs bg-warning/10 text-warning border-warning/30">
-                            <AlertTriangle className="h-3 w-3" />
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 bg-warning/10 text-warning border-warning/30">
+                            <AlertTriangle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           </Badge>
                         )}
-                        <Badge variant="outline">
-                          <Star className="h-3 w-3 text-warning fill-warning mr-1" />
+                        <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
+                          <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
                           {realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}
                         </Badge>
                       </div>
@@ -1906,7 +1906,7 @@ const Transaction = () => {
                   </div>
                 </AccordionTrigger>
                 {realBuyerProfile && (
-                  <AccordionContent className="pt-2 pb-4">
+                  <AccordionContent className="pt-2 pb-3 sm:pb-4">
                     <UserRatings userId={realBuyerProfile.id} maxRatings={5} />
                   </AccordionContent>
                 )}
