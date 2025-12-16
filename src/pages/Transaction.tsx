@@ -712,10 +712,10 @@ const Transaction = () => {
         {/* Join action - works for both buyer and seller joining */}
         {canJoin && (
           <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Users className="h-6 w-6 text-info" />
-                <h4 className="font-bold text-lg">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-info" />
+                <h4 className="font-bold text-base sm:text-lg">
                   {canJoinAsBuyer 
                     ? (transaction.sale_type === "servicio" 
                         ? "¿Quieres contratar este servicio?" 
@@ -743,21 +743,23 @@ const Transaction = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   size="lg"
-                  className="flex-1 bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
+                  className="flex-1 bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-sm sm:text-lg py-4 sm:py-6 shadow-xl hover-scale"
                   onClick={() => setJoinConfirmDialogOpen(true)}
                 >
-                  <Users className="mr-2 h-6 w-6" />
-                  {canJoinAsBuyer
-                    ? (transaction.sale_type === "servicio" ? "Unirme como Cliente" : "Unirme como Comprador")
-                    : (transaction.sale_type === "servicio" ? "Unirme como Proveedor" : "Unirme como Vendedor")}
+                  <Users className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="truncate">
+                    {canJoinAsBuyer
+                      ? (transaction.sale_type === "servicio" ? "Unirme como Cliente" : "Unirme como Comprador")
+                      : (transaction.sale_type === "servicio" ? "Unirme como Proveedor" : "Unirme como Vendedor")}
+                  </span>
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="flex-1 text-lg py-6"
+                  className="flex-1 text-sm sm:text-lg py-4 sm:py-6"
                   onClick={() => navigate("/dashboard")}
                 >
-                  <ArrowLeft className="mr-2 h-5 w-5" />
+                  <ArrowLeft className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                   Salir
                 </Button>
               </div>
@@ -773,20 +775,20 @@ const Transaction = () => {
         {/* Buyer deposit action */}
         {isBuyer && transaction.state === "invited" && (
           <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-3">
-                <DollarSign className="h-6 w-6 text-success" />
-                <h4 className="font-bold text-lg">Acción Requerida</h4>
+                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success" />
+                <h4 className="font-bold text-base sm:text-lg">Acción Requerida</h4>
               </div>
               <Button
                 size="lg"
-                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-sm sm:text-lg py-4 sm:py-6 shadow-xl hover-scale"
                 onClick={() => setDepositDialogOpen(true)}
               >
-                <DollarSign className="mr-2 h-6 w-6" />
-                Depositar ${formatCLP(buyerPays)} en Escrow
+                <DollarSign className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="truncate">Depositar ${formatCLP(buyerPays)} en Escrow</span>
               </Button>
-              <p className="text-sm text-muted-foreground text-center mt-3 flex items-center justify-center gap-2">
+              <p className="text-xs sm:text-sm text-muted-foreground text-center mt-3 flex items-center justify-center gap-2">
                 🔒 Tus fondos estarán protegidos hasta que confirmes {transaction.sale_type === "servicio" ? "el servicio" : "la entrega"}
               </p>
             </CardContent>
@@ -796,19 +798,19 @@ const Transaction = () => {
         {/* Seller mark as shipped (envío) */}
         {isSeller && transaction.state === "funds_secured" && transaction.sale_type === "producto_envio" && (
           <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Truck className="h-6 w-6 text-info" />
-                <h4 className="font-bold text-lg">Acción Requerida</h4>
+                <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-info" />
+                <h4 className="font-bold text-base sm:text-lg">Acción Requerida</h4>
               </div>
               <Button 
                 size="lg"
-                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
+                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-sm sm:text-lg py-4 sm:py-6 shadow-xl hover-scale" 
                 onClick={() => setShippingDialogOpen(true)}
                 disabled={!!activeAppeal}
               >
-                <Truck className="mr-2 h-6 w-6" />
-                Marcar Producto como Enviado
+                <Truck className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="truncate">Marcar Producto como Enviado</span>
               </Button>
             </CardContent>
           </Card>
@@ -1209,38 +1211,39 @@ const Transaction = () => {
         {/* === SECTION 2: INVITE CODE (when waiting for other party) === */}
         {isInitiator && transaction.state === "created" && !joinerProfile && (
           <Card className="border-2 border-info/30 shadow-lg bg-gradient-to-br from-info/20 to-info/5 animate-scale-in">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 bg-info rounded-lg animate-pulse">
-                  <Copy className="h-5 w-5 text-info-foreground" />
+                <div className="p-1.5 sm:p-2 bg-info rounded-lg animate-pulse">
+                  <Copy className="h-4 w-4 sm:h-5 sm:w-5 text-info-foreground" />
                 </div>
-                <h4 className="font-bold text-info text-lg">
+                <h4 className="font-bold text-info text-base sm:text-lg">
                   ⏳ Esperando {joinerRoleLabel}
                 </h4>
               </div>
               <div className="flex flex-col gap-3">
-                <div className="flex flex-col md:flex-row gap-2">
+                <div className="flex flex-col gap-2">
                   <Input
                     value={transaction.invite_code}
                     readOnly
-                    className="text-center text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30 flex-1"
+                    className="text-center text-lg sm:text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30"
                   />
                   <div className="flex gap-2">
                     <Button 
                       onClick={copyInviteCode} 
                       variant="outline"
-                      className="border-2 border-info/30 hover:bg-info/20 transition-all"
+                      className="flex-1 border-2 border-info/30 hover:bg-info/20 transition-all"
                     >
-                      {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
+                      {copied ? <Check className="h-4 w-4 sm:h-5 sm:w-5 text-success mr-2" /> : <Copy className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />}
+                      <span className="text-sm">Copiar código</span>
                     </Button>
                     {isInitiator && (
                       <Button
                         variant="destructive"
-                        className="font-semibold"
+                        className="font-semibold text-sm"
                         onClick={handleCancelTransaction}
                         disabled={cancellingTransaction}
                       >
-                        {cancellingTransaction ? "Cancelando..." : "Cancelar sala"}
+                        {cancellingTransaction ? "..." : "Cancelar"}
                       </Button>
                     )}
                   </div>
@@ -1248,13 +1251,13 @@ const Transaction = () => {
                 <Button 
                   onClick={copyInviteLink} 
                   variant="outline"
-                  className="border-2 border-primary/30 hover:bg-primary/20 transition-all w-full md:w-auto"
+                  className="border-2 border-primary/30 hover:bg-primary/20 transition-all w-full text-sm"
                 >
-                  {copiedLink ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
+                  {copiedLink ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
                   <span className="ml-2">Copiar enlace de invitación</span>
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground mt-3 text-center">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-3 text-center">
                 📱 Comparte el código o el enlace con {joinerRoleLabel.toLowerCase()}
               </p>
             </CardContent>
@@ -1263,17 +1266,17 @@ const Transaction = () => {
 
         {/* === SECTION 3: PRODUCT DETAILS (compressed) === */}
         <Card className="border-2 border-primary/20 shadow-xl bg-gradient-to-br from-card to-card/80">
-          <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5 pb-4">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <CardTitle className="text-2xl mb-1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5 pb-4 px-4 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-lg sm:text-2xl mb-1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent break-words">
                   {transaction.product_name}
                 </CardTitle>
                 {transaction.product_description && (
-                  <CardDescription className="text-sm line-clamp-2">{transaction.product_description}</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm line-clamp-2">{transaction.product_description}</CardDescription>
                 )}
               </div>
-              <div className="flex flex-col gap-2 items-end shrink-0">
+              <div className="flex flex-wrap gap-2 items-center sm:items-end shrink-0">
                 {transaction.sale_type && (
                   <Badge variant="outline" className="text-xs px-2 py-1">
                     {transaction.sale_type === "servicio" && "🛠️ Servicio"}
@@ -1284,48 +1287,48 @@ const Transaction = () => {
                 {(() => {
                   if (isAppealResolved) {
                     return (
-                      <Badge className="bg-success text-sm px-3 py-1 shadow-lg">
+                      <Badge className="bg-success text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
                         Completada
                       </Badge>
                     );
                   }
                   
                   return (
-                    <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-sm px-3 py-1 shadow-lg`}>
+                    <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg`}>
                       {stateLabels[transaction.state]?.label || transaction.state}
                     </Badge>
                   );
                 })()}
                 {activeAppeal && (
-                  <Badge className="bg-amber-500 text-white text-sm px-3 py-1 shadow-lg">
+                  <Badge className="bg-amber-500 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
                     En Apelación
                   </Badge>
                 )}
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-4">
+          <CardContent className="pt-4 px-4 sm:px-6">
             <div className="relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg blur-xl"></div>
-              <div className="relative flex justify-between items-center p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
+              <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-3 sm:p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
                 {isBuyer ? (
                   <>
-                    <span className="text-base font-semibold">Tu pago total</span>
-                    <span className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    <span className="text-sm sm:text-base font-semibold">Tu pago total</span>
+                    <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                       ${formatCLP(buyerPays)}
                     </span>
                   </>
                 ) : isSeller ? (
                   <>
-                    <span className="text-base font-semibold">Recibirás</span>
-                    <span className="text-3xl font-bold text-success">
+                    <span className="text-sm sm:text-base font-semibold">Recibirás</span>
+                    <span className="text-2xl sm:text-3xl font-bold text-success">
                       ${formatCLP(sellerReceives)}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-base font-semibold">Precio acordado</span>
-                    <span className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    <span className="text-sm sm:text-base font-semibold">Precio acordado</span>
+                    <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                       ${formatCLP(transaction.amount)}
                     </span>
                   </>
@@ -1379,128 +1382,128 @@ const Transaction = () => {
 
         {/* === SECTION 4: PROGRESS TIMELINE === */}
         <Card className="border-2 border-primary/10 shadow-lg">
-          <CardContent className="p-6">
-            <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
-              <Package className="h-6 w-6 text-primary" />
+          <CardContent className="p-4 sm:p-6">
+            <h4 className="font-bold text-lg sm:text-xl mb-4 flex items-center gap-2">
+              <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Progreso de la Transacción
             </h4>
             
             {/* Service timeline */}
             {transaction.sale_type === 'servicio' && (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Step 1: Room Created */}
-                <div className="flex items-center gap-4 group">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground">
-                    <Store className="h-5 w-5" />
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground shrink-0">
+                    <Store className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Sala Creada</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Sala Creada</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       ✅ {creatorRoleLabel} ({creatorName}) creó la sala
                     </p>
                   </div>
                 </div>
 
                 {/* Step 2: Client Joined */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     joinerProfile ? 'bg-success text-success-foreground' : 'bg-muted'
                   }`}>
-                    <Users className="h-5 w-5" />
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">{joinerRoleLabel} Unido</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">{joinerRoleLabel} Unido</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 3: Escrow */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery || transaction.state === 'funds_secured'
                       ? 'bg-success text-success-foreground' 
                       : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <DollarSign className="h-5 w-5" />
+                    <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Pago en Escrow</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Pago en Escrow</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery || transaction.state === 'funds_secured'
                         ? '✅ Fondos asegurados'
                         : transaction.state === 'invited'
-                        ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}...`
+                        ? `⏳ Esperando depósito...`
                         : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 4: Service Performed */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery
                       ? 'bg-success text-success-foreground'
                       : transaction.state === 'funds_secured'
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <Check className="h-5 w-5" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Servicio Realizado</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Servicio Realizado</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       {passedDelivery
-                        ? `✅ ${sellerLabel} (${realSellerName}) completó el servicio`
+                        ? `✅ ${sellerLabel} completó el servicio`
                         : transaction.state === 'funds_secured'
-                        ? `⏳ Esperando que ${sellerLabel.toLowerCase()} complete el servicio...`
+                        ? `⏳ Esperando...`
                         : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 5: Client Confirms */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
                       ? 'bg-success text-success-foreground'
                       : passedDelivery
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <Star className="h-5 w-5" />
+                    <Star className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Cliente Confirma</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Cliente Confirma</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted
                         ? '✅ Servicio confirmado'
                         : passedDelivery
-                        ? `⏳ Esperando confirmación del ${buyerLabel.toLowerCase()}...`
+                        ? `⏳ Esperando confirmación...`
                         : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 6: Completed */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
                       ? 'bg-success text-success-foreground'
                       : 'bg-muted'
                   }`}>
-                    <Check className="h-5 w-5" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Transacción Completada</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Completada</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted 
                         ? isAppealResolved 
-                          ? '✅ Caso resuelto por la plataforma' 
-                          : '✅ ¡Todo listo!' 
+                          ? '✅ Resuelto' 
+                          : '✅ ¡Listo!' 
                         : '⚪ Pendiente'}
                     </p>
                   </div>
@@ -1510,72 +1513,72 @@ const Transaction = () => {
 
             {/* In-person delivery timeline */}
             {isInPersonDelivery && (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Step 1: Room Created */}
-                <div className="flex items-center gap-4 group">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground">
-                    <Store className="h-5 w-5" />
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground shrink-0">
+                    <Store className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Sala Creada</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Sala Creada</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       ✅ {creatorRoleLabel} ({creatorName}) creó la sala
                     </p>
                   </div>
                 </div>
 
                 {/* Step 2: Buyer Joined */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     joinerProfile ? 'bg-success text-success-foreground' : 'bg-muted'
                   }`}>
-                    <Users className="h-5 w-5" />
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">{joinerRoleLabel} Unido</p>
-                    <p className="text-sm text-muted-foreground">
-                      {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">{joinerRoleLabel} Unido</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                      {joinerProfile ? `✅ ${joinerName} confirmado` : `⏳ Esperando...`}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 3: Escrow */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery || transaction.state === 'funds_secured'
                       ? 'bg-success text-success-foreground' 
                       : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <DollarSign className="h-5 w-5" />
+                    <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Pago en Escrow</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Pago en Escrow</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery || transaction.state === 'funds_secured'
                         ? '✅ Fondos asegurados'
                         : transaction.state === 'invited'
-                        ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}...`
+                        ? `⏳ Esperando depósito...`
                         : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 4: Ready to Meet */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery
                       ? 'bg-success text-success-foreground'
                       : transaction.state === 'funds_secured'
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <MapPin className="h-5 w-5" />
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Listo para Entregar</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Listo para Entregar</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery
                         ? '✅ Encuentro coordinado'
                         : transaction.state === 'funds_secured'
@@ -1586,44 +1589,44 @@ const Transaction = () => {
                 </div>
 
                 {/* Step 5: Meeting / Handoff */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
                       ? 'bg-success text-success-foreground'
                       : passedDelivery
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <Handshake className="h-5 w-5" />
+                    <Handshake className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Confirmar Entrega</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Confirmar Entrega</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted
                         ? '✅ Entrega confirmada'
                         : passedDelivery
-                        ? `🤝 ${buyerLabel} confirma recibimiento`
+                        ? `🤝 Confirmar recepción`
                         : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 6: Completed */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
                       ? 'bg-success text-success-foreground'
                       : 'bg-muted'
                   }`}>
-                    <Check className="h-5 w-5" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Transacción Completada</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Completada</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted 
                         ? isAppealResolved 
-                          ? '✅ Caso resuelto por la plataforma' 
-                          : '✅ ¡Todo listo!' 
+                          ? '✅ Resuelto' 
+                          : '✅ ¡Listo!' 
                         : '⚪ Pendiente'}
                     </p>
                   </div>
@@ -1633,74 +1636,74 @@ const Transaction = () => {
 
             {/* Standard shipping timeline */}
             {transaction.sale_type === 'producto_envio' && (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Step 1: Room Created */}
-                <div className="flex items-center gap-4 group">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground">
-                    <Store className="h-5 w-5" />
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground shrink-0">
+                    <Store className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Sala Creada</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Sala Creada</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       ✅ {creatorRoleLabel} ({creatorName}) creó la sala
                     </p>
                   </div>
                 </div>
 
                 {/* Step 2: Buyer Joined */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     joinerProfile ? 'bg-success text-success-foreground' : 'bg-muted'
                   }`}>
-                    <Users className="h-5 w-5" />
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">{joinerRoleLabel} Unido</p>
-                    <p className="text-sm text-muted-foreground">
-                      {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">{joinerRoleLabel} Unido</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                      {joinerProfile ? `✅ ${joinerName} confirmado` : `⏳ Esperando...`}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 3: Escrow */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery || transaction.state === 'funds_secured'
                       ? 'bg-success text-success-foreground' 
                       : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <DollarSign className="h-5 w-5" />
+                    <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Pago en Escrow</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Pago en Escrow</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery || transaction.state === 'funds_secured'
                         ? '✅ Fondos asegurados'
                         : transaction.state === 'invited'
-                        ? `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}...`
+                        ? `⏳ Esperando depósito...`
                         : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 4: Shipped */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery
                       ? 'bg-success text-success-foreground'
                       : transaction.state === 'funds_secured'
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <Truck className="h-5 w-5" />
+                    <Truck className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Producto Enviado</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Producto Enviado</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery
-                        ? `✅ ${sellerLabel} envió el producto`
+                        ? `✅ Enviado`
                         : transaction.state === 'funds_secured'
                         ? `⏳ Esperando envío...`
                         : '⚪ Pendiente'}
@@ -1709,21 +1712,21 @@ const Transaction = () => {
                 </div>
 
                 {/* Step 5: Received */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedReceived
                       ? 'bg-success text-success-foreground'
                       : transaction.state === 'in_delivery'
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <Package className="h-5 w-5" />
+                    <Package className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Producto Recibido</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Producto Recibido</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedReceived
-                        ? `✅ ${buyerLabel} recibió el producto`
+                        ? `✅ Recibido`
                         : transaction.state === 'in_delivery'
                         ? `🚚 En camino...`
                         : '⚪ Pendiente'}
@@ -1732,46 +1735,46 @@ const Transaction = () => {
                 </div>
 
                 {/* Step 6: Review Period */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
                       ? 'bg-success text-success-foreground'
                       : isInReview
                       ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Período de Revisión</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Período de Revisión</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted
-                        ? '✅ Revisión completada'
+                        ? '✅ Completado'
                         : ['return_requested', 'return_in_progress'].includes(transaction.state)
                         ? '🔄 Devolución en proceso'
                         : transaction.state === 'awaiting_buyer_review'
-                        ? `🔍 ${buyerLabel} revisando...`
+                        ? `🔍 Revisando...`
                         : '⚪ Pendiente'}
                     </p>
                   </div>
                 </div>
 
                 {/* Step 7: Completed */}
-                <div className="flex items-center gap-4 group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
                       ? 'bg-success text-success-foreground'
                       : 'bg-muted'
                   }`}>
-                    <Check className="h-5 w-5" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Transacción Completada</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Completada</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted 
                         ? isAppealResolved 
-                          ? '✅ Caso resuelto por la plataforma' 
-                          : '✅ ¡Todo listo!' 
+                          ? '✅ Resuelto' 
+                          : '✅ ¡Listo!' 
                         : '⚪ Pendiente'}
                     </p>
                   </div>
