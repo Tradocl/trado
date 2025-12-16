@@ -646,19 +646,30 @@ const Transaction = () => {
                   ? "Únete a esta transacción para contratar el servicio de forma protegida."
                   : "Únete a esta transacción para iniciar el proceso de compra protegida."}
               </p>
-              <Button
-                size="lg"
-                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
-                onClick={handleJoinAsBuyer}
-                disabled={joiningTransaction}
-              >
-                <Users className="mr-2 h-6 w-6" />
-                {joiningTransaction 
-                  ? "Uniéndose..." 
-                  : transaction.sale_type === "servicio" 
-                    ? "Unirme como Cliente" 
-                    : "Unirme como Comprador"}
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  size="lg"
+                  className="flex-1 bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
+                  onClick={handleJoinAsBuyer}
+                  disabled={joiningTransaction}
+                >
+                  <Users className="mr-2 h-6 w-6" />
+                  {joiningTransaction 
+                    ? "Uniéndose..." 
+                    : transaction.sale_type === "servicio" 
+                      ? "Unirme como Cliente" 
+                      : "Unirme como Comprador"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="flex-1 text-lg py-6"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  <ArrowLeft className="mr-2 h-5 w-5" />
+                  Salir
+                </Button>
+              </div>
               <p className="text-sm text-muted-foreground text-center mt-3 flex items-center justify-center gap-2">
                 🔒 {transaction.sale_type === "servicio" ? "Tu pago estará 100% protegido" : "Tu compra estará 100% protegida"}
               </p>
