@@ -49,6 +49,8 @@ interface Profile {
   full_name: string;
   reputation_score: number;
   avatar_url: string | null;
+  is_verified: boolean;
+  total_transactions: number;
 }
 
 const stateLabels: Record<string, { label: string; color: string }> = {
@@ -2214,15 +2216,60 @@ const Transaction = () => {
                 
                 <div className="flex items-center gap-3">
                   <Store className="h-5 w-5 text-muted-foreground" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm text-muted-foreground">
                       {initiatorRole === 'seller' 
                         ? (isService ? 'Proveedor' : 'Vendedor')
                         : (isService ? 'Cliente' : 'Comprador')}
                     </p>
-                    <p className="font-medium">{creatorProfile?.full_name || 'Cargando...'}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{creatorProfile?.full_name || 'Cargando...'}</p>
+                      {creatorProfile?.is_verified && (
+                        <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
+                          <ShieldCheck className="h-3 w-3 mr-1" />
+                          Verificado
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {/* Creator Reputation */}
+                <div className="flex items-center justify-between p-2 bg-background/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-warning" />
+                    <span className="text-sm">Reputación</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {creatorProfile?.reputation_score !== undefined && creatorProfile.reputation_score > 0 ? (
+                      <>
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3.5 w-3.5 ${
+                              i < Math.round(creatorProfile.reputation_score)
+                                ? "text-warning fill-warning"
+                                : "text-muted-foreground/30"
+                            }`}
+                          />
+                        ))}
+                        <span className="text-sm font-medium ml-1">
+                          ({creatorProfile.reputation_score.toFixed(1)})
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Sin calificaciones</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Verification warning if not verified */}
+                {creatorProfile && !creatorProfile.is_verified && (
+                  <div className="flex items-center gap-2 p-2 bg-warning/10 rounded-lg text-warning text-xs">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <span>Este usuario aún no ha verificado su identidad</span>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-3">
                   <Badge variant="secondary" className="text-xs">
@@ -2232,6 +2279,9 @@ const Transaction = () => {
                         ? "Producto con envío" 
                         : "Producto en persona"}
                   </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {creatorProfile?.total_transactions || 0} transacciones
+                  </span>
                 </div>
               </div>
 
