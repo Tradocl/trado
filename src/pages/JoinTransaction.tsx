@@ -9,7 +9,7 @@ import { ArrowLeft, Handshake, Search, ShieldAlert, Shield } from "lucide-react"
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatCLP } from "@/lib/utils";
-import { UNVERIFIED_LIMITS, checkTransactionLimits, getUserVerificationStatus } from "@/lib/transaction-limits";
+import { UNVERIFIED_LIMITS, getUserVerificationStatus } from "@/lib/transaction-limits";
 
 const JoinTransaction = () => {
   const { user } = useAuth();
@@ -29,7 +29,7 @@ const JoinTransaction = () => {
     loadVerificationStatus();
   }, [user]);
 
-  const handleJoin = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !inviteCode) return;
 
@@ -39,7 +39,7 @@ const JoinTransaction = () => {
       // Find transaction by invite code
       const { data: transaction, error } = await supabase
         .from("transactions")
-        .select("*")
+        .select("id, seller_id, buyer_id, sale_type")
         .eq("invite_code", inviteCode.toUpperCase())
         .single();
 
@@ -51,103 +51,22 @@ const JoinTransaction = () => {
 
       // Check if user is already part of this transaction
       if (transaction.seller_id === user.id || transaction.buyer_id === user.id) {
-        toast.error("Ya eres parte de esta transacción");
+        toast.info("Ya eres parte de esta transacción");
+        navigate(`/transaction/${transaction.id}`);
+        return;
+      }
+
+      // Check if transaction already has both parties
+      if (transaction.buyer_id && transaction.seller_id) {
+        toast.error("Esta transacción ya tiene ambas partes");
         setLoading(false);
         return;
       }
 
-      // Check transaction limits for unverified users
-      if (isVerified === false) {
-        const limitCheck = await checkTransactionLimits(user.id, transaction.amount, false);
-        if (!limitCheck.allowed) {
-          toast.error(limitCheck.message);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Determine the initiator role to know which field to update
-      const initiatorRole = (transaction as any).initiator_role || "seller";
-      
-      // If initiator was seller, the joining user becomes buyer
-      // If initiator was buyer (stored temporarily in seller_id), we swap: 
-      //   - move creator to buyer_id
-      //   - set joiner as seller_id
-      let updateData: any = { state: "invited" };
-      
-      if (initiatorRole === "seller") {
-        // Seller created, so joining user is buyer
-        if (transaction.buyer_id) {
-          toast.error("Esta transacción ya tiene un comprador");
-          setLoading(false);
-          return;
-        }
-        updateData.buyer_id = user.id;
-      } else {
-        // Buyer created (stored in seller_id due to DB constraints)
-        // Now we swap: creator becomes buyer, joiner becomes seller
-        updateData.buyer_id = transaction.seller_id; // Move creator to buyer
-        updateData.seller_id = user.id; // Joiner becomes seller
-      }
-
-      // Update transaction
-      const { error: updateError } = await supabase
-        .from("transactions")
-        .update(updateData)
-        .eq("id", transaction.id);
-
-      if (updateError) throw updateError;
-
-      // Get profiles for email
-      const { data: joinerProfile } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", user.id)
-        .single();
-
-      // Determine the creator's ID (stored in seller_id before any swap)
-      const creatorId = transaction.seller_id;
-      
-      const { data: creatorProfile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", creatorId)
-        .single();
-
-      // Only send payment instructions if the joiner is the buyer
-      // (buyer deposits, seller doesn't need to pay)
-      if (initiatorRole === "seller") {
-        // Joiner is buyer, send payment instructions
-        try {
-          await supabase.functions.invoke("send-payment-instructions", {
-            body: {
-              transactionId: transaction.id,
-            },
-          });
-        } catch (emailError) {
-          console.error("Error sending payment instructions:", emailError);
-        }
-      } else {
-        // Joiner is seller, send payment instructions to the creator (buyer)
-        try {
-          await supabase.functions.invoke("send-payment-instructions", {
-            body: {
-              transactionId: transaction.id,
-            },
-          });
-        } catch (emailError) {
-          console.error("Error sending payment instructions:", emailError);
-        }
-      }
-
-      const roleLabel = initiatorRole === "seller" 
-        ? (transaction.sale_type === "servicio" ? "cliente" : "comprador")
-        : (transaction.sale_type === "servicio" ? "proveedor" : "vendedor");
-      
-      toast.success(`¡Te uniste como ${roleLabel}!`);
+      // Redirect to transaction page where user will see the confirmation dialog
       navigate(`/transaction/${transaction.id}`);
     } catch (error: any) {
-      toast.error("Error al unirse: " + error.message);
+      toast.error("Error al buscar: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -204,7 +123,7 @@ const JoinTransaction = () => {
               </div>
             )}
 
-            <form onSubmit={handleJoin} className="space-y-6">
+            <form onSubmit={handleSearch} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="inviteCode">Código de Invitación</Label>
                 <Input
@@ -231,7 +150,7 @@ const JoinTransaction = () => {
 
               <Button type="submit" className="w-full bg-info hover:bg-info/90" disabled={loading}>
                 <Search className="mr-2 h-4 w-4" />
-                {loading ? "Buscando..." : "Unirme a la Transacción"}
+                {loading ? "Buscando..." : "Buscar Transacción"}
               </Button>
             </form>
           </CardContent>
