@@ -577,6 +577,7 @@ const Transaction = () => {
   // Can join: only when opposite role is missing
   const canJoinAsBuyer = initiatorRole === 'seller' && !transaction.buyer_id && user?.id !== transaction.seller_id;
   const canJoinAsSeller = initiatorRole === 'buyer' && !transaction.buyer_id && user?.id !== transaction.seller_id;
+  const canJoin = canJoinAsBuyer || canJoinAsSeller;
   
   // Labels based on sale type
   const isService = transaction.sale_type === 'servicio';
@@ -585,7 +586,7 @@ const Transaction = () => {
   const creatorRoleLabel = initiatorRole === 'seller' ? sellerLabel : buyerLabel;
   const joinerRoleLabel = initiatorRole === 'seller' ? buyerLabel : sellerLabel;
 
-  const handleJoinAsBuyer = async () => {
+  const handleJoin = async () => {
     if (!user || !transaction || joiningTransaction) return;
 
     setJoiningTransaction(true);
@@ -603,12 +604,22 @@ const Transaction = () => {
         return;
       }
 
+      // Determine update data based on initiator role
+      let updateData: any = { state: "invited" };
+      
+      if (initiatorRole === "seller") {
+        // Seller created, joining user becomes buyer
+        updateData.buyer_id = user.id;
+      } else {
+        // Buyer created (stored in seller_id due to DB constraints)
+        // Now we swap: creator becomes buyer, joiner becomes seller
+        updateData.buyer_id = transaction.seller_id; // Move creator to buyer
+        updateData.seller_id = user.id; // Joiner becomes seller
+      }
+
       const { error: updateError } = await supabase
         .from("transactions")
-        .update({
-          buyer_id: user.id,
-          state: "invited",
-        })
+        .update(updateData)
         .eq("id", transaction.id);
 
       if (updateError) throw updateError;
@@ -642,6 +653,15 @@ const Transaction = () => {
           colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6']
         });
       }, 250);
+
+      // Send payment instructions email
+      try {
+        await supabase.functions.invoke("send-payment-instructions", {
+          body: { transactionId: transaction.id },
+        });
+      } catch (emailError) {
+        console.error("Error sending payment instructions:", emailError);
+      }
 
       toast.success("¡Te uniste a la transacción exitosamente!");
       setJoinConfirmDialogOpen(false);
@@ -687,22 +707,30 @@ const Transaction = () => {
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6 animate-fade-in">
         {/* === SECTION 1: REQUIRED ACTIONS (TOP PRIORITY) === */}
         
-        {/* Join as buyer action */}
-        {canJoinAsBuyer && (
+        {/* Join action - works for both buyer and seller joining */}
+        {canJoin && (
           <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-3">
                 <Users className="h-6 w-6 text-info" />
                 <h4 className="font-bold text-lg">
-                  {transaction.sale_type === "servicio" 
-                    ? "¿Quieres contratar este servicio?" 
-                    : "¿Quieres comprar este producto?"}
+                  {canJoinAsBuyer 
+                    ? (transaction.sale_type === "servicio" 
+                        ? "¿Quieres contratar este servicio?" 
+                        : "¿Quieres comprar este producto?")
+                    : (transaction.sale_type === "servicio" 
+                        ? "¿Quieres ofrecer este servicio?" 
+                        : "¿Quieres vender este producto?")}
                 </h4>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
-                {transaction.sale_type === "servicio"
-                  ? "Únete a esta transacción para contratar el servicio de forma protegida."
-                  : "Únete a esta transacción para iniciar el proceso de compra protegida."}
+                {canJoinAsBuyer
+                  ? (transaction.sale_type === "servicio"
+                      ? "Únete a esta transacción para contratar el servicio de forma protegida."
+                      : "Únete a esta transacción para iniciar el proceso de compra protegida.")
+                  : (transaction.sale_type === "servicio"
+                      ? "Únete a esta transacción para proveer el servicio de forma protegida."
+                      : "Únete a esta transacción para vender el producto de forma protegida.")}
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
@@ -711,9 +739,9 @@ const Transaction = () => {
                   onClick={() => setJoinConfirmDialogOpen(true)}
                 >
                   <Users className="mr-2 h-6 w-6" />
-                  {transaction.sale_type === "servicio" 
-                    ? "Unirme como Cliente" 
-                    : "Unirme como Comprador"}
+                  {canJoinAsBuyer
+                    ? (transaction.sale_type === "servicio" ? "Unirme como Cliente" : "Unirme como Comprador")
+                    : (transaction.sale_type === "servicio" ? "Unirme como Proveedor" : "Unirme como Vendedor")}
                 </Button>
                 <Button
                   size="lg"
@@ -726,7 +754,9 @@ const Transaction = () => {
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground text-center mt-3 flex items-center justify-center gap-2">
-                🔒 {transaction.sale_type === "servicio" ? "Tu pago estará 100% protegido" : "Tu compra estará 100% protegida"}
+                🔒 {canJoinAsBuyer 
+                  ? (transaction.sale_type === "servicio" ? "Tu pago estará 100% protegido" : "Tu compra estará 100% protegida")
+                  : "El pago estará protegido hasta que se confirme la entrega"}
               </p>
             </CardContent>
           </Card>
@@ -2154,7 +2184,9 @@ const Transaction = () => {
               <ShieldCheck className="h-8 w-8 text-white animate-pulse" />
             </div>
             <DialogTitle className="text-xl">
-              Confirmar {transaction?.sale_type === "servicio" ? "Contratación" : "Compra"}
+              {canJoinAsBuyer 
+                ? `Confirmar ${transaction?.sale_type === "servicio" ? "Contratación" : "Compra"}`
+                : `Confirmar como ${transaction?.sale_type === "servicio" ? "Proveedor" : "Vendedor"}`}
             </DialogTitle>
             <DialogDescription>
               Revisa los detalles antes de unirte a esta transacción
@@ -2219,24 +2251,33 @@ const Transaction = () => {
                     <span>${formatCLP(transaction.amount)}</span>
                   </div>
                   
-                  {initiatorRole === 'buyer' && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Comisión Trado (5%)</span>
-                      <span>${formatCLP(transaction.commission)}</span>
-                    </div>
-                  )}
+                  {/* Commission is already factored into the amounts shown */}
                   
                   <Separator />
                   
-                  <div className="flex justify-between font-bold text-base">
-                    <span>Total a depositar</span>
-                    <span className="text-success">${formatCLP(buyerPays)}</span>
-                  </div>
-                  
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Lo que recibe el {isService ? 'proveedor' : 'vendedor'}</span>
-                    <span>${formatCLP(sellerReceives)}</span>
-                  </div>
+                  {canJoinAsBuyer ? (
+                    <>
+                      <div className="flex justify-between font-bold text-base">
+                        <span>Total a depositar</span>
+                        <span className="text-success">${formatCLP(buyerPays)}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Lo que recibe el {isService ? 'proveedor' : 'vendedor'}</span>
+                        <span>${formatCLP(sellerReceives)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between font-bold text-base">
+                        <span>Recibirás</span>
+                        <span className="text-success">${formatCLP(sellerReceives)}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>El {isService ? 'cliente' : 'comprador'} depositará</span>
+                        <span>${formatCLP(buyerPays)}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -2281,7 +2322,9 @@ const Transaction = () => {
               >
                 <Lock className="h-4 w-4 text-info" />
                 <p>
-                  Tu pago estará 100% protegido hasta que confirmes {isService ? 'el servicio' : 'la recepción del producto'}.
+                  {canJoinAsBuyer 
+                    ? `Tu pago estará 100% protegido hasta que confirmes ${isService ? 'el servicio' : 'la recepción del producto'}.`
+                    : `El pago estará protegido en escrow hasta que ${isService ? 'el cliente confirme el servicio' : 'el comprador confirme la entrega'}.`}
                 </p>
               </div>
             </div>
@@ -2300,7 +2343,7 @@ const Transaction = () => {
             </Button>
             <Button
               className="flex-1 bg-info hover:bg-info/90"
-              onClick={handleJoinAsBuyer}
+              onClick={handleJoin}
               disabled={joiningTransaction}
             >
               {joiningTransaction ? (
