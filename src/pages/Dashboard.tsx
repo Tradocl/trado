@@ -50,17 +50,17 @@ const resolvedAppealStatuses = [
 ];
 
 const stateLabels: Record<string, { label: string; color: string }> = {
-  created: { label: "Creada", color: "bg-gray-500" },
-  invited: { label: "Invitado", color: "bg-blue-500" },
-  awaiting_deposit: { label: "Esperando depósito", color: "bg-yellow-500" },
-  funds_secured: { label: "Fondos asegurados", color: "bg-green-500" },
-  in_delivery: { label: "En entrega", color: "bg-purple-500" },
+  created: { label: "Esperando Contraparte", color: "bg-gray-500" },
+  invited: { label: "Comprador Unido", color: "bg-blue-500" },
+  awaiting_deposit: { label: "Esperando Depósito", color: "bg-yellow-500" },
+  funds_secured: { label: "Fondos Asegurados", color: "bg-green-500" },
+  in_delivery: { label: "En Entrega", color: "bg-purple-500" },
   awaiting_buyer_review: { label: "Período de Revisión", color: "bg-amber-500" },
   return_requested: { label: "Devolución Solicitada", color: "bg-orange-500" },
   return_in_progress: { label: "Devolución en Proceso", color: "bg-orange-600" },
   completed: { label: "Completada", color: "bg-emerald-500" },
   cancelled: { label: "Cancelada", color: "bg-red-500" },
-  in_dispute: { label: "En disputa", color: "bg-orange-500" },
+  in_dispute: { label: "En Disputa", color: "bg-orange-500" },
 };
 
 const getCardGradient = (color: string): string => {
@@ -98,6 +98,32 @@ const Dashboard = () => {
       loadUserData();
     }
   }, [user, authLoading, navigate]);
+
+  // Realtime subscription for transactions
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('dashboard-transactions')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions',
+        },
+        (payload) => {
+          console.log("Transaction updated:", payload);
+          // Reload transactions when any change occurs
+          loadUserData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const loadUserData = async () => {
     if (!user) return;
