@@ -240,20 +240,20 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
   return (
     <div className={hideHeader ? "" : "border-2 border-primary/20 shadow-xl rounded-lg"}>
       {!hideHeader && (
-        <div className="border-b bg-gradient-to-r from-primary/5 to-accent/5 p-6 rounded-t-lg">
-          <h3 className="flex items-center gap-2 text-lg font-semibold">
-            <MessageCircle className="h-5 w-5 text-primary" />
+        <div className="border-b bg-gradient-to-r from-primary/5 to-accent/5 p-3 sm:p-6 rounded-t-lg">
+          <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+            <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Chat de la Transacción
           </h3>
         </div>
       )}
       <div className={hideHeader ? "" : "p-0"}>
-        <ScrollArea ref={scrollRef} className="h-[400px] p-4">
-          <div className="space-y-3">
+        <ScrollArea ref={scrollRef} className="h-[280px] sm:h-[400px] p-2 sm:p-4">
+          <div className="space-y-2 sm:space-y-3">
             {messages.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                <MessageCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No hay mensajes aún</p>
+              <div className="text-center text-muted-foreground py-6 sm:py-8">
+                <MessageCircle className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 opacity-50" />
+                <p className="text-xs sm:text-sm">No hay mensajes aún</p>
                 <p className="text-xs">Envía el primer mensaje</p>
               </div>
             ) : (
@@ -267,21 +267,21 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
                 // System message from Trado - special formatting
                 if (isSystemMessage) {
                   return (
-                    <div key={msg.id} className="flex justify-center my-4">
-                      <div className="max-w-[85%] rounded-xl border-2 border-amber-500/30 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 p-4 shadow-lg">
-                        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-amber-300/50 dark:border-amber-700/50">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
-                            <span className="text-white text-sm font-bold">T</span>
+                    <div key={msg.id} className="flex justify-center my-2 sm:my-4">
+                      <div className="max-w-[95%] sm:max-w-[85%] rounded-lg sm:rounded-xl border-2 border-amber-500/30 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 p-2.5 sm:p-4 shadow-lg">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3 pb-1.5 sm:pb-2 border-b border-amber-300/50 dark:border-amber-700/50">
+                          <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0">
+                            <span className="text-white text-xs sm:text-sm font-bold">T</span>
                           </div>
-                          <span className="font-bold text-amber-800 dark:text-amber-200">Trado</span>
-                          <span className="text-xs text-amber-600 dark:text-amber-400 ml-auto">
-                            Notificación del Sistema
+                          <span className="font-bold text-xs sm:text-sm text-amber-800 dark:text-amber-200">Trado</span>
+                          <span className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 ml-auto">
+                            Sistema
                           </span>
                         </div>
-                        <div className="text-sm text-amber-900 dark:text-amber-100 space-y-3 whitespace-pre-line">
+                        <div className="text-xs sm:text-sm text-amber-900 dark:text-amber-100 space-y-2 sm:space-y-3 whitespace-pre-line">
                           {displayMessage}
                         </div>
-                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-3 pt-2 border-t border-amber-300/50 dark:border-amber-700/50">
+                        <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 mt-2 sm:mt-3 pt-1.5 sm:pt-2 border-t border-amber-300/50 dark:border-amber-700/50">
                           {new Date(msg.created_at).toLocaleTimeString("es-CL", {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -298,13 +298,13 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
                     className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                      className={`max-w-[85%] sm:max-w-[70%] rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 ${
                         isOwn
                           ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground"
                           : "bg-muted"
                       }`}
                     >
-                      <p className="text-xs font-semibold mb-1 opacity-70">
+                      <p className="text-[10px] sm:text-xs font-semibold mb-0.5 sm:mb-1 opacity-70">
                         {getSenderName(msg.user_id)}
                       </p>
                       {msg.file_url && (
@@ -347,9 +347,9 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
                         </>
                       )}
                       {msg.message && !msg.message.startsWith('(') && (
-                        <p className="text-sm break-words">{msg.message}</p>
+                        <p className="text-xs sm:text-sm break-words">{msg.message}</p>
                       )}
-                      <p className="text-xs opacity-60 mt-1">
+                      <p className="text-[10px] sm:text-xs opacity-60 mt-0.5 sm:mt-1">
                         {new Date(msg.created_at).toLocaleTimeString("es-CL", {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -362,35 +362,35 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
             )}
           </div>
         </ScrollArea>
-        <form onSubmit={sendMessage} className="p-4 border-t bg-muted/30 space-y-3">
+        <form onSubmit={sendMessage} className="p-2 sm:p-4 border-t bg-muted/30 space-y-2 sm:space-y-3">
           {selectedFile && (
             <div className="relative inline-block">
               {filePreview ? (
                 <img 
                   src={filePreview} 
                   alt="Vista previa" 
-                  className="h-24 w-24 object-cover rounded-lg border-2 border-primary/30"
+                  className="h-16 w-16 sm:h-24 sm:w-24 object-cover rounded-lg border-2 border-primary/30"
                 />
               ) : (
-                <div className="flex items-center gap-2 p-3 bg-background/80 rounded-lg border-2 border-primary/30">
-                  {selectedFile.type.startsWith('video/') && <Video className="h-5 w-5" />}
-                  {selectedFile.type === 'application/pdf' && <FileText className="h-5 w-5" />}
-                  {!selectedFile.type.startsWith('video/') && selectedFile.type !== 'application/pdf' && <Paperclip className="h-5 w-5" />}
-                  <span className="text-sm font-medium max-w-[150px] truncate">{selectedFile.name}</span>
+                <div className="flex items-center gap-2 p-2 sm:p-3 bg-background/80 rounded-lg border-2 border-primary/30">
+                  {selectedFile.type.startsWith('video/') && <Video className="h-4 w-4 sm:h-5 sm:w-5" />}
+                  {selectedFile.type === 'application/pdf' && <FileText className="h-4 w-4 sm:h-5 sm:w-5" />}
+                  {!selectedFile.type.startsWith('video/') && selectedFile.type !== 'application/pdf' && <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />}
+                  <span className="text-xs sm:text-sm font-medium max-w-[100px] sm:max-w-[150px] truncate">{selectedFile.name}</span>
                 </div>
               )}
               <Button
                 type="button"
                 size="sm"
                 variant="destructive"
-                className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 h-5 w-5 sm:h-6 sm:w-6 p-0 rounded-full"
                 onClick={clearFile}
               >
-                <X className="h-4 w-4" />
+                <X className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -404,7 +404,7 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={loading || uploadingFile}
-              className="shrink-0"
+              className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
               title="Adjuntar imagen, video o documento"
             >
               <Paperclip className="h-4 w-4" />
@@ -412,14 +412,15 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Escribe un mensaje o adjunta un archivo..."
-              className="flex-1"
+              placeholder="Escribe un mensaje..."
+              className="flex-1 text-sm h-9 sm:h-10"
               disabled={loading || uploadingFile}
             />
             <Button
               type="submit"
+              size="icon"
               disabled={loading || uploadingFile || (!newMessage.trim() && !selectedFile)}
-              className="bg-gradient-to-r from-primary to-accent shrink-0"
+              className="bg-gradient-to-r from-primary to-accent shrink-0 h-9 w-9 sm:h-10 sm:w-10"
             >
               {uploadingFile ? (
                 <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
