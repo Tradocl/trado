@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGuest } from "@/contexts/GuestContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock, AlertCircle } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock, AlertCircle, Eye } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,8 @@ import { formatCLP } from "@/lib/utils";
 import tradoShield from "@/assets/trado-shield.png";
 import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
+import { GuestActionBlocker } from "@/components/GuestActionBlocker";
+import { demoProfile, demoWallet, demoTransactions } from "@/lib/demo-data";
 
 interface Profile {
   full_name: string;
@@ -79,6 +82,7 @@ const getCardGradient = (color: string): string => {
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isGuestMode, promptRegistration } = useGuest();
   const { isAdmin } = useAdminRole();
   const { setTheme } = useTheme();
   const navigate = useNavigate();
@@ -89,6 +93,15 @@ const Dashboard = () => {
   const [accumulatedTotal, setAccumulatedTotal] = useState<number>(0);
 
   useEffect(() => {
+    // Allow guest mode access
+    if (isGuestMode) {
+      setProfile(demoProfile as any);
+      setWallet(demoWallet as any);
+      setTransactions(demoTransactions as any);
+      setLoading(false);
+      return;
+    }
+
     if (!authLoading && !user) {
       navigate("/auth");
       return;
@@ -97,11 +110,11 @@ const Dashboard = () => {
     if (user) {
       loadUserData();
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, isGuestMode]);
 
   // Realtime subscription for transactions
   useEffect(() => {
-    if (!user) return;
+    if (!user || isGuestMode) return;
 
     const channel = supabase
       .channel('dashboard-transactions')
@@ -123,7 +136,7 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, isGuestMode]);
 
   const loadUserData = async () => {
     if (!user) return;
@@ -200,6 +213,11 @@ const Dashboard = () => {
   };
 
   const handleSignOut = async () => {
+    if (isGuestMode) {
+      navigate("/");
+      return;
+    }
+    
     try {
       // Intentar cerrar sesión usando el cliente oficial
       const { error } = await supabase.auth.signOut();
@@ -224,6 +242,15 @@ const Dashboard = () => {
       window.location.href = "/auth";
     }
   };
+
+  const handleGuestAction = (action: string, navigateTo?: string) => {
+    if (isGuestMode) {
+      promptRegistration(action);
+    } else if (navigateTo) {
+      navigate(navigateTo);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -243,13 +270,21 @@ const Dashboard = () => {
           <div className="flex items-center gap-2 sm:gap-3">
             <img src={tradoShield} alt="Trado" className="h-8 w-8 sm:h-10 sm:w-10" />
             <h1 className="text-xl sm:text-2xl font-bold">Trado</h1>
+            {isGuestMode && (
+              <Badge variant="outline" className="ml-2 border-info text-info">
+                <Eye className="h-3 w-3 mr-1" />
+                Modo Invitado
+              </Badge>
+            )}
           </div>
           <div className="flex gap-1 sm:gap-2">
-            <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/profile")}>
-              <User className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Perfil</span>
-            </Button>
-            {isAdmin && (
+            <GuestActionBlocker action="editar perfil">
+              <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => !isGuestMode && navigate("/profile")}>
+                <User className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Perfil</span>
+              </Button>
+            </GuestActionBlocker>
+            {isAdmin && !isGuestMode && (
               <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/admin")}>
                 <Settings className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Admin</span>
@@ -257,7 +292,7 @@ const Dashboard = () => {
             )}
             <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Salir</span>
+              <span className="hidden sm:inline">{isGuestMode ? "Salir" : "Salir"}</span>
             </Button>
           </div>
         </div>
@@ -375,7 +410,11 @@ const Dashboard = () => {
                   let isRealSeller = false;
                   let isRealBuyer = false;
                   
-                  if (initiatorRole === 'seller') {
+                  // In guest mode, just show demo data visualization
+                  if (isGuestMode) {
+                    isRealSeller = transaction.seller_id === demoProfile.id;
+                    isRealBuyer = transaction.buyer_id !== null && transaction.buyer_id !== demoProfile.id;
+                  } else if (initiatorRole === 'seller') {
                     isRealSeller = transaction.seller_id === user?.id;
                     isRealBuyer = transaction.buyer_id === user?.id;
                   } else {
@@ -390,10 +429,18 @@ const Dashboard = () => {
                     }
                   }
                   
+                  const handleTransactionClick = () => {
+                    if (isGuestMode) {
+                      promptRegistration("ver detalles de transacción");
+                    } else {
+                      navigate(`/transaction/${transaction.id}`);
+                    }
+                  };
+                  
                   return (
                     <div
                       key={transaction.id}
-                      onClick={() => navigate(`/transaction/${transaction.id}`)}
+                      onClick={handleTransactionClick}
                       className="group p-4 hover:bg-muted/30 cursor-pointer transition-all duration-200 animate-fade-in"
                       style={{ animationDelay: `${0.3 + index * 0.05}s`, animationFillMode: 'both' }}
                     >
@@ -499,86 +546,92 @@ const Dashboard = () => {
 
         {/* Action Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-          <Card 
-            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-success/20 hover:border-success hover:-translate-y-1 bg-gradient-to-br from-success/5 to-transparent animate-fade-in"
-            style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
-            onClick={() => navigate("/create-transaction")}
-          >
-            <CardHeader className="pb-2 sm:pb-3">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-3 sm:p-4 bg-gradient-to-br from-success/30 to-success/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                  <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
+          <GuestActionBlocker action="crear transacción">
+            <Card 
+              className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-success/20 hover:border-success hover:-translate-y-1 bg-gradient-to-br from-success/5 to-transparent animate-fade-in"
+              style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+              onClick={() => !isGuestMode && navigate("/create-transaction")}
+            >
+              <CardHeader className="pb-2 sm:pb-3">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="p-3 sm:p-4 bg-gradient-to-br from-success/30 to-success/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                    <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-base sm:text-xl">Crear Sala</CardTitle>
+                    <CardDescription className="text-xs truncate">Nueva transacción segura</CardDescription>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base sm:text-xl">Crear Sala</CardTitle>
-                  <CardDescription className="text-xs truncate">Nueva transacción segura</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4 pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
-                Inicia una transacción protegida con escrow para intercambiar <span className="font-medium text-success">productos</span> o <span className="font-medium text-success">servicios</span> de forma segura
-              </p>
-              <Button className="w-full bg-success hover:bg-success/90 group-hover:shadow-lg transition-shadow text-sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Crear Sala
-              </Button>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="space-y-3 sm:space-y-4 pt-0">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
+                  Inicia una transacción protegida con escrow para intercambiar <span className="font-medium text-success">productos</span> o <span className="font-medium text-success">servicios</span> de forma segura
+                </p>
+                <Button className="w-full bg-success hover:bg-success/90 group-hover:shadow-lg transition-shadow text-sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Crear Sala
+                </Button>
+              </CardContent>
+            </Card>
+          </GuestActionBlocker>
 
-          <Card 
-            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-info/20 hover:border-info hover:-translate-y-1 bg-gradient-to-br from-info/5 to-transparent animate-fade-in"
-            style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
-            onClick={() => navigate("/join-transaction")}
-          >
-            <CardHeader className="pb-2 sm:pb-3">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-3 sm:p-4 bg-gradient-to-br from-info/30 to-info/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                  <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 text-info" />
+          <GuestActionBlocker action="unirse">
+            <Card 
+              className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-info/20 hover:border-info hover:-translate-y-1 bg-gradient-to-br from-info/5 to-transparent animate-fade-in"
+              style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
+              onClick={() => !isGuestMode && navigate("/join-transaction")}
+            >
+              <CardHeader className="pb-2 sm:pb-3">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="p-3 sm:p-4 bg-gradient-to-br from-info/30 to-info/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                    <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 text-info" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-base sm:text-xl">Unirse</CardTitle>
+                    <CardDescription className="text-xs truncate">Ingresa con código</CardDescription>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base sm:text-xl">Unirse</CardTitle>
-                  <CardDescription className="text-xs truncate">Ingresa con código</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4 pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
-                Ingresa el <span className="font-medium text-info">código de invitación</span> para unirte a una transacción existente
-              </p>
-              <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow text-sm">
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Unirse
-              </Button>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="space-y-3 sm:space-y-4 pt-0">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
+                  Ingresa el <span className="font-medium text-info">código de invitación</span> para unirte a una transacción existente
+                </p>
+                <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow text-sm">
+                  <ShoppingBag className="mr-2 h-4 w-4" />
+                  Unirse
+                </Button>
+              </CardContent>
+            </Card>
+          </GuestActionBlocker>
 
-          <Card 
-            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-primary/20 hover:border-primary hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent sm:col-span-2 lg:col-span-1 animate-fade-in"
-            style={{ animationDelay: '0.5s', animationFillMode: 'both' }}
-            onClick={() => navigate("/transaction-history")}
-          >
-            <CardHeader className="pb-2 sm:pb-3">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-3 sm:p-4 bg-gradient-to-br from-primary/30 to-primary/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                  <History className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+          <GuestActionBlocker action="ver historial">
+            <Card 
+              className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-primary/20 hover:border-primary hover:-translate-y-1 bg-gradient-to-br from-primary/5 to-transparent sm:col-span-2 lg:col-span-1 animate-fade-in"
+              style={{ animationDelay: '0.5s', animationFillMode: 'both' }}
+              onClick={() => !isGuestMode && navigate("/transaction-history")}
+            >
+              <CardHeader className="pb-2 sm:pb-3">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="p-3 sm:p-4 bg-gradient-to-br from-primary/30 to-primary/10 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                    <History className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-base sm:text-xl">Historial</CardTitle>
+                    <CardDescription className="text-xs truncate">Revisa tus transacciones</CardDescription>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base sm:text-xl">Historial</CardTitle>
-                  <CardDescription className="text-xs truncate">Revisa tus transacciones</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4 pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
-                Consulta todas tus <span className="font-medium text-primary">transacciones completadas</span> y su detalle
-              </p>
-              <Button className="w-full group-hover:shadow-lg transition-shadow text-sm">
-                <History className="mr-2 h-4 w-4" />
-                Ver Historial
-              </Button>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="space-y-3 sm:space-y-4 pt-0">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
+                  Consulta todas tus <span className="font-medium text-primary">transacciones completadas</span> y su detalle
+                </p>
+                <Button className="w-full group-hover:shadow-lg transition-shadow text-sm">
+                  <History className="mr-2 h-4 w-4" />
+                  Ver Historial
+                </Button>
+              </CardContent>
+            </Card>
+          </GuestActionBlocker>
         </div>
 
         {/* Wallet Card */}
@@ -598,18 +651,24 @@ const Dashboard = () => {
               <span className="text-lg sm:text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.75s', animationFillMode: 'both' }}>
-              <Button size="sm" className="bg-gray-500 hover:bg-gray-600 text-white shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => navigate("/wallet")}>
-                <History className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Movimientos</span>
-              </Button>
-              <Button size="sm" className="bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => navigate("/wallet?action=deposit")}>
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Depositar</span>
-              </Button>
-              <Button size="sm" className="bg-destructive hover:bg-destructive/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => navigate("/wallet?action=withdraw")}>
-                <ArrowUpRight className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Retirar</span>
-              </Button>
+              <GuestActionBlocker action="ver historial">
+                <Button size="sm" className="w-full bg-gray-500 hover:bg-gray-600 text-white shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => !isGuestMode && navigate("/wallet")}>
+                  <History className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Movimientos</span>
+                </Button>
+              </GuestActionBlocker>
+              <GuestActionBlocker action="depositar">
+                <Button size="sm" className="w-full bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => !isGuestMode && navigate("/wallet?action=deposit")}>
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Depositar</span>
+                </Button>
+              </GuestActionBlocker>
+              <GuestActionBlocker action="retirar">
+                <Button size="sm" className="w-full bg-destructive hover:bg-destructive/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => !isGuestMode && navigate("/wallet?action=withdraw")}>
+                  <ArrowUpRight className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Retirar</span>
+                </Button>
+              </GuestActionBlocker>
             </div>
             
           </CardContent>

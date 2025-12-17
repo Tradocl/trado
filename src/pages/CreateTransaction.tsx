@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGuest } from "@/contexts/GuestContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ type InitiatorRole = "seller" | "buyer";
 
 const CreateTransaction = () => {
   const { user } = useAuth();
+  const { isGuestMode, promptRegistration } = useGuest();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState<number>(0);
@@ -41,6 +43,14 @@ const CreateTransaction = () => {
     saleType: SaleType;
     initiatorRole: InitiatorRole;
   } | null>(null);
+
+  // Redirect guest users with prompt
+  useEffect(() => {
+    if (isGuestMode) {
+      promptRegistration("crear transacción");
+      navigate("/dashboard");
+    }
+  }, [isGuestMode]);
 
   // Load user verification status
   useEffect(() => {
