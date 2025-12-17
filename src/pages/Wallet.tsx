@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGuest } from "@/contexts/GuestContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check } from "lucide-react";
+import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check, Eye } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
+import { GuestActionBlocker } from "@/components/GuestActionBlocker";
+import { demoWallet, demoMovements } from "@/lib/demo-data";
+import { Badge } from "@/components/ui/badge";
 
 interface Movement {
   id: string;
@@ -29,6 +33,7 @@ interface Movement {
 
 const Wallet = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isGuestMode, promptRegistration } = useGuest();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [balance, setBalance] = useState(0);
@@ -91,6 +96,16 @@ const Wallet = () => {
   };
 
   useEffect(() => {
+    // Guest mode - use demo data
+    if (isGuestMode) {
+      setBalance(demoWallet.balance);
+      setBlockedBalance(demoWallet.blocked_balance);
+      setMovements(demoMovements as any);
+      setPendingMovements([]);
+      setLoading(false);
+      return;
+    }
+
     if (!authLoading && !user) {
       navigate("/auth");
       return;
@@ -155,7 +170,7 @@ const Wallet = () => {
     } else if (searchParams.get("action") === "withdraw") {
       loadBankDetails().then(() => setWithdrawOpen(true));
     }
-  }, [user, authLoading, navigate, searchParams]);
+  }, [user, authLoading, navigate, searchParams, isGuestMode]);
 
   const loadBankDetails = async () => {
     if (!user) return;
