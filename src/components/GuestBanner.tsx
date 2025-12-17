@@ -1,13 +1,18 @@
 import { useGuest } from "@/contexts/GuestContext";
 import { Button } from "@/components/ui/button";
-import { UserPlus, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { UserPlus } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const GuestBanner = () => {
   const { isGuestMode, exitGuestMode } = useGuest();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  if (!isGuestMode) return null;
+  // No mostrar en landing, auth, terms, privacy
+  const hiddenPaths = ["/", "/auth", "/terms", "/privacy"];
+  const shouldHide = hiddenPaths.includes(location.pathname);
+
+  if (!isGuestMode || shouldHide) return null;
 
   const handleRegister = () => {
     exitGuestMode();
