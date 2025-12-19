@@ -101,8 +101,8 @@ const Terms = () => {
             <div className="text-muted-foreground space-y-4">
               <p>
                 <strong className="text-foreground">3.1. Comisión por transacción:</strong> Trado 
-                cobra una comisión del <strong className="text-foreground">3%</strong> sobre el 
-                valor total de cada transacción completada exitosamente.
+                cobra una comisión del <strong className="text-foreground">5%</strong> sobre el 
+                valor total de cada transacción completada exitosamente (mínimo $1.000, máximo $20.000 CLP).
               </p>
               <p>
                 <strong className="text-foreground">3.2. Momento del cobro:</strong> La comisión 

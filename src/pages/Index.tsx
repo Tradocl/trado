@@ -186,7 +186,7 @@ const Index = () => {
                     ¿Cuánto cobran por usar la plataforma?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    Cobramos una pequeña comisión del 3% sobre el valor de la transacción. 
+                    Cobramos una comisión del 5% sobre el valor de la transacción (mínimo $1.000, máximo $20.000 CLP). 
                     Esta comisión se descuenta automáticamente cuando se libera el pago al vendedor. 
                     No hay costos ocultos ni sorpresas.
                   </AccordionContent>
