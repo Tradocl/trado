@@ -857,6 +857,18 @@ export type Database = {
           total_transactions: number
         }[]
       }
+      get_transaction_preview: {
+        Args: { transaction_id: string }
+        Returns: {
+          amount: number
+          id: string
+          product_description: string
+          product_name: string
+          sale_type: string
+          seller_name: string
+          state: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

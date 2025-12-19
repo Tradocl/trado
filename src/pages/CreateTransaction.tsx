@@ -234,7 +234,7 @@ const CreateTransaction = () => {
   const shareViaWhatsApp = () => {
     if (createdTransactionId && formData) {
       const appUrl = getAppUrl();
-      const link = `${appUrl}/transaction/${createdTransactionId}`;
+      const link = `${appUrl}/invite/${createdTransactionId}`;
       const text = `¡Hola! Te invito a unirte a mi transacción segura en Trado para: *${formData.productName}*\n\nÚnete aquí: ${link}`;
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(whatsappUrl, '_blank');
