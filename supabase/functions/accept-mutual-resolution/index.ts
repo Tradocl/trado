@@ -21,17 +21,8 @@ interface AcceptMutualResolutionRequest {
   transactionId: string;
 }
 
-// Commission calculation matching the frontend logic
-function calculateCommission(amount: number): number {
-  const BASE_RATE = 0.05;
-  const MIN_COMMISSION = 1000;
-  const MAX_COMMISSION = 20000;
-  const ROUNDING_FACTOR = 10;
-
-  const rawCommission = amount * BASE_RATE;
-  const roundedCommission = Math.round(rawCommission / ROUNDING_FACTOR) * ROUNDING_FACTOR;
-  return Math.max(MIN_COMMISSION, Math.min(MAX_COMMISSION, roundedCommission));
-}
+// NOTE: Commission should always come from the database (tx.commission)
+// which was calculated and stored when the transaction was created
 
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -137,9 +128,14 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // 6. Calculate amounts
+    // 6. Calculate amounts - use commission from database
     const transactionAmount = Number(tx.amount);
-    const commission = Number(tx.commission) || calculateCommission(transactionAmount);
+    const commission = Number(tx.commission) || 0;
+    
+    if (!tx.commission) {
+      console.warn(`[accept-mutual-resolution] Transaction ${transactionId} has no commission stored, using 0`);
+    }
+    
     const buyerProposedAmount = Number(proposal.buyer_amount);
     const sellerProposedAmount = Number(proposal.seller_amount);
 
