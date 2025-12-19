@@ -68,6 +68,8 @@ const handler = async (req: Request): Promise<Response> => {
           product_name,
           buyer_id,
           seller_id,
+          invite_code,
+          email_thread_id,
           buyer:profiles!transactions_buyer_id_fkey(email, full_name),
           seller:profiles!transactions_seller_id_fkey(email, full_name)
         )
@@ -115,6 +117,8 @@ const handler = async (req: Request): Promise<Response> => {
     const sellerName = sellerProfile?.full_name || "Vendedor";
     const productName = txData.product_name;
     const amount = txData.amount;
+    const inviteCode = txData.invite_code || txData.id.substring(0, 8).toUpperCase();
+    const emailThreadId = txData.email_thread_id;
     
     // Determine who requested the escalation
     const requestedByName = user.id === txData.buyer_id ? buyerName : sellerName;
@@ -124,7 +128,8 @@ const handler = async (req: Request): Promise<Response> => {
       productName,
     });
 
-    const appealUrl = `https://uohlyccjugbqsxiwerrv.lovableproject.com/appeal/${appealId}`;
+    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
+    const appealUrl = `${baseUrl}/appeal/${appealId}`;
 
     const createEmailHtml = (recipientName: string, isRequester: boolean) => `
       <!DOCTYPE html>
@@ -191,31 +196,58 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Send email to buyer
-    const buyerEmailResponse = buyerEmail ? await resend.emails.send({
+    // Build thread subject
+    const threadSubject = `Re: [Orden #${inviteCode}] ${productName}`;
+
+    // Prepare email options for buyer
+    const buyerEmailOptions: any = {
       from: "Trado Notificaciones <notificaciones@trado.cl>",
       to: [buyerEmail],
-      subject: `🛡️ Intervención de administrador solicitada - ${productName}`,
+      subject: threadSubject,
       html: createEmailHtml(buyerName, requestedByName === buyerName),
-    }) : null;
+    };
+
+    // Add threading headers if we have an email_thread_id
+    if (emailThreadId) {
+      buyerEmailOptions.headers = {
+        'In-Reply-To': emailThreadId,
+        'References': emailThreadId,
+      };
+      console.log("Adding threading headers for buyer:", emailThreadId);
+    }
+
+    // Send email to buyer
+    const buyerEmailResponse = buyerEmail ? await resend.emails.send(buyerEmailOptions) : null;
 
     if (buyerEmailResponse) {
       console.log("Buyer email sent:", buyerEmailResponse);
     }
 
-    // Send email to seller
-    const sellerEmailResponse = sellerEmail ? await resend.emails.send({
+    // Prepare email options for seller
+    const sellerEmailOptions: any = {
       from: "Trado Notificaciones <notificaciones@trado.cl>",
       to: [sellerEmail],
-      subject: `🛡️ Intervención de administrador solicitada - ${productName}`,
+      subject: threadSubject,
       html: createEmailHtml(sellerName, requestedByName === sellerName),
-    }) : null;
+    };
+
+    // Add threading headers if we have an email_thread_id
+    if (emailThreadId) {
+      sellerEmailOptions.headers = {
+        'In-Reply-To': emailThreadId,
+        'References': emailThreadId,
+      };
+      console.log("Adding threading headers for seller:", emailThreadId);
+    }
+
+    // Send email to seller
+    const sellerEmailResponse = sellerEmail ? await resend.emails.send(sellerEmailOptions) : null;
 
     if (sellerEmailResponse) {
       console.log("Seller email sent:", sellerEmailResponse);
     }
 
-    // Also notify admin
+    // Also notify admin (no threading for admin)
     const adminEmailResponse = await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
       to: ["admin@trado.cl"],

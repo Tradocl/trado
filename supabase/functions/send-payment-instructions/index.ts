@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,6 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
         invite_code,
         buyer_id,
         seller_id,
+        email_thread_id,
         buyer:profiles!transactions_buyer_id_fkey(email, full_name),
         seller:profiles!transactions_seller_id_fkey(email, full_name)
       `)
@@ -96,6 +98,7 @@ const handler = async (req: Request): Promise<Response> => {
     const referenceCode = transaction.invite_code || transaction.id.substring(0, 8).toUpperCase();
     const totalAmount = transaction.amount;
     const productName = transaction.product_name;
+    const emailThreadId = transaction.email_thread_id;
 
     if (!buyerEmail) {
       console.error("Buyer email not found for transaction:", transactionId);
@@ -337,31 +340,32 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Trado Notificaciones <notificaciones@trado.cl>",
-        to: [buyerEmail],
-        subject: `Instrucciones de Pago - Orden #${referenceCode}`,
-        html: emailHtml,
-      }),
-    });
+    // Build thread subject
+    const threadSubject = `Re: [Orden #${referenceCode}] ${productName}`;
 
-    const data = await response.json();
+    // Prepare email options with threading headers
+    const emailOptions: any = {
+      from: "Trado Notificaciones <notificaciones@trado.cl>",
+      to: [buyerEmail],
+      subject: threadSubject,
+      html: emailHtml,
+    };
 
-    if (!response.ok) {
-      console.error("Error from Resend API:", data);
-      throw new Error(data.message || "Failed to send email");
+    // Add threading headers if we have an email_thread_id
+    if (emailThreadId) {
+      emailOptions.headers = {
+        'In-Reply-To': emailThreadId,
+        'References': emailThreadId,
+      };
+      console.log("Adding threading headers with email_thread_id:", emailThreadId);
     }
 
-    console.log("Payment instructions sent successfully:", data);
+    const emailResponse = await resend.emails.send(emailOptions);
+
+    console.log("Payment instructions sent successfully:", emailResponse);
 
     return new Response(
-      JSON.stringify({ success: true, data }),
+      JSON.stringify({ success: true, data: emailResponse }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

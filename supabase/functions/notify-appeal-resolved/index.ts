@@ -43,7 +43,7 @@ serve(async (req) => {
     // Get appeal with transaction and participant info
     const { data: appeal, error: appealError } = await supabaseAdmin
       .from("appeals")
-      .select("*, transactions!inner(id, product_name, amount, seller_id, buyer_id)")
+      .select("*, transactions!inner(id, product_name, amount, seller_id, buyer_id, invite_code, email_thread_id)")
       .eq("id", appealId)
       .single();
 
@@ -56,6 +56,8 @@ serve(async (req) => {
     }
 
     const transaction = appeal.transactions;
+    const inviteCode = transaction.invite_code || transaction.id.substring(0, 8).toUpperCase();
+    const emailThreadId = transaction.email_thread_id;
 
     // Get buyer and seller profiles
     const { data: buyerProfile } = await supabaseAdmin
@@ -165,24 +167,49 @@ serve(async (req) => {
       `;
     };
 
-    // Send email to buyer
-    const buyerEmailResponse = await resend.emails.send({
+    // Build thread subject
+    const threadSubject = `Re: [Orden #${inviteCode}] ${transaction.product_name}`;
+
+    // Prepare email options for buyer
+    const buyerEmailOptions: any = {
       from: "Trado <notificaciones@trado.cl>",
       to: [buyerProfile.email],
-      subject: `✅ Apelación resuelta: ${transaction.product_name}`,
+      subject: threadSubject,
       html: createEmailHtml(buyerProfile.full_name, "buyer"),
-    });
+    };
 
+    // Add threading headers if we have an email_thread_id
+    if (emailThreadId) {
+      buyerEmailOptions.headers = {
+        'In-Reply-To': emailThreadId,
+        'References': emailThreadId,
+      };
+      console.log("[notify-appeal-resolved] Adding threading headers for buyer:", emailThreadId);
+    }
+
+    // Send email to buyer
+    const buyerEmailResponse = await resend.emails.send(buyerEmailOptions);
     console.log("[notify-appeal-resolved] Buyer email sent:", buyerEmailResponse);
 
-    // Send email to seller
-    const sellerEmailResponse = await resend.emails.send({
+    // Prepare email options for seller
+    const sellerEmailOptions: any = {
       from: "Trado <notificaciones@trado.cl>",
       to: [sellerProfile.email],
-      subject: `✅ Apelación resuelta: ${transaction.product_name}`,
+      subject: threadSubject,
       html: createEmailHtml(sellerProfile.full_name, "seller"),
-    });
+    };
 
+    // Add threading headers if we have an email_thread_id
+    if (emailThreadId) {
+      sellerEmailOptions.headers = {
+        'In-Reply-To': emailThreadId,
+        'References': emailThreadId,
+      };
+      console.log("[notify-appeal-resolved] Adding threading headers for seller:", emailThreadId);
+    }
+
+    // Send email to seller
+    const sellerEmailResponse = await resend.emails.send(sellerEmailOptions);
     console.log("[notify-appeal-resolved] Seller email sent:", sellerEmailResponse);
 
     return new Response(
