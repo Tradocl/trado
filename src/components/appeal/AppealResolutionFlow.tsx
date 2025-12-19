@@ -370,6 +370,7 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
         sellerName={sellerName}
         totalAmount={totalAmount}
         appealStatus={appealStatus}
+        onSwitchToEscalate={() => setCurrentStep("escalate")}
       />
     </div>
   );

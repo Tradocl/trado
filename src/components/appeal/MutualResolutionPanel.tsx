@@ -7,16 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { 
   Handshake, 
   Send, 
@@ -24,8 +14,7 @@ import {
   X, 
   RefreshCw,
   MessageSquare,
-  ShieldAlert,
-  AlertTriangle
+  ShieldAlert
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatCLP } from "@/lib/utils";
@@ -40,6 +29,7 @@ interface MutualResolutionPanelProps {
   sellerName: string;
   totalAmount: number;
   appealStatus: string;
+  onSwitchToEscalate: () => void;
 }
 
 interface Proposal {
@@ -62,14 +52,13 @@ export function MutualResolutionPanel({
   buyerName,
   sellerName,
   totalAmount,
-  appealStatus
+  appealStatus,
+  onSwitchToEscalate
 }: MutualResolutionPanelProps) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-  const [escalating, setEscalating] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<"buyer" | "seller" | null>(null);
   const [message, setMessage] = useState("");
 
@@ -246,64 +235,6 @@ export function MutualResolutionPanel({
     }
   };
 
-  const handleEscalate = async () => {
-    setEscalating(true);
-    setShowConfirmDialog(false);
-    try {
-      // Update appeal status
-      const { error } = await supabase
-        .from("appeals")
-        .update({
-          status: "pendiente_intervencion_plataforma",
-          escalated_at: new Date().toISOString(),
-        })
-        .eq("id", appealId);
-
-      if (error) throw error;
-
-      // Send system message to transaction chat
-      const systemMessage = `[TRADO_SYSTEM]🛡️ NOTIFICACIÓN DE TRADO
-
-Se ha solicitado la intervención de un administrador para resolver este caso.
-
-📋 ¿Qué sucederá ahora?
-
-• Un administrador revisará toda la evidencia presentada por ambas partes
-• También leerá el historial de este chat para verificar cualquier acuerdo previo
-• La decisión será tomada de forma imparcial basándose en las pruebas disponibles
-
-📎 Importante:
-
-Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos, documentos) en la sección de evidencia para que el administrador pueda tomar una decisión informada.
-
-⏱️ El proceso de revisión puede tomar hasta 48 horas.`;
-
-      await supabase
-        .from("chat_messages")
-        .insert({
-          transaction_id: transactionId,
-          user_id: sellerId,
-          message: systemMessage,
-        });
-
-      // Send email notifications
-      try {
-        await supabase.functions.invoke("notify-appeal-escalation", {
-          body: { appealId },
-        });
-      } catch (emailError) {
-        console.error("Error sending escalation emails:", emailError);
-      }
-      
-      toast.success("Intervención de administrador solicitada correctamente");
-    } catch (error) {
-      console.error("Error escalating:", error);
-      toast.error("Error al solicitar intervención");
-    } finally {
-      setEscalating(false);
-    }
-  };
-
   if (loading) {
     return (
       <Card className="border-2 shadow-lg">
@@ -318,65 +249,7 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
   }
 
   return (
-    <>
-      {/* Confirmation Dialog */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Solicitar Intervención de Administrador
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-4 pt-2">
-                <p className="text-foreground font-medium">
-                  Estás a punto de solicitar que un administrador intervenga en este caso.
-                </p>
-                
-                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-2">
-                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
-                    Ten en cuenta:
-                  </p>
-                  <ul className="text-sm text-amber-800 dark:text-amber-200 space-y-2 list-disc list-inside">
-                    <li>
-                      <strong>Un administrador tomará la decisión final</strong> basándose en la evidencia que ambas partes presenten.
-                    </li>
-                    <li>
-                      <strong>La comisión se cobrará igualmente</strong>, incluso si el dinero es reembolsado.
-                    </li>
-                    <li>
-                      El proceso puede tomar <strong>hasta 48 horas</strong>.
-                    </li>
-                  </ul>
-                </div>
-
-                <p className="text-sm text-muted-foreground">
-                  ¿Estás seguro de que deseas continuar?
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={escalating}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleEscalate}
-              disabled={escalating}
-              className="bg-amber-600 hover:bg-amber-700"
-            >
-              {escalating ? (
-                <>
-                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                  Solicitando...
-                </>
-              ) : (
-                "Sí, solicitar intervención"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <Card className="border-2 shadow-lg border-green-200 dark:border-green-800">
+    <Card className="border-2 shadow-lg border-green-200 dark:border-green-800">
       <CardHeader className="bg-gradient-to-r from-green-500/10 to-emerald-500/10">
         <CardTitle className="flex items-center gap-2">
           <Handshake className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -555,41 +428,20 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
           </>
         )}
 
-        {/* Request Admin Intervention */}
+        {/* Switch to Escalation Option */}
         <Separator />
-        <div className="space-y-4">
-          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-            <div className="flex items-start gap-3 mb-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-amber-900 dark:text-amber-100">
-                  ¿No logran ponerse de acuerdo?
-                </p>
-                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                  Un administrador revisará la evidencia y tomará una decisión final. Este proceso puede tomar hasta 48 horas.
-                </p>
-              </div>
-            </div>
-            
-            <Button
-              onClick={() => setShowConfirmDialog(true)}
-              disabled={escalating}
-              className="w-full bg-amber-600 hover:bg-amber-700"
-              size="lg"
-            >
-              {escalating ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Solicitando...
-                </>
-              ) : (
-                <>
-                  <ShieldAlert className="h-4 w-4 mr-2" />
-                  Solicitar Intervención de Administrador
-                </>
-              )}
-            </Button>
-          </div>
+        <div className="text-center space-y-3">
+          <p className="text-sm text-muted-foreground">
+            ¿No logran ponerse de acuerdo?
+          </p>
+          <Button
+            variant="outline"
+            onClick={onSwitchToEscalate}
+            className="border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+          >
+            <ShieldAlert className="h-4 w-4 mr-2" />
+            Enviar Pruebas a Administradores
+          </Button>
         </div>
 
         {/* Recent Proposals History */}
@@ -615,6 +467,5 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
         )}
       </CardContent>
     </Card>
-    </>
   );
 }
