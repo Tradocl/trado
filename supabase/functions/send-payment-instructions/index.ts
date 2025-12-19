@@ -107,6 +107,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending payment instructions to:", buyerEmail);
 
+    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
+
     // Datos bancarios de prueba
     const bankDetails = {
       bank: "Banco Estado",
@@ -121,54 +123,214 @@ const handler = async (req: Request): Promise<Response> => {
       <html>
         <head>
           <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-            .bank-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
-            .bank-details div { margin: 10px 0; }
-            .bank-details strong { display: inline-block; width: 140px; color: #667eea; }
-            .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; }
-            .amount { font-size: 24px; font-weight: bold; color: #667eea; }
-            .reference { background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; font-size: 18px; font-weight: bold; display: inline-block; margin: 10px 0; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+              line-height: 1.6; 
+              color: #1a1a1a; 
+              margin: 0;
+              padding: 0;
+              background-color: #f8fafc;
+            }
+            .container { 
+              max-width: 600px; 
+              margin: 0 auto; 
+              padding: 40px 20px;
+            }
+            .card {
+              background: #ffffff;
+              border-radius: 16px;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+              overflow: hidden;
+            }
+            .header { 
+              background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); 
+              color: white; 
+              padding: 32px; 
+              text-align: center;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              font-weight: 600;
+            }
+            .header .emoji {
+              font-size: 48px;
+              margin-bottom: 16px;
+              display: block;
+            }
+            .header .subtitle {
+              margin: 8px 0 0 0;
+              font-size: 14px;
+              opacity: 0.9;
+            }
+            .content { 
+              padding: 32px;
+            }
+            .highlight-box {
+              background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+              border: 1px solid #c4b5fd;
+              border-radius: 12px;
+              padding: 24px;
+              text-align: center;
+              margin-bottom: 24px;
+            }
+            .highlight-box .label {
+              font-size: 14px;
+              color: #5b21b6;
+              margin-bottom: 8px;
+              font-weight: 500;
+            }
+            .highlight-box .amount {
+              font-size: 36px;
+              font-weight: 700;
+              color: #6d28d9;
+              margin: 0;
+            }
+            .reference-badge {
+              display: inline-block;
+              background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+              color: white;
+              padding: 8px 20px;
+              border-radius: 20px;
+              font-size: 16px;
+              font-weight: 600;
+              margin-top: 12px;
+              letter-spacing: 1px;
+            }
+            .bank-details {
+              background: #f8fafc;
+              border-radius: 12px;
+              padding: 20px;
+              margin-bottom: 24px;
+            }
+            .bank-details h3 {
+              margin: 0 0 16px 0;
+              font-size: 16px;
+              font-weight: 600;
+              color: #374151;
+            }
+            .bank-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 10px 0;
+              border-bottom: 1px solid #e5e7eb;
+            }
+            .bank-row:last-child {
+              border-bottom: none;
+              padding-bottom: 0;
+            }
+            .bank-row .label {
+              color: #6b7280;
+              font-size: 14px;
+            }
+            .bank-row .value {
+              color: #1f2937;
+              font-weight: 500;
+              font-size: 14px;
+            }
+            .warning-box {
+              background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+              border: 1px solid #fbbf24;
+              border-radius: 12px;
+              padding: 20px;
+              margin-bottom: 24px;
+            }
+            .warning-box h4 {
+              margin: 0 0 8px 0;
+              font-size: 14px;
+              font-weight: 600;
+              color: #92400e;
+            }
+            .warning-box p {
+              margin: 0;
+              color: #78350f;
+              font-size: 14px;
+            }
+            .cta-button {
+              display: block;
+              background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+              color: white !important;
+              text-decoration: none;
+              padding: 16px 32px;
+              border-radius: 12px;
+              font-weight: 600;
+              text-align: center;
+              margin: 24px 0;
+              font-size: 16px;
+            }
+            .footer {
+              text-align: center;
+              padding: 24px;
+              color: #9ca3af;
+              font-size: 13px;
+              border-top: 1px solid #f3f4f6;
+            }
+            .footer a {
+              color: #7c3aed;
+              text-decoration: none;
+            }
           </style>
         </head>
         <body>
           <div class="container">
-            <div class="header">
-              <h1>💰 Instrucciones de Pago</h1>
-              <p>Orden #${referenceCode}</p>
-            </div>
-            <div class="content">
-              <p>Hola <strong>${buyerName}</strong>,</p>
-              
-              <p>Para asegurar tu compra de <strong>${productName}</strong> del vendedor <strong>${sellerName}</strong>, por favor transfiere a la siguiente cuenta de custodia:</p>
-              
-              <div class="amount">Monto Total: $${totalAmount.toLocaleString('es-CL')} CLP</div>
-              
-              <div class="bank-details">
-                <div><strong>Banco:</strong> ${bankDetails.bank}</div>
-                <div><strong>Tipo de Cuenta:</strong> ${bankDetails.accountType}</div>
-                <div><strong>N° Cuenta:</strong> ${bankDetails.accountNumber}</div>
-                <div><strong>RUT:</strong> ${bankDetails.rut}</div>
-                <div><strong>Correo:</strong> ${bankDetails.email}</div>
+            <div class="card">
+              <div class="header">
+                <span class="emoji">💳</span>
+                <h1>Instrucciones de Pago</h1>
+                <p class="subtitle">Orden #${referenceCode}</p>
               </div>
-              
-              <div class="warning">
-                <strong>⚠️ IMPORTANTE:</strong> En el asunto/comentario de la transferencia debes poner este código:
-                <div class="reference">${referenceCode}</div>
+              <div class="content">
+                <p style="margin: 0 0 24px 0; color: #4b5563;">
+                  Hola <strong>${buyerName}</strong>, para asegurar tu compra de <strong>${productName}</strong> de <strong>${sellerName}</strong>, transfiere a la cuenta de custodia de Trado:
+                </p>
+                
+                <div class="highlight-box">
+                  <div class="label">Monto a transferir</div>
+                  <div class="amount">$${totalAmount.toLocaleString('es-CL')}</div>
+                  <span class="reference-badge">#${referenceCode}</span>
+                </div>
+                
+                <div class="bank-details">
+                  <h3>🏦 Datos Bancarios</h3>
+                  <div class="bank-row">
+                    <span class="label">Banco</span>
+                    <span class="value">${bankDetails.bank}</span>
+                  </div>
+                  <div class="bank-row">
+                    <span class="label">Tipo de cuenta</span>
+                    <span class="value">${bankDetails.accountType}</span>
+                  </div>
+                  <div class="bank-row">
+                    <span class="label">N° de cuenta</span>
+                    <span class="value">${bankDetails.accountNumber}</span>
+                  </div>
+                  <div class="bank-row">
+                    <span class="label">RUT</span>
+                    <span class="value">${bankDetails.rut}</span>
+                  </div>
+                  <div class="bank-row">
+                    <span class="label">Email</span>
+                    <span class="value">${bankDetails.email}</span>
+                  </div>
+                </div>
+                
+                <div class="warning-box">
+                  <h4>⚠️ Importante</h4>
+                  <p>En el asunto o comentario de la transferencia debes poner el código: <strong>#${referenceCode}</strong></p>
+                </div>
+                
+                <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
+                  Una vez transferido, responde a este correo con el comprobante. Tu dinero está protegido en custodia hasta que confirmes la recepción del producto.
+                </p>
+                
+                <a href="${baseUrl}/transaction/${transactionId}" class="cta-button">Ver Transacción</a>
               </div>
-              
-              <p><strong>Una vez transferido, responde a este correo con el comprobante.</strong></p>
-              
-              <p>El vendedor recibirá el producto solo cuando confirmemos tu pago. Tu dinero está protegido en nuestra custodia hasta que confirmes la recepción del producto.</p>
-              
-              <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
-              
-              <p style="color: #666; font-size: 12px;">
-                Si tienes alguna duda, responde a este correo o contacta a admin@trado.cl
-              </p>
+              <div class="footer">
+                <p>Este es un correo automático de <a href="${baseUrl}">Trado</a>.</p>
+                <p>Tu plataforma segura para transacciones entre personas.</p>
+              </div>
             </div>
           </div>
         </body>
