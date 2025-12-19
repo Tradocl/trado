@@ -174,69 +174,120 @@ function generateEmailHtml(
   ctaText: string,
   ctaUrl: string
 ): string {
+  const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
+  
   return `
     <!DOCTYPE html>
     <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; padding: 40px 20px;">
-        <tr>
-          <td align="center">
-            <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; overflow: hidden; border: 1px solid #2a2a4a;">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #1a1a1a; 
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+          }
+          .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 40px 20px;
+          }
+          .card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+          }
+          .header { 
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); 
+            color: white; 
+            padding: 32px; 
+            text-align: center;
+          }
+          .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+          }
+          .header .emoji {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: block;
+          }
+          .content { 
+            padding: 32px;
+          }
+          .message-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border-left: 4px solid #7c3aed;
+          }
+          .message-box p {
+            margin: 0;
+            color: #4b5563;
+            font-size: 15px;
+            line-height: 1.7;
+          }
+          .cta-button {
+            display: block;
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white !important;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            margin: 24px 0;
+            font-size: 16px;
+          }
+          .footer {
+            text-align: center;
+            padding: 24px;
+            color: #9ca3af;
+            font-size: 13px;
+            border-top: 1px solid #f3f4f6;
+          }
+          .footer a {
+            color: #7c3aed;
+            text-decoration: none;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="card">
+            <div class="header">
+              <span class="emoji">${emoji}</span>
+              <h1>${title}</h1>
+            </div>
+            <div class="content">
+              <p style="margin: 0 0 24px 0; color: #4b5563;">
+                Hola <strong>${recipientName}</strong>,
+              </p>
               
-              <!-- Header -->
-              <tr>
-                <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-                  <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">${emoji} ${title}</h1>
-                </td>
-              </tr>
+              <div class="message-box">
+                <p>${description}</p>
+              </div>
               
-              <!-- Content -->
-              <tr>
-                <td style="padding: 40px 30px;">
-                  <p style="color: #e0e0e0; font-size: 18px; margin: 0 0 20px; line-height: 1.6;">
-                    ¡Hola <strong style="color: #667eea;">${recipientName}</strong>!
-                  </p>
-                  
-                  <p style="color: #b0b0b0; font-size: 16px; margin: 0 0 30px; line-height: 1.6;">
-                    ${description}
-                  </p>
-                  
-                  <!-- CTA Button -->
-                  <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td align="center" style="padding: 10px 0 30px;">
-                        <a href="${ctaUrl}" 
-                           style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                          ${ctaText}
-                        </a>
-                      </td>
-                    </tr>
-                  </table>
-                  
-                  <p style="color: #888; font-size: 14px; margin: 0; text-align: center; line-height: 1.6;">
-                    Si tienes alguna pregunta, responde a este correo o visita nuestra plataforma.
-                  </p>
-                </td>
-              </tr>
+              <a href="${ctaUrl}" class="cta-button">${ctaText}</a>
               
-              <!-- Footer -->
-              <tr>
-                <td style="background: rgba(0,0,0,0.3); padding: 25px 30px; text-align: center; border-top: 1px solid #2a2a4a;">
-                  <p style="color: #666; font-size: 12px; margin: 0;">
-                    © 2024 Trado - Transacciones seguras entre personas
-                  </p>
-                </td>
-              </tr>
-              
-            </table>
-          </td>
-        </tr>
-      </table>
-    </body>
+              <p style="color: #9ca3af; font-size: 13px; text-align: center; margin: 0;">
+                Si tienes alguna pregunta, responde a este correo o visita nuestra plataforma.
+              </p>
+            </div>
+            <div class="footer">
+              <p>Este es un correo automático de <a href="${baseUrl}">Trado</a>.</p>
+              <p>Tu plataforma segura para transacciones entre personas.</p>
+            </div>
+          </div>
+        </div>
+      </body>
     </html>
   `;
 }
