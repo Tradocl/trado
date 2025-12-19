@@ -151,6 +151,21 @@ export default function AdminAppeal() {
 
         if (txError) throw txError;
 
+        // Send notification to both parties about return mediation resolution
+        try {
+          // Notify buyer
+          await supabase.functions.invoke("notify-transaction-action", {
+            body: {
+              transactionId: transaction.id,
+              actionType: "admin_return_mediation_resolved",
+              actorId: user?.id,
+              additionalData: { shippingPaidBy }
+            }
+          });
+        } catch (notifyError) {
+          console.error("Error sending return mediation notification:", notifyError);
+        }
+
         // Send system message about decision
         const decisionMessage = `[TRADO_SYSTEM]✅ MEDIACIÓN DE DEVOLUCIÓN RESUELTA
 
@@ -227,6 +242,24 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+
+      // Send notification to both parties about appeal resolution
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId: transaction.id,
+            actionType: "admin_appeal_resolved",
+            actorId: user?.id,
+            additionalData: { 
+              resolution,
+              buyerAmount,
+              sellerAmount
+            }
+          }
+        });
+      } catch (notifyError) {
+        console.error("Error sending appeal resolution notification:", notifyError);
+      }
 
       toast.success("Decisión registrada correctamente");
       navigate("/admin");
