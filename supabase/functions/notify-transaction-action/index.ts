@@ -173,6 +173,36 @@ const actionConfig: Record<string, {
     ctaText: "Ver Mi Billetera",
     ctaPath: "wallet",
   },
+  // Admin resolution actions
+  admin_appeal_resolved: {
+    emoji: "⚖️",
+    title: "Apelación Resuelta por Administrador",
+    getDescription: (actorName, productName, data) => {
+      let resolutionText = "La apelación ha sido resuelta.";
+      if (data?.resolution === "liberar_fondos_vendedor") {
+        resolutionText = "Se liberaron los fondos al vendedor.";
+      } else if (data?.resolution === "reembolso_total") {
+        resolutionText = "Se otorgó reembolso total al comprador.";
+      } else if (data?.resolution === "reembolso_parcial") {
+        resolutionText = `Se acordó un reembolso parcial.${data?.buyerAmount ? ` Comprador: $${Number(data.buyerAmount).toLocaleString('es-CL')}` : ''}${data?.sellerAmount ? `, Vendedor: $${Number(data.sellerAmount).toLocaleString('es-CL')}` : ''}`;
+      }
+      return `Un administrador de Trado ha resuelto la apelación de <strong>${productName}</strong>. ${resolutionText}`;
+    },
+    ctaText: "Ver Resultado",
+    ctaPath: "transaction",
+  },
+  admin_return_mediation_resolved: {
+    emoji: "📦",
+    title: "Mediación de Devolución Resuelta",
+    getDescription: (actorName, productName, data) => {
+      const paidBy = data?.shippingPaidBy === "seller" 
+        ? "El vendedor pagará el envío de retorno." 
+        : "El comprador pagará el envío de retorno.";
+      return `Un administrador de Trado ha resuelto la mediación de devolución de <strong>${productName}</strong>. ${paidBy}`;
+    },
+    ctaText: "Ver Detalles",
+    ctaPath: "transaction",
+  },
 };
 
 function generateEmailHtml(
