@@ -128,14 +128,16 @@ const handler = async (req: Request): Promise<Response> => {
     const amount = validateAmount(transaction.amount);
     const commission = validateAmount(transaction.commission);
     const inviteCode = validateString(transaction.invite_code, 20);
-    const sellerReceives = amount;
-    const totalAmount = amount + commission;
+    const sellerReceives = amount - commission;
+    const buyerPays = amount;
 
     console.log("Sending transaction created notification:", {
       transactionId,
       sellerEmail,
       productName,
       amount,
+      commission,
+      sellerReceives,
     });
 
     const emailHtml = `
@@ -148,8 +150,8 @@ const handler = async (req: Request): Promise<Response> => {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
             .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-            .alert-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b; }
-            .amount { font-size: 24px; font-weight: bold; color: #f59e0b; }
+            .alert-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #22c55e; }
+            .amount { font-size: 24px; font-weight: bold; color: #22c55e; }
             .reference { background: #667eea; color: white; padding: 10px 20px; border-radius: 6px; font-size: 18px; font-weight: bold; display: inline-block; margin: 10px 0; }
           </style>
         </head>
@@ -161,8 +163,8 @@ const handler = async (req: Request): Promise<Response> => {
             <div class="content">
               <div class="alert-box">
                 <h2>Nueva orden #${inviteCode}</h2>
-                <p><strong>Espera una transferencia de:</strong></p>
-                <div class="amount">$${totalAmount.toLocaleString('es-CL')} CLP</div>
+                <p><strong>Recibirás cuando se complete:</strong></p>
+                <div class="amount">$${sellerReceives.toLocaleString('es-CL')} CLP</div>
                 <div class="reference">${inviteCode}</div>
               </div>
               
@@ -170,13 +172,13 @@ const handler = async (req: Request): Promise<Response> => {
               <ul>
                 <li><strong>Producto:</strong> ${productName}</li>
                 <li><strong>Vendedor:</strong> ${sellerName} (${sellerEmail})</li>
-                <li><strong>Monto Base:</strong> $${amount.toLocaleString('es-CL')} CLP</li>
-                <li><strong>Comisión:</strong> $${commission.toLocaleString('es-CL')} CLP</li>
-                <li><strong>Total a Recibir:</strong> $${totalAmount.toLocaleString('es-CL')} CLP</li>
+                <li><strong>Precio del Producto:</strong> $${buyerPays.toLocaleString('es-CL')} CLP</li>
+                <li><strong>Comisión Trado:</strong> $${commission.toLocaleString('es-CL')} CLP</li>
+                <li><strong>Total a Recibir:</strong> $${sellerReceives.toLocaleString('es-CL')} CLP</li>
               </ul>
               
               <p style="color: #666; margin-top: 30px;">
-                Revisa tu cuenta bancaria y confirma cuando recibas la transferencia con el código de referencia.
+                Comparte el enlace de invitación con el comprador para que se una a la transacción.
               </p>
             </div>
           </div>
