@@ -141,12 +141,13 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("Billetera del vendedor no encontrada");
     }
 
-    // Recalculate commission using the same logic as frontend
+    // Use commission from database (stored when transaction was created)
     const transactionAmount = Number(tx.amount);
-    const baseFee = transactionAmount * 0.05;
-    const roundedFee = Math.round(baseFee / 10) * 10;
-    const feeWithFloor = Math.max(roundedFee, 1000);
-    const calculatedCommission = Math.min(feeWithFloor, 20000);
+    const calculatedCommission = Number(tx.commission) || 0;
+    
+    if (!tx.commission) {
+      console.warn(`[confirm-delivery] Transaction ${transactionId} has no commission stored, using 0`);
+    }
 
     // Determine how much the seller receives based on initiator_role
     // If buyer initiated: buyer already paid price + commission, so seller gets full amount
