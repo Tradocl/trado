@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -132,6 +133,7 @@ const chileanBanks = [
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { setTheme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -805,7 +807,7 @@ const Profile = () => {
                   <div className="flex items-center gap-3">
                     <Edit2 className="h-5 w-5 text-primary" />
                     <div>
-                      <CardTitle className="text-base">Personalizar Dashboard</CardTitle>
+                      <CardTitle className="text-base">Personalizar panel de control</CardTitle>
                       <CardDescription className="text-xs">
                         Apodo, color, fondo y tema
                       </CardDescription>
@@ -869,7 +871,7 @@ const Profile = () => {
                   <div className="grid grid-cols-3 gap-2">
                     <button
                       type="button"
-                      onClick={() => setSelectedTheme("light")}
+                      onClick={() => { setSelectedTheme("light"); setTheme("light"); }}
                       className={`flex items-center justify-center gap-2 h-10 rounded-lg border transition-all duration-200 ${
                         selectedTheme === "light"
                           ? "border-primary bg-primary/10 text-primary"
@@ -881,7 +883,7 @@ const Profile = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setSelectedTheme("dark")}
+                      onClick={() => { setSelectedTheme("dark"); setTheme("dark"); }}
                       className={`flex items-center justify-center gap-2 h-10 rounded-lg border transition-all duration-200 ${
                         selectedTheme === "dark"
                           ? "border-primary bg-primary/10 text-primary"
@@ -893,7 +895,7 @@ const Profile = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setSelectedTheme("system")}
+                      onClick={() => { setSelectedTheme("system"); setTheme("system"); }}
                       className={`flex items-center justify-center gap-2 h-10 rounded-lg border transition-all duration-200 ${
                         selectedTheme === "system"
                           ? "border-primary bg-primary/10 text-primary"
