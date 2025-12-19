@@ -146,6 +146,27 @@ export function MutualResolutionPanel({
         });
 
       if (error) throw error;
+
+      // Send notification to the other party
+      const distributionLabel = selectedRecipient === "buyer" 
+        ? `Reembolso al comprador (${formatCLP(totalAmount)})`
+        : `Liberar al vendedor (${formatCLP(totalAmount)})`;
+
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId,
+            actionType: "appeal_proposal_sent",
+            actorId: currentUserId,
+            additionalData: {
+              appealId,
+              distribution: distributionLabel,
+            },
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
       
       toast.success("Propuesta enviada correctamente");
       setMessage("");
@@ -203,6 +224,21 @@ export function MutualResolutionPanel({
         .eq("id", pendingProposal.id);
 
       if (error) throw error;
+
+      // Notify proposer
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId,
+            actionType: "appeal_proposal_rejected",
+            actorId: currentUserId,
+            additionalData: { appealId },
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
+
       toast.info("Propuesta rechazada. Puedes hacer una contra-propuesta.");
     } catch (error: any) {
       console.error("Error rejecting proposal:", error);
@@ -226,6 +262,21 @@ export function MutualResolutionPanel({
         .eq("id", pendingProposal.id);
 
       if (error) throw error;
+
+      // Notify the other party
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId,
+            actionType: "appeal_proposal_cancelled",
+            actorId: currentUserId,
+            additionalData: { appealId },
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
+
       toast.success("Propuesta cancelada");
     } catch (error: any) {
       console.error("Error cancelling proposal:", error);

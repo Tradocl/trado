@@ -225,6 +225,13 @@ export function EscalationPanel({
 
     setEscalating(true);
     try {
+      // Get transaction ID from appeal
+      const { data: appealData } = await supabase
+        .from("appeals")
+        .select("transaction_id")
+        .eq("id", appealId)
+        .single();
+
       const { error } = await supabase
         .from("appeals")
         .update({
@@ -237,6 +244,22 @@ export function EscalationPanel({
         .eq("id", appealId);
 
       if (error) throw error;
+
+      // Send notification to the other party
+      if (appealData?.transaction_id) {
+        try {
+          await supabase.functions.invoke("notify-transaction-action", {
+            body: {
+              transactionId: appealData.transaction_id,
+              actionType: "appeal_escalated",
+              actorId: currentUserId,
+              additionalData: { appealId },
+            },
+          });
+        } catch (notifyError) {
+          console.error("Error sending notification:", notifyError);
+        }
+      }
       
       toast.success("Caso enviado a revisión de administradores");
       onRefresh();

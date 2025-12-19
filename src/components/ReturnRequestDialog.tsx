@@ -92,6 +92,21 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
 
       if (txError) throw txError;
 
+      // Notify seller about return request
+      const reasonLabel = [...sellerFaultReasons, ...buyerFaultReasons].find(r => r.value === reason)?.label;
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId,
+            actionType: "return_requested",
+            actorId: userId,
+            additionalData: { reason: reasonLabel },
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
+
       toast.success(
         responsibilityType === "buyer_fault" 
           ? "Solicitud de devolución creada - Procede a enviar el producto" 

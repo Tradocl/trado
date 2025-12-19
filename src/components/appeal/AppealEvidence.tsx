@@ -198,6 +198,28 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin 
         setPendingFiles([]);
         setComment("");
         await fetchEvidence();
+
+        // Get transaction ID from appeal to send notification
+        const { data: appealData } = await supabase
+          .from("appeals")
+          .select("transaction_id")
+          .eq("id", appealId)
+          .single();
+
+        if (appealData?.transaction_id) {
+          try {
+            await supabase.functions.invoke("notify-transaction-action", {
+              body: {
+                transactionId: appealData.transaction_id,
+                actionType: "appeal_evidence_uploaded",
+                actorId: currentUserId,
+                additionalData: { appealId },
+              },
+            });
+          } catch (notifyError) {
+            console.error("Error sending notification:", notifyError);
+          }
+        }
       } else {
         toast.error("No se pudo subir ningún archivo");
       }

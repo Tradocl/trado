@@ -59,6 +59,19 @@ export const ReturnSellerResponsePanel = ({
 
       if (error) throw error;
 
+      // Notify buyer that return was accepted
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId,
+            actionType: "return_accepted",
+            actorId: sellerId,
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
+
       toast.success("Has aceptado la devolución - Tú pagarás el envío de retorno");
       onResponse();
     } catch (error: any) {
@@ -88,13 +101,12 @@ export const ReturnSellerResponsePanel = ({
 
       if (returnError) throw returnError;
 
-      // Create appeal for return mediation - uses special reason "mediacion_devolucion"
-      // This opens the appeal room with chat and evidence but resolves with shipping cost decision
+      // Create appeal for return mediation
       const { data: appealData, error: appealError } = await supabase
         .from("appeals")
         .insert({
           transaction_id: transactionId,
-          initiator_id: sellerId, // Seller initiates the mediation appeal
+          initiator_id: sellerId,
           reason: "otro" as Database["public"]["Enums"]["appeal_reason"],
           reason_description: `[MEDIACIÓN DEVOLUCIÓN] El vendedor rechazó la solicitud de devolución. Motivo del rechazo: ${rejectionReason.trim()}`,
           status: "pendiente_intervencion_plataforma" as Database["public"]["Enums"]["appeal_status"],
@@ -136,9 +148,21 @@ El vendedor ha rechazado la solicitud de devolución. Un administrador decidirá
           message: systemMessage,
         });
 
+      // Notify buyer that return was rejected
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId,
+            actionType: "return_rejected",
+            actorId: sellerId,
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
+
       toast.success("Caso enviado a mediación");
       
-      // Navigate to return room (not appeal room)
       if (returnRequest?.id) {
         navigate(`/return/${returnRequest.id}`);
       } else {
