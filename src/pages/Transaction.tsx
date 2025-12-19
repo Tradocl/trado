@@ -1014,8 +1014,8 @@ const Transaction = () => {
           </Card>
         )}
 
-        {/* Active Appeal Alert - Only show for non-return mediation appeals */}
-        {activeAppeal && !activeAppeal.reason_description?.startsWith("[MEDIACIÓN DEVOLUCIÓN]") && (
+        {/* Active Appeal Alert - Only show for non-return mediation appeals and when not resolved */}
+        {activeAppeal && !activeAppeal.reason_description?.startsWith("[MEDIACIÓN DEVOLUCIÓN]") && !isAppealResolved && (
           <Card className="border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 animate-scale-in">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
