@@ -76,6 +76,7 @@ const Transaction = () => {
   const [buyerProfile, setBuyerProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeAppeal, setActiveAppeal] = useState<any>(null);
+  const [appealDecision, setAppealDecision] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
@@ -199,20 +200,36 @@ const Transaction = () => {
       setTransaction(txData);
       checkIfUserHasRated();
 
-      // Check if there's an active appeal (not closed)
-      if (txData.appeal_status && txData.appeal_status !== "no_hay_apelacion" && txData.appeal_status !== "cerrada") {
+      // Check if there's an active or resolved appeal
+      const resolvedAppealStatusList = ['resuelta_a_favor_comprador', 'resuelta_a_favor_vendedor', 'resuelta_parcial', 'cerrada'];
+      if (txData.appeal_status && txData.appeal_status !== "no_hay_apelacion") {
         const { data: appealData } = await supabase
           .from("appeals")
           .select("*")
           .eq("transaction_id", id)
-          .neq("status", "cerrada")
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
         
         setActiveAppeal(appealData);
+        
+        // Load decision if appeal is resolved
+        if (appealData && resolvedAppealStatusList.includes(txData.appeal_status)) {
+          const { data: decisionData } = await supabase
+            .from("appeal_decisions")
+            .select("*")
+            .eq("appeal_id", appealData.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          setAppealDecision(decisionData);
+        } else {
+          setAppealDecision(null);
+        }
       } else {
         setActiveAppeal(null);
+        setAppealDecision(null);
       }
 
       // Load seller profile using safe function (only non-sensitive fields)
@@ -1107,6 +1124,71 @@ const Transaction = () => {
                   </p>
                   <p className="text-sm text-muted-foreground mt-3">
                     Tiempo estimado de respuesta: 24-48 horas
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Appeal Resolution Result Panel */}
+        {isAppealResolved && appealDecision && (
+          <Card className="border-2 border-emerald-200 dark:border-emerald-800 shadow-xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <p className="font-bold text-lg text-emerald-900 dark:text-emerald-100">
+                      {appealDecision.is_mutual_agreement ? "Acuerdo Mutuo Alcanzado" : "Apelación Resuelta"}
+                    </p>
+                    <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                      {appealDecision.is_mutual_agreement && "Las partes llegaron a un acuerdo sin intervención del administrador"}
+                      {!appealDecision.is_mutual_agreement && transaction.appeal_status === "resuelta_a_favor_comprador" && "Decisión a favor del comprador"}
+                      {!appealDecision.is_mutual_agreement && transaction.appeal_status === "resuelta_a_favor_vendedor" && "Decisión a favor del vendedor"}
+                      {!appealDecision.is_mutual_agreement && transaction.appeal_status === "resuelta_parcial" && "Resolución parcial acordada"}
+                      {!appealDecision.is_mutual_agreement && transaction.appeal_status === "cerrada" && "Caso cerrado"}
+                    </p>
+                  </div>
+                  
+                  {/* Distribution amounts */}
+                  {(appealDecision.buyer_refund_amount > 0 || appealDecision.seller_payment_amount > 0) && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {appealDecision.buyer_refund_amount > 0 && (
+                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">Reembolso al Comprador</p>
+                          <p className="text-lg font-bold text-emerald-900 dark:text-emerald-100">${formatCLP(appealDecision.buyer_refund_amount)}</p>
+                        </div>
+                      )}
+                      {appealDecision.seller_payment_amount > 0 && (
+                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">Pago al Vendedor</p>
+                          <p className="text-lg font-bold text-emerald-900 dark:text-emerald-100">${formatCLP(appealDecision.seller_payment_amount)}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Resolution notes */}
+                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
+                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">
+                      {appealDecision.is_mutual_agreement ? "Detalle del acuerdo:" : "Notas del administrador:"}
+                    </p>
+                    <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                      {appealDecision.resolution_notes}
+                    </p>
+                  </div>
+                  
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                    Resuelto el {new Date(appealDecision.created_at).toLocaleDateString("es-CL", { 
+                      day: "numeric", 
+                      month: "long", 
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })}
                   </p>
                 </div>
               </div>

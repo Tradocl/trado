@@ -370,6 +370,34 @@ serve(async (req) => {
 
     console.log("[resolve-appeal] Appeal resolution completed successfully:", { appealId, newStatus, escrowAmount, buyerRefundAmount, sellerPaymentAmount });
 
+    // Send notification emails to both parties (fire and forget)
+    try {
+      const notifyResponse = await fetch(`${supabaseUrl}/functions/v1/notify-appeal-resolved`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseServiceRoleKey}`,
+        },
+        body: JSON.stringify({
+          appealId,
+          resolution,
+          resolutionNotes: resolutionNotes.trim(),
+          buyerRefundAmount,
+          sellerPaymentAmount,
+          isMutualAgreement: false,
+        }),
+      });
+      
+      if (!notifyResponse.ok) {
+        console.error("[resolve-appeal] Failed to send notification emails:", await notifyResponse.text());
+      } else {
+        console.log("[resolve-appeal] Notification emails sent successfully");
+      }
+    } catch (notifyError) {
+      console.error("[resolve-appeal] Error sending notification emails:", notifyError);
+      // Don't fail the resolution if notification fails
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
