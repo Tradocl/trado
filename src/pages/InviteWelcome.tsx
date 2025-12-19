@@ -40,37 +40,35 @@ const InviteWelcome = () => {
     if (!id) return;
 
     try {
-      // Fetch basic transaction info (public fields only)
+      // Use public RPC function that doesn't require authentication
       const { data: txData, error: txError } = await supabase
-        .from("transactions")
-        .select("id, product_name, product_description, amount, sale_type, seller_id")
-        .eq("id", id)
-        .single();
+        .rpc("get_transaction_preview", { transaction_id: id });
 
-      if (txError) {
+      if (txError || !txData || txData.length === 0) {
         setError("Transacción no encontrada");
         setLoading(false);
         return;
       }
 
-      // Get seller name using safe function
-      let sellerName = null;
-      if (txData.seller_id) {
-        const { data: sellerData } = await supabase
-          .rpc("get_safe_profile", { profile_id: txData.seller_id })
-          .single();
-        sellerName = sellerData?.full_name || sellerData?.nickname || null;
+      const preview = txData[0];
+      
+      // Check if transaction is still joinable
+      if (preview.state === 'completed' || preview.state === 'cancelled') {
+        setError("Esta transacción ya no está disponible");
+        setLoading(false);
+        return;
       }
 
       setTransaction({
-        id: txData.id,
-        product_name: txData.product_name,
-        product_description: txData.product_description,
-        amount: txData.amount,
-        sale_type: txData.sale_type,
-        seller_name: sellerName,
+        id: preview.id,
+        product_name: preview.product_name,
+        product_description: preview.product_description,
+        amount: preview.amount,
+        sale_type: preview.sale_type,
+        seller_name: preview.seller_name,
       });
     } catch (err: any) {
+      console.error("Error loading transaction preview:", err);
       setError("Error al cargar la invitación");
     } finally {
       setLoading(false);
