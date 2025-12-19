@@ -30,25 +30,10 @@ const Index = () => {
               Compra y vende con total seguridad. Tu dinero protegido hasta que confirmes la entrega.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex justify-center pt-4">
               <Button size="lg" onClick={() => navigate("/auth")} className="bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-8 py-6 h-auto">
                 Comenzar Ahora
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button size="lg" onClick={() => navigate("/auth")} className="bg-primary-foreground/20 backdrop-blur-md border-2 border-white text-white hover:bg-primary-foreground/30 shadow-xl text-lg px-8 py-6 h-auto">
-                Iniciar Sesión
-                <Lock className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-            <div className="pt-2">
-              <Button 
-                variant="ghost" 
-                size="lg" 
-                onClick={handleExploreAsGuest} 
-                className="text-white/80 hover:text-white hover:bg-white/10 text-base"
-              >
-                <Eye className="mr-2 h-5 w-5" />
-                Explorar sin cuenta
               </Button>
             </div>
           </div>
