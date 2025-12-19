@@ -203,6 +203,24 @@ const actionConfig: Record<string, {
     ctaText: "Ver Detalles",
     ctaPath: "transaction",
   },
+  // Mutual proposal acceptance
+  mutual_proposal_accepted: {
+    emoji: "🤝",
+    title: "¡Acuerdo Mutuo Aceptado!",
+    getDescription: (actorName, productName, data) => {
+      let distributionText = "Los fondos han sido distribuidos según el acuerdo.";
+      if (data?.buyerAmount && data?.sellerAmount) {
+        distributionText = `Comprador: $${Number(data.buyerAmount).toLocaleString('es-CL')}, Vendedor: $${Number(data.sellerAmount).toLocaleString('es-CL')}`;
+      } else if (data?.buyerAmount) {
+        distributionText = `Reembolso total de $${Number(data.buyerAmount).toLocaleString('es-CL')} al comprador.`;
+      } else if (data?.sellerAmount) {
+        distributionText = `Fondos liberados de $${Number(data.sellerAmount).toLocaleString('es-CL')} al vendedor.`;
+      }
+      return `Se ha aceptado el acuerdo mutuo para la apelación de <strong>${productName}</strong>. ${distributionText}`;
+    },
+    ctaText: "Ver Transacción",
+    ctaPath: "transaction",
+  },
 };
 
 function generateEmailHtml(
