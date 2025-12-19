@@ -179,7 +179,7 @@ export default function ReturnRoom() {
             </div>
             <Button onClick={() => navigate("/dashboard")} className="w-full mt-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al Dashboard
+              Volver al inicio
             </Button>
           </div>
         </Card>
