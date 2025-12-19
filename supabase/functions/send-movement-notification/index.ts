@@ -103,8 +103,6 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    const adminEmail = "admin@trado.cl";
-    
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -113,8 +111,8 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "Trado Notificaciones <notificaciones@trado.cl>",
-        to: [adminEmail],
-        subject: `${statusEmoji} ${typeText} ${statusText} - ${userName}`,
+        to: [userEmail],
+        subject: `${statusEmoji} Trado - ${typeText} ${statusText}`,
         html: emailHtml,
       }),
     });

@@ -331,8 +331,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
-      to: ["josepabloacevedoolivares@gmail.com"],
-      subject: `🔔 Nueva orden creada #${inviteCode}`,
+      to: [sellerEmail],
+      subject: `🔔 Trado - Nueva orden creada #${inviteCode}`,
       html: emailHtml,
     });
 
