@@ -514,7 +514,7 @@ const Wallet = () => {
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Volver</span>
+            <span className="hidden sm:inline">Volver al inicio</span>
           </Button>
         </div>
       </header>
