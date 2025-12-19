@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,11 +20,15 @@ interface TransactionPreview {
 
 const InviteWelcome = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [transaction, setTransaction] = useState<TransactionPreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get invite code from URL query parameter for security validation
+  const inviteCode = searchParams.get('code');
 
   useEffect(() => {
     // If user is already logged in, redirect to transaction
@@ -40,12 +44,15 @@ const InviteWelcome = () => {
     if (!id) return;
 
     try {
-      // Use public RPC function that doesn't require authentication
+      // Use public RPC function that requires invite code for security
       const { data: txData, error: txError } = await supabase
-        .rpc("get_transaction_preview", { transaction_id: id });
+        .rpc("get_transaction_preview", { 
+          transaction_id: id,
+          invite_code_param: inviteCode || undefined
+        });
 
       if (txError || !txData || txData.length === 0) {
-        setError("Transacción no encontrada");
+        setError("Transacción no encontrada o código de invitación inválido");
         setLoading(false);
         return;
       }

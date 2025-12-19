@@ -265,8 +265,8 @@ const Transaction = () => {
   };
 
   const copyInviteLink = () => {
-    if (transaction?.id) {
-      // Use /invite/ path for the invitation link
+    if (transaction?.id && transaction?.invite_code) {
+      // Use /invite/ path for the invitation link with invite code for security
       const origin = window.location.origin;
       let appUrl = origin;
       if (origin.includes('id-preview--') || origin.includes('localhost')) {
@@ -277,7 +277,7 @@ const Transaction = () => {
           appUrl = 'https://wpczgwxsriezaubncuom.lovable.app';
         }
       }
-      const link = `${appUrl}/invite/${transaction.id}`;
+      const link = `${appUrl}/invite/${transaction.id}?code=${encodeURIComponent(transaction.invite_code)}`;
       navigator.clipboard.writeText(link);
       setCopiedLink(true);
       toast.success("Enlace copiado al portapapeles");
