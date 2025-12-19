@@ -25,6 +25,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending verification result notification:", { userEmail, userName, status });
 
     const isApproved = status === "approved";
+    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
     
     const emailHtml = isApproved ? `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -35,14 +36,14 @@ const handler = async (req: Request): Promise<Response> => {
         
         <div style="background-color: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #22c55e;">
           <p style="margin: 0; font-size: 16px; color: #15803d;">
-            <strong>¡Felicitaciones!</strong> Tu identidad ha sido verificada exitosamente.
+            <strong>¡Felicitaciones!</strong> Tu identidad ha sido verificada exitosamente en Trado.
           </p>
         </div>
         
         <p>Tu cuenta ahora tiene el sello de verificación, lo que aumentará tu reputación en la plataforma y generará más confianza con otros usuarios.</p>
         
         <p style="margin-top: 30px;">
-          <a href="${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '') || 'https://app.trado.cl'}" 
+          <a href="${baseUrl}/dashboard" 
              style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; 
                     text-decoration: none; border-radius: 5px; font-weight: bold;">
             Ir a Trado
@@ -64,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         <div style="background-color: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
           <p style="margin: 0; font-size: 16px; color: #991b1b;">
-            Lamentablemente, no pudimos verificar tu identidad con la documentación enviada.
+            Lamentablemente, no pudimos verificar tu identidad con la documentación enviada en Trado.
           </p>
         </div>
         
@@ -87,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p>Puedes intentar nuevamente subiendo imágenes más claras donde se vean todos los datos de tu cédula y tu rostro de forma nítida.</p>
         
         <p style="margin-top: 30px;">
-          <a href="${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '') || 'https://app.trado.cl'}/verificacion" 
+          <a href="${baseUrl}/verification" 
              style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; 
                     text-decoration: none; border-radius: 5px; font-weight: bold;">
             Intentar Nuevamente

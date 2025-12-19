@@ -14,6 +14,7 @@ interface TransactionCompletedRequest {
   sellerName: string;
   productName: string;
   amount: number;
+  commission: number;
   transactionId: string;
 }
 
@@ -406,6 +407,7 @@ const handler = async (req: Request): Promise<Response> => {
       sellerName, 
       productName, 
       amount,
+      commission,
       transactionId 
     }: TransactionCompletedRequest = await req.json();
     
@@ -419,7 +421,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const commission = amount * 0.03;
+    // Use provided commission or default to 3%
+    const actualCommission = commission ?? (amount * 0.03);
 
     // Send email to buyer
     const buyerEmailHtml = generateBuyerEmailHtml(buyerName, productName, amount, sellerName, transactionId);
@@ -432,7 +435,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Trado <notificaciones@trado.cl>",
         to: [buyerEmail],
-        subject: `✅ Transacción completada - ${productName}`,
+        subject: `✅ Trado - Transacción completada - ${productName}`,
         html: buyerEmailHtml,
       }),
     });
@@ -441,7 +444,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Buyer email response:", buyerEmailData);
 
     // Send email to seller
-    const sellerEmailHtml = generateSellerEmailHtml(sellerName, productName, amount, commission, buyerName, transactionId);
+    const sellerEmailHtml = generateSellerEmailHtml(sellerName, productName, amount, actualCommission, buyerName, transactionId);
     const sellerEmailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -451,7 +454,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Trado <notificaciones@trado.cl>",
         to: [sellerEmail],
-        subject: `💰 ¡Venta completada! - ${productName}`,
+        subject: `💰 Trado - ¡Venta completada! - ${productName}`,
         html: sellerEmailHtml,
       }),
     });
