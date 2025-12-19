@@ -31,6 +31,7 @@ const CreateTransaction = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdTransactionId, setCreatedTransactionId] = useState<string | null>(null);
+  const [createdInviteCode, setCreatedInviteCode] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [saleType, setSaleType] = useState<SaleType>("producto_envio");
   const [mainType, setMainType] = useState<MainType>("producto");
@@ -173,6 +174,7 @@ const CreateTransaction = () => {
 
       setShowConfirmModal(false);
       setCreatedTransactionId(transaction.id);
+      setCreatedInviteCode(inviteCode);
       setShowSuccessModal(true);
     } catch (error: any) {
       toast.error("Error al crear transacción: " + error.message);
@@ -198,9 +200,9 @@ const CreateTransaction = () => {
   };
 
   const copyInviteLink = () => {
-    if (createdTransactionId) {
+    if (createdTransactionId && createdInviteCode) {
       const appUrl = getAppUrl();
-      const link = `${appUrl}/invite/${createdTransactionId}`;
+      const link = `${appUrl}/invite/${createdTransactionId}?code=${encodeURIComponent(createdInviteCode)}`;
       navigator.clipboard.writeText(link);
       setCopiedLink(true);
       toast.success("Enlace copiado al portapapeles");
@@ -209,9 +211,9 @@ const CreateTransaction = () => {
   };
 
   const shareInviteLink = async () => {
-    if (createdTransactionId && formData) {
+    if (createdTransactionId && createdInviteCode && formData) {
       const appUrl = getAppUrl();
-      const link = `${appUrl}/invite/${createdTransactionId}`;
+      const link = `${appUrl}/invite/${createdTransactionId}?code=${encodeURIComponent(createdInviteCode)}`;
       const text = `Te invito a unirte a mi transacción segura en Trado para: ${formData.productName}`;
       
       if (navigator.share) {
@@ -232,9 +234,9 @@ const CreateTransaction = () => {
   };
 
   const shareViaWhatsApp = () => {
-    if (createdTransactionId && formData) {
+    if (createdTransactionId && createdInviteCode && formData) {
       const appUrl = getAppUrl();
-      const link = `${appUrl}/invite/${createdTransactionId}`;
+      const link = `${appUrl}/invite/${createdTransactionId}?code=${encodeURIComponent(createdInviteCode)}`;
       const text = `¡Hola! Te invito a unirte a mi transacción segura en Trado para: *${formData.productName}*\n\nÚnete aquí: ${link}`;
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(whatsappUrl, '_blank');
