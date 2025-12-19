@@ -421,8 +421,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Use provided commission or default to 3%
-    const actualCommission = commission ?? (amount * 0.03);
+    // Use provided commission (should always be provided from database)
+    const actualCommission = commission ?? 0;
 
     // Send email to buyer
     const buyerEmailHtml = generateBuyerEmailHtml(buyerName, productName, amount, sellerName, transactionId);
