@@ -13,6 +13,34 @@ serve(async (req) => {
   }
 
   try {
+    // Create admin client with service role key
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Authenticate the request
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.error("Missing or invalid authorization header");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: authenticatedUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !authenticatedUser) {
+      console.error("Invalid token:", authError?.message);
+      return new Response(
+        JSON.stringify({ error: "Invalid token" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const { userId, force } = await req.json();
 
     if (!userId) {
@@ -22,14 +50,16 @@ serve(async (req) => {
       );
     }
 
-    console.log("Attempting to delete user:", userId, "force:", force);
+    // Users can only delete their own account
+    if (authenticatedUser.id !== userId) {
+      console.error("User attempted to delete another account:", authenticatedUser.id, "->", userId);
+      return new Response(
+        JSON.stringify({ error: "Can only delete own account" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
-    // Create admin client with service role key
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    console.log("Attempting to delete user:", userId, "force:", force, "authenticated as:", authenticatedUser.id);
 
     // If not forcing, verify the user is actually incomplete (no RUT or phone in profile)
     if (!force) {
