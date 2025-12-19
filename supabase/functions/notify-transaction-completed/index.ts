@@ -18,235 +18,376 @@ interface TransactionCompletedRequest {
 }
 
 const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
+  return `$${amount.toLocaleString('es-CL')}`;
 };
 
-const generateBuyerEmailHtml = (buyerName: string, productName: string, amount: number, sellerName: string) => `
+const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
+
+const generateBuyerEmailHtml = (buyerName: string, productName: string, amount: number, sellerName: string, transactionId: string) => `
 <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transacción Completada - Trado</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+        line-height: 1.6; 
+        color: #1a1a1a; 
+        margin: 0;
+        padding: 0;
+        background-color: #f8fafc;
+      }
+      .container { 
+        max-width: 600px; 
+        margin: 0 auto; 
+        padding: 40px 20px;
+      }
+      .card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+      .header { 
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); 
+        color: white; 
+        padding: 32px; 
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .header .emoji {
+        font-size: 48px;
+        margin-bottom: 16px;
+        display: block;
+      }
+      .content { 
+        padding: 32px;
+      }
+      .highlight-box {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        margin-bottom: 24px;
+      }
+      .highlight-box .label {
+        font-size: 14px;
+        color: #166534;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+      .highlight-box .amount {
+        font-size: 36px;
+        font-weight: 700;
+        color: #15803d;
+        margin: 0;
+      }
+      .details {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+      .details h3 {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #374151;
+      }
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .detail-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .detail-row .label {
+        color: #6b7280;
+        font-size: 14px;
+      }
+      .detail-row .value {
+        color: #1f2937;
+        font-weight: 500;
+        font-size: 14px;
+      }
+      .cta-button {
+        display: block;
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        color: white !important;
+        text-decoration: none;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-align: center;
+        margin: 24px 0;
+        font-size: 16px;
+      }
+      .footer {
+        text-align: center;
+        padding: 24px;
+        color: #9ca3af;
+        font-size: 13px;
+        border-top: 1px solid #f3f4f6;
+      }
+      .footer a {
+        color: #7c3aed;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <span class="emoji">✅</span>
+          <h1>¡Compra Completada!</h1>
+        </div>
+        <div class="content">
+          <p style="margin: 0 0 24px 0; color: #4b5563;">
+            Hola <strong>${buyerName}</strong>, tu transacción ha sido completada exitosamente. Los fondos han sido liberados al vendedor.
+          </p>
           
-          <!-- Header -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding: 40px 30px; border-radius: 16px 16px 0 0; text-align: center;">
-              <div style="background-color: rgba(255, 255, 255, 0.2); width: 80px; height: 80px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <polyline points="22,4 12,14.01 9,11.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0;">¡Transacción Completada!</h1>
-              <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; margin: 8px 0 0 0;">Tu compra se ha realizado exitosamente</p>
-            </td>
-          </tr>
+          <div class="highlight-box">
+            <div class="label">Monto pagado</div>
+            <div class="amount">${formatCurrency(amount)}</div>
+          </div>
           
-          <!-- Content -->
-          <tr>
-            <td style="padding: 40px 30px;">
-              <p style="color: #52525b; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                Hola <strong style="color: #18181b;">${buyerName}</strong>,
-              </p>
-              
-              <p style="color: #52525b; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                ¡Excelente noticia! Tu transacción ha sido completada con éxito. Los fondos han sido liberados al vendedor.
-              </p>
-              
-              <!-- Transaction Details -->
-              <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%); border-radius: 12px; padding: 24px; border: 1px solid rgba(34, 197, 94, 0.2);">
-                <p style="color: #18181b; font-size: 14px; font-weight: 600; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">Detalles de la compra</p>
-                
-                <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                  <tr>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(34, 197, 94, 0.2);">
-                      <span style="color: #71717a; font-size: 14px;">Producto</span>
-                    </td>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(34, 197, 94, 0.2); text-align: right;">
-                      <span style="color: #18181b; font-size: 14px; font-weight: 500;">${productName}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(34, 197, 94, 0.2);">
-                      <span style="color: #71717a; font-size: 14px;">Vendedor</span>
-                    </td>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(34, 197, 94, 0.2); text-align: right;">
-                      <span style="color: #18181b; font-size: 14px; font-weight: 500;">${sellerName}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 12px 0;">
-                      <span style="color: #71717a; font-size: 14px;">Monto pagado</span>
-                    </td>
-                    <td style="padding: 12px 0; text-align: right;">
-                      <span style="color: #22c55e; font-size: 20px; font-weight: 700;">${formatCurrency(amount)}</span>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              
-              <p style="color: #71717a; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0;">
-                No olvides calificar tu experiencia con el vendedor. Tu opinión ayuda a otros usuarios a comprar con confianza.
-              </p>
-              
-              <!-- CTA Button -->
-              <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 32px 0;">
-                <tr>
-                  <td align="center">
-                    <a href="https://trado.cl/transaction-history" style="display: inline-block; background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600;">
-                      Ver mis transacciones
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+          <div class="details">
+            <h3>📦 Detalles de la compra</h3>
+            <div class="detail-row">
+              <span class="label">Producto</span>
+              <span class="value">${productName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Vendedor</span>
+              <span class="value">${sellerName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Total pagado</span>
+              <span class="value">${formatCurrency(amount)} CLP</span>
+            </div>
+          </div>
           
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #fafafa; padding: 20px 30px; border-radius: 0 0 16px 16px; border-top: 1px solid #e4e4e7; text-align: center;">
-              <p style="color: #a1a1aa; font-size: 12px; margin: 0;">
-                © 2024 Trado. Compra y vende con total seguridad.
-              </p>
-            </td>
-          </tr>
+          <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
+            No olvides calificar tu experiencia con el vendedor. Tu opinión ayuda a otros usuarios.
+          </p>
           
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
+          <a href="${baseUrl}/transaction/${transactionId}" class="cta-button">Ver Transacción</a>
+        </div>
+        <div class="footer">
+          <p>Este es un correo automático de <a href="${baseUrl}">Trado</a>.</p>
+          <p>Tu plataforma segura para transacciones entre personas.</p>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
 `;
 
-const generateSellerEmailHtml = (sellerName: string, productName: string, amount: number, commission: number, buyerName: string) => `
+const generateSellerEmailHtml = (sellerName: string, productName: string, amount: number, commission: number, buyerName: string, transactionId: string) => `
 <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>¡Venta Completada! - Trado</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+        line-height: 1.6; 
+        color: #1a1a1a; 
+        margin: 0;
+        padding: 0;
+        background-color: #f8fafc;
+      }
+      .container { 
+        max-width: 600px; 
+        margin: 0 auto; 
+        padding: 40px 20px;
+      }
+      .card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+      .header { 
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); 
+        color: white; 
+        padding: 32px; 
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .header .emoji {
+        font-size: 48px;
+        margin-bottom: 16px;
+        display: block;
+      }
+      .content { 
+        padding: 32px;
+      }
+      .highlight-box {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        margin-bottom: 24px;
+      }
+      .highlight-box .label {
+        font-size: 14px;
+        color: #166534;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+      .highlight-box .amount {
+        font-size: 36px;
+        font-weight: 700;
+        color: #15803d;
+        margin: 0;
+      }
+      .details {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+      .details h3 {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #374151;
+      }
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .detail-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .detail-row .label {
+        color: #6b7280;
+        font-size: 14px;
+      }
+      .detail-row .value {
+        color: #1f2937;
+        font-weight: 500;
+        font-size: 14px;
+      }
+      .detail-row.total .value {
+        color: #15803d;
+        font-weight: 700;
+      }
+      .detail-row .negative {
+        color: #dc2626;
+      }
+      .cta-button {
+        display: block;
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        color: white !important;
+        text-decoration: none;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-align: center;
+        margin: 24px 0;
+        font-size: 16px;
+      }
+      .cta-secondary {
+        display: block;
+        background: #f3f4f6;
+        color: #374151 !important;
+        text-decoration: none;
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-align: center;
+        margin: 8px 0 0 0;
+        font-size: 14px;
+      }
+      .footer {
+        text-align: center;
+        padding: 24px;
+        color: #9ca3af;
+        font-size: 13px;
+        border-top: 1px solid #f3f4f6;
+      }
+      .footer a {
+        color: #7c3aed;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <span class="emoji">💰</span>
+          <h1>¡Venta Completada!</h1>
+        </div>
+        <div class="content">
+          <p style="margin: 0 0 24px 0; color: #4b5563;">
+            Hola <strong>${sellerName}</strong>, el comprador ha confirmado la recepción y los fondos han sido liberados a tu billetera Trado.
+          </p>
           
-          <!-- Header -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #06b6d4 100%); padding: 40px 30px; border-radius: 16px 16px 0 0; text-align: center;">
-              <div style="background-color: rgba(255, 255, 255, 0.2); width: 80px; height: 80px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <line x1="12" y1="1" x2="12" y2="23" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0;">¡Venta Completada!</h1>
-              <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; margin: 8px 0 0 0;">Los fondos han sido liberados a tu billetera</p>
-            </td>
-          </tr>
+          <div class="highlight-box">
+            <div class="label">Recibiste en tu billetera</div>
+            <div class="amount">${formatCurrency(amount - commission)}</div>
+          </div>
           
-          <!-- Content -->
-          <tr>
-            <td style="padding: 40px 30px;">
-              <p style="color: #52525b; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                Hola <strong style="color: #18181b;">${sellerName}</strong>,
-              </p>
-              
-              <p style="color: #52525b; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                ¡Felicitaciones! El comprador ha confirmado la recepción del producto y los fondos han sido liberados a tu billetera Trado.
-              </p>
-              
-              <!-- Transaction Details -->
-              <div style="background: linear-gradient(135deg, rgba(13, 148, 136, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%); border-radius: 12px; padding: 24px; border: 1px solid rgba(13, 148, 136, 0.2);">
-                <p style="color: #18181b; font-size: 14px; font-weight: 600; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">Detalles de la venta</p>
-                
-                <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                  <tr>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, 0.2);">
-                      <span style="color: #71717a; font-size: 14px;">Producto vendido</span>
-                    </td>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, 0.2); text-align: right;">
-                      <span style="color: #18181b; font-size: 14px; font-weight: 500;">${productName}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, 0.2);">
-                      <span style="color: #71717a; font-size: 14px;">Comprador</span>
-                    </td>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, 0.2); text-align: right;">
-                      <span style="color: #18181b; font-size: 14px; font-weight: 500;">${buyerName}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, 0.2);">
-                      <span style="color: #71717a; font-size: 14px;">Precio de venta</span>
-                    </td>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, 0.2); text-align: right;">
-                      <span style="color: #18181b; font-size: 14px; font-weight: 500;">${formatCurrency(amount)}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, 0.2);">
-                      <span style="color: #71717a; font-size: 14px;">Comisión Trado (3%)</span>
-                    </td>
-                    <td style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, 0.2); text-align: right;">
-                      <span style="color: #ef4444; font-size: 14px;">-${formatCurrency(commission)}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 12px 0;">
-                      <span style="color: #18181b; font-size: 16px; font-weight: 600;">Total recibido</span>
-                    </td>
-                    <td style="padding: 12px 0; text-align: right;">
-                      <span style="color: #0d9488; font-size: 24px; font-weight: 700;">${formatCurrency(amount - commission)}</span>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              
-              <p style="color: #71717a; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0;">
-                El saldo ya está disponible en tu billetera. Puedes retirarlo a tu cuenta bancaria cuando quieras.
-              </p>
-              
-              <!-- CTA Buttons -->
-              <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 32px 0;">
-                <tr>
-                  <td align="center">
-                    <a href="https://trado.cl/wallet" style="display: inline-block; background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-right: 12px;">
-                      Ver mi billetera
-                    </a>
-                    <a href="https://trado.cl/create-sale" style="display: inline-block; background-color: #f4f4f5; color: #18181b; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600;">
-                      Nueva venta
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+          <div class="details">
+            <h3>📦 Detalles de la venta</h3>
+            <div class="detail-row">
+              <span class="label">Producto</span>
+              <span class="value">${productName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Comprador</span>
+              <span class="value">${buyerName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Precio de venta</span>
+              <span class="value">${formatCurrency(amount)} CLP</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Comisión Trado</span>
+              <span class="value negative">-${formatCurrency(commission)} CLP</span>
+            </div>
+            <div class="detail-row total">
+              <span class="label">Total recibido</span>
+              <span class="value">${formatCurrency(amount - commission)} CLP</span>
+            </div>
+          </div>
           
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #fafafa; padding: 20px 30px; border-radius: 0 0 16px 16px; border-top: 1px solid #e4e4e7; text-align: center;">
-              <p style="color: #a1a1aa; font-size: 12px; margin: 0;">
-                © 2024 Trado. Compra y vende con total seguridad.
-              </p>
-            </td>
-          </tr>
+          <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
+            El saldo ya está disponible en tu billetera. Puedes retirarlo a tu cuenta bancaria cuando quieras.
+          </p>
           
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
+          <a href="${baseUrl}/wallet" class="cta-button">Ver Mi Billetera</a>
+          <a href="${baseUrl}/create-transaction" class="cta-secondary">Crear Nueva Venta</a>
+        </div>
+        <div class="footer">
+          <p>Este es un correo automático de <a href="${baseUrl}">Trado</a>.</p>
+          <p>Tu plataforma segura para transacciones entre personas.</p>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
 `;
 
@@ -281,7 +422,7 @@ const handler = async (req: Request): Promise<Response> => {
     const commission = amount * 0.03;
 
     // Send email to buyer
-    const buyerEmailHtml = generateBuyerEmailHtml(buyerName, productName, amount, sellerName);
+    const buyerEmailHtml = generateBuyerEmailHtml(buyerName, productName, amount, sellerName, transactionId);
     const buyerEmailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -300,7 +441,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Buyer email response:", buyerEmailData);
 
     // Send email to seller
-    const sellerEmailHtml = generateSellerEmailHtml(sellerName, productName, amount, commission, buyerName);
+    const sellerEmailHtml = generateSellerEmailHtml(sellerName, productName, amount, commission, buyerName, transactionId);
     const sellerEmailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
