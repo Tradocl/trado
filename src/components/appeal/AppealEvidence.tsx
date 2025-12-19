@@ -80,12 +80,34 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin 
         }
       }
 
-      const evidenceWithUsers = evidenceData.map((item) => ({
-        ...item,
-        user_name: profilesMap.get(item.user_id) || "Usuario",
-      }));
+      // Generate signed URLs for private bucket files
+      const evidenceWithSignedUrls = await Promise.all(
+        evidenceData.map(async (item) => {
+          // Extract the file path from the stored URL
+          const urlParts = item.file_url.split('/appeal-evidence/');
+          const filePath = urlParts.length > 1 ? urlParts[1] : null;
+          
+          let signedUrl = item.file_url;
+          if (filePath) {
+            const { data: signedData } = await supabase.storage
+              .from("appeal-evidence")
+              .createSignedUrl(filePath, 3600); // 1 hour expiry
+            
+            if (signedData?.signedUrl) {
+              signedUrl = signedData.signedUrl;
+            }
+          }
+          
+          return {
+            ...item,
+            file_url: signedUrl,
+            original_file_url: item.file_url,
+            user_name: profilesMap.get(item.user_id) || "Usuario",
+          };
+        })
+      );
 
-      setEvidence(evidenceWithUsers);
+      setEvidence(evidenceWithSignedUrls);
     } catch (error: any) {
       console.error("Error fetching evidence:", error);
       toast.error("Error al cargar evidencias");
