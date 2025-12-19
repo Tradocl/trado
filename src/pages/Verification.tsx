@@ -268,7 +268,7 @@ const Verification = () => {
           onClick={() => navigate("/dashboard")}
           className="mb-4"
         >
-          ← Volver al Dashboard
+          ← Volver al inicio
         </Button>
 
         <Card>
