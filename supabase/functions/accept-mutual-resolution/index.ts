@@ -413,21 +413,24 @@ serve(async (req: Request): Promise<Response> => {
 
       console.log(`[accept-mutual-resolution] SUCCESS - Mutual resolution processed for appeal ${appealId}`);
 
-      // Send notification emails to both parties (fire and forget)
+      // Send notification emails to both parties using notify-transaction-action
       try {
-        const notifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/notify-appeal-resolved`, {
+        const notifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/notify-transaction-action`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
           },
           body: JSON.stringify({
-            appealId,
-            resolution,
-            resolutionNotes,
-            buyerRefundAmount: buyerFinalAmount,
-            sellerPaymentAmount: sellerFinalAmount,
-            isMutualAgreement: true,
+            transactionId,
+            actionType: "mutual_proposal_accepted",
+            actorId: userId,
+            additionalData: {
+              appealId,
+              resolution,
+              buyerAmount: buyerFinalAmount,
+              sellerAmount: sellerFinalAmount,
+            },
           }),
         });
         
