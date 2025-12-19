@@ -81,6 +81,26 @@ export function CreateAppealDialog({ transactionId, userId, saleType }: CreateAp
 
       if (updateError) throw updateError;
 
+      // Get reason label for notification
+      const reasonLabel = reasons.find(r => r.value === reason)?.label || reason;
+
+      // Notify the other party
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId,
+            actionType: "appeal_created",
+            actorId: userId,
+            additionalData: {
+              reason: reasonLabel,
+              appealId: appeal.id,
+            },
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
+
       toast.success("Apelación creada correctamente");
       setOpen(false);
       navigate(`/appeal/${appeal.id}`);

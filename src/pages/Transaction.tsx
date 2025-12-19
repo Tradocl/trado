@@ -328,6 +328,19 @@ const Transaction = () => {
         throw new Error(data.error);
       }
 
+      // Notify the seller that buyer deposited funds
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId: transaction.id,
+            actionType: "funds_deposited",
+            actorId: user.id,
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
+
       toast.success("¡Fondos bloqueados en garantía!");
       setDepositDialogOpen(false);
       loadTransaction();
@@ -421,6 +434,22 @@ const Transaction = () => {
         .update(updateData)
         .eq("id", transaction.id);
 
+      // Notify the buyer that order was shipped
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId: transaction.id,
+            actionType: "marked_shipped",
+            actorId: user.id,
+            additionalData: transaction.sale_type === "producto_envio" 
+              ? { trackingInfo: `${finalCarrier} - ${shippingTrackingNumber.trim()}` }
+              : undefined,
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
+
       toast.success("¡Marcado como enviado! El comprador será notificado.");
       setShippingDialogOpen(false);
       setShippingTrackingNumber("");
@@ -443,6 +472,19 @@ const Transaction = () => {
         .from("transactions")
         .update({ state: "awaiting_buyer_review" })
         .eq("id", transaction.id);
+
+      // Notify the seller that buyer received the product
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId: transaction.id,
+            actionType: "marked_received",
+            actorId: user.id,
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
 
       toast.success("¡Producto recibido! Ahora puedes revisarlo con calma.");
       loadTransaction();
@@ -680,6 +722,19 @@ const Transaction = () => {
         });
       } catch (emailError) {
         console.error("Error sending payment instructions:", emailError);
+      }
+
+      // Notify the seller/creator that someone joined
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId: transaction.id,
+            actionType: "buyer_joined",
+            actorId: user.id,
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
       }
 
       toast.success("¡Te uniste a la transacción exitosamente!");

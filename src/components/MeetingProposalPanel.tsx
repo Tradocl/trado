@@ -121,30 +121,22 @@ export const MeetingProposalPanel = ({
 
       if (error) throw error;
 
-      // Get recipient info and send notification
-      const recipientId = isSeller ? buyerId : sellerId;
-      const recipientName = isSeller ? buyerName : sellerName;
-      const proposerName = isSeller ? sellerName : buyerName;
-      
-      // Fetch recipient email and product name
-      const [profileResult, transactionResult] = await Promise.all([
-        supabase.from("profiles").select("email").eq("id", recipientId).single(),
-        supabase.from("transactions").select("product_name").eq("id", transactionId).single()
-      ]);
-
-      if (profileResult.data?.email && transactionResult.data?.product_name) {
-        await supabase.functions.invoke("notify-meeting-proposal", {
+      // Send notification to the other party
+      const formattedDate = format(proposedDatetime, "EEEE d 'de' MMMM 'a las' HH:mm", { locale: es });
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
           body: {
             transactionId,
-            proposerName,
-            recipientEmail: profileResult.data.email,
-            recipientName,
-            productName: transactionResult.data.product_name,
-            location: location.trim(),
-            datetime: proposedDatetime.toISOString(),
-            message: message.trim() || undefined,
+            actionType: "meeting_proposed",
+            actorId: userId,
+            additionalData: {
+              location: location.trim(),
+              datetime: formattedDate,
+            },
           },
         });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
       }
 
       toast.success("¡Propuesta de encuentro enviada!");
@@ -185,6 +177,22 @@ export const MeetingProposalPanel = ({
 
       if (txError) throw txError;
 
+      // Find the proposal to get proposer info and notify them
+      const proposal = proposals.find(p => p.id === proposalId);
+      if (proposal) {
+        try {
+          await supabase.functions.invoke("notify-transaction-action", {
+            body: {
+              transactionId,
+              actionType: "meeting_accepted",
+              actorId: userId,
+            },
+          });
+        } catch (notifyError) {
+          console.error("Error sending notification:", notifyError);
+        }
+      }
+
       toast.success("¡Encuentro confirmado! Ahora coordinen la entrega.");
       loadProposals();
       onMeetingConfirmed?.();
@@ -204,6 +212,19 @@ export const MeetingProposalPanel = ({
         .eq("id", proposalId);
 
       if (error) throw error;
+
+      // Notify proposer that their proposal was rejected
+      try {
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId,
+            actionType: "meeting_rejected",
+            actorId: userId,
+          },
+        });
+      } catch (notifyError) {
+        console.error("Error sending notification:", notifyError);
+      }
 
       toast.info("Propuesta rechazada. Puedes proponer otra opción.");
       loadProposals();
