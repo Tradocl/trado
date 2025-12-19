@@ -312,6 +312,7 @@ serve(async (req: Request): Promise<Response> => {
             sellerName: sellerProfileData.full_name,
             productName: tx.product_name,
             amount: transactionAmount,
+            commission: tx.commission || 0,
             transactionId: tx.id,
           }),
         });
