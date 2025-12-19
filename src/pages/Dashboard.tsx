@@ -66,6 +66,13 @@ const stateLabels: Record<string, { label: string; color: string }> = {
   in_dispute: { label: "En Disputa", color: "bg-orange-500" },
 };
 
+const appealStatusLabels: Record<string, { label: string; color: string }> = {
+  apelacion_abierta: { label: "En Apelación", color: "bg-orange-500" },
+  en_negociacion: { label: "En Negociación", color: "bg-amber-500" },
+  pendiente_intervencion_plataforma: { label: "Esperando Intervención", color: "bg-red-500" },
+  en_revision_plataforma: { label: "En Revisión Admin", color: "bg-purple-500" },
+};
+
 const getCardGradient = (color: string): string => {
   const gradients: Record<string, string> = {
     primary: "bg-gradient-to-br from-primary to-primary-light",
@@ -460,9 +467,16 @@ const Dashboard = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="font-semibold truncate">{transaction.product_name}</h4>
-                              <Badge className={`${stateLabels[transaction.state]?.color || "bg-gray-500"} text-xs`}>
-                                {stateLabels[transaction.state]?.label || transaction.state}
-                              </Badge>
+                              {/* Show appeal status if active, otherwise show transaction state */}
+                              {transaction.appeal_status && appealStatusLabels[transaction.appeal_status] ? (
+                                <Badge className={`${appealStatusLabels[transaction.appeal_status].color} text-xs`}>
+                                  {appealStatusLabels[transaction.appeal_status].label}
+                                </Badge>
+                              ) : (
+                                <Badge className={`${stateLabels[transaction.state]?.color || "bg-gray-500"} text-xs`}>
+                                  {stateLabels[transaction.state]?.label || transaction.state}
+                                </Badge>
+                              )}
                             </div>
                             <div className="flex items-center gap-3 text-sm">
                               <span className="font-semibold text-foreground">${formatCLP(transaction.amount)}</span>
