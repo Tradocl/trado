@@ -14,7 +14,8 @@ import {
   X, 
   RefreshCw,
   MessageSquare,
-  ShieldAlert
+  ShieldAlert,
+  AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatCLP } from "@/lib/utils";
@@ -59,6 +60,7 @@ export function MutualResolutionPanel({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [escalating, setEscalating] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<"buyer" | "seller" | null>(null);
   const [message, setMessage] = useState("");
 
@@ -232,6 +234,28 @@ export function MutualResolutionPanel({
       toast.error("Error al cancelar la propuesta");
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleEscalate = async () => {
+    setEscalating(true);
+    try {
+      const { error } = await supabase
+        .from("appeals")
+        .update({
+          status: "pendiente_intervencion_plataforma",
+          escalated_at: new Date().toISOString(),
+        })
+        .eq("id", appealId);
+
+      if (error) throw error;
+      
+      toast.success("Caso enviado a revisión de administradores");
+    } catch (error) {
+      console.error("Error escalating:", error);
+      toast.error("Error al solicitar intervención");
+    } finally {
+      setEscalating(false);
     }
   };
 
@@ -428,20 +452,41 @@ export function MutualResolutionPanel({
           </>
         )}
 
-        {/* Switch to Escalation Option */}
+        {/* Request Admin Intervention */}
         <Separator />
-        <div className="text-center space-y-3">
-          <p className="text-sm text-muted-foreground">
-            ¿No logran ponerse de acuerdo?
-          </p>
-          <Button
-            variant="outline"
-            onClick={onSwitchToEscalate}
-            className="border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/20"
-          >
-            <ShieldAlert className="h-4 w-4 mr-2" />
-            Enviar Pruebas a Administradores
-          </Button>
+        <div className="space-y-4">
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+            <div className="flex items-start gap-3 mb-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-amber-900 dark:text-amber-100">
+                  ¿No logran ponerse de acuerdo?
+                </p>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                  Un administrador revisará la evidencia y tomará una decisión final. Este proceso puede tomar hasta 48 horas.
+                </p>
+              </div>
+            </div>
+            
+            <Button
+              onClick={handleEscalate}
+              disabled={escalating}
+              className="w-full bg-amber-600 hover:bg-amber-700"
+              size="lg"
+            >
+              {escalating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Solicitando...
+                </>
+              ) : (
+                <>
+                  <ShieldAlert className="h-4 w-4 mr-2" />
+                  Solicitar Intervención de Administrador
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Recent Proposals History */}
