@@ -56,6 +56,20 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Fetch transaction to get email_thread_id and invite_code
+    const { data: transaction, error: txError } = await supabase
+      .from("transactions")
+      .select("invite_code, email_thread_id")
+      .eq("id", transactionId)
+      .single();
+
+    if (txError) {
+      console.error("Error fetching transaction:", txError);
+    }
+
+    const inviteCode = transaction?.invite_code || transactionId.substring(0, 8).toUpperCase();
+    const emailThreadId = transaction?.email_thread_id;
+
     const formattedDate = new Date(datetime).toLocaleDateString("es-CL", {
       weekday: "long",
       year: "numeric",
@@ -163,12 +177,27 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const emailResponse = await resend.emails.send({
+    // Build thread subject
+    const threadSubject = `Re: [Orden #${inviteCode}] ${productName}`;
+
+    // Prepare email options with threading headers
+    const emailOptions: any = {
       from: "Trado <notificaciones@trado.cl>",
       to: [recipientEmail],
-      subject: `📍 ${proposerName} te propone un encuentro para ${productName}`,
+      subject: threadSubject,
       html: emailHtml,
-    });
+    };
+
+    // Add threading headers if we have an email_thread_id
+    if (emailThreadId) {
+      emailOptions.headers = {
+        'In-Reply-To': emailThreadId,
+        'References': emailThreadId,
+      };
+      console.log("Adding threading headers with email_thread_id:", emailThreadId);
+    }
+
+    const emailResponse = await resend.emails.send(emailOptions);
 
     console.log("Meeting proposal notification sent:", emailResponse);
 

@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Resend } from "https://esm.sh/resend@4.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -421,52 +423,79 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Fetch transaction to get email_thread_id and invite_code
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: transaction, error: txError } = await supabase
+      .from("transactions")
+      .select("invite_code, email_thread_id")
+      .eq("id", transactionId)
+      .single();
+
+    if (txError) {
+      console.error("Error fetching transaction:", txError);
+    }
+
+    const inviteCode = transaction?.invite_code || transactionId.substring(0, 8).toUpperCase();
+    const emailThreadId = transaction?.email_thread_id;
+
     // Use provided commission (should always be provided from database)
     const actualCommission = commission ?? 0;
 
+    // Build thread subject
+    const threadSubject = `Re: [Orden #${inviteCode}] ${productName}`;
+
     // Send email to buyer
     const buyerEmailHtml = generateBuyerEmailHtml(buyerName, productName, amount, sellerName, transactionId);
-    const buyerEmailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Trado <notificaciones@trado.cl>",
-        to: [buyerEmail],
-        subject: `✅ Trado - Transacción completada - ${productName}`,
-        html: buyerEmailHtml,
-      }),
-    });
+    
+    const buyerEmailOptions: any = {
+      from: "Trado <notificaciones@trado.cl>",
+      to: [buyerEmail],
+      subject: threadSubject,
+      html: buyerEmailHtml,
+    };
 
-    const buyerEmailData = await buyerEmailResponse.json();
-    console.log("Buyer email response:", buyerEmailData);
+    // Add threading headers if we have an email_thread_id
+    if (emailThreadId) {
+      buyerEmailOptions.headers = {
+        'In-Reply-To': emailThreadId,
+        'References': emailThreadId,
+      };
+      console.log("Adding threading headers for buyer email:", emailThreadId);
+    }
+
+    const buyerEmailResponse = await resend.emails.send(buyerEmailOptions);
+    console.log("Buyer email response:", buyerEmailResponse);
 
     // Send email to seller
     const sellerEmailHtml = generateSellerEmailHtml(sellerName, productName, amount, actualCommission, buyerName, transactionId);
-    const sellerEmailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Trado <notificaciones@trado.cl>",
-        to: [sellerEmail],
-        subject: `💰 Trado - ¡Venta completada! - ${productName}`,
-        html: sellerEmailHtml,
-      }),
-    });
+    
+    const sellerEmailOptions: any = {
+      from: "Trado <notificaciones@trado.cl>",
+      to: [sellerEmail],
+      subject: threadSubject,
+      html: sellerEmailHtml,
+    };
 
-    const sellerEmailData = await sellerEmailResponse.json();
-    console.log("Seller email response:", sellerEmailData);
+    // Add threading headers if we have an email_thread_id
+    if (emailThreadId) {
+      sellerEmailOptions.headers = {
+        'In-Reply-To': emailThreadId,
+        'References': emailThreadId,
+      };
+      console.log("Adding threading headers for seller email:", emailThreadId);
+    }
+
+    const sellerEmailResponse = await resend.emails.send(sellerEmailOptions);
+    console.log("Seller email response:", sellerEmailResponse);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        buyerEmail: buyerEmailData,
-        sellerEmail: sellerEmailData
+        buyerEmail: buyerEmailResponse,
+        sellerEmail: sellerEmailResponse
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
