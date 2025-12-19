@@ -1272,9 +1272,28 @@ const Transaction = () => {
                 <CardTitle className="text-lg sm:text-2xl mb-1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent break-words">
                   {transaction.product_name}
                 </CardTitle>
-                {transaction.product_description && (
-                  <CardDescription className="text-xs sm:text-sm line-clamp-2">{transaction.product_description}</CardDescription>
-                )}
+                {transaction.product_description && (() => {
+                  // Separar la descripción normal de la info de envío
+                  const descParts = transaction.product_description.split(/\n\n?📦 Envío:/);
+                  const mainDesc = descParts[0]?.trim();
+                  const shippingInfo = descParts[1] ? `📦 Envío:${descParts[1]}` : null;
+                  
+                  return (
+                    <>
+                      {mainDesc && (
+                        <CardDescription className="text-xs sm:text-sm line-clamp-2">{mainDesc}</CardDescription>
+                      )}
+                      {shippingInfo && (
+                        <div className="mt-2 p-2 sm:p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm sm:text-base font-medium text-primary">
+                            <Package className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                            <span className="break-all">{shippingInfo}</span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
               <div className="flex flex-wrap gap-2 items-center sm:items-end shrink-0">
                 {transaction.sale_type && (

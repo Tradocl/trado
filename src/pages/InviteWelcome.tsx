@@ -158,11 +158,28 @@ const InviteWelcome = () => {
                 </div>
               </div>
             </div>
-            {transaction?.product_description && (
-              <p className="mt-4 text-muted-foreground text-sm">
-                {transaction.product_description}
-              </p>
-            )}
+            {transaction?.product_description && (() => {
+              // Separar la descripción normal de la info de envío
+              const descParts = transaction.product_description.split(/\n\n?📦 Envío:/);
+              const mainDesc = descParts[0]?.trim();
+              const shippingInfo = descParts[1] ? `📦 Envío:${descParts[1]}` : null;
+              
+              return (
+                <>
+                  {mainDesc && (
+                    <p className="mt-4 text-muted-foreground text-sm">{mainDesc}</p>
+                  )}
+                  {shippingInfo && (
+                    <div className="mt-4 p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                      <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                        <Package className="h-5 w-5 shrink-0" />
+                        <span className="break-all">{shippingInfo}</span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             {transaction?.seller_name && (
               <p className="mt-3 text-sm">
                 Creada por: <span className="font-medium">{transaction.seller_name}</span>
