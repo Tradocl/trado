@@ -374,6 +374,21 @@ const Transaction = () => {
         throw new Error("No se pudo completar la transacción");
       }
 
+      // Send notification to seller that funds were released
+      try {
+        const sellerReceives = transaction.amount - (transaction.commission || 0);
+        await supabase.functions.invoke("notify-transaction-action", {
+          body: {
+            transactionId: transaction.id,
+            actionType: "funds_released",
+            actorId: user.id,
+            additionalData: { amount: sellerReceives }
+          }
+        });
+      } catch (notifyError) {
+        console.error("Error sending funds released notification:", notifyError);
+      }
+
       const successMessage = transaction.sale_type === "servicio" 
         ? "¡Pago liberado al proveedor!" 
         : "¡Pago liberado al vendedor!";

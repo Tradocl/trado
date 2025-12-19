@@ -164,6 +164,15 @@ const actionConfig: Record<string, {
     ctaText: "Ver Mediación",
     ctaPath: "transaction",
   },
+  // Funds released action
+  funds_released: {
+    emoji: "💸",
+    title: "¡Fondos Liberados!",
+    getDescription: (actorName, productName, data) =>
+      `<strong>${actorName}</strong> ha confirmado la recepción de <strong>${productName}</strong> y los fondos han sido liberados a tu billetera.${data?.amount ? ` Monto: $${Number(data.amount).toLocaleString('es-CL')} CLP` : ''}`,
+    ctaText: "Ver Mi Billetera",
+    ctaPath: "wallet",
+  },
 };
 
 function generateEmailHtml(
@@ -382,11 +391,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Build CTA URL based on action type
-    let ctaUrl = `https://trado.cl/transaction/${transactionId}`;
+    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
+    let ctaUrl = `${baseUrl}/transaction/${transactionId}`;
     if (config.ctaPath === "appeal" && additionalData?.appealId) {
-      ctaUrl = `https://trado.cl/appeal/${additionalData.appealId}`;
+      ctaUrl = `${baseUrl}/appeal/${additionalData.appealId}`;
     } else if (config.ctaPath === "return" && additionalData?.returnId) {
-      ctaUrl = `https://trado.cl/return/${additionalData.returnId}`;
+      ctaUrl = `${baseUrl}/return/${additionalData.returnId}`;
+    } else if (config.ctaPath === "wallet") {
+      ctaUrl = `${baseUrl}/wallet`;
     }
 
     // Generate email content
