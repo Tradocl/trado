@@ -622,19 +622,34 @@ const Auth = () => {
                         return;
                       }
                       
-                      // Use Supabase to generate the reset link - this will trigger the email hook
-                      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: `${window.location.origin}/reset-password`
-                      });
-                      
-                      if (error) {
-                        console.error("Password reset error:", error);
-                        toast.error("Error al enviar email de recuperación: " + error.message);
-                      } else {
-                        toast.success("Te hemos enviado un email con instrucciones para recuperar tu contraseña", {
-                          description: "Revisa tu bandeja de entrada y carpeta de spam.",
-                          duration: 6000
+                      // Send custom branded email only (using edge function with proper reset flow)
+                      try {
+                        const resetLink = `${window.location.origin}/reset-password`;
+                        const { error } = await supabase.functions.invoke('send-password-reset-email', {
+                          body: { 
+                            email, 
+                            resetLink,
+                            userName: undefined
+                          }
                         });
+                        
+                        if (error) {
+                          console.error("Password reset error:", error);
+                          toast.error("Error al enviar email de recuperación");
+                        } else {
+                          // Also trigger Supabase reset to generate the actual token
+                          await supabase.auth.resetPasswordForEmail(email, {
+                            redirectTo: `${window.location.origin}/reset-password`
+                          });
+                          
+                          toast.success("Te hemos enviado un email con instrucciones para recuperar tu contraseña", {
+                            description: "Revisa tu bandeja de entrada y carpeta de spam.",
+                            duration: 6000
+                          });
+                        }
+                      } catch (emailError) {
+                        console.error("Email error:", emailError);
+                        toast.error("Error al enviar email de recuperación");
                       }
                     }}
                   >
