@@ -247,10 +247,10 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Seller email sent:", sellerEmailResponse);
     }
 
-    // Also notify admin (no threading for admin)
+    // Notify transactions team (no threading for internal email)
     const adminEmailResponse = await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
-      to: ["admin@trado.cl"],
+      to: ["transacciones@trado.cl"],
       subject: `🔔 Nueva apelación requiere intervención - ${productName}`,
       html: `
         <!DOCTYPE html>

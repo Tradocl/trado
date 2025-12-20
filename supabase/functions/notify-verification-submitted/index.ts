@@ -139,7 +139,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "Trado Notificaciones <notificaciones@trado.cl>",
-        to: ["admin@trado.cl"],
+        to: ["verificaciones@trado.cl"],
         subject: `📋 Nueva Verificación de Identidad - ${userName}`,
         html: emailHtml,
       }),
