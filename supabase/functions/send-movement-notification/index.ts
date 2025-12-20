@@ -96,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         ${status === "approved" 
           ? `<p>El saldo de tu billetera ha sido actualizado.</p>` 
-          : `<p>Si tienes alguna pregunta sobre este rechazo, por favor contacta con soporte.</p>`
+          : `<p>Si tienes alguna pregunta sobre este rechazo, contáctanos en <a href="mailto:soporte@trado.cl" style="color: #2563eb;">soporte@trado.cl</a></p>`
         }
         
         <p>Saludos,<br>El equipo de Trado</p>
