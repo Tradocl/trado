@@ -264,7 +264,9 @@ const Index = () => {
               <button onClick={() => navigate("/privacy")} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Política de Privacidad
               </button>
-              <span className="text-muted-foreground text-sm">soporte@trado.cl</span>
+              <button onClick={() => navigate("/support")} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Soporte
+              </button>
             </div>
           </div>
         </div>
