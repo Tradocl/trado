@@ -115,6 +115,9 @@ const generateEmailHtml = (resetLink: string, userName?: string) => `
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="text-align: center;">
+                    <p style="color: #71717a; font-size: 13px; margin: 0 0 8px 0;">
+                      ¿Necesitas ayuda? Contáctanos en <a href="mailto:soporte@trado.cl" style="color: #0d9488; text-decoration: none;">soporte@trado.cl</a>
+                    </p>
                     <p style="color: #a1a1aa; font-size: 12px; margin: 0 0 8px 0;">
                       © 2024 Trado. Todos los derechos reservados.
                     </p>
