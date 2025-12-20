@@ -17,6 +17,10 @@ const reasonLabels: Record<string, string> = {
   otro: "Otro motivo",
 };
 
+const formatCLP = (amount: number) => {
+  return new Intl.NumberFormat("es-CL").format(Math.round(amount));
+};
+
 interface AppealCreatedRequest {
   appealId: string;
 }
@@ -63,7 +67,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Fetch appeal with transaction and user profiles
+    // Fetch appeal with transaction and user profiles - include commission
     const { data: appeal, error: appealError } = await supabase
       .from("appeals")
       .select(`
@@ -75,6 +79,7 @@ const handler = async (req: Request): Promise<Response> => {
         transaction:transactions!appeals_transaction_id_fkey(
           id,
           amount,
+          commission,
           product_name,
           buyer_id,
           seller_id,
@@ -121,7 +126,9 @@ const handler = async (req: Request): Promise<Response> => {
     const buyerName = buyerProfile?.full_name || "Comprador";
     const sellerName = sellerProfile?.full_name || "Vendedor";
     const productName = txData.product_name;
-    const amount = txData.amount;
+    const amount = Number(txData.amount);
+    const commission = Number(txData.commission) || 0;
+    const distributableAmount = amount - commission;
     const inviteCode = txData.invite_code || txData.id.substring(0, 8).toUpperCase();
     const reasonLabel = reasonLabels[appeal.reason] || appeal.reason;
     const initiatorName = user.id === txData.buyer_id ? buyerName : sellerName;
@@ -136,7 +143,7 @@ const handler = async (req: Request): Promise<Response> => {
     const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
     const appealUrl = `${baseUrl}/admin/appeal/${appealId}`;
 
-    // Send internal notification to transactions team
+    // Send internal notification to transactions team with green colors
     const internalEmailResponse = await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
       to: ["transacciones@trado.cl"],
@@ -149,10 +156,11 @@ const handler = async (req: Request): Promise<Response> => {
             <style>
               body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
               .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-              .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b; }
-              .button { background: #f59e0b; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block; margin: 15px 0; font-weight: bold; }
+              .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
+              .warning-box { background: #fef3c7; padding: 12px; border-radius: 6px; margin-top: 15px; }
+              .button { background: #10b981; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block; margin: 15px 0; font-weight: bold; }
             </style>
           </head>
           <body>
@@ -166,13 +174,21 @@ const handler = async (req: Request): Promise<Response> => {
                   <ul style="list-style: none; padding: 0; margin: 15px 0;">
                     <li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Producto:</strong> ${productName}</li>
                     <li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Orden:</strong> #${inviteCode}</li>
-                    <li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Monto:</strong> $${amount.toLocaleString('es-CL')} CLP</li>
+                    <li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Monto transacción:</strong> $${formatCLP(amount)} CLP</li>
+                    <li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Comisión Trado:</strong> $${formatCLP(commission)} CLP</li>
+                    <li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Monto distribuible:</strong> $${formatCLP(distributableAmount)} CLP</li>
                     <li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Iniciada por:</strong> ${initiatorName} (${initiatorRole})</li>
                     <li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Motivo:</strong> ${reasonLabel}</li>
                     ${appeal.reason_description ? `<li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Descripción:</strong> ${appeal.reason_description}</li>` : ''}
                     <li style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Comprador:</strong> ${buyerName} (${buyerEmail || 'N/A'})</li>
                     <li style="padding: 8px 0;"><strong>Vendedor:</strong> ${sellerName} (${sellerEmail || 'N/A'})</li>
                   </ul>
+                  
+                  <div class="warning-box">
+                    <p style="margin: 0; font-size: 13px; color: #92400e;">
+                      <strong>Nota:</strong> La comisión de $${formatCLP(commission)} CLP se cobrará independientemente de la resolución.
+                    </p>
+                  </div>
                 </div>
                 
                 <p style="color: #6b7280; font-size: 14px;">
