@@ -622,19 +622,27 @@ const Auth = () => {
                         return;
                       }
                       
-                      // Trigger Supabase password reset - the auth-email-hook will send our custom email
-                      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: `${window.location.origin}/reset-password`
-                      });
-                      
-                      if (error) {
-                        console.error("Password reset error:", error);
-                        toast.error("Error al enviar email de recuperación: " + error.message);
-                      } else {
-                        toast.success("Te hemos enviado un email con instrucciones para recuperar tu contraseña", {
-                          description: "Revisa tu bandeja de entrada y carpeta de spam.",
-                          duration: 6000
+                      // Call our custom edge function that generates the reset link and sends the beautiful email
+                      try {
+                        const { data, error } = await supabase.functions.invoke('send-password-reset-email', {
+                          body: { 
+                            email,
+                            redirectTo: `${window.location.origin}/reset-password`
+                          }
                         });
+                        
+                        if (error) {
+                          console.error("Password reset error:", error);
+                          toast.error("Error al enviar email de recuperación: " + error.message);
+                        } else {
+                          toast.success("Te hemos enviado un email con instrucciones para recuperar tu contraseña", {
+                            description: "Revisa tu bandeja de entrada y carpeta de spam.",
+                            duration: 6000
+                          });
+                        }
+                      } catch (err: any) {
+                        console.error("Password reset error:", err);
+                        toast.error("Error al enviar email de recuperación");
                       }
                     }}
                   >

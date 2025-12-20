@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,8 +12,7 @@ const corsHeaders = {
 
 interface PasswordResetRequest {
   email: string;
-  resetLink: string;
-  userName?: string;
+  redirectTo?: string;
 }
 
 const generateEmailHtml = (resetLink: string, userName?: string) => `
@@ -147,21 +149,71 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, resetLink, userName }: PasswordResetRequest = await req.json();
+    const { email, redirectTo }: PasswordResetRequest = await req.json();
     
-    console.log("Sending password reset email to:", email);
-    console.log("Reset link:", resetLink);
+    console.log("Processing password reset for:", email);
 
-    if (!email || !resetLink) {
-      console.error("Missing required fields");
+    if (!email) {
+      console.error("Missing email field");
       return new Response(
-        JSON.stringify({ error: "Email and resetLink are required" }),
+        JSON.stringify({ error: "Email is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // Create Supabase admin client
+    const supabaseAdmin = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    // Generate password reset link using admin API
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: email,
+      options: {
+        redirectTo: redirectTo || `${req.headers.get('origin')}/reset-password`
+      }
+    });
+
+    if (linkError) {
+      console.error("Error generating reset link:", linkError);
+      
+      // If user doesn't exist, return success anyway (security best practice)
+      if (linkError.message.includes("User not found") || linkError.message.includes("not found")) {
+        console.log("User not found, returning success for security");
+        return new Response(
+          JSON.stringify({ success: true, message: "If the email exists, a reset link will be sent" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      throw new Error(linkError.message);
+    }
+
+    if (!linkData?.properties?.action_link) {
+      console.error("No action link in response:", linkData);
+      throw new Error("Failed to generate reset link");
+    }
+
+    const resetLink = linkData.properties.action_link;
+    console.log("Generated reset link successfully");
+
+    // Get user name for personalized email
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('full_name')
+      .eq('email', email)
+      .maybeSingle();
+
+    const userName = profile?.full_name;
+
+    // Generate email HTML with the real reset link
     const emailHtml = generateEmailHtml(resetLink, userName);
 
+    // Send email via Resend
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -183,7 +235,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(emailData.message || "Error sending email");
     }
 
-    console.log("Email sent successfully:", emailData);
+    console.log("Password reset email sent successfully:", emailData);
 
     return new Response(
       JSON.stringify({ success: true, data: emailData }),
