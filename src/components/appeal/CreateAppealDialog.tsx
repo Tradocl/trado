@@ -101,6 +101,17 @@ export function CreateAppealDialog({ transactionId, userId, saleType }: CreateAp
         console.error("Error sending notification:", notifyError);
       }
 
+      // Notify transactions team internally
+      try {
+        await supabase.functions.invoke("notify-appeal-created", {
+          body: {
+            appealId: appeal.id,
+          },
+        });
+      } catch (internalNotifyError) {
+        console.error("Error sending internal notification:", internalNotifyError);
+      }
+
       toast.success("Apelación creada correctamente");
       setOpen(false);
       navigate(`/appeal/${appeal.id}`);

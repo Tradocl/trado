@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Mail, MessageSquare, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Mail, MessageSquare, Clock, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 import tradoShield from "@/assets/trado-shield.png";
 
 const contactSchema = z.object({
@@ -49,29 +50,26 @@ const Support = () => {
     setIsSubmitting(true);
 
     try {
-      // Create mailto link with form data
-      const subjectMap: Record<string, string> = {
-        general: "Consulta General",
-        transaction: "Problema con Transacción",
-        wallet: "Consulta sobre Billetera",
-        verification: "Verificación de Identidad",
-        appeal: "Disputa o Apelación",
-        other: "Otro",
-      };
+      const { data, error } = await supabase.functions.invoke("send-support-email", {
+        body: {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          subject: formData.subject,
+          message: formData.message.trim(),
+        },
+      });
 
-      const mailtoSubject = encodeURIComponent(`[Trado Soporte] ${subjectMap[formData.subject] || formData.subject}`);
-      const mailtoBody = encodeURIComponent(
-        `Nombre: ${formData.name}\nEmail: ${formData.email}\n\nMensaje:\n${formData.message}`
-      );
-
-      // Open mailto link
-      window.location.href = `mailto:admin@trado.cl?subject=${mailtoSubject}&body=${mailtoBody}`;
+      if (error) {
+        console.error("Error sending support email:", error);
+        throw new Error(error.message || "Error al enviar el mensaje");
+      }
 
       // Show success state
       setIsSubmitted(true);
-      toast.success("Se abrió tu cliente de correo. Envía el mensaje para contactarnos.");
-    } catch (error) {
-      toast.error("Hubo un error. Por favor intenta de nuevo.");
+      toast.success("¡Mensaje enviado! Te responderemos pronto.");
+    } catch (error: any) {
+      console.error("Support form error:", error);
+      toast.error(error.message || "Hubo un error. Por favor intenta de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -96,9 +94,9 @@ const Support = () => {
                 <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle2 className="h-8 w-8 text-success" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">¡Mensaje listo!</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-2">¡Mensaje enviado!</h2>
                 <p className="text-muted-foreground mb-6">
-                  Se abrió tu cliente de correo con el mensaje preparado. Solo presiona "Enviar" para contactarnos.
+                  Hemos recibido tu mensaje y te responderemos lo antes posible a tu correo.
                 </p>
                 <p className="text-sm text-muted-foreground mb-6">
                   Si no se abrió automáticamente, puedes escribirnos directamente a{" "}
@@ -259,7 +257,14 @@ const Support = () => {
                 </div>
 
                 <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-                  {isSubmitting ? "Preparando mensaje..." : "Enviar Mensaje"}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Enviar Mensaje"
+                  )}
                 </Button>
 
                 <p className="text-center text-sm text-muted-foreground">

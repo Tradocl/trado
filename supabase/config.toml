@@ -56,3 +56,9 @@ verify_jwt = true
 
 [functions.notify-appeal-resolved]
 verify_jwt = true
+
+[functions.send-support-email]
+verify_jwt = false
+
+[functions.notify-appeal-created]
+verify_jwt = true
