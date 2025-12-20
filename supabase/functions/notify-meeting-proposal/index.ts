@@ -26,6 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -82,98 +83,210 @@ const handler = async (req: Request): Promise<Response> => {
     const emailHtml = `
       <!DOCTYPE html>
       <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      </head>
-      <body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; padding: 40px 20px;">
-          <tr>
-            <td align="center">
-              <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; overflow: hidden; border: 1px solid #2a2a4a;">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+              line-height: 1.6; 
+              color: #1a1a1a; 
+              margin: 0;
+              padding: 0;
+              background-color: #f8fafc;
+            }
+            .container { 
+              max-width: 600px; 
+              margin: 0 auto; 
+              padding: 40px 20px;
+            }
+            .card {
+              background: #ffffff;
+              border-radius: 16px;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+              overflow: hidden;
+            }
+            .header { 
+              background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); 
+              color: white; 
+              padding: 32px; 
+              text-align: center;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              font-weight: 600;
+            }
+            .header .emoji {
+              font-size: 48px;
+              margin-bottom: 16px;
+              display: block;
+            }
+            .header .subtitle {
+              margin: 8px 0 0 0;
+              font-size: 14px;
+              opacity: 0.9;
+            }
+            .content { 
+              padding: 32px;
+            }
+            .meeting-box {
+              background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+              border: 1px solid #6ee7b7;
+              border-radius: 12px;
+              padding: 24px;
+              margin-bottom: 24px;
+            }
+            .meeting-box h3 {
+              margin: 0 0 16px 0;
+              font-size: 16px;
+              font-weight: 600;
+              color: #047857;
+            }
+            .meeting-row {
+              display: flex;
+              padding: 10px 0;
+              border-bottom: 1px solid rgba(6, 95, 70, 0.1);
+            }
+            .meeting-row:last-child {
+              border-bottom: none;
+              padding-bottom: 0;
+            }
+            .meeting-row .icon {
+              font-size: 16px;
+              margin-right: 12px;
+            }
+            .meeting-row .content-text {
+              flex: 1;
+            }
+            .meeting-row .label {
+              color: #047857;
+              font-size: 12px;
+              margin-bottom: 2px;
+            }
+            .meeting-row .value {
+              color: #065f46;
+              font-weight: 500;
+              font-size: 14px;
+            }
+            .product-info {
+              background: #f8fafc;
+              border-radius: 12px;
+              padding: 16px 20px;
+              margin-bottom: 24px;
+              display: flex;
+              align-items: center;
+            }
+            .product-info .icon {
+              font-size: 24px;
+              margin-right: 12px;
+            }
+            .product-info .text {
+              flex: 1;
+            }
+            .product-info .label {
+              color: #6b7280;
+              font-size: 12px;
+              margin-bottom: 2px;
+            }
+            .product-info .name {
+              color: #1f2937;
+              font-weight: 600;
+              font-size: 14px;
+            }
+            .cta-button {
+              display: block;
+              background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+              color: white !important;
+              text-decoration: none;
+              padding: 16px 32px;
+              border-radius: 12px;
+              font-weight: 600;
+              text-align: center;
+              margin: 24px 0 16px 0;
+              font-size: 16px;
+            }
+            .help-text {
+              color: #6b7280;
+              font-size: 14px;
+              text-align: center;
+              margin: 0;
+            }
+            .footer {
+              text-align: center;
+              padding: 24px;
+              color: #9ca3af;
+              font-size: 13px;
+              border-top: 1px solid #f3f4f6;
+            }
+            .footer a {
+              color: #16a34a;
+              text-decoration: none;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="card">
+              <div class="header">
+                <span class="emoji">📍</span>
+                <h1>Nueva Propuesta de Encuentro</h1>
+                <p class="subtitle">De ${proposerName}</p>
+              </div>
+              <div class="content">
+                <p style="margin: 0 0 24px 0; color: #4b5563;">
+                  Hola <strong>${recipientName}</strong>, <strong>${proposerName}</strong> te ha enviado una propuesta de encuentro.
+                </p>
                 
-                <!-- Header -->
-                <tr>
-                  <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">📍 Nueva Propuesta de Encuentro</h1>
-                  </td>
-                </tr>
+                <div class="product-info">
+                  <span class="icon">📦</span>
+                  <div class="text">
+                    <div class="label">Producto</div>
+                    <div class="name">${productName}</div>
+                  </div>
+                </div>
                 
-                <!-- Content -->
-                <tr>
-                  <td style="padding: 40px 30px;">
-                    <p style="color: #e0e0e0; font-size: 18px; margin: 0 0 20px; line-height: 1.6;">
-                      ¡Hola <strong style="color: #667eea;">${recipientName}</strong>!
-                    </p>
-                    
-                    <p style="color: #b0b0b0; font-size: 16px; margin: 0 0 30px; line-height: 1.6;">
-                      <strong style="color: #e0e0e0;">${proposerName}</strong> te ha enviado una propuesta de encuentro para la transacción de <strong style="color: #667eea;">${productName}</strong>.
-                    </p>
-                    
-                    <!-- Meeting Details Card -->
-                    <table width="100%" cellpadding="0" cellspacing="0" style="background: rgba(102, 126, 234, 0.1); border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.3); margin-bottom: 30px;">
-                      <tr>
-                        <td style="padding: 25px;">
-                          <h3 style="color: #667eea; margin: 0 0 20px; font-size: 16px;">📋 Detalles del Encuentro</h3>
-                          
-                          <table width="100%" cellpadding="0" cellspacing="0">
-                            <tr>
-                              <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                <span style="color: #888; font-size: 14px;">📍 Lugar</span><br>
-                                <span style="color: #e0e0e0; font-size: 16px; font-weight: 500;">${location}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td style="padding: 10px 0; ${message ? 'border-bottom: 1px solid rgba(255,255,255,0.1);' : ''}">
-                                <span style="color: #888; font-size: 14px;">📅 Fecha y Hora</span><br>
-                                <span style="color: #e0e0e0; font-size: 16px; font-weight: 500;">${formattedDate}</span>
-                              </td>
-                            </tr>
-                            ${message ? `
-                            <tr>
-                              <td style="padding: 10px 0;">
-                                <span style="color: #888; font-size: 14px;">💬 Mensaje</span><br>
-                                <span style="color: #e0e0e0; font-size: 16px; font-style: italic;">"${message}"</span>
-                              </td>
-                            </tr>
-                            ` : ''}
-                          </table>
-                        </td>
-                      </tr>
-                    </table>
-                    
-                    <!-- CTA Button -->
-                    <table width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td align="center" style="padding: 10px 0 30px;">
-                          <a href="https://trado.cl/transaction/${transactionId}" 
-                             style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                            Ver Propuesta y Responder
-                          </a>
-                        </td>
-                      </tr>
-                    </table>
-                    
-                    <p style="color: #888; font-size: 14px; margin: 0; text-align: center; line-height: 1.6;">
-                      Puedes aceptar o rechazar esta propuesta y sugerir otra alternativa desde tu panel de transacción.
-                    </p>
-                  </td>
-                </tr>
+                <div class="meeting-box">
+                  <h3>📋 Detalles del Encuentro</h3>
+                  
+                  <div class="meeting-row">
+                    <span class="icon">📍</span>
+                    <div class="content-text">
+                      <div class="label">Lugar propuesto</div>
+                      <div class="value">${location}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="meeting-row">
+                    <span class="icon">📅</span>
+                    <div class="content-text">
+                      <div class="label">Fecha y hora</div>
+                      <div class="value">${formattedDate}</div>
+                    </div>
+                  </div>
+                  
+                  ${message ? `
+                  <div class="meeting-row">
+                    <span class="icon">💬</span>
+                    <div class="content-text">
+                      <div class="label">Mensaje</div>
+                      <div class="value" style="font-style: italic;">"${message}"</div>
+                    </div>
+                  </div>
+                  ` : ''}
+                </div>
                 
-                <!-- Footer -->
-                <tr>
-                  <td style="background: rgba(0,0,0,0.3); padding: 25px 30px; text-align: center; border-top: 1px solid #2a2a4a;">
-                    <p style="color: #666; font-size: 12px; margin: 0;">
-                      © 2024 Trado - Transacciones seguras entre personas
-                    </p>
-                  </td>
-                </tr>
+                <a href="${baseUrl}/transaction/${transactionId}" class="cta-button">Ver Propuesta y Responder</a>
                 
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
+                <p class="help-text">Puedes aceptar, rechazar o sugerir otra alternativa desde la sala de transacción.</p>
+              </div>
+              <div class="footer">
+                <p>¿Tienes dudas? Escríbenos a <a href="mailto:soporte@trado.cl">soporte@trado.cl</a></p>
+                <p>Este es un correo automático de <a href="${baseUrl}">Trado</a> - Tu plataforma segura para transacciones entre personas.</p>
+              </div>
+            </div>
+          </div>
+        </body>
       </html>
     `;
 

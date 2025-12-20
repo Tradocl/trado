@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.notify-appeal-created]
 verify_jwt = true
+
+[functions.send-deposit-reminder]
+verify_jwt = false
