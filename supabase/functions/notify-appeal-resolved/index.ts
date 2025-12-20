@@ -212,12 +212,47 @@ serve(async (req) => {
     const sellerEmailResponse = await resend.emails.send(sellerEmailOptions);
     console.log("[notify-appeal-resolved] Seller email sent:", sellerEmailResponse);
 
+    // Send internal notification to transactions team
+    const internalEmailResponse = await resend.emails.send({
+      from: "Trado Notificaciones <notificaciones@trado.cl>",
+      to: ["transacciones@trado.cl"],
+      subject: `✅ Apelación Resuelta - ${transaction.product_name}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="utf-8"></head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0;">✅ Apelación Resuelta</h1>
+          </div>
+          <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 10px 10px;">
+            <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
+              <p style="margin: 5px 0;"><strong>Producto:</strong> ${transaction.product_name}</p>
+              <p style="margin: 5px 0;"><strong>Monto original:</strong> $${formatCLP(transaction.amount)} CLP</p>
+              <p style="margin: 5px 0;"><strong>Decisión:</strong> ${resolutionLabel}</p>
+              ${buyerRefundAmount && buyerRefundAmount > 0 ? `<p style="margin: 5px 0;"><strong>Reembolso comprador:</strong> $${formatCLP(buyerRefundAmount)} CLP</p>` : ''}
+              ${sellerPaymentAmount && sellerPaymentAmount > 0 ? `<p style="margin: 5px 0;"><strong>Pago vendedor:</strong> $${formatCLP(sellerPaymentAmount)} CLP</p>` : ''}
+              <p style="margin: 5px 0;"><strong>Comprador:</strong> ${buyerProfile.full_name} (${buyerProfile.email})</p>
+              <p style="margin: 5px 0;"><strong>Vendedor:</strong> ${sellerProfile.full_name} (${sellerProfile.email})</p>
+              <p style="margin: 5px 0;"><strong>Acuerdo mutuo:</strong> ${isMutualAgreement ? 'Sí' : 'No'}</p>
+            </div>
+            <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px;">
+              <p style="margin: 0; font-size: 14px; color: #166534;"><strong>Notas:</strong> ${resolutionNotes}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+    console.log("[notify-appeal-resolved] Internal email sent:", internalEmailResponse);
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: "Notification emails sent successfully",
         buyerEmail: buyerEmailResponse,
-        sellerEmail: sellerEmailResponse
+        sellerEmail: sellerEmailResponse,
+        internalEmail: internalEmailResponse
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
