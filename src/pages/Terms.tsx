@@ -309,7 +309,7 @@ const Terms = () => {
               Para consultas sobre estos términos o el funcionamiento de Trado, contáctanos en:
             </p>
             <div className="space-y-2 text-muted-foreground">
-              <p><strong className="text-foreground">Email:</strong> soporte@trado.cl</p>
+              <p><strong className="text-foreground">Email:</strong> admin@trado.cl</p>
               <p><strong className="text-foreground">Horario:</strong> Lunes a Viernes, 9:00 - 18:00 hrs</p>
             </div>
           </section>

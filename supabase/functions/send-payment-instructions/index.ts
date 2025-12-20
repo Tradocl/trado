@@ -331,7 +331,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <a href="${baseUrl}/transaction/${transactionId}" class="cta-button">Ver Transacción</a>
               </div>
               <div class="footer">
-                <p>¿Tienes dudas? Escríbenos a <a href="mailto:soporte@trado.cl">soporte@trado.cl</a></p>
+                <p>¿Tienes dudas? Escríbenos a <a href="mailto:admin@trado.cl">admin@trado.cl</a></p>
                 <p>Este es un correo automático de <a href="${baseUrl}">Trado</a> - Tu plataforma segura para transacciones entre personas.</p>
               </div>
             </div>
