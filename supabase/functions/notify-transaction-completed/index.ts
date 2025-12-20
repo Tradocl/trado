@@ -53,7 +53,7 @@ const generateBuyerEmailHtml = (buyerName: string, productName: string, amount: 
         overflow: hidden;
       }
       .header { 
-        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); 
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); 
         color: white; 
         padding: 32px; 
         text-align: center;
@@ -72,8 +72,8 @@ const generateBuyerEmailHtml = (buyerName: string, productName: string, amount: 
         padding: 32px;
       }
       .highlight-box {
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-        border: 1px solid #bbf7d0;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #6ee7b7;
         border-radius: 12px;
         padding: 24px;
         text-align: center;
@@ -81,14 +81,14 @@ const generateBuyerEmailHtml = (buyerName: string, productName: string, amount: 
       }
       .highlight-box .label {
         font-size: 14px;
-        color: #166534;
+        color: #047857;
         margin-bottom: 8px;
         font-weight: 500;
       }
       .highlight-box .amount {
         font-size: 36px;
         font-weight: 700;
-        color: #15803d;
+        color: #059669;
         margin: 0;
       }
       .details {
@@ -124,7 +124,7 @@ const generateBuyerEmailHtml = (buyerName: string, productName: string, amount: 
       }
       .cta-button {
         display: block;
-        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
         color: white !important;
         text-decoration: none;
         padding: 16px 32px;
@@ -142,7 +142,7 @@ const generateBuyerEmailHtml = (buyerName: string, productName: string, amount: 
         border-top: 1px solid #f3f4f6;
       }
       .footer a {
-        color: #7c3aed;
+        color: #16a34a;
         text-decoration: none;
       }
     </style>
@@ -184,11 +184,11 @@ const generateBuyerEmailHtml = (buyerName: string, productName: string, amount: 
             No olvides calificar tu experiencia con el vendedor. Tu opinión ayuda a otros usuarios.
           </p>
           
-          <a href="${baseUrl}/transaction/${transactionId}" class="cta-button">Ver Transacción</a>
+          <a href="${baseUrl}/transaction/${transactionId}" class="cta-button">Calificar al Vendedor</a>
         </div>
         <div class="footer">
-          <p>Este es un correo automático de <a href="${baseUrl}">Trado</a>.</p>
-          <p>Tu plataforma segura para transacciones entre personas.</p>
+          <p>¿Tienes dudas? Escríbenos a <a href="mailto:soporte@trado.cl">soporte@trado.cl</a></p>
+          <p>Este es un correo automático de <a href="${baseUrl}">Trado</a> - Tu plataforma segura para transacciones entre personas.</p>
         </div>
       </div>
     </div>
@@ -223,7 +223,7 @@ const generateSellerEmailHtml = (sellerName: string, productName: string, amount
         overflow: hidden;
       }
       .header { 
-        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); 
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); 
         color: white; 
         padding: 32px; 
         text-align: center;
@@ -242,8 +242,8 @@ const generateSellerEmailHtml = (sellerName: string, productName: string, amount
         padding: 32px;
       }
       .highlight-box {
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-        border: 1px solid #bbf7d0;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #6ee7b7;
         border-radius: 12px;
         padding: 24px;
         text-align: center;
@@ -251,14 +251,14 @@ const generateSellerEmailHtml = (sellerName: string, productName: string, amount
       }
       .highlight-box .label {
         font-size: 14px;
-        color: #166534;
+        color: #047857;
         margin-bottom: 8px;
         font-weight: 500;
       }
       .highlight-box .amount {
         font-size: 36px;
         font-weight: 700;
-        color: #15803d;
+        color: #059669;
         margin: 0;
       }
       .details {
@@ -293,7 +293,7 @@ const generateSellerEmailHtml = (sellerName: string, productName: string, amount
         font-size: 14px;
       }
       .detail-row.total .value {
-        color: #15803d;
+        color: #059669;
         font-weight: 700;
       }
       .detail-row .negative {
@@ -301,27 +301,23 @@ const generateSellerEmailHtml = (sellerName: string, productName: string, amount
       }
       .cta-button {
         display: block;
-        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
         color: white !important;
         text-decoration: none;
         padding: 16px 32px;
         border-radius: 12px;
         font-weight: 600;
         text-align: center;
-        margin: 24px 0;
+        margin: 24px 0 16px 0;
         font-size: 16px;
       }
-      .cta-secondary {
+      .secondary-link {
         display: block;
-        background: #f3f4f6;
-        color: #374151 !important;
-        text-decoration: none;
-        padding: 14px 32px;
-        border-radius: 12px;
-        font-weight: 600;
         text-align: center;
-        margin: 8px 0 0 0;
+        color: #16a34a;
+        text-decoration: none;
         font-size: 14px;
+        font-weight: 500;
       }
       .footer {
         text-align: center;
@@ -331,7 +327,7 @@ const generateSellerEmailHtml = (sellerName: string, productName: string, amount
         border-top: 1px solid #f3f4f6;
       }
       .footer a {
-        color: #7c3aed;
+        color: #16a34a;
         text-decoration: none;
       }
     </style>
@@ -382,11 +378,11 @@ const generateSellerEmailHtml = (sellerName: string, productName: string, amount
           </p>
           
           <a href="${baseUrl}/wallet" class="cta-button">Ver Mi Billetera</a>
-          <a href="${baseUrl}/create-transaction" class="cta-secondary">Crear Nueva Venta</a>
+          <a href="${baseUrl}/create-transaction" class="secondary-link">Crear Nueva Venta</a>
         </div>
         <div class="footer">
-          <p>Este es un correo automático de <a href="${baseUrl}">Trado</a>.</p>
-          <p>Tu plataforma segura para transacciones entre personas.</p>
+          <p>¿Tienes dudas? Escríbenos a <a href="mailto:soporte@trado.cl">soporte@trado.cl</a></p>
+          <p>Este es un correo automático de <a href="${baseUrl}">Trado</a> - Tu plataforma segura para transacciones entre personas.</p>
         </div>
       </div>
     </div>
