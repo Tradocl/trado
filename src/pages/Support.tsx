@@ -65,7 +65,7 @@ const Support = () => {
       );
 
       // Open mailto link
-      window.location.href = `mailto:soporte@trado.cl?subject=${mailtoSubject}&body=${mailtoBody}`;
+      window.location.href = `mailto:admin@trado.cl?subject=${mailtoSubject}&body=${mailtoBody}`;
 
       // Show success state
       setIsSubmitted(true);
@@ -102,8 +102,8 @@ const Support = () => {
                 </p>
                 <p className="text-sm text-muted-foreground mb-6">
                   Si no se abrió automáticamente, puedes escribirnos directamente a{" "}
-                  <a href="mailto:soporte@trado.cl" className="text-primary hover:underline font-medium">
-                    soporte@trado.cl
+                  <a href="mailto:admin@trado.cl" className="text-primary hover:underline font-medium">
+                    admin@trado.cl
                   </a>
                 </p>
                 <div className="flex gap-3 justify-center">
@@ -155,8 +155,8 @@ const Support = () => {
                   <Mail className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">Email</h3>
-                <a href="mailto:soporte@trado.cl" className="text-sm text-primary hover:underline">
-                  soporte@trado.cl
+                <a href="mailto:admin@trado.cl" className="text-sm text-primary hover:underline">
+                  admin@trado.cl
                 </a>
               </CardContent>
             </Card>
@@ -264,8 +264,8 @@ const Support = () => {
 
                 <p className="text-center text-sm text-muted-foreground">
                   También puedes escribirnos directamente a{" "}
-                  <a href="mailto:soporte@trado.cl" className="text-primary hover:underline">
-                    soporte@trado.cl
+                  <a href="mailto:admin@trado.cl" className="text-primary hover:underline">
+                    admin@trado.cl
                   </a>
                 </p>
               </form>

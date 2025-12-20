@@ -285,7 +285,7 @@ const Privacy = () => {
               datos personales, contáctanos:
             </p>
             <div className="space-y-2 text-muted-foreground">
-              <p><strong className="text-foreground">Email:</strong> soporte@trado.cl</p>
+              <p><strong className="text-foreground">Email:</strong> admin@trado.cl</p>
             </div>
           </section>
 
