@@ -40,10 +40,10 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-    // Get appeal with transaction and participant info
+    // Get appeal with transaction and participant info - include commission
     const { data: appeal, error: appealError } = await supabaseAdmin
       .from("appeals")
-      .select("*, transactions!inner(id, product_name, amount, seller_id, buyer_id, invite_code, email_thread_id)")
+      .select("*, transactions!inner(id, product_name, amount, commission, seller_id, buyer_id, invite_code, email_thread_id)")
       .eq("id", appealId)
       .single();
 
@@ -58,6 +58,7 @@ serve(async (req) => {
     const transaction = appeal.transactions;
     const inviteCode = transaction.invite_code || transaction.id.substring(0, 8).toUpperCase();
     const emailThreadId = transaction.email_thread_id;
+    const commission = Number(transaction.commission) || 0;
 
     // Get buyer and seller profiles
     const { data: buyerProfile } = await supabaseAdmin
@@ -90,18 +91,21 @@ serve(async (req) => {
       return new Intl.NumberFormat("es-CL").format(Math.round(amount));
     };
 
-    // Build distribution info
+    // Build distribution info with commission details
     let distributionHtml = "";
+    distributionHtml += `<p style="margin: 0 0 8px 0;"><strong>Monto de la transacción:</strong> $${formatCLP(transaction.amount)} CLP</p>`;
+    if (commission > 0) {
+      distributionHtml += `<p style="margin: 0 0 8px 0; color: #92400e;"><strong>Comisión Trado (retenida):</strong> $${formatCLP(commission)} CLP</p>`;
+    }
     if (buyerRefundAmount && buyerRefundAmount > 0) {
-      distributionHtml += `<p style="margin: 0 0 8px 0;"><strong>Reembolso al Comprador:</strong> $${formatCLP(buyerRefundAmount)} CLP</p>`;
+      distributionHtml += `<p style="margin: 0 0 8px 0;"><strong>Monto reembolsado al Comprador:</strong> $${formatCLP(buyerRefundAmount)} CLP</p>`;
     }
     if (sellerPaymentAmount && sellerPaymentAmount > 0) {
-      distributionHtml += `<p style="margin: 0 0 8px 0;"><strong>Pago al Vendedor:</strong> $${formatCLP(sellerPaymentAmount)} CLP</p>`;
+      distributionHtml += `<p style="margin: 0 0 8px 0;"><strong>Monto entregado al Vendedor:</strong> $${formatCLP(sellerPaymentAmount)} CLP</p>`;
     }
 
-    // Email template
+    // Email template with Trado green colors
     const createEmailHtml = (recipientName: string, role: "buyer" | "seller") => {
-      const roleLabel = role === "buyer" ? "comprador" : "vendedor";
       const yourAmount = role === "buyer" ? buyerRefundAmount : sellerPaymentAmount;
       const yourLabel = role === "buyer" ? "reembolsado" : "recibido";
       
@@ -133,7 +137,6 @@ serve(async (req) => {
               <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 20px 0;">
                 <h3 style="color: #166534; margin: 0 0 12px 0; font-size: 16px;">Detalles de la Resolución</h3>
                 <p style="margin: 0 0 8px 0;"><strong>Transacción:</strong> ${transaction.product_name}</p>
-                <p style="margin: 0 0 8px 0;"><strong>Monto original:</strong> $${formatCLP(transaction.amount)} CLP</p>
                 <p style="margin: 0 0 12px 0;"><strong>Decisión:</strong> ${resolutionLabel}</p>
                 ${distributionHtml}
                 ${yourAmount && yourAmount > 0 
@@ -150,6 +153,14 @@ serve(async (req) => {
                   "${resolutionNotes}"
                 </p>
               </div>
+              
+              ${commission > 0 ? `
+              <div style="background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; margin: 20px 0;">
+                <p style="color: #92400e; font-size: 13px; margin: 0;">
+                  <strong>Nota:</strong> La comisión de $${formatCLP(commission)} CLP ha sido retenida por Trado según los términos de servicio, independientemente del resultado de la resolución.
+                </p>
+              </div>
+              ` : ''}
               
               <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
                 Los fondos ya han sido distribuidos según la resolución. Puedes ver el detalle completo en tu panel de transacciones.
@@ -212,7 +223,7 @@ serve(async (req) => {
     const sellerEmailResponse = await resend.emails.send(sellerEmailOptions);
     console.log("[notify-appeal-resolved] Seller email sent:", sellerEmailResponse);
 
-    // Send internal notification to transactions team
+    // Send internal notification to transactions team with green colors
     const internalEmailResponse = await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
       to: ["transacciones@trado.cl"],
@@ -228,7 +239,8 @@ serve(async (req) => {
           <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 10px 10px;">
             <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
               <p style="margin: 5px 0;"><strong>Producto:</strong> ${transaction.product_name}</p>
-              <p style="margin: 5px 0;"><strong>Monto original:</strong> $${formatCLP(transaction.amount)} CLP</p>
+              <p style="margin: 5px 0;"><strong>Monto transacción:</strong> $${formatCLP(transaction.amount)} CLP</p>
+              <p style="margin: 5px 0; color: #92400e;"><strong>Comisión Trado (retenida):</strong> $${formatCLP(commission)} CLP</p>
               <p style="margin: 5px 0;"><strong>Decisión:</strong> ${resolutionLabel}</p>
               ${buyerRefundAmount && buyerRefundAmount > 0 ? `<p style="margin: 5px 0;"><strong>Reembolso comprador:</strong> $${formatCLP(buyerRefundAmount)} CLP</p>` : ''}
               ${sellerPaymentAmount && sellerPaymentAmount > 0 ? `<p style="margin: 5px 0;"><strong>Pago vendedor:</strong> $${formatCLP(sellerPaymentAmount)} CLP</p>` : ''}
@@ -238,6 +250,11 @@ serve(async (req) => {
             </div>
             <div style="margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px;">
               <p style="margin: 0; font-size: 14px; color: #166534;"><strong>Notas:</strong> ${resolutionNotes}</p>
+            </div>
+            <div style="margin-top: 10px; padding: 10px; background: #fef3c7; border-radius: 6px;">
+              <p style="margin: 0; font-size: 13px; color: #92400e;">
+                <strong>Balance:</strong> Transacción $${formatCLP(transaction.amount)} = Comprador $${formatCLP(buyerRefundAmount || 0)} + Vendedor $${formatCLP(sellerPaymentAmount || 0)} + Comisión $${formatCLP(commission)}
+              </p>
             </div>
           </div>
         </body>

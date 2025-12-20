@@ -36,6 +36,7 @@ interface AppealResolutionFlowProps {
   sellerEmail: string;
   productName: string;
   totalAmount: number;
+  commission: number;
   appealStatus: string;
   onRefresh: () => void;
 }
@@ -54,6 +55,7 @@ export function AppealResolutionFlow({
   sellerEmail,
   productName,
   totalAmount,
+  commission,
   appealStatus,
   onRefresh
 }: AppealResolutionFlowProps) {
@@ -369,6 +371,7 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
         buyerName={buyerName}
         sellerName={sellerName}
         totalAmount={totalAmount}
+        commission={commission}
         appealStatus={appealStatus}
         onSwitchToEscalate={() => setCurrentStep("escalate")}
       />

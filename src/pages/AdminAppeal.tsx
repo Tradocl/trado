@@ -207,25 +207,28 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
 
     let buyerAmount: number | null = null;
     let sellerAmount: number | null = null;
-    const escrowAmount = transaction?.amount || 0;
+    
+    // CRITICAL: Commission is ALWAYS retained by Trado - calculate distributable amount
+    const commission = Number(transaction?.commission) || 0;
+    const distributableAmount = (transaction?.amount || 0) - commission;
 
     // Para distribución parcial, validar que se ingresen los montos
     if (resolution === "reembolso_parcial") {
       buyerAmount = buyerRefund ? parseFloat(buyerRefund) : 0;
       sellerAmount = sellerPayment ? parseFloat(sellerPayment) : 0;
       
-      if (buyerAmount + sellerAmount !== escrowAmount) {
-        toast.error(`Los montos deben sumar exactamente ${formatCLP(escrowAmount)}`);
+      if (buyerAmount + sellerAmount !== distributableAmount) {
+        toast.error(`Los montos deben sumar exactamente ${formatCLP(distributableAmount)} (monto sin comisión)`);
         return;
       }
     } else if (resolution === "reembolso_total") {
-      // Reembolso total al comprador
-      buyerAmount = escrowAmount;
+      // Reembolso total al comprador (sin comisión)
+      buyerAmount = distributableAmount;
       sellerAmount = 0;
     } else if (resolution === "liberar_fondos_vendedor") {
-      // Liberar todo al vendedor
+      // Liberar todo al vendedor (sin comisión)
       buyerAmount = 0;
-      sellerAmount = escrowAmount;
+      sellerAmount = distributableAmount;
     }
 
     setSubmitting(true);
@@ -353,12 +356,16 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                         </p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Transacción</p>
-                        <p className="font-semibold">{transaction.product_name}</p>
+                        <p className="text-sm font-medium text-muted-foreground">Monto de la transacción</p>
+                        <p className="font-semibold text-primary">{formatCLP(transaction.amount)}</p>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Monto en disputa</p>
-                        <p className="font-semibold text-primary">{formatCLP(transaction.amount)}</p>
+                        <p className="text-sm font-medium text-muted-foreground">Comisión Trado</p>
+                        <p className="font-semibold text-amber-600">{formatCLP(transaction.commission || 0)}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Monto distribuible</p>
+                        <p className="font-semibold text-green-600">{formatCLP((transaction.amount || 0) - (transaction.commission || 0))}</p>
                       </div>
                     </div>
                     {appeal.reason_description && (
@@ -439,6 +446,14 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                       ) : (
                         // Normal appeal decision - fund distribution
                         <div className="space-y-4">
+                          {/* Commission notice for admin */}
+                          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
+                            <p className="text-sm text-amber-800 dark:text-amber-200">
+                              <strong>Nota importante:</strong> La comisión de <strong>{formatCLP(transaction.commission || 0)}</strong> se cobrará independientemente de la resolución. 
+                              El monto disponible para distribuir es <strong>{formatCLP((transaction.amount || 0) - (transaction.commission || 0))}</strong>.
+                            </p>
+                          </div>
+                          
                           <div className="space-y-2">
                             <Label>Resolución</Label>
                             <RadioGroup value={resolution} onValueChange={(value) => {
@@ -450,13 +465,13 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                               <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="liberar_fondos_vendedor" id="seller" />
                                 <Label htmlFor="seller" className="font-normal cursor-pointer">
-                                  Liberar fondos al vendedor ({formatCLP(transaction.amount)})
+                                  Liberar fondos al vendedor ({formatCLP((transaction.amount || 0) - (transaction.commission || 0))})
                                 </Label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="reembolso_total" id="total" />
                                 <Label htmlFor="total" className="font-normal cursor-pointer">
-                                  Reembolso total al comprador ({formatCLP(transaction.amount)})
+                                  Reembolso total al comprador ({formatCLP((transaction.amount || 0) - (transaction.commission || 0))})
                                 </Label>
                               </div>
                               <div className="flex items-center space-x-2">
@@ -471,7 +486,8 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                           {resolution === "liberar_fondos_vendedor" && (
                             <div className="bg-muted/50 p-3 rounded-md">
                               <p className="text-sm text-muted-foreground">
-                                Se liberará el monto completo de <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span> al vendedor.
+                                Se liberará <span className="font-semibold text-foreground">{formatCLP((transaction.amount || 0) - (transaction.commission || 0))}</span> al vendedor. 
+                                La comisión de {formatCLP(transaction.commission || 0)} se retiene.
                               </p>
                             </div>
                           )}
@@ -479,7 +495,8 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                           {resolution === "reembolso_total" && (
                             <div className="bg-muted/50 p-3 rounded-md">
                               <p className="text-sm text-muted-foreground">
-                                Se reembolsará el monto completo de <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span> al comprador.
+                                Se reembolsará <span className="font-semibold text-foreground">{formatCLP((transaction.amount || 0) - (transaction.commission || 0))}</span> al comprador. 
+                                La comisión de {formatCLP(transaction.commission || 0)} se retiene.
                               </p>
                             </div>
                           )}
@@ -487,7 +504,9 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                           {resolution === "reembolso_parcial" && (
                             <div className="space-y-4 bg-muted/50 p-4 rounded-md">
                               <p className="text-sm text-muted-foreground">
-                                Monto total a distribuir: <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span>
+                                Monto disponible a distribuir: <span className="font-semibold text-foreground">{formatCLP((transaction.amount || 0) - (transaction.commission || 0))}</span>
+                                <br />
+                                <span className="text-xs">(Comisión de {formatCLP(transaction.commission || 0)} ya retenida)</span>
                               </p>
                               <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
@@ -511,14 +530,18 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                                   />
                                 </div>
                               </div>
-                              {buyerRefund && sellerPayment && (
-                                <p className={`text-sm ${parseFloat(buyerRefund) + parseFloat(sellerPayment) === transaction.amount ? 'text-green-600' : 'text-destructive'}`}>
-                                  Suma: {formatCLP(parseFloat(buyerRefund || "0") + parseFloat(sellerPayment || "0"))} 
-                                  {parseFloat(buyerRefund) + parseFloat(sellerPayment) !== transaction.amount && 
-                                    ` (debe ser ${formatCLP(transaction.amount)})`
-                                  }
-                                </p>
-                              )}
+                              {buyerRefund && sellerPayment && (() => {
+                                const distributableAmount = (transaction.amount || 0) - (transaction.commission || 0);
+                                const sum = parseFloat(buyerRefund || "0") + parseFloat(sellerPayment || "0");
+                                return (
+                                  <p className={`text-sm ${sum === distributableAmount ? 'text-green-600' : 'text-destructive'}`}>
+                                    Suma: {formatCLP(sum)} 
+                                    {sum !== distributableAmount && 
+                                      ` (debe ser ${formatCLP(distributableAmount)})`
+                                    }
+                                  </p>
+                                );
+                              })()}
                             </div>
                           )}
 
