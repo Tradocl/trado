@@ -56,3 +56,6 @@ verify_jwt = true
 
 [functions.notify-appeal-resolved]
 verify_jwt = true
+
+[functions.auth-email-hook]
+verify_jwt = false
