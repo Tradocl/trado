@@ -822,8 +822,8 @@ const Wallet = () => {
             </div>
 
             <div className="p-3 bg-warning/20 border border-warning/40 rounded-lg mb-2">
-              <p className="text-sm font-medium text-warning-foreground">
-                🚧 <strong>Marcha Blanca:</strong> Los depósitos son simulados. No realices transferencias reales. El equipo de Trado aprobará tu depósito de prueba manualmente.
+              <p className="text-sm font-medium text-foreground">
+                🚧 <strong>Marcha Blanca:</strong> Los depósitos son simulados. No realices transferencias reales. Tu depósito se aprobará automáticamente al confirmar.
               </p>
             </div>
 
@@ -935,8 +935,8 @@ const Wallet = () => {
             </div>
 
             <div className="p-3 bg-warning/20 border border-warning/40 rounded-lg">
-              <p className="text-sm font-medium text-warning-foreground">
-                🚧 <strong>Marcha Blanca:</strong> Los retiros son simulados. No se transferirá dinero real. El equipo de Trado procesará tu retiro de prueba manualmente.
+              <p className="text-sm font-medium text-foreground">
+                🚧 <strong>Marcha Blanca:</strong> Los retiros son simulados. No se transferirá dinero real. Tu retiro se aprobará automáticamente al confirmar.
               </p>
             </div>
 
