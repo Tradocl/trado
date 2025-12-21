@@ -271,6 +271,17 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
+      {/* Beta Banner */}
+      <div className="bg-warning/90 text-warning-foreground py-3 px-4">
+        <div className="container mx-auto flex items-center justify-center gap-2 text-center">
+          <span className="text-lg">🚧</span>
+          <p className="text-sm md:text-base font-medium">
+            <strong>Marcha Blanca:</strong> Estamos en fase de pruebas. Depósitos y retiros son simulados y se aprueban automáticamente.
+          </p>
+          <span className="text-lg">🚧</span>
+        </div>
+      </div>
+
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
