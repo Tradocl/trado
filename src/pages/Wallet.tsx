@@ -753,8 +753,14 @@ const Wallet = () => {
               />
             </div>
 
+            <div className="p-3 bg-warning/20 border border-warning/40 rounded-lg mb-2">
+              <p className="text-sm font-medium text-warning-foreground">
+                🚧 <strong>Marcha Blanca:</strong> Los depósitos son simulados. No realices transferencias reales. El equipo de Trado aprobará tu depósito de prueba manualmente.
+              </p>
+            </div>
+
             <div className="p-4 bg-info/10 border border-info/20 rounded-lg space-y-3">
-              <p className="font-semibold text-sm">📋 Datos de la cuenta de Trado</p>
+              <p className="font-semibold text-sm">📋 Datos de la cuenta de Trado (simulados)</p>
               
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between items-center">
@@ -857,6 +863,12 @@ const Wallet = () => {
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Máximo disponible: ${formatCLP(balance)}
+              </p>
+            </div>
+
+            <div className="p-3 bg-warning/20 border border-warning/40 rounded-lg">
+              <p className="text-sm font-medium text-warning-foreground">
+                🚧 <strong>Marcha Blanca:</strong> Los retiros son simulados. No se transferirá dinero real. El equipo de Trado procesará tu retiro de prueba manualmente.
               </p>
             </div>
 
