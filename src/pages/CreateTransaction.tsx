@@ -805,6 +805,9 @@ const CreateTransaction = () => {
                 <Share2 className="mr-2 h-4 w-4" />
                 Compartir enlace
               </Button>
+              <p className="text-xs text-muted-foreground text-center mt-3">
+                💡 Si el enlace no funciona, pídele a la otra persona que te solicite el código de invitación
+              </p>
             </div>
 
             <div 
