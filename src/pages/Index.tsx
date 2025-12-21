@@ -14,6 +14,17 @@ const Index = () => {
     navigate("/dashboard");
   };
   return <div className="min-h-screen bg-background">
+      {/* Beta Banner */}
+      <div className="bg-warning/90 text-warning-foreground py-3 px-4">
+        <div className="container mx-auto flex items-center justify-center gap-2 text-center">
+          <span className="text-lg">🚧</span>
+          <p className="text-sm md:text-base font-medium">
+            <strong>Marcha Blanca:</strong> Estamos en fase de pruebas con usuarios cercanos. Los depósitos y retiros son simulados.
+          </p>
+          <span className="text-lg">🚧</span>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary via-primary-light to-info">
         <div className="container mx-auto px-4 py-16 md:py-24">
