@@ -1412,6 +1412,9 @@ const Transaction = () => {
               <p className="text-xs sm:text-sm text-muted-foreground mt-3 text-center">
                 📱 Comparte el código o el enlace con {joinerRoleLabel.toLowerCase()}
               </p>
+              <p className="text-xs text-muted-foreground mt-1 text-center">
+                💡 Si el enlace no funciona, pídele que te solicite el código de invitación
+              </p>
             </CardContent>
           </Card>
         )}
