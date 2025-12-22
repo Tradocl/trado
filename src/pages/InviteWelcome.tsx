@@ -106,9 +106,20 @@ const InviteWelcome = () => {
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Enlace no válido</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => navigate("/")} variant="outline">
-              Ir al inicio
-            </Button>
+            <div className="p-4 bg-muted/50 rounded-lg mb-4 text-left">
+              <p className="text-sm font-medium mb-2">💡 ¿El enlace no funciona?</p>
+              <p className="text-sm text-muted-foreground">
+                Pídele el <strong>código de invitación</strong> a la persona que te envió el enlace y únete desde la opción "Unirse a Sala" en la página principal.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => navigate("/dashboard")} variant="default">
+                Ir a Unirse a Sala
+              </Button>
+              <Button onClick={() => navigate("/")} variant="outline">
+                Ir al inicio
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
