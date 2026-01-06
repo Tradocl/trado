@@ -16,7 +16,7 @@ import { regiones, ciudadesPorRegion } from "@/lib/chilean-locations";
 
 const CompleteGoogleProfile = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
 
@@ -38,6 +38,11 @@ const CompleteGoogleProfile = () => {
   const availableCities = region ? ciudadesPorRegion[region] || [] : [];
 
   useEffect(() => {
+    // Wait for auth to finish loading before checking
+    if (authLoading) {
+      return;
+    }
+
     const checkUserProfile = async () => {
       if (!user) {
         navigate("/auth");
@@ -61,7 +66,7 @@ const CompleteGoogleProfile = () => {
     };
 
     checkUserProfile();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const formatPhoneInput = (value: string) => {
     // Remove all non-digits
