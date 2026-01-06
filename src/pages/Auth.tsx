@@ -76,7 +76,7 @@ const Auth = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
-    const checkGoogleUser = async () => {
+    const checkUser = async () => {
       // Bloquear redirección si estamos en flujo de verificación post-registro
       if (showVerificationChoice || showVerificationDialog) {
         return;
@@ -87,24 +87,7 @@ const Auth = () => {
       }
 
       if (user) {
-        // Check if this is a Google user who just signed up (no profile data yet)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('rut, phone, address, email')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        // If Google user has no RUT/phone, they need to complete registration
-        const isGoogleProvider = user.app_metadata?.provider === 'google';
-        const needsRegistration = isGoogleProvider && (!profile?.rut || !profile?.phone);
-
-        if (needsRegistration) {
-          // Redirect to complete profile page instead of deleting user
-          navigate("/complete-profile");
-          return;
-        }
-
-        // Existing user with complete profile - redirect to dashboard
+        // All users (including Google) go directly to dashboard
         const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
         if (redirectUrl) {
           sessionStorage.removeItem('redirectAfterLogin');
@@ -115,7 +98,7 @@ const Auth = () => {
       }
     };
 
-    checkGoogleUser();
+    checkUser();
   }, [user, navigate, showVerificationChoice, showVerificationDialog]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -143,11 +126,11 @@ const Auth = () => {
   };
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    // Redirect directly to /complete-profile for Google users
+    // Redirect directly to dashboard for Google users
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/complete-profile`
+        redirectTo: `${window.location.origin}/dashboard`
       }
     });
     
