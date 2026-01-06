@@ -1,18 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Shield, Lock, Users, TrendingUp, ArrowRight, Star, Quote, Eye } from "lucide-react";
+import { Shield, Users, TrendingUp, ArrowRight, Star, Quote } from "lucide-react";
 import tradoLogo from "@/assets/trado-logo.png";
-import { useGuest } from "@/contexts/GuestContext";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { enterGuestMode } = useGuest();
-
-  const handleExploreAsGuest = () => {
-    enterGuestMode();
-    navigate("/dashboard");
-  };
   return <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary via-primary-light to-info">

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGuest } from "@/contexts/GuestContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,20 +15,13 @@ import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 
 const JoinTransaction = () => {
   const { user } = useAuth();
-  const { isGuestMode, promptRegistration } = useGuest();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const { showCompleteProfileModal, requireCompleteProfile, onProfileCompleted, closeModal } = useRequireCompleteProfile();
 
-  // Redirect guest users with prompt
-  useEffect(() => {
-    if (isGuestMode) {
-      promptRegistration("unirse");
-      navigate("/dashboard");
-    }
-  }, [isGuestMode]);
+  // Load user verification status
 
   // Load user verification status
   useEffect(() => {
