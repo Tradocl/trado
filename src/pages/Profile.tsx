@@ -354,6 +354,23 @@ const Profile = () => {
   const onBankSubmit = async (values: BankAccountFormValues) => {
     if (!user) return;
 
+    // Normalize RUT for comparison
+    const normalizeRut = (rut: string | null): string => {
+      if (!rut) return "";
+      return rut.replace(/[.\-\s]/g, "").toUpperCase();
+    };
+
+    // Security validation: Bank RUT must match profile RUT
+    if (profileData?.rut && normalizeRut(values.bank_holder_rut) !== normalizeRut(profileData.rut)) {
+      toast.error("Por seguridad, el RUT de la cuenta bancaria debe coincidir con el RUT de tu perfil");
+      return;
+    }
+
+    if (!profileData?.rut) {
+      toast.error("Debes completar tu RUT en el perfil antes de agregar datos bancarios");
+      return;
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
