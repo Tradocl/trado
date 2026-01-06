@@ -14,6 +14,8 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
 import { UNVERIFIED_LIMITS, checkTransactionLimits, getUserVerificationStatus } from "@/lib/transaction-limits";
+import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
+import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 
 type SaleType = "servicio" | "producto_persona" | "producto_envio";
 type MainType = "servicio" | "producto";
@@ -36,6 +38,7 @@ const CreateTransaction = () => {
   const [mainType, setMainType] = useState<MainType>("producto");
   const [initiatorRole, setInitiatorRole] = useState<InitiatorRole>("seller");
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const { showCompleteProfileModal, requireCompleteProfile, onProfileCompleted, closeModal } = useRequireCompleteProfile();
   const [formData, setFormData] = useState<{
     productName: string;
     productDescription: string;
@@ -43,6 +46,7 @@ const CreateTransaction = () => {
     saleType: SaleType;
     initiatorRole: InitiatorRole;
   } | null>(null);
+  const [pendingFormEvent, setPendingFormEvent] = useState<React.FormEvent<HTMLFormElement> | null>(null);
 
   // Redirect guest users with prompt
   useEffect(() => {
@@ -93,6 +97,7 @@ const CreateTransaction = () => {
     e.preventDefault();
     if (!user) return;
 
+    // Store form data before checking profile
     const form = new FormData(e.currentTarget);
     const productName = form.get("productName") as string;
     const productDescription = form.get("productDescription") as string;
@@ -117,14 +122,17 @@ const CreateTransaction = () => {
       }
     }
 
-    setFormData({
-      productName,
-      productDescription,
-      amount: parsedAmount,
-      saleType,
-      initiatorRole,
+    // Check profile completion before proceeding
+    await requireCompleteProfile(() => {
+      setFormData({
+        productName,
+        productDescription,
+        amount: parsedAmount,
+        saleType,
+        initiatorRole,
+      });
+      setShowConfirmModal(true);
     });
-    setShowConfirmModal(true);
   };
 
   const confirmCreateTransaction = async () => {
@@ -824,6 +832,12 @@ const CreateTransaction = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <CompleteProfileModal
+        open={showCompleteProfileModal}
+        onClose={closeModal}
+        onComplete={onProfileCompleted}
+      />
     </div>
   );
 };
