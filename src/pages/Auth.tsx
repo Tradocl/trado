@@ -9,12 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { validateRUT, validateChileanPhone, formatRUT } from "@/lib/validators";
-import { regiones, ciudadesPorRegion } from "@/lib/chilean-locations";
 import tradoShield from "@/assets/trado-shield.png";
 
 interface PasswordRequirement {
@@ -71,57 +68,12 @@ const Auth = () => {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("signin");
-  const [rutValue, setRutValue] = useState("");
-  const [rutError, setRutError] = useState("");
-  const [phoneValue, setPhoneValue] = useState("+56 9 ");
-  const [phoneError, setPhoneError] = useState("");
-  
-  // Address fields
-  const [region, setRegion] = useState("");
-  const [ciudad, setCiudad] = useState("");
-  const [calle, setCalle] = useState("");
-  const [numero, setNumero] = useState("");
-  const [depto, setDepto] = useState("");
-  const [referencia, setReferencia] = useState("");
   
   // Field error states
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-
-  const formatPhoneInput = (value: string) => {
-    // Remove all non-digits except +
-    let digits = value.replace(/[^\d+]/g, '');
-    
-    // Ensure it starts with +56
-    if (!digits.startsWith('+56')) {
-      if (digits.startsWith('56')) {
-        digits = '+' + digits;
-      } else if (digits.startsWith('+')) {
-        digits = '+56' + digits.slice(1).replace(/\D/g, '');
-      } else {
-        digits = '+56' + digits;
-      }
-    }
-    
-    // Get just the numbers after +56
-    const afterPrefix = digits.slice(3).replace(/\D/g, '');
-    
-    // Format: +56 9 XXXX XXXX
-    let formatted = '+56';
-    if (afterPrefix.length > 0) {
-      formatted += ' ' + afterPrefix.slice(0, 1);
-    }
-    if (afterPrefix.length > 1) {
-      formatted += ' ' + afterPrefix.slice(1, 5);
-    }
-    if (afterPrefix.length > 5) {
-      formatted += ' ' + afterPrefix.slice(5, 9);
-    }
-    
-    return formatted;
-  };
 
   useEffect(() => {
     const checkGoogleUser = async () => {
@@ -249,18 +201,8 @@ const Auth = () => {
     const email = formData.get("email") as string;
     const password = signupPassword;
     const fullName = formData.get("fullName") as string;
-    const phone = phoneValue;
-    const rut = rutValue;
-    
-    // Construir dirección completa
-    let address = `${calle} ${numero}`;
-    if (depto) address += `, ${depto}`;
-    address += `, ${ciudad}, ${region}`;
-    if (referencia) address += ` (${referencia})`;
 
     // Reset all field errors
-    setRutError("");
-    setPhoneError("");
     setEmailError("");
     setPasswordError("");
     setConfirmPasswordError("");
@@ -282,50 +224,6 @@ const Auth = () => {
       return;
     }
 
-    // Validar RUT
-    if (!validateRUT(rut)) {
-      setRutError("RUT inválido");
-      toast.error("RUT inválido. Verifica el formato y dígito verificador.");
-      setLoading(false);
-      return;
-    }
-
-    // Validar teléfono
-    if (!validateChileanPhone(phone)) {
-      setPhoneError("Teléfono inválido");
-      toast.error("Teléfono inválido. Debe ser un número chileno válido.");
-      setLoading(false);
-      return;
-    }
-
-    // Check for duplicate RUT
-    const { data: existingRut } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('rut', rut)
-      .maybeSingle();
-
-    if (existingRut) {
-      setRutError("Este RUT ya existe. Intenta iniciar sesión o recuperar contraseña.");
-      toast.error("Este RUT ya está registrado en otra cuenta.");
-      setLoading(false);
-      return;
-    }
-
-    // Check for duplicate phone
-    const { data: existingPhone } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('phone', phone)
-      .maybeSingle();
-
-    if (existingPhone) {
-      setPhoneError("Este teléfono ya existe. Intenta iniciar sesión o recuperar contraseña.");
-      toast.error("Este teléfono ya está registrado en otra cuenta.");
-      setLoading(false);
-      return;
-    }
-
     // Check for duplicate email
     const { data: existingEmail } = await supabase
       .from('profiles')
@@ -343,8 +241,8 @@ const Auth = () => {
     // Bloquear redirección automática tras registro hasta que el usuario decida
     sessionStorage.setItem('blockRedirectAfterSignup', 'true');
 
-    // Normal registration flow
-    const { data, error } = await signUp(email, password, fullName, phone, rut, address);
+    // Simplified registration flow - only email, password, fullName
+    const { data, error } = await signUp(email, password, fullName);
 
     if (error) {
       // Handle specific error messages
@@ -355,33 +253,12 @@ const Auth = () => {
           description: "Si no recuerdas tu contraseña, usa 'Recuperar contraseña' en Iniciar Sesión.",
           duration: 6000
         });
-      } else if (errorMsg.includes("profiles_rut_unique") || (errorMsg.includes("duplicate") && errorMsg.includes("rut"))) {
-        setRutError("Este RUT ya existe. Intenta iniciar sesión o recuperar contraseña.");
-        toast.error("Este RUT ya está registrado en otra cuenta.", {
-          description: "Si ya tienes una cuenta, intenta iniciar sesión.",
-          duration: 5000
-        });
-      } else if (errorMsg.includes("profiles_phone_unique") || (errorMsg.includes("duplicate") && errorMsg.includes("phone"))) {
-        setPhoneError("Este teléfono ya existe. Intenta iniciar sesión o recuperar contraseña.");
-        toast.error("Este teléfono ya está registrado en otra cuenta.", {
-          description: "Si ya tienes una cuenta, intenta iniciar sesión.",
-          duration: 5000
-        });
       } else if (errorMsg.includes("email") || (errorMsg.includes("invalid") && errorMsg.includes("email"))) {
         setEmailError("Correo electrónico inválido");
         toast.error("El formato del correo electrónico no es válido");
       } else if (errorMsg.includes("password")) {
         setPasswordError("Error con la contraseña");
         toast.error(error.message);
-      } else if (errorMsg.includes("phone")) {
-        setPhoneError("Error con el teléfono");
-        toast.error(error.message);
-      } else if (errorMsg.includes("database error")) {
-        // Generic database error - likely a unique constraint violation
-        toast.error("Error al crear cuenta: Datos duplicados", {
-          description: "Verifica que tu RUT y teléfono no estén registrados en otra cuenta.",
-          duration: 5000
-        });
       } else {
         toast.error("Error al crear cuenta: " + error.message);
       }
@@ -392,7 +269,6 @@ const Auth = () => {
       setNewUserId(data.user.id);
       
       // Send welcome email
-      const fullName = formData.get("fullName") as string;
       try {
         await supabase.functions.invoke('send-welcome-email', {
           body: { 
@@ -409,8 +285,6 @@ const Auth = () => {
       setShowVerificationChoice(true);
       setSignupPassword("");
       setConfirmPassword("");
-      setRutValue("");
-      setPhoneValue("+56 9 ");
       setLoading(false);
     }
   };
@@ -731,175 +605,6 @@ const Auth = () => {
                       placeholder="Juan Pérez"
                       required
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-rut">RUT</Label>
-                    <Input
-                      id="signup-rut"
-                      name="rut"
-                      type="text"
-                      placeholder="12.345.678-9"
-                      value={rutValue}
-                      onChange={(e) => {
-                        // Solo permitir números y K
-                        const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
-                        if (rawValue.length <= 9) {
-                          const formatted = formatRUT(rawValue);
-                          setRutValue(formatted);
-                          // Limpiar error de duplicado al modificar
-                          if (rutError.includes("ya existe")) {
-                            setRutError("");
-                          }
-                          // Validar RUT en tiempo real
-                          if (rawValue.length >= 8) {
-                            if (validateRUT(rawValue)) {
-                              setRutError("");
-                            } else {
-                              setRutError("RUT inválido");
-                            }
-                          } else if (!rutError.includes("ya existe")) {
-                            setRutError("");
-                          }
-                        }
-                      }}
-                      required
-                      className={rutError ? "border-destructive" : ""}
-                    />
-                    {rutError && (
-                      <p className="text-xs text-destructive">{rutError}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-phone">Teléfono</Label>
-                    <Input
-                      id="signup-phone"
-                      name="phone"
-                      type="tel"
-                      value={phoneValue}
-                      onChange={(e) => {
-                        const formatted = formatPhoneInput(e.target.value);
-                        setPhoneValue(formatted);
-                        // Limpiar error de duplicado al modificar
-                        if (phoneError.includes("ya existe")) {
-                          setPhoneError("");
-                        }
-                        // Validar teléfono
-                        const digits = formatted.replace(/\D/g, '');
-                        if (digits.length >= 11) {
-                          if (validateChileanPhone(formatted)) {
-                            setPhoneError("");
-                          } else {
-                            setPhoneError("Teléfono inválido");
-                          }
-                        } else if (!phoneError.includes("ya existe")) {
-                          setPhoneError("");
-                        }
-                      }}
-                      placeholder="+56 9 1234 5678"
-                      required
-                      className={phoneError ? "border-destructive" : ""}
-                    />
-                    {phoneError && (
-                      <p className="text-xs text-destructive">{phoneError}</p>
-                    )}
-                  </div>
-                  
-                  {/* Address fields */}
-                  <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                    <Label className="text-sm font-medium">Dirección</Label>
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
-                        <Label htmlFor="signup-region" className="text-xs text-muted-foreground">Región *</Label>
-                        <Select 
-                          value={region} 
-                          onValueChange={(value) => {
-                            setRegion(value);
-                            setCiudad(""); // Reset city when region changes
-                          }}
-                          required
-                        >
-                          <SelectTrigger id="signup-region" className="bg-background">
-                            <SelectValue placeholder="Selecciona región" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50 max-h-60">
-                            {regiones.map((reg) => (
-                              <SelectItem key={reg} value={reg}>
-                                {reg}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="signup-ciudad" className="text-xs text-muted-foreground">Comuna *</Label>
-                        <Select 
-                          value={ciudad} 
-                          onValueChange={setCiudad}
-                          disabled={!region}
-                          required
-                        >
-                          <SelectTrigger id="signup-ciudad" className="bg-background">
-                            <SelectValue placeholder={region ? "Selecciona comuna" : "Primero selecciona región"} />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50 max-h-60">
-                            {region && ciudadesPorRegion[region]?.map((city) => (
-                              <SelectItem key={city} value={city}>
-                                {city}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="col-span-2 space-y-1">
-                        <Label htmlFor="signup-calle" className="text-xs text-muted-foreground">Calle *</Label>
-                        <Input
-                          id="signup-calle"
-                          type="text"
-                          placeholder="Av. Principal"
-                          value={calle}
-                          onChange={(e) => setCalle(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="signup-numero" className="text-xs text-muted-foreground">Número *</Label>
-                        <Input
-                          id="signup-numero"
-                          type="text"
-                          placeholder="123"
-                          value={numero}
-                          onChange={(e) => setNumero(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
-                        <Label htmlFor="signup-depto" className="text-xs text-muted-foreground">Depto/Casa</Label>
-                        <Input
-                          id="signup-depto"
-                          type="text"
-                          placeholder="Depto 501"
-                          value={depto}
-                          onChange={(e) => setDepto(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="signup-referencia" className="text-xs text-muted-foreground">Referencia</Label>
-                        <Input
-                          id="signup-referencia"
-                          type="text"
-                          placeholder="Cerca del metro"
-                          value={referencia}
-                          onChange={(e) => setReferencia(e.target.value)}
-                        />
-                      </div>
-                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>

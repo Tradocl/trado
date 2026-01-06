@@ -368,6 +368,7 @@ export type Database = {
           is_verified: boolean | null
           nickname: string | null
           phone: string | null
+          profile_completed: boolean | null
           reputation_score: number | null
           rut: string | null
           total_transactions: number | null
@@ -396,6 +397,7 @@ export type Database = {
           is_verified?: boolean | null
           nickname?: string | null
           phone?: string | null
+          profile_completed?: boolean | null
           reputation_score?: number | null
           rut?: string | null
           total_transactions?: number | null
@@ -424,6 +426,7 @@ export type Database = {
           is_verified?: boolean | null
           nickname?: string | null
           phone?: string | null
+          profile_completed?: boolean | null
           reputation_score?: number | null
           rut?: string | null
           total_transactions?: number | null
