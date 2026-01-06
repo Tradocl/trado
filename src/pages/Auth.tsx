@@ -99,44 +99,8 @@ const Auth = () => {
         const needsRegistration = isGoogleProvider && (!profile?.rut || !profile?.phone);
 
         if (needsRegistration) {
-          // Check if email already exists in another profile (registered via email/password)
-          const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('email', user.email || '')
-            .neq('id', user.id)
-            .maybeSingle();
-
-          // Save the incomplete user's ID before signing out
-          const incompleteUserId = user.id;
-
-          // Sign out the Google user first
-          await supabase.auth.signOut();
-          
-          // Clear any localStorage remnants
-          const keysToRemove = Object.keys(localStorage).filter(key => key.startsWith('sb-'));
-          keysToRemove.forEach(key => localStorage.removeItem(key));
-
-          // Delete the incomplete user from auth.users so email is free for registration
-          try {
-            await supabase.functions.invoke('delete-incomplete-user', {
-              body: { userId: incompleteUserId }
-            });
-            console.log("Deleted incomplete Google user:", incompleteUserId);
-          } catch (deleteError) {
-            console.error("Error deleting incomplete user:", deleteError);
-            // Continue anyway - worst case user will see "already registered" error
-          }
-          
-          if (existingProfile) {
-            // Email already registered with another account
-            setActiveTab("signin");
-            toast.error("Este correo ya está registrado. Por favor, inicia sesión con tu contraseña.");
-          } else {
-            // New user - redirect to signup with error message
-            setActiveTab("signup");
-            toast.error("No existe una cuenta con este correo. Debes crear una cuenta primero.");
-          }
+          // Redirect to complete profile page instead of deleting user
+          navigate("/complete-profile");
           return;
         }
 
