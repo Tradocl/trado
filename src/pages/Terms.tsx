@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield, Scale, FileText, AlertTriangle, Clock, CreditCard, Users, Lock } from "lucide-react";
-import tradoShield from "@/assets/trado-shield.png";
+import tradoLogo from "@/assets/trado-logo.png";
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const Terms = () => {
           </Button>
           
           <div className="flex items-center gap-4 mb-4">
-            <img src={tradoShield} alt="Trado" className="h-12 w-12" />
+            <img src={tradoLogo} alt="Trado" className="h-12 w-12" />
             <h1 className="text-3xl md:text-4xl font-bold text-white">
               Términos y Condiciones
             </h1>

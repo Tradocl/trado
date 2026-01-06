@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Shield, Lock, Users, TrendingUp, ArrowRight, Star, Quote, Eye } from "lucide-react";
-import tradoShield from "@/assets/trado-shield.png";
+import tradoLogo from "@/assets/trado-logo.png";
 import { useGuest } from "@/contexts/GuestContext";
 
 const Index = () => {
@@ -19,7 +19,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="text-center text-white space-y-8 max-w-4xl mx-auto">
             <div className="flex justify-center mb-6">
-              <img src={tradoShield} alt="Trado" className="h-24 w-24 drop-shadow-2xl border-primary shadow" />
+              <img src={tradoLogo} alt="Trado" className="h-24 w-24 drop-shadow-2xl border-primary shadow" />
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
@@ -253,7 +253,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <img src={tradoShield} alt="Trado" className="h-6 w-6" />
+              <img src={tradoLogo} alt="Trado" className="h-6 w-6" />
               <span className="font-semibold text-foreground">Trado</span>
               <span className="text-muted-foreground text-sm">© 2024</span>
             </div>
