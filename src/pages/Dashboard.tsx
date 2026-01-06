@@ -314,6 +314,32 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
+        {/* Complete Profile Banner */}
+        {!isGuestMode && profile && !isProfileComplete && (
+          <Card className="border-warning/50 bg-warning/10 shadow-lg animate-fade-in">
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="p-2 bg-warning/20 rounded-full">
+                  <UserCheck className="h-5 w-5 text-warning" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Completa tu perfil</p>
+                  <p className="text-sm text-muted-foreground">
+                    Agrega tu RUT, teléfono y dirección para poder crear y unirte a transacciones.
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => setShowCompleteProfileModal(true)}
+                className="w-full sm:w-auto"
+                size="sm"
+              >
+                Completar ahora
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
         {/* Welcome Card */}
         <Card 
           className={`border-0 shadow-xl text-white overflow-hidden animate-fade-in ${!profile?.dashboard_background_url ? getCardGradient(profile?.dashboard_color || 'primary') : ''}`}
