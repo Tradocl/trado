@@ -612,7 +612,7 @@ const Dashboard = () => {
                     <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <CardTitle className="text-base sm:text-xl">Crear Sala</CardTitle>
+                    <CardTitle className="text-base sm:text-xl">Crear Transacción</CardTitle>
                     <CardDescription className="text-xs truncate">Nueva transacción segura</CardDescription>
                   </div>
                 </div>
@@ -623,7 +623,7 @@ const Dashboard = () => {
                 </p>
                 <Button className="w-full bg-success hover:bg-success/90 group-hover:shadow-lg transition-shadow text-sm">
                   <Plus className="mr-2 h-4 w-4" />
-                  Crear Sala
+                  Crear Transacción
                 </Button>
               </CardContent>
             </Card>
@@ -641,7 +641,7 @@ const Dashboard = () => {
                     <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 text-info" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <CardTitle className="text-base sm:text-xl">Unirse</CardTitle>
+                    <CardTitle className="text-base sm:text-xl">Unirse a Transacción</CardTitle>
                     <CardDescription className="text-xs truncate">Ingresa con código</CardDescription>
                   </div>
                 </div>
@@ -652,7 +652,7 @@ const Dashboard = () => {
                 </p>
                 <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow text-sm">
                   <ShoppingBag className="mr-2 h-4 w-4" />
-                  Unirse
+                  Unirse a Transacción
                 </Button>
               </CardContent>
             </Card>
@@ -670,7 +670,7 @@ const Dashboard = () => {
                     <History className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <CardTitle className="text-base sm:text-xl">Historial</CardTitle>
+                    <CardTitle className="text-base sm:text-xl">Historial de Transacciones</CardTitle>
                     <CardDescription className="text-xs truncate">Revisa tus transacciones</CardDescription>
                   </div>
                 </div>
@@ -681,7 +681,7 @@ const Dashboard = () => {
                 </p>
                 <Button className="w-full group-hover:shadow-lg transition-shadow text-sm">
                   <History className="mr-2 h-4 w-4" />
-                  Ver Historial
+                  Historial de Transacciones
                 </Button>
               </CardContent>
             </Card>
