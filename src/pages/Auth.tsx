@@ -143,11 +143,11 @@ const Auth = () => {
   };
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    // Always redirect back to /auth so we can check if user needs registration
+    // Redirect directly to /complete-profile for Google users
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth`
+        redirectTo: `${window.location.origin}/complete-profile`
       }
     });
     
