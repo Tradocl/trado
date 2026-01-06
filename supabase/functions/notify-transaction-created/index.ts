@@ -143,9 +143,6 @@ const handler = async (req: Request): Promise<Response> => {
     const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
     const transactionUrl = `${baseUrl}/transaction/${transactionId}`;
 
-    // Thread subject - this will be the consistent subject for all emails in this thread
-    const threadSubject = `[Orden #${inviteCode}] ${productName}`;
-
     const emailHtml = `
       <!DOCTYPE html>
       <html>
@@ -335,26 +332,11 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
       to: [sellerEmail],
-      subject: threadSubject,
+      subject: `🔔 Trado - Nueva orden creada #${inviteCode}`,
       html: emailHtml,
     });
 
     console.log("Transaction created notification email sent successfully:", emailResponse);
-
-    // Save the Message-ID to enable email threading for subsequent emails
-    if (emailResponse.data?.id) {
-      const messageId = `<${emailResponse.data.id}@resend.dev>`;
-      const { error: updateError } = await supabase
-        .from("transactions")
-        .update({ email_thread_id: messageId })
-        .eq("id", transactionId);
-
-      if (updateError) {
-        console.error("Failed to save email_thread_id:", updateError);
-      } else {
-        console.log("Saved email_thread_id for threading:", messageId);
-      }
-    }
 
     return new Response(JSON.stringify({ success: true, emailResponse }), {
       status: 200,

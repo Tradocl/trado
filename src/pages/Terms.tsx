@@ -101,8 +101,8 @@ const Terms = () => {
             <div className="text-muted-foreground space-y-4">
               <p>
                 <strong className="text-foreground">3.1. Comisión por transacción:</strong> Trado 
-                cobra una comisión del <strong className="text-foreground">5%</strong> sobre el 
-                valor total de cada transacción completada exitosamente (mínimo $1.000, máximo $20.000 CLP).
+                cobra una comisión del <strong className="text-foreground">3%</strong> sobre el 
+                valor total de cada transacción completada exitosamente.
               </p>
               <p>
                 <strong className="text-foreground">3.2. Momento del cobro:</strong> La comisión 
@@ -309,7 +309,7 @@ const Terms = () => {
               Para consultas sobre estos términos o el funcionamiento de Trado, contáctanos en:
             </p>
             <div className="space-y-2 text-muted-foreground">
-              <p><strong className="text-foreground">Email:</strong> admin@trado.cl</p>
+              <p><strong className="text-foreground">Email:</strong> soporte@trado.cl</p>
               <p><strong className="text-foreground">Horario:</strong> Lunes a Viernes, 9:00 - 18:00 hrs</p>
             </div>
           </section>

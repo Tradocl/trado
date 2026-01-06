@@ -265,8 +265,8 @@ const Transaction = () => {
   };
 
   const copyInviteLink = () => {
-    if (transaction?.id && transaction?.invite_code) {
-      // Use /invite/ path for the invitation link with invite code for security
+    if (transaction?.id) {
+      // Use /invite/ path for the invitation link
       const origin = window.location.origin;
       let appUrl = origin;
       if (origin.includes('id-preview--') || origin.includes('localhost')) {
@@ -277,7 +277,7 @@ const Transaction = () => {
           appUrl = 'https://wpczgwxsriezaubncuom.lovable.app';
         }
       }
-      const link = `${appUrl}/invite/${transaction.id}?code=${encodeURIComponent(transaction.invite_code)}`;
+      const link = `${appUrl}/invite/${transaction.id}`;
       navigator.clipboard.writeText(link);
       setCopiedLink(true);
       toast.success("Enlace copiado al portapapeles");
@@ -1411,9 +1411,6 @@ const Transaction = () => {
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground mt-3 text-center">
                 📱 Comparte el código o el enlace con {joinerRoleLabel.toLowerCase()}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1 text-center">
-                💡 Si el enlace no funciona, pídele que te solicite el código de invitación
               </p>
             </CardContent>
           </Card>

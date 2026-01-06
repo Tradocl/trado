@@ -147,21 +147,15 @@ serve(async (req) => {
       ? transactionAmount + commission 
       : transactionAmount;
 
-    // CRITICAL: The maximum distributable amount is ALWAYS the transaction amount (without commission)
-    // The commission ALWAYS stays with Trado, regardless of the appeal outcome
-    const distributableAmount = transactionAmount;
+    console.log(`[resolve-appeal] Transaction details: amount=${transactionAmount}, commission=${commission}, initiatorRole=${initiatorRole}, escrowAmount=${escrowAmount}`);
 
-    console.log(`[resolve-appeal] Transaction details: amount=${transactionAmount}, commission=${commission}, initiatorRole=${initiatorRole}, escrowAmount=${escrowAmount}, distributableAmount=${distributableAmount}`);
-
-    // Validate amounts against distributable amount (NOT escrow - commission always stays with Trado)
+    // Validate amounts against transaction amount (don't allow more than escrow)
     const totalDistribution = (buyerRefundAmount || 0) + (sellerPaymentAmount || 0);
     
-    if (totalDistribution > distributableAmount) {
-      console.error("Distribution exceeds distributable amount:", { totalDistribution, distributableAmount, commission });
+    if (totalDistribution > escrowAmount) {
+      console.error("Distribution exceeds escrow:", { totalDistribution, escrowAmount });
       return new Response(
-        JSON.stringify({ 
-          error: `La distribución total ($${totalDistribution.toLocaleString('es-CL')}) no puede exceder el monto de la transacción ($${distributableAmount.toLocaleString('es-CL')}). La comisión de $${commission.toLocaleString('es-CL')} siempre se cobra.` 
-        }),
+        JSON.stringify({ error: `Total distribution (${totalDistribution}) cannot exceed escrow amount (${escrowAmount})` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -374,26 +368,7 @@ serve(async (req) => {
       );
     }
 
-    // Create commission movement for traceability (commission stays with Trado)
-    if (commission > 0) {
-      // Log the commission as a platform fee - this is for accounting purposes
-      // The commission was already part of the escrow, we're just not distributing it
-      console.log(`[resolve-appeal] Commission retained by Trado: $${commission}`);
-      
-      // We could create a commission movement here for tracking, but the commission
-      // is simply not distributed to either party - it stays in the system
-    }
-
-    console.log("[resolve-appeal] Appeal resolution completed successfully:", { 
-      appealId, 
-      newStatus, 
-      escrowAmount, 
-      distributableAmount,
-      commission,
-      buyerRefundAmount, 
-      sellerPaymentAmount,
-      totalDistributed: (buyerRefundAmount || 0) + (sellerPaymentAmount || 0)
-    });
+    console.log("[resolve-appeal] Appeal resolution completed successfully:", { appealId, newStatus, escrowAmount, buyerRefundAmount, sellerPaymentAmount });
 
     // Send notification emails to both parties (fire and forget)
     try {

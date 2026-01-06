@@ -148,31 +148,27 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // CRITICAL: Commission is ALWAYS retained by Trado, regardless of who initiated
-    // The distributable amount is ONLY the transaction amount
+    // Commission is paid by the party who initiated the transaction
+    // If buyer initiated, they already paid commission in their deposit (no deduction from seller)
+    // If seller initiated, commission is deducted from seller's portion
     const initiatorRole = tx.initiator_role || 'seller';
     
-    // Validate that proposed distribution doesn't exceed transaction amount (without commission)
-    if (buyerProposedAmount + sellerProposedAmount > transactionAmount) {
-      console.error(`[accept-mutual-resolution] Invalid amounts: buyer=${buyerProposedAmount}, seller=${sellerProposedAmount}, max distributable=${transactionAmount}, commission=${commission}`);
-      return new Response(JSON.stringify({ 
-        error: `Los montos propuestos ($${(buyerProposedAmount + sellerProposedAmount).toLocaleString('es-CL')}) exceden el monto distribuible ($${transactionAmount.toLocaleString('es-CL')}). La comisión de $${commission.toLocaleString('es-CL')} siempre se cobra.` 
-      }), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-    
-    // Calculate actual amounts - commission is simply not distributed
-    // Both buyer and seller get exactly what was proposed (no deduction needed)
-    // The commission stays in the escrow (blocked_balance) and is not released to anyone
+    // Calculate actual amounts after commission
     let buyerFinalAmount = buyerProposedAmount;
     let sellerFinalAmount = sellerProposedAmount;
-    
-    // Track commission for logging/movement purposes
-    const commissionRetained = commission;
+    let commissionToDeduct = 0;
 
-    console.log(`[accept-mutual-resolution] Amounts - Buyer: ${buyerFinalAmount}, Seller: ${sellerFinalAmount}, Commission retained: ${commissionRetained}, Initiator: ${initiatorRole}`);
+    // Commission is only applied when seller receives money
+    if (sellerProposedAmount > 0) {
+      if (initiatorRole === 'seller') {
+        // Seller pays commission from their portion
+        commissionToDeduct = Math.min(commission, sellerProposedAmount);
+        sellerFinalAmount = sellerProposedAmount - commissionToDeduct;
+      }
+      // If buyer initiated, commission was already added to their deposit, seller gets full amount
+    }
+
+    console.log(`[accept-mutual-resolution] Amounts - Buyer: ${buyerProposedAmount}->${buyerFinalAmount}, Seller: ${sellerProposedAmount}->${sellerFinalAmount}, Commission: ${commissionToDeduct}`);
 
     // 7. Get wallets for both parties (including blocked_balance)
     const { data: buyerWallet, error: buyerWalletError } = await supabaseClient
@@ -298,8 +294,10 @@ serve(async (req: Request): Promise<Response> => {
         sellerWalletUpdated = true;
         console.log(`[accept-mutual-resolution] Seller wallet updated: ${originalSellerBalance} -> ${newSellerBalance}`);
 
-        // Create seller movement - simplified description since commission is just not distributed
-        const movementDescription = `Venta "${tx.product_name}"`;
+        // Create seller movement
+        const movementDescription = commissionToDeduct > 0 
+          ? `Venta "${tx.product_name}" (neto después de comisión)`
+          : `Venta "${tx.product_name}"`;
 
         const { error: sellerMovementError } = await supabaseClient
           .from("wallet_movements")
@@ -321,12 +319,26 @@ serve(async (req: Request): Promise<Response> => {
         }
       }
 
-      // 11. Log commission retention for traceability
-      // The commission is simply not distributed - it stays in the system
-      if (commissionRetained > 0) {
-        console.log(`[accept-mutual-resolution] Commission retained by Trado: $${commissionRetained}`);
-        // Note: We don't create a wallet movement for commission since it's simply not released
-        // The funds stay in the blocked_balance (not distributed to anyone)
+      // 11. Create commission movement if applicable
+      if (commissionToDeduct > 0) {
+        const { error: commissionMovementError } = await supabaseClient
+          .from("wallet_movements")
+          .insert({
+            wallet_id: sellerWallet.id,
+            type: "commission",
+            amount: -commissionToDeduct,
+            balance_after: originalSellerBalance + sellerFinalAmount,
+            status: "approved",
+            description: `Comisión Trado "${tx.product_name}"`,
+            transaction_id: transactionId,
+          });
+
+        if (commissionMovementError) {
+          console.error("[accept-mutual-resolution] Error creating commission movement", commissionMovementError);
+          // Non-critical, continue
+        } else {
+          console.log("[accept-mutual-resolution] Commission movement created");
+        }
       }
 
       // 12. Determine resolution type based on amounts
@@ -345,8 +357,8 @@ serve(async (req: Request): Promise<Response> => {
       console.log(`[accept-mutual-resolution] Resolution: ${resolution}, Appeal status: ${appealStatus}`);
 
       // 13. Create appeal decision record
-      const resolutionNotes = commissionRetained > 0
-        ? `Acuerdo mutuo entre las partes. Comisión de $${commissionRetained.toLocaleString('es-CL')} retenida por Trado. ${proposal.message || ""}`.trim()
+      const resolutionNotes = commissionToDeduct > 0
+        ? `Acuerdo mutuo entre las partes. Comisión de $${commissionToDeduct.toLocaleString('es-CL')} descontada del monto del vendedor. ${proposal.message || ""}`.trim()
         : `Acuerdo mutuo entre las partes. ${proposal.message || ""}`.trim();
 
       const { error: decisionError } = await supabaseClient
@@ -433,7 +445,7 @@ serve(async (req: Request): Promise<Response> => {
         appealStatus,
         buyerRefund: buyerFinalAmount,
         sellerPayment: sellerFinalAmount,
-        commissionRetained: commissionRetained
+        commissionDeducted: commissionToDeduct
       }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },

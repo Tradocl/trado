@@ -27,7 +27,7 @@ const actionConfig: Record<string, {
   // Transaction actions
   buyer_joined: {
     emoji: "🤝",
-    title: "Nuevo Participante",
+    title: "Trado - Nuevo Participante",
     getDescription: (actorName, productName) => 
       `<strong>${actorName}</strong> se ha unido a tu transacción de <strong>${productName}</strong> en Trado.`,
     ctaText: "Ver Transacción",
@@ -35,7 +35,7 @@ const actionConfig: Record<string, {
   },
   funds_deposited: {
     emoji: "💰",
-    title: "Fondos Asegurados",
+    title: "Trado - Fondos Asegurados",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha depositado los fondos para <strong>${productName}</strong> en Trado. ¡Ya puedes proceder con el envío/entrega!`,
     ctaText: "Ver Transacción",
@@ -43,7 +43,7 @@ const actionConfig: Record<string, {
   },
   marked_shipped: {
     emoji: "📦",
-    title: "Pedido Enviado",
+    title: "Trado - Pedido Enviado",
     getDescription: (actorName, productName, data) =>
       `<strong>${actorName}</strong> ha marcado el pedido de <strong>${productName}</strong> como enviado en Trado.${data?.trackingInfo ? ` Tracking: ${data.trackingInfo}` : ''}`,
     ctaText: "Ver Transacción",
@@ -51,7 +51,7 @@ const actionConfig: Record<string, {
   },
   marked_received: {
     emoji: "✅",
-    title: "Producto Recibido",
+    title: "Trado - Producto Recibido",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha confirmado que recibió el producto <strong>${productName}</strong> en Trado. Ahora tiene un período para revisarlo.`,
     ctaText: "Ver Transacción",
@@ -60,7 +60,7 @@ const actionConfig: Record<string, {
   // Meeting actions
   meeting_proposed: {
     emoji: "📍",
-    title: "Nueva Propuesta de Encuentro",
+    title: "Trado - Nueva Propuesta de Encuentro",
     getDescription: (actorName, productName, data) =>
       `<strong>${actorName}</strong> te propone un encuentro para <strong>${productName}</strong> en Trado.${data?.location ? ` Lugar: ${data.location}` : ''}${data?.datetime ? ` Fecha: ${data.datetime}` : ''}`,
     ctaText: "Ver y Responder",
@@ -68,7 +68,7 @@ const actionConfig: Record<string, {
   },
   meeting_accepted: {
     emoji: "✅",
-    title: "Encuentro Confirmado",
+    title: "Trado - Encuentro Confirmado",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha aceptado tu propuesta de encuentro para <strong>${productName}</strong> en Trado. ¡Coordinen la entrega!`,
     ctaText: "Ver Detalles",
@@ -76,7 +76,7 @@ const actionConfig: Record<string, {
   },
   meeting_rejected: {
     emoji: "❌",
-    title: "Propuesta Rechazada",
+    title: "Trado - Propuesta Rechazada",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha rechazado tu propuesta de encuentro para <strong>${productName}</strong> en Trado. Puedes proponer otra alternativa.`,
     ctaText: "Proponer Nueva Fecha",
@@ -85,7 +85,7 @@ const actionConfig: Record<string, {
   // Appeal actions
   appeal_created: {
     emoji: "⚖️",
-    title: "Nueva Apelación",
+    title: "Trado - Nueva Apelación",
     getDescription: (actorName, productName, data) =>
       `<strong>${actorName}</strong> ha iniciado una apelación para la transacción de <strong>${productName}</strong> en Trado.${data?.reason ? ` Motivo: ${data.reason}` : ''} Tienes 48 horas para negociar una resolución.`,
     ctaText: "Ver Apelación",
@@ -93,7 +93,7 @@ const actionConfig: Record<string, {
   },
   appeal_evidence_uploaded: {
     emoji: "📎",
-    title: "Nueva Evidencia",
+    title: "Trado - Nueva Evidencia",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha subido nueva evidencia a la apelación de <strong>${productName}</strong> en Trado.`,
     ctaText: "Ver Evidencia",
@@ -101,7 +101,7 @@ const actionConfig: Record<string, {
   },
   appeal_escalated: {
     emoji: "🚨",
-    title: "Caso Escalado",
+    title: "Trado - Caso Escalado",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha escalado la apelación de <strong>${productName}</strong> a un administrador de Trado. Un mediador revisará el caso.`,
     ctaText: "Ver Apelación",
@@ -109,7 +109,7 @@ const actionConfig: Record<string, {
   },
   appeal_proposal_sent: {
     emoji: "🤝",
-    title: "Nueva Propuesta de Acuerdo",
+    title: "Trado - Nueva Propuesta de Acuerdo",
     getDescription: (actorName, productName, data) =>
       `<strong>${actorName}</strong> te ha enviado una propuesta de acuerdo mutuo para <strong>${productName}</strong> en Trado.${data?.distribution ? ` Propuesta: ${data.distribution}` : ''}`,
     ctaText: "Ver Propuesta",
@@ -117,7 +117,7 @@ const actionConfig: Record<string, {
   },
   appeal_proposal_rejected: {
     emoji: "❌",
-    title: "Propuesta Rechazada",
+    title: "Trado - Propuesta Rechazada",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha rechazado tu propuesta de acuerdo para <strong>${productName}</strong> en Trado. Puedes enviar una contra-propuesta.`,
     ctaText: "Ver Apelación",
@@ -125,7 +125,7 @@ const actionConfig: Record<string, {
   },
   appeal_proposal_cancelled: {
     emoji: "🔙",
-    title: "Propuesta Cancelada",
+    title: "Trado - Propuesta Cancelada",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha cancelado su propuesta de acuerdo para <strong>${productName}</strong> en Trado.`,
     ctaText: "Ver Apelación",
@@ -133,7 +133,7 @@ const actionConfig: Record<string, {
   },
   appeal_resolved: {
     emoji: "✅",
-    title: "Apelación Resuelta",
+    title: "Trado - Apelación Resuelta",
     getDescription: (actorName, productName, data) =>
       `La apelación de <strong>${productName}</strong> ha sido resuelta en Trado.${data?.resolution ? ` Resolución: ${data.resolution}` : ''}`,
     ctaText: "Ver Resultado",
@@ -142,7 +142,7 @@ const actionConfig: Record<string, {
   // Return actions
   return_requested: {
     emoji: "↩️",
-    title: "Solicitud de Devolución",
+    title: "Trado - Solicitud de Devolución",
     getDescription: (actorName, productName, data) =>
       `<strong>${actorName}</strong> ha solicitado una devolución para <strong>${productName}</strong> en Trado.${data?.reason ? ` Motivo: ${data.reason}` : ''}`,
     ctaText: "Revisar Solicitud",
@@ -150,7 +150,7 @@ const actionConfig: Record<string, {
   },
   return_accepted: {
     emoji: "✅",
-    title: "Devolución Aceptada",
+    title: "Trado - Devolución Aceptada",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha aceptado tu solicitud de devolución para <strong>${productName}</strong> en Trado. Procede a enviar el producto.`,
     ctaText: "Ver Detalles",
@@ -158,7 +158,7 @@ const actionConfig: Record<string, {
   },
   return_rejected: {
     emoji: "⚖️",
-    title: "Devolución en Mediación",
+    title: "Trado - Devolución en Mediación",
     getDescription: (actorName, productName) =>
       `<strong>${actorName}</strong> ha rechazado tu solicitud de devolución para <strong>${productName}</strong> en Trado. El caso será revisado por un administrador.`,
     ctaText: "Ver Mediación",
@@ -167,7 +167,7 @@ const actionConfig: Record<string, {
   // Funds released action
   funds_released: {
     emoji: "💸",
-    title: "¡Fondos Liberados!",
+    title: "Trado - ¡Fondos Liberados!",
     getDescription: (actorName, productName, data) =>
       `<strong>${actorName}</strong> ha confirmado la recepción de <strong>${productName}</strong> y los fondos han sido liberados a tu billetera en Trado.${data?.amount ? ` Monto: $${Number(data.amount).toLocaleString('es-CL')} CLP` : ''}`,
     ctaText: "Ver Mi Billetera",
@@ -176,7 +176,7 @@ const actionConfig: Record<string, {
   // Admin resolution actions
   admin_appeal_resolved: {
     emoji: "⚖️",
-    title: "Apelación Resuelta por Administrador",
+    title: "Trado - Apelación Resuelta por Administrador",
     getDescription: (actorName, productName, data) => {
       let resolutionText = "La apelación ha sido resuelta.";
       if (data?.resolution === "liberar_fondos_vendedor") {
@@ -193,7 +193,7 @@ const actionConfig: Record<string, {
   },
   admin_return_mediation_resolved: {
     emoji: "📦",
-    title: "Mediación de Devolución Resuelta",
+    title: "Trado - Mediación de Devolución Resuelta",
     getDescription: (actorName, productName, data) => {
       const paidBy = data?.shippingPaidBy === "seller" 
         ? "El vendedor pagará el envío de retorno." 
@@ -206,7 +206,7 @@ const actionConfig: Record<string, {
   // Mutual proposal acceptance
   mutual_proposal_accepted: {
     emoji: "🤝",
-    title: "¡Acuerdo Mutuo Aceptado!",
+    title: "Trado - ¡Acuerdo Mutuo Aceptado!",
     getDescription: (actorName, productName, data) => {
       let distributionText = "Los fondos han sido distribuidos según el acuerdo.";
       if (data?.buyerAmount && data?.sellerAmount) {
@@ -385,10 +385,10 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Fetch transaction with profiles and email_thread_id
+    // Fetch transaction with profiles
     const { data: transaction, error: txError } = await supabase
       .from("transactions")
-      .select("id, product_name, seller_id, buyer_id, invite_code, email_thread_id")
+      .select("id, product_name, seller_id, buyer_id")
       .eq("id", transactionId)
       .single();
 
@@ -465,29 +465,13 @@ const handler = async (req: Request): Promise<Response> => {
       ctaUrl
     );
 
-    // Build thread subject using invite_code
-    const inviteCode = transaction.invite_code || transactionId.substring(0, 8).toUpperCase();
-    const threadSubject = `Re: [Orden #${inviteCode}] ${transaction.product_name}`;
-
-    // Prepare email options with threading headers
-    const emailOptions: any = {
+    // Send email
+    const emailResponse = await resend.emails.send({
       from: "Trado <notificaciones@trado.cl>",
       to: [recipientProfile.email],
-      subject: threadSubject,
+      subject: `${config.emoji} ${config.title} - ${transaction.product_name}`,
       html: emailHtml,
-    };
-
-    // Add threading headers if we have an email_thread_id
-    if (transaction.email_thread_id) {
-      emailOptions.headers = {
-        'In-Reply-To': transaction.email_thread_id,
-        'References': transaction.email_thread_id,
-      };
-      console.log("Adding threading headers with email_thread_id:", transaction.email_thread_id);
-    }
-
-    // Send email
-    const emailResponse = await resend.emails.send(emailOptions);
+    });
 
     console.log(`Notification sent for action ${actionType}:`, emailResponse);
 

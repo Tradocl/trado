@@ -254,7 +254,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
-      to: ["transacciones@trado.cl"],
+      to: ["admin@trado.cl"],
       subject: subject,
       html: html,
     });

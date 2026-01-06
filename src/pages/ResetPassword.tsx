@@ -50,55 +50,34 @@ const ResetPassword = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      try {
-        // Newer auth flows may include a PKCE `code` in the query string
-        const queryParams = new URLSearchParams(window.location.search);
-        const code = queryParams.get("code");
-
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-          // Remove the code from the URL so refresh doesn't invalidate the flow
-          window.history.replaceState({}, document.title, window.location.pathname);
-
-          if (error) {
-            console.error("Error exchanging code for session:", error);
-            toast.error("El enlace de recuperación ha expirado o es inválido");
-          } else {
-            setIsValidSession(true);
-          }
-
-          setCheckingSession(false);
-          return;
-        }
-
-        const { data: { session } } = await supabase.auth.getSession();
-
-        // Legacy recovery flow may include tokens in the hash
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const type = hashParams.get('type');
-        const accessToken = hashParams.get('access_token');
-
-        if (type === 'recovery' && accessToken) {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: hashParams.get('refresh_token') || '',
-          });
-
-          if (!error) {
-            setIsValidSession(true);
-          } else {
-            console.error("Error setting session:", error);
-            toast.error("El enlace de recuperación ha expirado o es inválido");
-          }
-        } else if (session) {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Check if this is a password recovery session
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      const accessToken = hashParams.get('access_token');
+      
+      if (type === 'recovery' && accessToken) {
+        // Set the session from the recovery link
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: hashParams.get('refresh_token') || '',
+        });
+        
+        if (!error) {
           setIsValidSession(true);
         } else {
-          toast.error("Sesión inválida. Solicita un nuevo enlace de recuperación.");
+          console.error("Error setting session:", error);
+          toast.error("El enlace de recuperación ha expirado o es inválido");
         }
-      } finally {
-        setCheckingSession(false);
+      } else if (session) {
+        // Check if this is from a recovery flow
+        setIsValidSession(true);
+      } else {
+        toast.error("Sesión inválida. Solicita un nuevo enlace de recuperación.");
       }
+      
+      setCheckingSession(false);
     };
 
     checkSession();

@@ -28,7 +28,6 @@ interface MutualResolutionPanelProps {
   buyerName: string;
   sellerName: string;
   totalAmount: number;
-  commission: number;
   appealStatus: string;
   onSwitchToEscalate: () => void;
 }
@@ -53,7 +52,6 @@ export function MutualResolutionPanel({
   buyerName,
   sellerName,
   totalAmount,
-  commission,
   appealStatus,
   onSwitchToEscalate
 }: MutualResolutionPanelProps) {
@@ -66,11 +64,8 @@ export function MutualResolutionPanel({
 
   const isBuyer = currentUserId === buyerId;
   const isSeller = currentUserId === sellerId;
-  
-  // Calculate distributable amount (without commission - commission is ALWAYS retained by Trado)
-  const distributableAmount = totalAmount - commission;
-  const buyerAmount = selectedRecipient === "buyer" ? distributableAmount : 0;
-  const sellerAmount = selectedRecipient === "seller" ? distributableAmount : 0;
+  const buyerAmount = selectedRecipient === "buyer" ? totalAmount : 0;
+  const sellerAmount = selectedRecipient === "seller" ? totalAmount : 0;
 
   // Helper to get display name with "tú" for current user
   const getBuyerDisplayName = () => isBuyer ? `${buyerName} (tú)` : buyerName;
@@ -154,8 +149,8 @@ export function MutualResolutionPanel({
 
       // Send notification to the other party
       const distributionLabel = selectedRecipient === "buyer" 
-        ? `Reembolso al comprador (${formatCLP(distributableAmount)})`
-        : `Liberar al vendedor (${formatCLP(distributableAmount)})`;
+        ? `Reembolso al comprador (${formatCLP(totalAmount)})`
+        : `Liberar al vendedor (${formatCLP(totalAmount)})`;
 
       try {
         await supabase.functions.invoke("notify-transaction-action", {
@@ -418,24 +413,13 @@ export function MutualResolutionPanel({
         {(!hasPendingProposal || isProposalForMe) && (
           <>
             <Separator />
-            
-            {/* Commission notice */}
-            {commission > 0 && (
-              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-                <p className="text-sm text-amber-800 dark:text-amber-200">
-                  <strong>Nota:</strong> La comisión de {formatCLP(commission)} se cobrará independientemente de la resolución. 
-                  El monto disponible para distribuir es <strong>{formatCLP(distributableAmount)}</strong>.
-                </p>
-              </div>
-            )}
-            
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold">
                   {isProposalForMe ? "Hacer Contra-propuesta" : "Proponer Resolución"}
                 </h4>
                 <Badge variant="outline">
-                  Disponible: {formatCLP(distributableAmount)}
+                  Total: {formatCLP(totalAmount)}
                 </Badge>
               </div>
 
@@ -452,7 +436,7 @@ export function MutualResolutionPanel({
                       <Label htmlFor="buyer" className="flex-1 cursor-pointer">
                         <div className="font-medium">Reembolsar al Comprador</div>
                         <div className="text-sm text-muted-foreground">
-                          {getBuyerDisplayName()} recibe {formatCLP(distributableAmount)}
+                          {getBuyerDisplayName()} recibe {formatCLP(totalAmount)}
                         </div>
                       </Label>
                     </div>
@@ -461,7 +445,7 @@ export function MutualResolutionPanel({
                       <Label htmlFor="seller" className="flex-1 cursor-pointer">
                         <div className="font-medium">Liberar al Vendedor</div>
                         <div className="text-sm text-muted-foreground">
-                          {getSellerDisplayName()} recibe {formatCLP(distributableAmount)}
+                          {getSellerDisplayName()} recibe {formatCLP(totalAmount)}
                         </div>
                       </Label>
                     </div>

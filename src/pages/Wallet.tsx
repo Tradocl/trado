@@ -261,9 +261,6 @@ const Wallet = () => {
     setAmount(parseFormattedAmount(value).toString());
   };
 
-  // Marcha blanca mode - auto-approve deposits and withdrawals
-  const MARCHA_BLANCA_MODE = true;
-
   const handleDeposit = async () => {
     if (!user || !amount || submitting) return;
 
@@ -283,64 +280,34 @@ const Wallet = () => {
 
       if (!wallet) throw new Error("Billetera no encontrada");
 
-      // In marcha blanca mode, auto-approve deposits
-      if (MARCHA_BLANCA_MODE) {
-        const newBalance = wallet.balance + depositAmount;
-        
-        // Update wallet balance
-        const { error: walletError } = await supabase
-          .from("wallets")
-          .update({ balance: newBalance })
-          .eq("id", wallet.id);
+      const { data: movement, error: movementError } = await supabase
+        .from("wallet_movements")
+        .insert({
+          wallet_id: wallet.id,
+          type: "deposit",
+          amount: depositAmount,
+          balance_after: wallet.balance,
+          description: "Depósito",
+          status: "pending",
+        })
+        .select()
+        .single();
 
-        if (walletError) throw walletError;
+      if (movementError) throw movementError;
 
-        // Create approved movement
-        const { error: movementError } = await supabase
-          .from("wallet_movements")
-          .insert({
-            wallet_id: wallet.id,
-            type: "deposit",
-            amount: depositAmount,
-            balance_after: newBalance,
-            description: "Depósito (Marcha Blanca - Auto-aprobado)",
-            status: "approved",
-          });
-
-        if (movementError) throw movementError;
-
-        toast.success(`¡Depósito de $${formatCLP(depositAmount)} aprobado automáticamente! (Marcha Blanca)`);
-      } else {
-        // Normal flow - pending approval
-        const { data: movement, error: movementError } = await supabase
-          .from("wallet_movements")
-          .insert({
-            wallet_id: wallet.id,
-            type: "deposit",
-            amount: depositAmount,
-            balance_after: wallet.balance,
-            description: "Depósito",
-            status: "pending",
-          })
-          .select()
-          .single();
-
-        if (movementError) throw movementError;
-
-        // Send notification email
-        try {
-          await supabase.functions.invoke("notify-wallet-movement", {
-            body: {
-              movementId: movement.id,
-            },
-          });
-        } catch (emailError) {
-          console.error("Error sending notification email:", emailError);
-        }
-
-        toast.success("Solicitud de depósito enviada. Por favor realiza la transferencia a la cuenta indicada.");
+      // Send notification email
+      try {
+        await supabase.functions.invoke("notify-wallet-movement", {
+          body: {
+            movementId: movement.id,
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending notification email:", emailError);
+        // Don't fail the deposit if email fails
       }
-      
+
+      toast.success("Solicitud de depósito enviada. Por favor realiza la transferencia a la cuenta indicada.");
       setDepositOpen(false);
       setAmount("");
       setAmountDisplay("");
@@ -381,74 +348,39 @@ const Wallet = () => {
 
       if (!wallet) throw new Error("Billetera no encontrada");
 
-      // In marcha blanca mode, auto-approve withdrawals
-      if (MARCHA_BLANCA_MODE) {
-        const newBalance = wallet.balance - withdrawAmount;
-        
-        // Update wallet balance
-        const { error: walletError } = await supabase
-          .from("wallets")
-          .update({ balance: newBalance })
-          .eq("id", wallet.id);
+      const { data: movement, error: movementError } = await supabase
+        .from("wallet_movements")
+        .insert({
+          wallet_id: wallet.id,
+          type: "withdrawal",
+          amount: withdrawAmount,
+          balance_after: wallet.balance,
+          description: "Retiro",
+          status: "pending",
+          bank_holder_name: bankHolderName,
+          bank_holder_rut: bankHolderRut,
+          bank_name: bankName,
+          bank_account_type: bankAccountType,
+          bank_account_number: bankAccountNumber,
+        })
+        .select()
+        .single();
 
-        if (walletError) throw walletError;
+      if (movementError) throw movementError;
 
-        // Create approved movement
-        const { error: movementError } = await supabase
-          .from("wallet_movements")
-          .insert({
-            wallet_id: wallet.id,
-            type: "withdrawal",
-            amount: withdrawAmount,
-            balance_after: newBalance,
-            description: "Retiro (Marcha Blanca - Auto-aprobado)",
-            status: "approved",
-            bank_holder_name: bankHolderName,
-            bank_holder_rut: bankHolderRut,
-            bank_name: bankName,
-            bank_account_type: bankAccountType,
-            bank_account_number: bankAccountNumber,
-          });
-
-        if (movementError) throw movementError;
-
-        toast.success(`¡Retiro de $${formatCLP(withdrawAmount)} aprobado automáticamente! (Marcha Blanca)`);
-      } else {
-        // Normal flow - pending approval
-        const { data: movement, error: movementError } = await supabase
-          .from("wallet_movements")
-          .insert({
-            wallet_id: wallet.id,
-            type: "withdrawal",
-            amount: withdrawAmount,
-            balance_after: wallet.balance,
-            description: "Retiro",
-            status: "pending",
-            bank_holder_name: bankHolderName,
-            bank_holder_rut: bankHolderRut,
-            bank_name: bankName,
-            bank_account_type: bankAccountType,
-            bank_account_number: bankAccountNumber,
-          })
-          .select()
-          .single();
-
-        if (movementError) throw movementError;
-
-        // Send notification email
-        try {
-          await supabase.functions.invoke("notify-wallet-movement", {
-            body: {
-              movementId: movement.id,
-            },
-          });
-        } catch (emailError) {
-          console.error("Error sending notification email:", emailError);
-        }
-
-        toast.success("Solicitud de retiro enviada para aprobación");
+      // Send notification email
+      try {
+        await supabase.functions.invoke("notify-wallet-movement", {
+          body: {
+            movementId: movement.id,
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending notification email:", emailError);
+        // Don't fail the withdrawal if email fails
       }
 
+      toast.success("Solicitud de retiro enviada para aprobación");
       setWithdrawOpen(false);
       setAmount("");
       setAmountDisplay("");
@@ -821,14 +753,8 @@ const Wallet = () => {
               />
             </div>
 
-            <div className="p-3 bg-warning/20 border border-warning/40 rounded-lg mb-2">
-              <p className="text-sm font-medium text-foreground">
-                🚧 <strong>Marcha Blanca:</strong> Los depósitos son simulados. No realices transferencias reales. Tu depósito se aprobará automáticamente al confirmar.
-              </p>
-            </div>
-
             <div className="p-4 bg-info/10 border border-info/20 rounded-lg space-y-3">
-              <p className="font-semibold text-sm">📋 Datos de la cuenta de Trado (simulados)</p>
+              <p className="font-semibold text-sm">📋 Datos de la cuenta de Trado</p>
               
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between items-center">
@@ -931,12 +857,6 @@ const Wallet = () => {
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Máximo disponible: ${formatCLP(balance)}
-              </p>
-            </div>
-
-            <div className="p-3 bg-warning/20 border border-warning/40 rounded-lg">
-              <p className="text-sm font-medium text-foreground">
-                🚧 <strong>Marcha Blanca:</strong> Los retiros son simulados. No se transferirá dinero real. Tu retiro se aprobará automáticamente al confirmar.
               </p>
             </div>
 

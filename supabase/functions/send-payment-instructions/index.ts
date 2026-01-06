@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,7 +64,6 @@ const handler = async (req: Request): Promise<Response> => {
         invite_code,
         buyer_id,
         seller_id,
-        email_thread_id,
         buyer:profiles!transactions_buyer_id_fkey(email, full_name),
         seller:profiles!transactions_seller_id_fkey(email, full_name)
       `)
@@ -98,7 +96,6 @@ const handler = async (req: Request): Promise<Response> => {
     const referenceCode = transaction.invite_code || transaction.id.substring(0, 8).toUpperCase();
     const totalAmount = transaction.amount;
     const productName = transaction.product_name;
-    const emailThreadId = transaction.email_thread_id;
 
     if (!buyerEmail) {
       console.error("Buyer email not found for transaction:", transactionId);
@@ -111,6 +108,15 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending payment instructions to:", buyerEmail);
 
     const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
+
+    // Datos bancarios de prueba
+    const bankDetails = {
+      bank: "Banco Estado",
+      accountType: "Cuenta Corriente",
+      accountNumber: "12345678-9",
+      rut: "12.345.678-9",
+      email: "admin@trado.cl",
+    };
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -162,87 +168,84 @@ const handler = async (req: Request): Promise<Response> => {
             .content { 
               padding: 32px;
             }
-            .summary-box {
+            .highlight-box {
               background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
               border: 1px solid #c4b5fd;
               border-radius: 12px;
               padding: 24px;
+              text-align: center;
               margin-bottom: 24px;
             }
-            .summary-box .product-name {
-              font-size: 18px;
-              font-weight: 600;
+            .highlight-box .label {
+              font-size: 14px;
               color: #5b21b6;
-              margin: 0 0 8px 0;
+              margin-bottom: 8px;
+              font-weight: 500;
             }
-            .summary-box .amount {
-              font-size: 28px;
+            .highlight-box .amount {
+              font-size: 36px;
               font-weight: 700;
               color: #6d28d9;
-              margin: 0 0 8px 0;
-            }
-            .summary-box .seller {
-              font-size: 14px;
-              color: #7c3aed;
               margin: 0;
             }
-            .steps-container {
+            .reference-badge {
+              display: inline-block;
+              background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+              color: white;
+              padding: 8px 20px;
+              border-radius: 20px;
+              font-size: 16px;
+              font-weight: 600;
+              margin-top: 12px;
+              letter-spacing: 1px;
+            }
+            .bank-details {
+              background: #f8fafc;
+              border-radius: 12px;
+              padding: 20px;
               margin-bottom: 24px;
             }
-            .steps-title {
+            .bank-details h3 {
+              margin: 0 0 16px 0;
               font-size: 16px;
               font-weight: 600;
               color: #374151;
-              margin: 0 0 16px 0;
             }
-            .step {
+            .bank-row {
               display: flex;
-              margin-bottom: 16px;
+              justify-content: space-between;
+              padding: 10px 0;
+              border-bottom: 1px solid #e5e7eb;
             }
-            .step-number {
-              background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-              color: white;
-              width: 28px;
-              height: 28px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 14px;
-              font-weight: 600;
-              flex-shrink: 0;
-              margin-right: 12px;
+            .bank-row:last-child {
+              border-bottom: none;
+              padding-bottom: 0;
             }
-            .step-content {
-              flex: 1;
-            }
-            .step-title {
-              font-weight: 600;
-              color: #1f2937;
-              margin: 0 0 4px 0;
-              font-size: 14px;
-            }
-            .step-description {
+            .bank-row .label {
               color: #6b7280;
-              margin: 0;
-              font-size: 13px;
+              font-size: 14px;
             }
-            .security-box {
-              background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-              border: 1px solid #6ee7b7;
+            .bank-row .value {
+              color: #1f2937;
+              font-weight: 500;
+              font-size: 14px;
+            }
+            .warning-box {
+              background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+              border: 1px solid #fbbf24;
               border-radius: 12px;
-              padding: 16px 20px;
+              padding: 20px;
               margin-bottom: 24px;
-              display: flex;
-              align-items: flex-start;
             }
-            .security-box .icon {
-              font-size: 20px;
-              margin-right: 12px;
+            .warning-box h4 {
+              margin: 0 0 8px 0;
+              font-size: 14px;
+              font-weight: 600;
+              color: #92400e;
             }
-            .security-box p {
+            .warning-box p {
               margin: 0;
-              color: #047857;
+              color: #78350f;
               font-size: 14px;
             }
             .cta-button {
@@ -254,16 +257,8 @@ const handler = async (req: Request): Promise<Response> => {
               border-radius: 12px;
               font-weight: 600;
               text-align: center;
-              margin: 24px 0 16px 0;
+              margin: 24px 0;
               font-size: 16px;
-            }
-            .secondary-link {
-              display: block;
-              text-align: center;
-              color: #7c3aed;
-              text-decoration: none;
-              font-size: 14px;
-              font-weight: 500;
             }
             .footer {
               text-align: center;
@@ -282,68 +277,59 @@ const handler = async (req: Request): Promise<Response> => {
           <div class="container">
             <div class="card">
               <div class="header">
-                <span class="emoji">🛡️</span>
-                <h1>Siguiente Paso: Asegurar tu Compra</h1>
+                <span class="emoji">💳</span>
+                <h1>Instrucciones de Pago</h1>
                 <p class="subtitle">Orden #${referenceCode}</p>
               </div>
               <div class="content">
                 <p style="margin: 0 0 24px 0; color: #4b5563;">
-                  Hola <strong>${buyerName}</strong>, te has unido a la compra con <strong>${sellerName}</strong>.
+                  Hola <strong>${buyerName}</strong>, para asegurar tu compra de <strong>${productName}</strong> de <strong>${sellerName}</strong>, transfiere a la cuenta de custodia de Trado:
                 </p>
                 
-                <div class="summary-box">
-                  <p class="product-name">${productName}</p>
-                  <p class="amount">$${totalAmount.toLocaleString('es-CL')}</p>
-                  <p class="seller">Vendedor: ${sellerName}</p>
+                <div class="highlight-box">
+                  <div class="label">Monto a transferir</div>
+                  <div class="amount">$${totalAmount.toLocaleString('es-CL')}</div>
+                  <span class="reference-badge">#${referenceCode}</span>
                 </div>
                 
-                <div class="steps-container">
-                  <h3 class="steps-title">📋 ¿Cómo funciona Trado?</h3>
-                  
-                  <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                      <p class="step-title">Asegura los fondos</p>
-                      <p class="step-description">Entra a la sala de transacción y asegura el monto. Si no tienes saldo suficiente en tu Wallet, primero deposita desde ahí.</p>
-                    </div>
+                <div class="bank-details">
+                  <h3>🏦 Datos Bancarios</h3>
+                  <div class="bank-row">
+                    <span class="label">Banco</span>
+                    <span class="value">${bankDetails.bank}</span>
                   </div>
-                  
-                  <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                      <p class="step-title">Coordina la entrega</p>
-                      <p class="step-description">Una vez asegurados los fondos, coordina con el vendedor la entrega o envío del producto.</p>
-                    </div>
+                  <div class="bank-row">
+                    <span class="label">Tipo de cuenta</span>
+                    <span class="value">${bankDetails.accountType}</span>
                   </div>
-                  
-                  <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                      <p class="step-title">Confirma la recepción</p>
-                      <p class="step-description">Cuando recibas el producto en buen estado, confirma la entrega en la sala de transacción.</p>
-                    </div>
+                  <div class="bank-row">
+                    <span class="label">N° de cuenta</span>
+                    <span class="value">${bankDetails.accountNumber}</span>
                   </div>
-                  
-                  <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                      <p class="step-title">Liberación del pago</p>
-                      <p class="step-description">El dinero se libera automáticamente al vendedor después de tu confirmación.</p>
-                    </div>
+                  <div class="bank-row">
+                    <span class="label">RUT</span>
+                    <span class="value">${bankDetails.rut}</span>
+                  </div>
+                  <div class="bank-row">
+                    <span class="label">Email</span>
+                    <span class="value">${bankDetails.email}</span>
                   </div>
                 </div>
                 
-                <div class="security-box">
-                  <span class="icon">💡</span>
-                  <p>Tu dinero está protegido en custodia de Trado durante todo el proceso. Solo se libera cuando confirmas que recibiste el producto.</p>
+                <div class="warning-box">
+                  <h4>⚠️ Importante</h4>
+                  <p>En el asunto o comentario de la transferencia debes poner el código: <strong>#${referenceCode}</strong></p>
                 </div>
                 
-                <a href="${baseUrl}/transaction/${transactionId}" class="cta-button">Ir a la Transacción</a>
-                <a href="${baseUrl}/wallet" class="secondary-link">Ver mi Wallet</a>
+                <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
+                  Una vez transferido, responde a este correo con el comprobante. Tu dinero está protegido en custodia hasta que confirmes la recepción del producto.
+                </p>
+                
+                <a href="${baseUrl}/transaction/${transactionId}" class="cta-button">Ver Transacción</a>
               </div>
               <div class="footer">
-                <p>¿Tienes dudas? Escríbenos a <a href="mailto:admin@trado.cl">admin@trado.cl</a></p>
-                <p>Este es un correo automático de <a href="${baseUrl}">Trado</a> - Tu plataforma segura para transacciones entre personas.</p>
+                <p>Este es un correo automático de <a href="${baseUrl}">Trado</a>.</p>
+                <p>Tu plataforma segura para transacciones entre personas.</p>
               </div>
             </div>
           </div>
@@ -351,32 +337,31 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Build thread subject
-    const threadSubject = `Re: [Orden #${referenceCode}] ${productName}`;
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "Trado Notificaciones <notificaciones@trado.cl>",
+        to: [buyerEmail],
+        subject: `Instrucciones de Pago - Orden #${referenceCode}`,
+        html: emailHtml,
+      }),
+    });
 
-    // Prepare email options with threading headers
-    const emailOptions: any = {
-      from: "Trado Notificaciones <notificaciones@trado.cl>",
-      to: [buyerEmail],
-      subject: threadSubject,
-      html: emailHtml,
-    };
+    const data = await response.json();
 
-    // Add threading headers if we have an email_thread_id
-    if (emailThreadId) {
-      emailOptions.headers = {
-        'In-Reply-To': emailThreadId,
-        'References': emailThreadId,
-      };
-      console.log("Adding threading headers with email_thread_id:", emailThreadId);
+    if (!response.ok) {
+      console.error("Error from Resend API:", data);
+      throw new Error(data.message || "Failed to send email");
     }
 
-    const emailResponse = await resend.emails.send(emailOptions);
-
-    console.log("Payment instructions sent successfully:", emailResponse);
+    console.log("Payment instructions sent successfully:", data);
 
     return new Response(
-      JSON.stringify({ success: true, data: emailResponse }),
+      JSON.stringify({ success: true, data }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -96,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
         </p>
         
         <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-          Si tienes dudas, contáctanos en <a href="mailto:admin@trado.cl" style="color: #2563eb;">admin@trado.cl</a>
+          Si tienes dudas, contáctanos respondiendo a este email.
         </p>
         
         <p>Saludos,<br>Equipo Trado</p>

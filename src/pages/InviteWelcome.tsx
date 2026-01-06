@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,15 +20,11 @@ interface TransactionPreview {
 
 const InviteWelcome = () => {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [transaction, setTransaction] = useState<TransactionPreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Get invite code from URL query parameter for security validation
-  const inviteCode = searchParams.get('code');
 
   useEffect(() => {
     // If user is already logged in, redirect to transaction
@@ -44,15 +40,12 @@ const InviteWelcome = () => {
     if (!id) return;
 
     try {
-      // Use public RPC function that requires invite code for security
+      // Use public RPC function that doesn't require authentication
       const { data: txData, error: txError } = await supabase
-        .rpc("get_transaction_preview", { 
-          transaction_id: id,
-          invite_code_param: inviteCode || undefined
-        });
+        .rpc("get_transaction_preview", { transaction_id: id });
 
       if (txError || !txData || txData.length === 0) {
-        setError("Transacción no encontrada o código de invitación inválido");
+        setError("Transacción no encontrada");
         setLoading(false);
         return;
       }
@@ -106,20 +99,9 @@ const InviteWelcome = () => {
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Enlace no válido</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <div className="p-4 bg-muted/50 rounded-lg mb-4 text-left">
-              <p className="text-sm font-medium mb-2">💡 ¿El enlace no funciona?</p>
-              <p className="text-sm text-muted-foreground">
-                Pídele el <strong>código de invitación</strong> a la persona que te envió el enlace y únete desde la opción "Unirse a Sala" en la página principal.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button onClick={() => navigate("/dashboard")} variant="default">
-                Ir a Unirse a Sala
-              </Button>
-              <Button onClick={() => navigate("/")} variant="outline">
-                Ir al inicio
-              </Button>
-            </div>
+            <Button onClick={() => navigate("/")} variant="outline">
+              Ir al inicio
+            </Button>
           </CardContent>
         </Card>
       </div>

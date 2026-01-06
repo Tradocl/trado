@@ -26,7 +26,6 @@ import ReturnRoom from "./pages/ReturnRoom";
 import AdminReturnRoom from "./pages/AdminReturnRoom";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
-import Support from "./pages/Support";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
@@ -63,7 +62,6 @@ const App = () => (
               <Route path="/admin/return/:returnId" element={<AdminReturnRoom />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
-              <Route path="/support" element={<Support />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -40,7 +40,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.send-password-reset-email]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-welcome-email]
 verify_jwt = true
@@ -56,12 +56,3 @@ verify_jwt = true
 
 [functions.notify-appeal-resolved]
 verify_jwt = true
-
-[functions.send-support-email]
-verify_jwt = false
-
-[functions.notify-appeal-created]
-verify_jwt = true
-
-[functions.send-deposit-reminder]
-verify_jwt = false

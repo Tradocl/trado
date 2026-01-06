@@ -402,7 +402,6 @@ export default function Appeal() {
                 sellerEmail={transaction.seller?.email || ""}
                 productName={transaction.product_name}
                 totalAmount={Number(transaction.amount)}
-                commission={Number(transaction.commission) || 0}
                 appealStatus={appeal.status}
                 onRefresh={fetchAppealData}
               />
