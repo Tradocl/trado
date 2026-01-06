@@ -567,6 +567,7 @@ export type Database = {
           created_at: string | null
           deposited_at: string | null
           dispute_opened_at: string | null
+          email_thread_id: string | null
           id: string
           initiator_role: string | null
           invite_code: string | null
@@ -588,6 +589,7 @@ export type Database = {
           created_at?: string | null
           deposited_at?: string | null
           dispute_opened_at?: string | null
+          email_thread_id?: string | null
           id?: string
           initiator_role?: string | null
           invite_code?: string | null
@@ -609,6 +611,7 @@ export type Database = {
           created_at?: string | null
           deposited_at?: string | null
           dispute_opened_at?: string | null
+          email_thread_id?: string | null
           id?: string
           initiator_role?: string | null
           invite_code?: string | null
@@ -857,18 +860,31 @@ export type Database = {
           total_transactions: number
         }[]
       }
-      get_transaction_preview: {
-        Args: { transaction_id: string }
-        Returns: {
-          amount: number
-          id: string
-          product_description: string
-          product_name: string
-          sale_type: string
-          seller_name: string
-          state: string
-        }[]
-      }
+      get_transaction_preview:
+        | {
+            Args: { transaction_id: string }
+            Returns: {
+              amount: number
+              id: string
+              product_description: string
+              product_name: string
+              sale_type: string
+              seller_name: string
+              state: string
+            }[]
+          }
+        | {
+            Args: { invite_code_param?: string; transaction_id: string }
+            Returns: {
+              amount: number
+              id: string
+              product_description: string
+              product_name: string
+              sale_type: string
+              seller_name: string
+              state: string
+            }[]
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
