@@ -814,7 +814,20 @@ const Profile = () => {
                         <FormItem>
                           <FormLabel className="text-sm">RUT del titular</FormLabel>
                           <FormControl>
-                            <Input placeholder="12345678-9" {...field} className="h-9" />
+                            <Input 
+                              placeholder="12.345.678-9" 
+                              {...field}
+                              className="h-9"
+                              onChange={(e) => {
+                                const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
+                                if (rawValue.length <= 9) {
+                                  const formatted = rawValue.length >= 2 
+                                    ? `${rawValue.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${rawValue.slice(-1)}`
+                                    : rawValue;
+                                  field.onChange(formatted);
+                                }
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
