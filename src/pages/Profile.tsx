@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield } from "lucide-react";
+import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -153,6 +154,10 @@ const Profile = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+
+  const isProfileComplete = profileData?.rut && profileData?.phone && profileData?.address &&
+    profileData.rut.trim() !== '' && profileData.phone.trim() !== '' && profileData.address.trim() !== '';
 
   const bankForm = useForm<BankAccountFormValues>({
     resolver: zodResolver(bankAccountSchema),
@@ -667,6 +672,83 @@ const Profile = () => {
           </CardContent>
         </Card>
 
+        {/* Complete Profile Card */}
+        <Card className={`border-0 shadow-lg ${isProfileComplete ? 'bg-success/5 border-success/20' : 'bg-warning/5 border-warning/20'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {isProfileComplete ? (
+                  <div className="p-2 rounded-full bg-success/10">
+                    <CheckCircle2 className="h-5 w-5 text-success" />
+                  </div>
+                ) : (
+                  <div className="p-2 rounded-full bg-warning/10">
+                    <AlertCircle className="h-5 w-5 text-warning" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-semibold text-sm">
+                    {isProfileComplete ? 'Perfil completo' : 'Perfil incompleto'}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {isProfileComplete 
+                      ? 'Tu RUT, teléfono y dirección están registrados' 
+                      : 'Completa tu RUT, teléfono y dirección para operar'}
+                  </p>
+                </div>
+              </div>
+              {!isProfileComplete && (
+                <Button 
+                  size="sm" 
+                  onClick={() => setShowCompleteProfileModal(true)}
+                  className="shrink-0"
+                >
+                  Completar
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Verification Card */}
+        <Card className={`border-0 shadow-lg ${profileData?.is_verified ? 'bg-success/5 border-success/20' : 'bg-muted/50'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {profileData?.is_verified ? (
+                  <div className="p-2 rounded-full bg-success/10">
+                    <Shield className="h-5 w-5 text-success" />
+                  </div>
+                ) : (
+                  <div className="p-2 rounded-full bg-muted">
+                    <Shield className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-semibold text-sm">
+                    {profileData?.is_verified ? 'Identidad verificada' : 'Verificar identidad'}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {profileData?.is_verified 
+                      ? 'Tu identidad ha sido verificada exitosamente' 
+                      : 'Verifica tu identidad para aumentar tus límites'}
+                  </p>
+                </div>
+              </div>
+              {!profileData?.is_verified && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => navigate('/verification')}
+                  className="shrink-0"
+                >
+                  Verificar
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Bank Details Collapsible */}
         <Collapsible open={bankSectionOpen} onOpenChange={setBankSectionOpen}>
           <Card className="border-0 shadow-lg">
@@ -1173,6 +1255,15 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+
+        <CompleteProfileModal
+          open={showCompleteProfileModal}
+          onClose={() => setShowCompleteProfileModal(false)}
+          onComplete={() => {
+            setShowCompleteProfileModal(false);
+            loadProfile();
+          }}
+        />
       </main>
     </div>
   );
