@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Lock, Eye, EyeOff, Check, X, ArrowLeft } from "lucide-react";
-import tradoShield from "@/assets/trado-shield.png";
+import tradoLogo from "@/assets/trado-logo.png";
 
 interface PasswordRequirement {
   label: string;
@@ -131,7 +131,7 @@ const ResetPassword = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-info/10 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <img src={tradoShield} alt="Trado" className="h-16 w-16 mx-auto mb-4" />
+            <img src={tradoLogo} alt="Trado" className="h-16 w-16 mx-auto mb-4" />
             <CardTitle className="text-destructive">Enlace Inválido</CardTitle>
             <CardDescription>
               El enlace de recuperación ha expirado o es inválido. 
@@ -156,7 +156,7 @@ const ResetPassword = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-info/10 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <img src={tradoShield} alt="Trado" className="h-16 w-16 mx-auto mb-4" />
+          <img src={tradoLogo} alt="Trado" className="h-16 w-16 mx-auto mb-4" />
           <CardTitle>Nueva Contraseña</CardTitle>
           <CardDescription>
             Ingresa tu nueva contraseña para recuperar el acceso a tu cuenta.
