@@ -58,6 +58,7 @@ const Wallet = () => {
   const [bankName, setBankName] = useState("");
   const [bankAccountType, setBankAccountType] = useState("");
   const [bankAccountNumber, setBankAccountNumber] = useState("");
+  const [profileRut, setProfileRut] = useState<string | null>(null);
   const { showCompleteProfileModal, requireCompleteProfile, onProfileCompleted, closeModal } = useRequireCompleteProfile();
 
   // Helper to get short movement description
@@ -181,7 +182,7 @@ const Wallet = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number")
+        .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number, rut")
         .eq("id", user.id)
         .single();
 
@@ -193,6 +194,7 @@ const Wallet = () => {
         setBankName(data.bank_name || "");
         setBankAccountType(data.bank_account_type || "");
         setBankAccountNumber(data.bank_account_number || "");
+        setProfileRut(data.rut || null);
       }
     } catch (error: any) {
       console.error("Error loading bank details:", error);
@@ -256,6 +258,12 @@ const Wallet = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Normalize RUT for comparison (remove dots, dashes, spaces and convert to uppercase)
+  const normalizeRut = (rut: string | null): string => {
+    if (!rut) return "";
+    return rut.replace(/[.\-\s]/g, "").toUpperCase();
   };
 
   const handleAmountChange = (value: string) => {
@@ -338,6 +346,17 @@ const Wallet = () => {
 
     if (!bankHolderName || !bankHolderRut || !bankName || !bankAccountType || !bankAccountNumber) {
       toast.error("Por favor completa todos los datos bancarios");
+      return;
+    }
+
+    // Security validation: Bank RUT must match profile RUT
+    if (profileRut && normalizeRut(bankHolderRut) !== normalizeRut(profileRut)) {
+      toast.error("Por seguridad, el RUT de la cuenta bancaria debe coincidir con el RUT de tu perfil");
+      return;
+    }
+
+    if (!profileRut) {
+      toast.error("Debes completar tu RUT en el perfil antes de solicitar retiros");
       return;
     }
 
@@ -439,6 +458,17 @@ const Wallet = () => {
     if (selectedMovement.type === "withdrawal") {
       if (!bankHolderName || !bankHolderRut || !bankName || !bankAccountType || !bankAccountNumber) {
         toast.error("Por favor completa todos los datos bancarios");
+        return;
+      }
+
+      // Security validation: Bank RUT must match profile RUT
+      if (profileRut && normalizeRut(bankHolderRut) !== normalizeRut(profileRut)) {
+        toast.error("Por seguridad, el RUT de la cuenta bancaria debe coincidir con el RUT de tu perfil");
+        return;
+      }
+
+      if (!profileRut) {
+        toast.error("Debes completar tu RUT en el perfil antes de solicitar retiros");
         return;
       }
     }
@@ -936,6 +966,12 @@ const Wallet = () => {
             <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
               <p className="text-sm text-muted-foreground">
                 ⚠️ Tu solicitud será revisada por un administrador. Los fondos se transferirán a la cuenta bancaria que proporcionaste una vez aprobada.
+              </p>
+            </div>
+
+            <div className="p-3 bg-info/10 border border-info/20 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                🔒 <strong>Seguridad:</strong> Por tu protección, el RUT de la cuenta bancaria debe coincidir con el RUT registrado en tu perfil.
               </p>
             </div>
             
