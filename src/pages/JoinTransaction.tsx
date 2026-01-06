@@ -11,6 +11,8 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatCLP } from "@/lib/utils";
 import { UNVERIFIED_LIMITS, getUserVerificationStatus } from "@/lib/transaction-limits";
+import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
+import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 
 const JoinTransaction = () => {
   const { user } = useAuth();
@@ -19,6 +21,7 @@ const JoinTransaction = () => {
   const [loading, setLoading] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const { showCompleteProfileModal, requireCompleteProfile, onProfileCompleted, closeModal } = useRequireCompleteProfile();
 
   // Redirect guest users with prompt
   useEffect(() => {
@@ -43,6 +46,13 @@ const JoinTransaction = () => {
     e.preventDefault();
     if (!user || !inviteCode) return;
 
+    // Check profile completion before proceeding
+    const proceed = await requireCompleteProfile(async () => {
+      await performSearch();
+    });
+  };
+
+  const performSearch = async () => {
     setLoading(true);
 
     try {
@@ -165,6 +175,12 @@ const JoinTransaction = () => {
             </form>
           </CardContent>
         </Card>
+
+        <CompleteProfileModal
+          open={showCompleteProfileModal}
+          onClose={closeModal}
+          onComplete={onProfileCompleted}
+        />
       </main>
     </div>
   );
