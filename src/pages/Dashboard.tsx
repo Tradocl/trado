@@ -5,7 +5,7 @@ import { useGuest } from "@/contexts/GuestContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock, AlertCircle, Eye } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock, AlertCircle, Eye, UserCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import { GuestActionBlocker } from "@/components/GuestActionBlocker";
 import { demoProfile, demoWallet, demoTransactions } from "@/lib/demo-data";
+import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 
 interface Profile {
   full_name: string;
@@ -26,6 +27,9 @@ interface Profile {
   dashboard_color: string;
   dashboard_background_url: string | null;
   dashboard_theme: string | null;
+  rut: string | null;
+  phone: string | null;
+  address: string | null;
 }
 
 interface WalletData {
@@ -98,6 +102,10 @@ const Dashboard = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [accumulatedTotal, setAccumulatedTotal] = useState<number>(0);
+  const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+
+  const isProfileComplete = profile?.rut && profile?.phone && profile?.address &&
+    profile.rut.trim() !== '' && profile.phone.trim() !== '' && profile.address.trim() !== '';
 
   useEffect(() => {
     // Allow guest mode access
@@ -500,6 +508,38 @@ const Dashboard = () => {
           </Card>
         )}
 
+        {/* Complete Profile Card - Show for users with incomplete profile */}
+        {!isProfileComplete && !isGuestMode && (
+          <Card className="border-2 border-primary/30 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-primary/5 to-transparent" 
+            style={{ animationDelay: '0.22s', animationFillMode: 'both' }}>
+            <CardContent className="py-4 sm:py-5">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 rounded-xl flex-shrink-0 bg-primary/10">
+                  <UserCheck className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm sm:text-base mb-1">Completa tu perfil</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                    Agrega tu RUT, teléfono y dirección para poder operar
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-0.5 mb-3">
+                    <li>• Necesario para crear y unirse a transacciones</li>
+                    <li>• Necesario para depositar y retirar fondos</li>
+                  </ul>
+                  <Button 
+                    size="sm" 
+                    className="transition-all duration-200 hover:scale-[1.02]"
+                    onClick={() => setShowCompleteProfileModal(true)}
+                  >
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    Completar Perfil
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Verification Card - Show for unverified users */}
         {profile?.verification_status !== 'approved' && (
           <Card className={`border-2 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br ${
@@ -688,6 +728,15 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </main>
+
+      <CompleteProfileModal
+        open={showCompleteProfileModal}
+        onClose={() => setShowCompleteProfileModal(false)}
+        onComplete={() => {
+          setShowCompleteProfileModal(false);
+          loadUserData();
+        }}
+      />
     </div>
   );
 };
