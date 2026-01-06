@@ -15,6 +15,8 @@ import { formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils"
 import { GuestActionBlocker } from "@/components/GuestActionBlocker";
 import { demoWallet, demoMovements } from "@/lib/demo-data";
 import { Badge } from "@/components/ui/badge";
+import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
+import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 
 interface Movement {
   id: string;
@@ -56,6 +58,7 @@ const Wallet = () => {
   const [bankName, setBankName] = useState("");
   const [bankAccountType, setBankAccountType] = useState("");
   const [bankAccountNumber, setBankAccountNumber] = useState("");
+  const { showCompleteProfileModal, requireCompleteProfile, onProfileCompleted, closeModal } = useRequireCompleteProfile();
 
   // Helper to get short movement description
   const getShortDescription = (movement: Movement) => {
@@ -524,7 +527,7 @@ const Wallet = () => {
           <Button
             size="default"
             className="bg-success hover:bg-success/90 h-12 sm:h-16 text-xs sm:text-base"
-            onClick={() => setDepositOpen(true)}
+            onClick={() => requireCompleteProfile(() => setDepositOpen(true))}
           >
             <Plus className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
             <span className="truncate">Depositar</span>
@@ -533,10 +536,10 @@ const Wallet = () => {
             size="default"
             variant="outline"
             className="h-12 sm:h-16 border-2 text-xs sm:text-base"
-            onClick={() => {
+            onClick={() => requireCompleteProfile(() => {
               loadBankDetails();
               setWithdrawOpen(true);
-            }}
+            })}
           >
             <ArrowUpRight className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
             <span className="truncate">Retirar</span>
@@ -1051,6 +1054,12 @@ const Wallet = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <CompleteProfileModal
+        open={showCompleteProfileModal}
+        onClose={closeModal}
+        onComplete={onProfileCompleted}
+      />
     </div>
   );
 };
