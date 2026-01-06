@@ -897,7 +897,15 @@ const Wallet = () => {
                 <Input
                   id="bank-holder-rut"
                   value={bankHolderRut}
-                  onChange={(e) => setBankHolderRut(e.target.value)}
+                  onChange={(e) => {
+                    const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
+                    if (rawValue.length <= 9) {
+                      const formatted = rawValue.length >= 2 
+                        ? `${rawValue.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${rawValue.slice(-1)}`
+                        : rawValue;
+                      setBankHolderRut(formatted);
+                    }
+                  }}
                   placeholder="12.345.678-9"
                 />
               </div>
@@ -1013,7 +1021,15 @@ const Wallet = () => {
                   <Input
                     id="edit-bank-holder-rut"
                     value={bankHolderRut}
-                    onChange={(e) => setBankHolderRut(e.target.value)}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
+                      if (rawValue.length <= 9) {
+                        const formatted = rawValue.length >= 2 
+                          ? `${rawValue.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${rawValue.slice(-1)}`
+                          : rawValue;
+                        setBankHolderRut(formatted);
+                      }
+                    }}
                     placeholder="12.345.678-9"
                   />
                 </div>
