@@ -156,6 +156,12 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const now = Date.now();
+    if (now - lastSubmit.current < THROTTLE_MS) {
+      toast.info("Espera unos segundos antes de intentar de nuevo");
+      return;
+    }
+    lastSubmit.current = now;
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
