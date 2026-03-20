@@ -851,6 +851,16 @@ export type Database = {
     }
     Functions: {
       generate_invite_code: { Args: never; Returns: string }
+      get_own_bank_details: {
+        Args: { _user_id: string }
+        Returns: {
+          bank_account_number: string
+          bank_account_type: string
+          bank_holder_name: string
+          bank_holder_rut: string
+          bank_name: string
+        }[]
+      }
       get_safe_profile: {
         Args: { profile_id: string }
         Returns: {
