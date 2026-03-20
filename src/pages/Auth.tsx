@@ -219,9 +219,6 @@ const Auth = () => {
       sessionStorage.removeItem('blockRedirectAfterSignup');
       setLoading(false);
     } else if (data.user) {
-      toast.success("¡Cuenta creada exitosamente!");
-      setNewUserId(data.user.id);
-      
       // Send welcome email
       try {
         await supabase.functions.invoke('send-welcome-email', {
@@ -230,16 +227,16 @@ const Auth = () => {
             userName: fullName
           }
         });
-        console.log("Welcome email sent successfully");
       } catch (welcomeEmailError) {
         console.log("Welcome email sending failed:", welcomeEmailError);
-        // Don't fail registration if email fails
       }
       
-      setShowVerificationChoice(true);
       setSignupPassword("");
       setConfirmPassword("");
       setLoading(false);
+      sessionStorage.removeItem('blockRedirectAfterSignup');
+      // Redirect to email verification pending page
+      navigate("/verificar-email", { state: { email } });
     }
   };
 
