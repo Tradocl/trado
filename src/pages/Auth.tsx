@@ -99,8 +99,17 @@ const Auth = () => {
     checkUser();
   }, [user, navigate, showVerificationChoice, showVerificationDialog]);
 
+  const lastSubmit = useRef(0);
+  const THROTTLE_MS = 3000;
+
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const now = Date.now();
+    if (now - lastSubmit.current < THROTTLE_MS) {
+      toast.info("Espera unos segundos antes de intentar de nuevo");
+      return;
+    }
+    lastSubmit.current = now;
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -112,7 +121,6 @@ const Auth = () => {
     if (error) {
       if (error.message === "Email not confirmed") {
         toast.error("Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.", { duration: 6000 });
-        // Offer resend
         try {
           await supabase.auth.resend({ type: 'signup', email });
           toast.info("Te reenviamos el correo de verificación.");
@@ -126,7 +134,6 @@ const Auth = () => {
       }
     } else {
       toast.success("¡Bienvenido a Trado!");
-      // Redirect is handled by useEffect when user state changes
     }
 
     setLoading(false);
