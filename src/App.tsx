@@ -24,6 +24,7 @@ import AdminReturnRoom from "./pages/AdminReturnRoom";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 
 import NotFound from "./pages/NotFound";
 
