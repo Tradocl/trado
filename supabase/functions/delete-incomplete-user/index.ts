@@ -3,16 +3,55 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Authenticate the caller
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Verify the caller's JWT
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !caller) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Verify the caller has admin role
+    const { data: roleData } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", caller.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: admin role required" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const { userId, force } = await req.json();
 
     if (!userId) {
@@ -22,16 +61,9 @@ serve(async (req) => {
       );
     }
 
-    console.log("Attempting to delete user:", userId, "force:", force);
+    console.log("Admin", caller.id, "attempting to delete user:", userId, "force:", force);
 
-    // Create admin client with service role key
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-
-    // If not forcing, verify the user is actually incomplete (no RUT or phone in profile)
+    // If not forcing, verify the user is actually incomplete
     if (!force) {
       const { data: profile, error: profileError } = await supabaseAdmin
         .from("profiles")
@@ -41,12 +73,9 @@ serve(async (req) => {
 
       if (profileError) {
         console.error("Error fetching profile:", profileError);
-        // If no profile exists, the user is definitely incomplete - proceed with deletion
       }
 
-      // Only delete if user has no RUT and no phone (incomplete registration)
       if (profile && profile.rut && profile.phone) {
-        console.log("User has complete profile, not deleting:", userId);
         return new Response(
           JSON.stringify({ error: "User has complete profile, cannot delete" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -54,18 +83,17 @@ serve(async (req) => {
       }
     }
 
-    // Delete the incomplete user from auth.users
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
       console.error("Error deleting user:", deleteError);
       return new Response(
-        JSON.stringify({ error: deleteError.message }),
+        JSON.stringify({ error: "Failed to delete user" }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    console.log("Successfully deleted incomplete user:", userId);
+    console.log("Successfully deleted user:", userId, "by admin:", caller.id);
 
     return new Response(
       JSON.stringify({ success: true }),
@@ -73,9 +101,8 @@ serve(async (req) => {
     );
   } catch (error: unknown) {
     console.error("Error in delete-incomplete-user:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
