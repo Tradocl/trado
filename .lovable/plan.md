@@ -1,47 +1,83 @@
 
-## Plan: Implementar Confirmación de Correo Electrónico
 
-### Cambios Necesarios
+## Plan: Preparar Trado para Produccion Global
 
-#### 1. Configurar Confirmación de Email en Lovable Cloud
-- Habilitar la opción "Confirm email" en la configuración de autenticación del backend
-- Esto activará el envío automático de emails de verificación cuando alguien se registra
+Basado en el analisis del codigo, la auditoria de seguridad y las funcionalidades existentes, estas son las mejoras necesarias organizadas por prioridad.
 
-#### 2. Modificar el Flujo de Registro (`src/pages/Auth.tsx`)
-- Después del registro exitoso, mostrar un mensaje indicando que se envió un email de verificación
-- NO redirigir al dashboard inmediatamente
-- Mostrar instrucciones claras: "Revisa tu correo y haz clic en el enlace para activar tu cuenta"
+---
 
-#### 3. Crear Página de Verificación Pendiente
-- Nueva página `/verificar-email` que muestre:
-  - Mensaje de confirmación de que se envió el email
-  - Instrucciones para revisar el correo (incluyendo spam)
-  - Botón para reenviar el email de verificación
-  - Opción para cambiar el correo si se equivocaron
+### Prioridad 1: Seguridad Critica
 
-#### 4. Manejar el Estado de Email No Confirmado
-- Modificar `AuthContext` para detectar si el email está confirmado
-- Si un usuario intenta iniciar sesión sin confirmar su email, mostrar mensaje explicativo
-- Ofrecer reenvío del email de verificación
+#### 1.1 Proteger datos sensibles en perfiles
+- **Problema**: La tabla `profiles` expone datos bancarios, RUT, documentos de verificacion en cada consulta.
+- **Solucion**: Crear una vista `profiles_public` (sin datos bancarios/verificacion) y usar `get_safe_profile` consistentemente. Crear funcion `get_own_bank_details` para cuando el usuario necesite sus datos bancarios.
 
-#### 5. Personalizar el Email de Verificación (Opcional)
-- Crear una edge function para enviar un email de verificación con el diseño de Trado
-- Incluir el logo y colores de la marca
-- Mensaje en español
+#### 1.2 Habilitar proteccion contra passwords filtradas
+- **Problema**: La proteccion de passwords filtradas esta deshabilitada.
+- **Solucion**: Activarla via configuracion de autenticacion del backend.
 
-### Flujo del Usuario
+#### 1.3 Proteger vista `wallet_movements_safe`
+- **Problema**: No tiene RLS y podria exponer datos financieros de todos los usuarios.
+- **Solucion**: Agregar RLS o revocar acceso publico y usar solo funciones security definer.
 
-```
-1. Usuario completa formulario de registro
-2. Se crea la cuenta (sin confirmar)
-3. Se envía email con enlace de verificación
-4. Usuario ve página "Revisa tu correo"
-5. Usuario hace clic en el enlace del email
-6. Email queda confirmado
-7. Usuario puede acceder al dashboard
-```
+#### 1.4 Crear componente ProtectedRoute
+- **Problema**: Cada pagina maneja la autenticacion individualmente con `useEffect`, lo que es fragil e inconsistente.
+- **Solucion**: Crear `<ProtectedRoute>` que envuelva rutas autenticadas, redirigiendo a `/auth` si no hay sesion.
 
-### Consideraciones
-- Los usuarios que ya se registraron seguirán funcionando normalmente
-- Los nuevos usuarios deberán confirmar su email
-- Se puede configurar un tiempo límite para la confirmación (24-48 horas)
+---
+
+### Prioridad 2: Robustez y Confiabilidad
+
+#### 2.1 Rate limiting en formularios criticos
+- Agregar throttling client-side en login, registro, reenvio de email y recuperacion de contrasena para evitar abuso.
+- Implementar un hook `useThrottle` reutilizable.
+
+#### 2.2 Manejo de sesion expirada
+- Detectar errores 401 en respuestas de Supabase y redirigir al login automaticamente con mensaje informativo.
+- Agregar interceptor global en el cliente Supabase (via wrapper).
+
+#### 2.3 Pagina 404 mejorada
+- Verificar que la pagina NotFound tenga navegacion de vuelta y sea util.
+
+---
+
+### Prioridad 3: Experiencia de Usuario para Uso Frecuente
+
+#### 3.1 Loading states consistentes
+- Agregar skeletons en Dashboard, Transaction y Wallet para mejorar percepcion de velocidad.
+
+#### 3.2 Actualizar copyright del footer
+- Cambiar "2024" a "2025" en el footer de Index.
+
+#### 3.3 PWA / Installable
+- Agregar manifest.json y service worker basico para que la app sea instalable en moviles.
+- Esto facilita uso frecuente ya que los usuarios pueden "instalar" la app.
+
+---
+
+### Prioridad 4: Preparacion para Escala
+
+#### 4.1 Paginacion en historial de transacciones
+- Si no existe, agregar paginacion para manejar usuarios con muchas transacciones (limite de 1000 filas de Supabase).
+
+#### 4.2 Manejo de errores global
+- Agregar un Error Boundary de React para capturar errores inesperados y mostrar pantalla amigable en vez de pantalla blanca.
+
+---
+
+### Archivos a Crear/Modificar
+
+| Archivo | Accion |
+|---|---|
+| `src/components/ProtectedRoute.tsx` | Crear |
+| `src/App.tsx` | Envolver rutas protegidas |
+| `src/hooks/useThrottle.ts` | Crear |
+| `src/pages/Auth.tsx` | Agregar throttling |
+| `src/pages/Index.tsx` | Actualizar copyright |
+| `src/components/ErrorBoundary.tsx` | Crear |
+| Migracion SQL | Proteger `wallet_movements_safe`, crear vista segura de profiles |
+| Config auth backend | Habilitar leaked password protection |
+
+### Estimacion
+Esto se implementaria en varias iteraciones. Recomiendo empezar por **Prioridad 1** (seguridad) ya que es bloqueante para produccion.
+
