@@ -107,10 +107,19 @@ const Auth = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const { error } = await signIn(email, password);
+    const { data, error } = await signIn(email, password);
 
     if (error) {
-      if (error.message === "Invalid login credentials" || error.message === "Invalid login credentials.") {
+      if (error.message === "Email not confirmed") {
+        toast.error("Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.", { duration: 6000 });
+        // Offer resend
+        try {
+          await supabase.auth.resend({ type: 'signup', email });
+          toast.info("Te reenviamos el correo de verificación.");
+        } catch (e) {
+          // silent
+        }
+      } else if (error.message === "Invalid login credentials" || error.message === "Invalid login credentials.") {
         toast.error("Credenciales incorrectas. Verifica tu correo y contraseña o regístrate si no tienes cuenta.");
       } else {
         toast.error(error.message);
@@ -210,9 +219,6 @@ const Auth = () => {
       sessionStorage.removeItem('blockRedirectAfterSignup');
       setLoading(false);
     } else if (data.user) {
-      toast.success("¡Cuenta creada exitosamente!");
-      setNewUserId(data.user.id);
-      
       // Send welcome email
       try {
         await supabase.functions.invoke('send-welcome-email', {
@@ -221,16 +227,16 @@ const Auth = () => {
             userName: fullName
           }
         });
-        console.log("Welcome email sent successfully");
       } catch (welcomeEmailError) {
         console.log("Welcome email sending failed:", welcomeEmailError);
-        // Don't fail registration if email fails
       }
       
-      setShowVerificationChoice(true);
       setSignupPassword("");
       setConfirmPassword("");
       setLoading(false);
+      sessionStorage.removeItem('blockRedirectAfterSignup');
+      // Redirect to email verification pending page
+      navigate("/verificar-email", { state: { email } });
     }
   };
 
