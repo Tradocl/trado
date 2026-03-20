@@ -248,7 +248,7 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <img src={tradoLogo} alt="Trado" className="h-6 w-6" />
               <span className="font-semibold text-foreground">Trado</span>
-              <span className="text-muted-foreground text-sm">© 2024</span>
+              <span className="text-muted-foreground text-sm">© 2025</span>
             </div>
             <div className="flex items-center gap-6">
               <button onClick={() => navigate("/terms")} className="text-sm text-muted-foreground hover:text-primary transition-colors">

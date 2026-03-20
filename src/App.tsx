@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import ErrorBoundary from "./components/ErrorBoundary";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -25,48 +27,53 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
-
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/wallet" element={<Wallet />} />
-              <Route path="/create-transaction" element={<CreateTransaction />} />
-              <Route path="/create-sale" element={<CreateTransaction />} />
-              <Route path="/join-transaction" element={<JoinTransaction />} />
-              <Route path="/transaction/:id" element={<Transaction />} />
-              <Route path="/invite/:id" element={<InviteWelcome />} />
-              <Route path="/verification" element={<Verification />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/movement-history" element={<MovementHistory />} />
-              <Route path="/transaction-history" element={<TransactionHistory />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/appeal/:appealId" element={<Appeal />} />
-              <Route path="/admin/appeal/:appealId" element={<AdminAppeal />} />
-              <Route path="/return/:returnId" element={<ReturnRoom />} />
-              <Route path="/admin/return/:returnId" element={<AdminReturnRoom />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verificar-email" element={<VerifyEmail />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+              <Route path="/invite/:id" element={<InviteWelcome />} />
+
+              {/* Protected routes */}
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+              <Route path="/create-transaction" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
+              <Route path="/create-sale" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
+              <Route path="/join-transaction" element={<ProtectedRoute><JoinTransaction /></ProtectedRoute>} />
+              <Route path="/transaction/:id" element={<ProtectedRoute><Transaction /></ProtectedRoute>} />
+              <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/movement-history" element={<ProtectedRoute><MovementHistory /></ProtectedRoute>} />
+              <Route path="/transaction-history" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/appeal/:appealId" element={<ProtectedRoute><Appeal /></ProtectedRoute>} />
+              <Route path="/admin/appeal/:appealId" element={<ProtectedRoute><AdminAppeal /></ProtectedRoute>} />
+              <Route path="/return/:returnId" element={<ProtectedRoute><ReturnRoom /></ProtectedRoute>} />
+              <Route path="/admin/return/:returnId" element={<ProtectedRoute><AdminReturnRoom /></ProtectedRoute>} />
+
+              {/* Catch-all */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
