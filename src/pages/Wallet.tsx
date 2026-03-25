@@ -88,11 +88,11 @@ const Wallet = () => {
 
   // Company bank details for deposits
   const companyBankDetails = {
-    name: "Trado SpA",
-    rut: "76.XXX.XXX-X",
-    bank: "Banco de Chile",
-    accountType: "Cuenta Corriente",
-    accountNumber: "XXXX-XXXX-XXXX",
+    name: "Sociedad Comercial Trado Limitada",
+    rut: "78.236.214-3",
+    bank: "Mercado Pago",
+    accountType: "Cuenta Vista",
+    accountNumber: "1020783447",
   };
 
   useEffect(() => {
