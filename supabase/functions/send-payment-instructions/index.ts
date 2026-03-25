@@ -109,12 +109,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
 
-    // Datos bancarios de prueba
+    // Datos bancarios de Trado
     const bankDetails = {
-      bank: "Banco Estado",
-      accountType: "Cuenta Corriente",
-      accountNumber: "12345678-9",
-      rut: "12.345.678-9",
+      bank: "Mercado Pago",
+      accountType: "Cuenta Vista",
+      accountNumber: "1020783447",
+      rut: "78.236.214-3",
       email: "admin@trado.cl",
     };
 
