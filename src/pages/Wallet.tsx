@@ -839,8 +839,31 @@ ${companyBankDetails.email}`;
                     >
                       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                     </Button>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Correo:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{companyBankDetails.email}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => copyToClipboard(companyBankDetails.email)}
+                    >
+                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    </Button>
                   </div>
                 </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={copyAllBankDetails}
+              >
+                {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                Copiar todos los datos
+              </Button>
+            </div>
               </div>
             </div>
 
