@@ -839,6 +839,9 @@ ${companyBankDetails.email}`;
                     >
                       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                     </Button>
+                  </div>
+                </div>
+
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Correo:</span>
                   <div className="flex items-center gap-2">
@@ -863,8 +866,6 @@ ${companyBankDetails.email}`;
                 {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
                 Copiar todos los datos
               </Button>
-            </div>
-              </div>
             </div>
 
             <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
