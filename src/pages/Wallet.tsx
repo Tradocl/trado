@@ -93,6 +93,17 @@ const Wallet = () => {
     bank: "Mercado Pago",
     accountType: "Cuenta Vista",
     accountNumber: "1020783447",
+    email: "admin@trado.cl",
+  };
+
+  const copyAllBankDetails = () => {
+    const allDetails = `SOCIEDAD COMERCIAL TRADO LIMITADA
+RUT: ${companyBankDetails.rut}
+${companyBankDetails.bank}
+${companyBankDetails.accountType}
+Número de cuenta: ${companyBankDetails.accountNumber}
+${companyBankDetails.email}`;
+    copyToClipboard(allDetails);
   };
 
   useEffect(() => {
