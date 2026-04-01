@@ -176,7 +176,7 @@ const Dashboard = () => {
       
       const profileData = {
         ...profileRes.data,
-        total_transactions: completedCount
+        total_transactions: profileRes.data.total_transactions || completedCount
       };
       setProfile(profileData);
       
