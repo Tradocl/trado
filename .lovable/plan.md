@@ -1,83 +1,85 @@
 
 
-## Plan: Preparar Trado para Produccion Global
+## Resumen Completo de Trado para Migración a App Móvil
 
-Basado en el analisis del codigo, la auditoria de seguridad y las funcionalidades existentes, estas son las mejoras necesarias organizadas por prioridad.
+Te preparo un documento exhaustivo que cubra arquitectura, funcionalidades, base de datos, flujos y consideraciones para que otra IA (o desarrollador) pueda llevar Trado a una app nativa de celular.
 
----
+### Qué incluirá el documento
 
-### Prioridad 1: Seguridad Critica
+1. **Visión general del producto**
+   - Qué es Trado (escrow P2P para Chile)
+   - Mercado objetivo y propuesta de valor
+   - Modelo de negocio (comisión sobre transacciones)
 
-#### 1.1 Proteger datos sensibles en perfiles
-- **Problema**: La tabla `profiles` expone datos bancarios, RUT, documentos de verificacion en cada consulta.
-- **Solucion**: Crear una vista `profiles_public` (sin datos bancarios/verificacion) y usar `get_safe_profile` consistentemente. Crear funcion `get_own_bank_details` para cuando el usuario necesite sus datos bancarios.
+2. **Stack tecnológico actual**
+   - Frontend: React 18 + Vite + TypeScript + Tailwind + shadcn/ui
+   - Backend: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
+   - PWA configurada con vite-plugin-pwa
+   - Routing: react-router-dom
 
-#### 1.2 Habilitar proteccion contra passwords filtradas
-- **Problema**: La proteccion de passwords filtradas esta deshabilitada.
-- **Solucion**: Activarla via configuracion de autenticacion del backend.
+3. **Arquitectura de base de datos**
+   - Tablas principales: profiles, transactions, wallets, wallet_movements, ratings, appeals, returns, user_roles, verification_documents
+   - Relaciones y RLS policies
+   - Funciones SECURITY DEFINER (has_role, get_safe_profile, get_own_bank_details, etc.)
+   - Storage buckets (avatars, chat-files, appeal-evidence, verification-documents)
 
-#### 1.3 Proteger vista `wallet_movements_safe`
-- **Problema**: No tiene RLS y podria exponer datos financieros de todos los usuarios.
-- **Solucion**: Agregar RLS o revocar acceso publico y usar solo funciones security definer.
+4. **Edge Functions desplegadas** (lista completa con propósito)
+   - process-escrow-deposit, confirm-delivery, resolve-appeal, process-return-refund
+   - Notificaciones (notify-* y send-*)
+   - Manejo de email vía Resend
 
-#### 1.4 Crear componente ProtectedRoute
-- **Problema**: Cada pagina maneja la autenticacion individualmente con `useEffect`, lo que es fragil e inconsistente.
-- **Solucion**: Crear `<ProtectedRoute>` que envuelva rutas autenticadas, redirigiendo a `/auth` si no hay sesion.
+5. **Funcionalidades core**
+   - Autenticación (email/password + Google OAuth, verificación de email)
+   - Sistema de billetera (depósitos manuales por transferencia, retiros con datos bancarios del usuario, saldo y saldo bloqueado)
+   - Flujo de transacciones (creación con código de invitación, join, escrow, marcado de envío, confirmación, completado)
+   - Sistema de apelaciones (9 estados, chat privado con archivos, negociación 48h, intervención de plataforma, ratings post-resolución)
+   - Sistema de devoluciones (mediación admin, refund automático)
+   - Verificación de identidad (subida de documentos, revisión admin)
+   - Ratings y reputación
+   - Panel de administración (apelaciones, devoluciones, retiros)
+   - Chat de transacciones con archivos
+   - Propuestas de reunión presencial
+   - Notificaciones por email (Resend)
 
----
+6. **Flujos de usuario detallados**
+   - Onboarding (signup → verificación email → completar perfil)
+   - Crear venta (vendedor) y unirse (comprador)
+   - Depósito en escrow → entrega → confirmación → liberación
+   - Apelación de disputa
+   - Retiro de fondos
 
-### Prioridad 2: Robustez y Confiabilidad
+7. **Consideraciones para migración a móvil nativo**
+   - **Opción A: Capacitor** (reusa el código React actual, más rápido)
+     - appId: app.lovable.f99bb00449564c2ba5871488b9889a8d
+     - Requiere `npx cap add ios/android`, build, sync
+     - Ventajas: 95% del código se reusa
+   - **Opción B: React Native / Expo** (reescritura completa)
+     - Mantener Supabase como backend (cliente JS funciona igual)
+     - Reescribir UI con componentes nativos
+     - Mayor performance pero más trabajo
+   - **Opción C: Flutter / Kotlin nativo** (reescritura total)
+   - Componentes a adaptar: file pickers para documentos/avatares, deep linking para invite codes, push notifications (FCM/APNs en vez de email), cámara para verificación
+   - Variables de entorno necesarias: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY (o equivalentes según framework)
 
-#### 2.1 Rate limiting en formularios criticos
-- Agregar throttling client-side en login, registro, reenvio de email y recuperacion de contrasena para evitar abuso.
-- Implementar un hook `useThrottle` reutilizable.
+8. **Restricciones y contexto chileno**
+   - Sin pasarela de pago integrada (transferencias bancarias manuales)
+   - Razones regulatorias (CMF, Ley Fintech 21.521)
+   - Validación de RUT, ubicaciones chilenas
+   - Moneda CLP sin decimales
 
-#### 2.2 Manejo de sesion expirada
-- Detectar errores 401 en respuestas de Supabase y redirigir al login automaticamente con mensaje informativo.
-- Agregar interceptor global en el cliente Supabase (via wrapper).
+9. **Lo que NO incluye Trado actualmente** (para que la nueva IA sepa qué falta)
+   - Pasarela de pagos automática (Khipu/Fintoc pendientes)
+   - Push notifications nativas
+   - Modo offline real
+   - Geolocalización para reuniones
 
-#### 2.3 Pagina 404 mejorada
-- Verificar que la pagina NotFound tenga navegacion de vuelta y sea util.
+### Formato de entrega
 
----
+Generaré un archivo **`Trado-Resumen-Completo.md`** en `/mnt/documents/` que puedes copiar y pegar en cualquier otra IA (ChatGPT, Claude, Gemini, Cursor, etc.) como contexto inicial para iniciar la migración a móvil. El archivo será autocontenido — incluirá todo lo necesario para que la otra IA entienda Trado sin acceso a este proyecto.
 
-### Prioridad 3: Experiencia de Usuario para Uso Frecuente
+### Lo que NO haré
 
-#### 3.1 Loading states consistentes
-- Agregar skeletons en Dashboard, Transaction y Wallet para mejorar percepcion de velocidad.
-
-#### 3.2 Actualizar copyright del footer
-- Cambiar "2024" a "2025" en el footer de Index.
-
-#### 3.3 PWA / Installable
-- Agregar manifest.json y service worker basico para que la app sea instalable en moviles.
-- Esto facilita uso frecuente ya que los usuarios pueden "instalar" la app.
-
----
-
-### Prioridad 4: Preparacion para Escala
-
-#### 4.1 Paginacion en historial de transacciones
-- Si no existe, agregar paginacion para manejar usuarios con muchas transacciones (limite de 1000 filas de Supabase).
-
-#### 4.2 Manejo de errores global
-- Agregar un Error Boundary de React para capturar errores inesperados y mostrar pantalla amigable en vez de pantalla blanca.
-
----
-
-### Archivos a Crear/Modificar
-
-| Archivo | Accion |
-|---|---|
-| `src/components/ProtectedRoute.tsx` | Crear |
-| `src/App.tsx` | Envolver rutas protegidas |
-| `src/hooks/useThrottle.ts` | Crear |
-| `src/pages/Auth.tsx` | Agregar throttling |
-| `src/pages/Index.tsx` | Actualizar copyright |
-| `src/components/ErrorBoundary.tsx` | Crear |
-| Migracion SQL | Proteger `wallet_movements_safe`, crear vista segura de profiles |
-| Config auth backend | Habilitar leaked password protection |
-
-### Estimacion
-Esto se implementaria en varias iteraciones. Recomiendo empezar por **Prioridad 1** (seguridad) ya que es bloqueante para produccion.
+- No modificaré código de la app actual.
+- No iniciaré la migración a móvil — solo preparo el documento de contexto.
+- No incluiré secretos ni claves reales (solo nombres de variables).
 
