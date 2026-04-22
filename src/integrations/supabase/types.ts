@@ -598,6 +598,7 @@ export type Database = {
           appeal_status: Database["public"]["Enums"]["appeal_status"] | null
           buyer_id: string | null
           cancelled_at: string | null
+          carrier: string | null
           commission: number | null
           completed_at: string | null
           created_at: string | null
@@ -613,6 +614,7 @@ export type Database = {
           seller_id: string
           shipped_at: string | null
           state: Database["public"]["Enums"]["transaction_state"] | null
+          tracking_number: string | null
           updated_at: string | null
         }
         Insert: {
@@ -620,6 +622,7 @@ export type Database = {
           appeal_status?: Database["public"]["Enums"]["appeal_status"] | null
           buyer_id?: string | null
           cancelled_at?: string | null
+          carrier?: string | null
           commission?: number | null
           completed_at?: string | null
           created_at?: string | null
@@ -635,6 +638,7 @@ export type Database = {
           seller_id: string
           shipped_at?: string | null
           state?: Database["public"]["Enums"]["transaction_state"] | null
+          tracking_number?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -642,6 +646,7 @@ export type Database = {
           appeal_status?: Database["public"]["Enums"]["appeal_status"] | null
           buyer_id?: string | null
           cancelled_at?: string | null
+          carrier?: string | null
           commission?: number | null
           completed_at?: string | null
           created_at?: string | null
@@ -657,6 +662,7 @@ export type Database = {
           seller_id?: string
           shipped_at?: string | null
           state?: Database["public"]["Enums"]["transaction_state"] | null
+          tracking_number?: string | null
           updated_at?: string | null
         }
         Relationships: [
