@@ -13,6 +13,7 @@ import tradoLogo from "@/assets/trado-logo.png";
 import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
+import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 
 interface Profile {
   full_name: string;
@@ -276,6 +277,7 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
+        <PushNotificationBanner />
         {/* Welcome Card */}
         <Card 
           className={`border-0 shadow-xl text-white overflow-hidden animate-fade-in ${!profile?.dashboard_background_url ? getCardGradient(profile?.dashboard_color || 'primary') : ''}`}
