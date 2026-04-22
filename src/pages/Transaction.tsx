@@ -21,6 +21,7 @@ import { CreateAppealDialog } from "@/components/appeal/CreateAppealDialog";
 import { ReturnRequestDialog } from "@/components/ReturnRequestDialog";
 import { ReturnStatusPanel } from "@/components/ReturnStatusPanel";
 import { MeetingProposalPanel } from "@/components/MeetingProposalPanel";
+import { TrackingPanel, CARRIER_LABELS } from "@/components/TrackingPanel";
 import { formatCLP } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -42,6 +43,8 @@ interface Transaction {
   sale_type: string | null;
   shipped_at: string | null;
   initiator_role: string | null;
+  tracking_number: string | null;
+  carrier: string | null;
 }
 
 interface Profile {
@@ -422,28 +425,17 @@ const Transaction = () => {
     setMarkingShipped(true);
     try {
       const finalCarrier = shippingCarrier === "otro" ? shippingCustomCarrier.trim() : shippingCarrier;
-      
-      // Store shipping info in product_description as JSON for now (could be separate columns)
-      const shippingInfo = transaction.sale_type === "producto_envio" 
-        ? JSON.stringify({ 
-            tracking_number: shippingTrackingNumber.trim(), 
-            carrier: finalCarrier 
-          })
-        : null;
-      
-      const updateData: any = { 
+
+      const updateData: any = {
         state: "in_delivery",
         shipped_at: new Date().toISOString()
       };
-      
-      // Store shipping metadata in product_description if shipping
-      if (shippingInfo && transaction.sale_type === "producto_envio") {
-        // We'll store it separately by appending to description
-        const existingDesc = transaction.product_description || "";
-        updateData.product_description = existingDesc + (existingDesc ? "\n\n" : "") + 
-          `📦 Envío: ${finalCarrier} - Tracking: ${shippingTrackingNumber.trim()}`;
+
+      if (transaction.sale_type === "producto_envio") {
+        updateData.tracking_number = shippingTrackingNumber.trim();
+        updateData.carrier = finalCarrier;
       }
-      
+
       await supabase
         .from("transactions")
         .update(updateData)
@@ -1873,7 +1865,9 @@ const Transaction = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">Producto Enviado</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      {passedDelivery
+                      {passedDelivery && transaction.carrier
+                        ? `✅ Enviado por ${CARRIER_LABELS[transaction.carrier.toLowerCase()] ?? transaction.carrier}`
+                        : passedDelivery
                         ? `✅ Enviado`
                         : transaction.state === 'funds_secured'
                         ? `⏳ Esperando envío...`
@@ -1881,6 +1875,16 @@ const Transaction = () => {
                     </p>
                   </div>
                 </div>
+
+                {/* Tracking panel shown once shipped */}
+                {transaction.tracking_number && transaction.carrier && (
+                  <div className="ml-0 pl-1">
+                    <TrackingPanel
+                      trackingNumber={transaction.tracking_number}
+                      carrier={transaction.carrier}
+                    />
+                  </div>
+                )}
 
                 {/* Step 5: Received */}
                 <div className="flex items-center gap-3 sm:gap-4 group">
