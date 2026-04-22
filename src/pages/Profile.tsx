@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield } from "lucide-react";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
+import { PushNotificationCard } from "@/components/PushNotificationCard";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -1098,6 +1099,9 @@ const Profile = () => {
             </CollapsibleContent>
           </Card>
         </Collapsible>
+
+        {/* Push Notifications Card */}
+        <PushNotificationCard />
 
         {/* Password Change Collapsible */}
         <Collapsible open={passwordSectionOpen} onOpenChange={setPasswordSectionOpen}>
