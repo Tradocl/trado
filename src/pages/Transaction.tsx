@@ -426,20 +426,31 @@ const Transaction = () => {
     try {
       const finalCarrier = shippingCarrier === "otro" ? shippingCustomCarrier.trim() : shippingCarrier;
 
-      const updateData: any = {
-        state: "in_delivery",
-        shipped_at: new Date().toISOString()
-      };
-
-      if (transaction.sale_type === "producto_envio") {
-        updateData.tracking_number = shippingTrackingNumber.trim();
-        updateData.carrier = finalCarrier;
-      }
-
-      await supabase
+      // First update state (always required)
+      const { error: stateError } = await supabase
         .from("transactions")
-        .update(updateData)
+        .update({
+          state: "in_delivery",
+          shipped_at: new Date().toISOString()
+        })
         .eq("id", transaction.id);
+
+      if (stateError) throw stateError;
+
+      // Then try to update tracking fields separately (non-blocking)
+      if (transaction.sale_type === "producto_envio" && shippingTrackingNumber.trim()) {
+        const { error: trackingError } = await supabase
+          .from("transactions")
+          .update({
+            tracking_number: shippingTrackingNumber.trim(),
+            carrier: finalCarrier
+          })
+          .eq("id", transaction.id);
+
+        if (trackingError) {
+          console.warn("[handleMarkAsShipped] Could not save tracking fields:", trackingError.message);
+        }
+      }
 
       // Notify the buyer that order was shipped
       try {
