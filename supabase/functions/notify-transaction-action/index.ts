@@ -475,6 +475,18 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Notification sent for action ${actionType}:`, emailResponse);
 
+    // Send push notification (fire and forget)
+    const pushBody = `${config.emoji} ${transaction.product_name}`;
+    supabase.functions.invoke('send-push-notification', {
+      body: {
+        userIds: [recipientId],
+        title: config.title.replace('Trado - ', ''),
+        body: pushBody,
+        url: ctaUrl.replace(Deno.env.get("SITE_URL") || "https://trado.cl", ''),
+        tag: `tx-${transactionId}-${actionType}`,
+      },
+    }).catch(() => {});
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

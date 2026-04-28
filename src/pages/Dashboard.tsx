@@ -100,6 +100,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [accumulatedTotal, setAccumulatedTotal] = useState<number>(0);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+  const [pendingRatingCount, setPendingRatingCount] = useState(0);
+  const [firstPendingRatingId, setFirstPendingRatingId] = useState<string | null>(null);
 
   const isProfileComplete = profile?.rut && profile?.phone && profile?.address &&
     profile.rut.trim() !== '' && profile.phone.trim() !== '' && profile.address.trim() !== '';
@@ -145,7 +147,7 @@ const Dashboard = () => {
     if (!user) return;
 
     try {
-      const [profileRes, walletRes, transactionsRes, completedTransactionsRes] = await Promise.all([
+      const [profileRes, walletRes, transactionsRes, completedTransactionsRes, myRatingsRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
         supabase
@@ -156,8 +158,12 @@ const Dashboard = () => {
           .order("created_at", { ascending: false }),
         supabase
           .from("transactions")
-          .select("id, appeal_status, state")
-          .or(`seller_id.eq.${user.id},buyer_id.eq.${user.id}`)
+          .select("id, appeal_status, state, seller_id, buyer_id, product_name")
+          .or(`seller_id.eq.${user.id},buyer_id.eq.${user.id}`),
+        supabase
+          .from("ratings")
+          .select("transaction_id")
+          .eq("rater_id", user.id),
       ]);
 
       if (profileRes.error) throw profileRes.error;
@@ -170,10 +176,24 @@ const Dashboard = () => {
         return;
       }
       // Calculate total completed transactions (state = completed OR appeal resolved)
-      const completedCount = completedTransactionsRes.data?.filter(t => 
-        (t as any).state === 'completed' || 
+      const allCompleted = completedTransactionsRes.data?.filter(t =>
+        (t as any).state === 'completed' ||
         resolvedAppealStatuses.includes(t.appeal_status || '')
-      ).length || 0;
+      ) || [];
+      const completedCount = allCompleted.length;
+
+      // Compute pending ratings
+      const ratedIds = new Set((myRatingsRes.data || []).map(r => r.transaction_id));
+      const pending = allCompleted.filter(t => {
+        if (ratedIds.has(t.id)) return false;
+        const isSeller = t.seller_id === user.id;
+        const isBuyer = t.buyer_id === user.id;
+        if (isSeller && t.buyer_id) return true;
+        if (isBuyer) return true;
+        return false;
+      });
+      setPendingRatingCount(pending.length);
+      setFirstPendingRatingId(pending[0]?.id ?? null);
       
       const profileData = {
         ...profileRes.data,
@@ -366,6 +386,36 @@ const Dashboard = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Pending Ratings Banner */}
+        {pendingRatingCount > 0 && (
+          <Card
+            className="border-2 border-warning/40 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-warning/10 to-warning/5 cursor-pointer"
+            style={{ animationDelay: '0.15s', animationFillMode: 'both' }}
+            onClick={() => firstPendingRatingId && navigate(`/transaction/${firstPendingRatingId}`)}
+          >
+            <CardContent className="py-4 px-5">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-warning/20 rounded-full flex-shrink-0">
+                    <Star className="h-5 w-5 text-warning fill-warning/50" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">
+                      {pendingRatingCount === 1
+                        ? "Tienes 1 transacción pendiente de calificar"
+                        : `Tienes ${pendingRatingCount} transacciones pendientes de calificar`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Tu calificación ayuda a construir confianza en la comunidad
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-warning flex-shrink-0" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Transactions in Progress */}
         {transactions.length > 0 && (

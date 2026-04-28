@@ -323,8 +323,27 @@ serve(async (req: Request): Promise<Response> => {
       }
     } catch (notifyError) {
       console.error("[confirm-delivery] Error sending notification emails:", notifyError);
-      // Don't fail the transaction if notifications fail
     }
+
+    // Push notifications (fire and forget)
+    supabaseClient.functions.invoke('send-push-notification', {
+      body: {
+        userIds: [tx.seller_id],
+        title: '¡Fondos liberados!',
+        body: `💸 ${tx.product_name} — los fondos están en tu billetera`,
+        url: '/wallet',
+        tag: `delivery-seller-${transactionId}`,
+      },
+    }).catch(() => {});
+    supabaseClient.functions.invoke('send-push-notification', {
+      body: {
+        userIds: [tx.buyer_id],
+        title: 'Transacción completada',
+        body: `✅ ${tx.product_name} — transacción cerrada exitosamente`,
+        url: `/transaction/${transactionId}`,
+        tag: `delivery-buyer-${transactionId}`,
+      },
+    }).catch(() => {});
 
     console.log(`[confirm-delivery] Successfully completed transaction ${transactionId}`);
 

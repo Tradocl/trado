@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
 import { UNVERIFIED_LIMITS, checkTransactionLimits, getUserVerificationStatus } from "@/lib/transaction-limits";
+import { nativeShare } from "@/lib/native/share";
 import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 
@@ -213,21 +214,11 @@ const CreateTransaction = () => {
       const appUrl = getAppUrl();
       const link = `${appUrl}/invite/${createdTransactionId}`;
       const text = `Te invito a unirte a mi transacción segura en Trado para: ${formData.productName}`;
-      
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: 'Invitación a Trado',
-            text: text,
-            url: link,
-          });
-        } catch (err) {
-          // User cancelled or share failed, fallback to copy
-          copyInviteLink();
-        }
-      } else {
-        copyInviteLink();
-      }
+
+      await nativeShare(
+        { title: 'Invitación a Trado', text, url: link, dialogTitle: 'Compartir invitación' },
+        copyInviteLink
+      );
     }
   };
 

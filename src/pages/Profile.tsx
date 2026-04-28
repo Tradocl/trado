@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import tradoLogo from "@/assets/trado-logo.png";
+import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 
 interface PasswordRequirement {
   label: string;
@@ -284,6 +285,64 @@ const Profile = () => {
     }
   };
 
+  const handleAvatarNativeCapture = async () => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      const photo = await takeNativePhoto('prompt');
+      if (!photo) return;
+      const file = dataUrlToFile(photo.dataUrl, `avatar-${Date.now()}.${photo.format}`);
+      const filePath = `${user.id}/avatar-${Date.now()}.${photo.format}`;
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const { error: updateError } = await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
+      if (updateError) throw updateError;
+      setProfileData(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      toast.success("Foto de perfil actualizada");
+    } catch (error: any) {
+      if (error?.message !== 'User cancelled photos app') {
+        toast.error("Error al subir imagen: " + error.message);
+      }
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarLabelClick = (e: React.MouseEvent) => {
+    if (!isNative()) return;
+    e.preventDefault();
+    handleAvatarNativeCapture();
+  };
+
+  const handleBackgroundNativeCapture = async () => {
+    if (!user) return;
+    setUploadingBackground(true);
+    try {
+      const photo = await takeNativePhoto('prompt');
+      if (!photo) return;
+      const file = dataUrlToFile(photo.dataUrl, `background-${Date.now()}.${photo.format}`);
+      const filePath = `${user.id}/background-${Date.now()}.${photo.format}`;
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      setBackgroundUrl(publicUrl);
+      toast.success("Imagen de fondo subida");
+    } catch (error: any) {
+      if (error?.message !== 'User cancelled photos app') {
+        toast.error("Error al subir imagen: " + error.message);
+      }
+    } finally {
+      setUploadingBackground(false);
+    }
+  };
+
+  const handleBackgroundLabelClick = (e: React.MouseEvent) => {
+    if (!isNative()) return;
+    e.preventDefault();
+    handleBackgroundNativeCapture();
+  };
+
   const onProfileSubmit = async (values: ProfileFormValues) => {
     if (!user) return;
 
@@ -546,15 +605,20 @@ const Profile = () => {
                     {profileData?.full_name ? getInitials(profileData.full_name) : "U"}
                   </AvatarFallback>
                 </Avatar>
-                <label className="absolute bottom-0 right-0 p-1.5 bg-primary rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
+                <label
+                  className="absolute bottom-0 right-0 p-1.5 bg-primary rounded-full cursor-pointer hover:bg-primary/90 transition-colors"
+                  onClick={handleAvatarLabelClick}
+                >
                   <Camera className="h-4 w-4 text-primary-foreground" />
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                    disabled={uploadingAvatar}
-                  />
+                  {!isNative() && (
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      disabled={uploadingAvatar}
+                    />
+                  )}
                 </label>
               </div>
               {uploadingAvatar && (
@@ -1045,7 +1109,10 @@ const Profile = () => {
                       </Button>
                     </div>
                   ) : (
-                    <label className="flex items-center justify-center h-24 rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors">
+                    <label
+                      className="flex items-center justify-center h-24 rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors"
+                      onClick={handleBackgroundLabelClick}
+                    >
                       {uploadingBackground ? (
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
@@ -1057,13 +1124,15 @@ const Profile = () => {
                           <span className="text-xs">Subir imagen (máx 5MB)</span>
                         </div>
                       )}
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleBackgroundUpload}
-                        disabled={uploadingBackground}
-                      />
+                      {!isNative() && (
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleBackgroundUpload}
+                          disabled={uploadingBackground}
+                        />
+                      )}
                     </label>
                   )}
                   <p className="text-xs text-muted-foreground">

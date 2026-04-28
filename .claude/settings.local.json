@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx cap *)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(git stash *)",
+      "Bash(git pull *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "PowerShell(git diff *)",
+      "PowerShell(Get-ChildItem android -Recurse -File | Where-Object { $_.Extension -match '\\\\.\\(kt|java|xml|gradle|json\\)$' } | Select-Object FullName | Select-Object -First 40)"
+    ]
+  }
+}
