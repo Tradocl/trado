@@ -1,13 +1,16 @@
 {
-  "name": "Trado - Compra y Vende Seguro",
+  "name": "Trado — Negocia Seguro",
   "short_name": "Trado",
-  "description": "Plataforma de compra y venta segura con sistema de escrow",
+  "description": "Plataforma de escrow P2P para compra, venta y servicios seguros en Chile.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#1a1a2e",
+  "theme_color": "#3340d8",
   "orientation": "portrait-primary",
+  "lang": "es-CL",
+  "dir": "ltr",
+  "categories": ["finance", "utilities"],
   "icons": [
     {
       "src": "/icon-192.png",
