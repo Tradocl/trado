@@ -158,8 +158,8 @@ export default function MovementHistory() {
         </CardHeader>
         <CardContent>
           {/* Filters */}
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="flex-1 min-w-[200px]">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 mb-6">
+            <div className="flex-1 min-w-[130px]">
               <label className="text-sm font-medium mb-2 block">Estado</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
@@ -175,7 +175,7 @@ export default function MovementHistory() {
               </Select>
             </div>
 
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-[130px]">
               <label className="text-sm font-medium mb-2 block">Tipo</label>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger>
@@ -191,13 +191,13 @@ export default function MovementHistory() {
               </Select>
             </div>
 
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-[130px]">
               <label className="text-sm font-medium mb-2 block">Desde</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFrom ? format(dateFrom, "PPP", { locale: es }) : "Seleccionar"}
+                  <Button variant="outline" className="w-full justify-start text-left font-normal text-xs sm:text-sm">
+                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                    {dateFrom ? format(dateFrom, "dd/MM/yy") : "Seleccionar"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -206,13 +206,13 @@ export default function MovementHistory() {
               </Popover>
             </div>
 
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-[130px]">
               <label className="text-sm font-medium mb-2 block">Hasta</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateTo ? format(dateTo, "PPP", { locale: es }) : "Seleccionar"}
+                  <Button variant="outline" className="w-full justify-start text-left font-normal text-xs sm:text-sm">
+                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                    {dateTo ? format(dateTo, "dd/MM/yy") : "Seleccionar"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -221,8 +221,8 @@ export default function MovementHistory() {
               </Popover>
             </div>
 
-            <div className="flex items-end">
-              <Button variant="outline" onClick={clearFilters}>
+            <div className="col-span-2 sm:col-span-1 flex sm:items-end">
+              <Button variant="outline" className="w-full sm:w-auto" onClick={clearFilters}>
                 <Filter className="mr-2 h-4 w-4" />
                 Limpiar Filtros
               </Button>
@@ -235,16 +235,16 @@ export default function MovementHistory() {
           </div>
 
           {/* Table */}
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead className="whitespace-nowrap">Fecha</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Monto</TableHead>
-                  <TableHead>Descripción</TableHead>
+                  <TableHead className="hidden sm:table-cell">Descripción</TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead>Revisado</TableHead>
+                  <TableHead className="hidden md:table-cell whitespace-nowrap">Revisado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -257,22 +257,22 @@ export default function MovementHistory() {
                 ) : (
                   filteredMovements.map((movement) => (
                     <TableRow key={movement.id}>
-                      <TableCell>
-                        {format(new Date(movement.created_at), "dd/MM/yyyy HH:mm", { locale: es })}
+                      <TableCell className="text-xs sm:text-sm whitespace-nowrap">
+                        {format(new Date(movement.created_at), "dd/MM/yy HH:mm")}
                       </TableCell>
                       <TableCell>{getTypeBadge(movement.type)}</TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium whitespace-nowrap">
                         <span className={movement.amount < 0 ? "text-destructive" : "text-success"}>
                           {movement.amount < 0 ? "-" : "+"}${formatCLP(Math.abs(movement.amount))}
                         </span>
                       </TableCell>
-                      <TableCell className="max-w-xs truncate">
+                      <TableCell className="hidden sm:table-cell max-w-[200px] truncate">
                         {movement.description || "-"}
                       </TableCell>
                       <TableCell>{getStatusBadge(movement.status)}</TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell text-xs whitespace-nowrap">
                         {movement.reviewed_at
-                          ? format(new Date(movement.reviewed_at), "dd/MM/yyyy", { locale: es })
+                          ? format(new Date(movement.reviewed_at), "dd/MM/yy")
                           : "-"}
                       </TableCell>
                     </TableRow>
