@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { sendPushToUsers } from "../_shared/push.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -163,12 +164,29 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const emailResponse = await resend.emails.send({
-      from: "Trado <notificaciones@trado.cl>",
-      to: [recipientEmail],
-      subject: `📍 ${proposerName} te propone un encuentro para ${productName}`,
-      html: emailHtml,
-    });
+    const { data: recipientUser } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", recipientEmail)
+      .maybeSingle();
+
+    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
+    const [emailResponse] = await Promise.all([
+      resend.emails.send({
+        from: "Trado <notificaciones@trado.cl>",
+        to: [recipientEmail],
+        subject: `📍 ${proposerName} te propone un encuentro para ${productName}`,
+        html: emailHtml,
+      }),
+      recipientUser
+        ? sendPushToUsers([recipientUser.id], {
+            title: "Trado - Nueva Propuesta de Encuentro",
+            body: `${proposerName} te propone un encuentro para ${productName}`,
+            url: `${baseUrl}/transaction/${transactionId}`,
+            tag: `meeting-${transactionId}`,
+          }).catch((err) => console.error("Push failed (non-blocking):", err))
+        : Promise.resolve(),
+    ]);
 
     console.log("Meeting proposal notification sent:", emailResponse);
 

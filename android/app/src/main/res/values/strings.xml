@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Trado</string>
+    <string name="title_activity_main">Trado</string>
+    <string name="package_name">cl.trado.app</string>
+    <string name="custom_url_scheme">cl.trado.app</string>
+</resources>

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { sendPushToUsers } from "../_shared/push.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -465,13 +466,21 @@ const handler = async (req: Request): Promise<Response> => {
       ctaUrl
     );
 
-    // Send email
-    const emailResponse = await resend.emails.send({
-      from: "Trado <notificaciones@trado.cl>",
-      to: [recipientProfile.email],
-      subject: `${config.emoji} ${config.title} - ${transaction.product_name}`,
-      html: emailHtml,
-    });
+    // Send email + push in parallel
+    const [emailResponse] = await Promise.all([
+      resend.emails.send({
+        from: "Trado <notificaciones@trado.cl>",
+        to: [recipientProfile.email],
+        subject: `${config.emoji} ${config.title} - ${transaction.product_name}`,
+        html: emailHtml,
+      }),
+      sendPushToUsers([recipientId], {
+        title: config.title,
+        body: `${transaction.product_name}`,
+        url: ctaUrl,
+        tag: `transaction-${transactionId}-${actionType}`,
+      }).catch((err) => console.error("Push failed (non-blocking):", err)),
+    ]);
 
     console.log(`Notification sent for action ${actionType}:`, emailResponse);
 

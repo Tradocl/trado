@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { Capacitor } from "@capacitor/core";
 
-// Public VAPID key (safe to expose in frontend by Web Push design).
 const VAPID_PUBLIC_KEY =
   "BOOF8NZHwZnruoLaYXPPEujleD-_oUMyzEsyWhjzrXQ1yxd2MhoQaA3czb3LhqcCTX-GCtSp56s19vZ7a8VnDgk";
 
@@ -48,9 +48,27 @@ export function usePushNotifications() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Detect support and current permission state
+  const isNative = Capacitor.isNativePlatform();
+  const platform = Capacitor.getPlatform(); // 'android' | 'ios' | 'web'
+
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    if (isNative) {
+      // Native: check if already registered in DB
+      if (!user) return;
+      supabase
+        .from("push_subscriptions")
+        .select("id")
+        .eq("user_id", user.id)
+        .in("platform", ["android", "ios"])
+        .maybeSingle()
+        .then(({ data }) => {
+          setIsSubscribed(!!data);
+          setPermission(data ? "granted" : "default");
+        });
+      return;
+    }
 
     if (isPreviewHost() || isInIframe()) {
       setPermission("preview-blocked");
@@ -68,64 +86,106 @@ export function usePushNotifications() {
 
     setPermission(Notification.permission as PushPermissionState);
 
-    // Check existing subscription
     navigator.serviceWorker.getRegistration().then((reg) => {
       if (!reg) return;
       reg.pushManager.getSubscription().then((sub) => {
         setIsSubscribed(!!sub);
       });
     });
-  }, [user]);
+  }, [user, isNative]);
 
   const subscribe = useCallback(async () => {
     if (!user) return;
-    if (permission === "preview-blocked") {
-      throw new Error(
-        "Las notificaciones solo funcionan en el sitio publicado, no en el editor."
-      );
-    }
-    if (permission === "unsupported") {
-      throw new Error("Tu navegador no soporta notificaciones push.");
-    }
 
     setLoading(true);
     try {
-      // Register SW
+      if (isNative) {
+        // Native FCM subscription
+        const { PushNotifications } = await import("@capacitor/push-notifications");
+
+        const permResult = await PushNotifications.requestPermissions();
+        if (permResult.receive !== "granted") {
+          throw new Error("Permiso denegado");
+        }
+
+        await PushNotifications.register();
+
+        await new Promise<void>((resolve, reject) => {
+          PushNotifications.addListener("registration", async (token) => {
+            const { error } = await supabase.from("push_subscriptions").upsert(
+              {
+                user_id: user.id,
+                endpoint: token.value,
+                p256dh: null,
+                auth: null,
+                platform,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "endpoint" },
+            );
+            if (error) reject(error);
+            else {
+              setPermission("granted");
+              setIsSubscribed(true);
+              resolve();
+            }
+          });
+
+          PushNotifications.addListener("registrationError", (err) => {
+            reject(new Error(err.error));
+          });
+        });
+
+        // Handle foreground notifications
+        PushNotifications.addListener("pushNotificationReceived", (notification) => {
+          console.log("Push received in foreground:", notification);
+        });
+
+        // Handle notification tap
+        PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+          const url = action.notification.data?.url;
+          if (url) window.location.href = url;
+        });
+
+        return;
+      }
+
+      // Web push subscription
+      if (permission === "preview-blocked") {
+        throw new Error(
+          "Las notificaciones solo funcionan en el sitio publicado, no en el editor.",
+        );
+      }
+      if (permission === "unsupported") {
+        throw new Error("Tu navegador no soporta notificaciones push.");
+      }
+
       const registration =
         (await navigator.serviceWorker.getRegistration()) ||
         (await navigator.serviceWorker.register("/sw.js"));
 
       await navigator.serviceWorker.ready;
 
-      // Request permission
       const perm = await Notification.requestPermission();
       setPermission(perm as PushPermissionState);
-      if (perm !== "granted") {
-        throw new Error("Permiso denegado");
-      }
+      if (perm !== "granted") throw new Error("Permiso denegado");
 
-      // Subscribe
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
       });
 
       const json = subscription.toJSON();
-      const endpoint = subscription.endpoint;
-      const p256dh = json.keys?.p256dh ?? null;
-      const auth = json.keys?.auth ?? null;
-
-      // Upsert in DB (endpoint is unique)
       const { error } = await supabase.from("push_subscriptions").upsert(
         {
           user_id: user.id,
-          endpoint,
-          p256dh,
-          auth,
+          endpoint: subscription.endpoint,
+          p256dh: json.keys?.p256dh ?? null,
+          auth: json.keys?.auth ?? null,
           platform: "web",
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "endpoint" }
+        { onConflict: "endpoint" },
       );
 
       if (error) throw error;
@@ -133,15 +193,27 @@ export function usePushNotifications() {
     } finally {
       setLoading(false);
     }
-  }, [user, permission]);
+  }, [user, permission, isNative, platform]);
 
   const unsubscribe = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
+      if (isNative) {
+        const { PushNotifications } = await import("@capacitor/push-notifications");
+        await PushNotifications.unregister();
+        await supabase
+          .from("push_subscriptions")
+          .delete()
+          .eq("user_id", user.id)
+          .in("platform", ["android", "ios"]);
+        setIsSubscribed(false);
+        setPermission("default");
+        return;
+      }
+
       const registration = await navigator.serviceWorker.getRegistration();
       const subscription = await registration?.pushManager.getSubscription();
-
       if (subscription) {
         await supabase
           .from("push_subscriptions")
@@ -153,7 +225,7 @@ export function usePushNotifications() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isNative]);
 
   return {
     permission,
@@ -161,7 +233,7 @@ export function usePushNotifications() {
     loading,
     subscribe,
     unsubscribe,
-    isAvailable:
-      permission !== "unsupported" && permission !== "preview-blocked",
+    isNative,
+    isAvailable: permission !== "unsupported" && permission !== "preview-blocked",
   };
 }
