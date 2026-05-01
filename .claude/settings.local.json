@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(magick --version)",
+      "Bash(npx --version)",
+      "Bash(npm install *)",
+      "Bash(node scripts/generate-icons.mjs)",
+      "Bash(npx cap *)",
+      "Bash(npm run *)",
+      "Bash(supabase --version)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://github.com/supabase/cli/releases/latest/download/supabase_windows_amd64.tar.gz\" -OutFile \"$env:TEMP\\\\supabase.tar.gz\" -UseBasicParsing; Write-Host \"Descargado\")",
+      "PowerShell($dest = \"C:\\\\Users\\\\josep\\\\supabase-cli\"; New-Item -ItemType Directory -Force -Path $dest | Out-Null; tar -xzf \"$env:TEMP\\\\supabase.tar.gz\" -C $dest; Write-Host \"Extraído en $dest\"; Get-ChildItem $dest)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(node -e ' *)"
+    ]
+  }
+}
