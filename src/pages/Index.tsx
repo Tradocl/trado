@@ -65,7 +65,7 @@ const WebLanding = () => {
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <a href="#como-funciona" className="hover:text-primary transition-colors">¿Cómo funciona?</a>
             <a href="#caracteristicas" className="hover:text-primary transition-colors">Características</a>
-            <a href="#precios" className="hover:text-primary transition-colors">Precios</a>
+            <a href="#precios" className="hover:text-primary transition-colors">Comisión</a>
             <a href="#faq" className="hover:text-primary transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
@@ -87,7 +87,7 @@ const WebLanding = () => {
           <div className="max-w-4xl mx-auto text-center text-white space-y-8">
             <div className="inline-flex items-center gap-2 bg-white/15 border border-white/20 rounded-full px-4 py-2 text-sm font-medium backdrop-blur">
               <CheckCircle className="h-4 w-4 text-green-300" />
-              La plataforma escrow #1 de Chile
+              Transacciones seguras entre personas
             </div>
 
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
@@ -238,11 +238,10 @@ const WebLanding = () => {
             <p className="text-muted-foreground text-lg mb-12">Sin suscripciones, sin costos fijos. Solo pagas cuando vendes.</p>
 
             <div className="bg-gradient-to-br from-primary/5 to-info/5 rounded-3xl p-10 border border-primary/10 shadow-lg">
-              <div className="flex items-end justify-center gap-2 mb-4">
-                <span className="text-7xl font-extrabold text-primary">3%</span>
-                <span className="text-muted-foreground mb-3 text-lg">por transacción</span>
+              <div className="flex items-center justify-center mb-4">
+                <span className="text-3xl font-bold text-primary">Una pequeña comisión, toda la seguridad</span>
               </div>
-              <p className="text-muted-foreground mb-8">Solo el vendedor paga. El comprador no tiene ningún costo adicional.</p>
+              <p className="text-muted-foreground mb-8">Solo el vendedor paga una pequeña comisión. El comprador no tiene ningún costo adicional.</p>
               <div className="grid grid-cols-2 gap-4 mb-8 text-left">
                 {[
                   "Registro gratuito",
