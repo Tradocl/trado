@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Shield, Users, ArrowRight, Star, Quote, CheckCircle, Clock, Lock, Package, Handshake, ChevronDown } from "lucide-react";
-import tradoLogo from "@/assets/trado-logo.png";
+import { TradoLogo } from "@/components/TradoLogo";
 import { Capacitor } from "@capacitor/core";
 
 // ── Scroll progress bar ───────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ function useReveal() {
     if (!el) return;
     const obs = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.12 },
+      { threshold: 0.1 },
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -70,14 +70,14 @@ const TransactionCard = () => (
         <p className="text-white/50 text-xs mt-1">MacBook Air M2 · Como nuevo</p>
       </div>
 
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2.5 mb-4">
         {[
           { label: "Pago depositado en Trado", done: true },
           { label: "Producto enviado al comprador", done: true },
           { label: "Confirmando recepción…", done: false },
         ].map(({ label, done }) => (
           <div key={label} className="flex items-center gap-2.5">
-            <div className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${done ? "bg-green-400" : "bg-white/20"}`}>
+            <div className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${done ? "bg-emerald-400" : "bg-white/20"}`}>
               {done
                 ? <CheckCircle className="h-3 w-3 text-white" />
                 : <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse" />}
@@ -101,9 +101,7 @@ const AppLanding = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info px-8">
       <div className="flex flex-col items-center gap-8 w-full max-w-sm">
-        <div className="bg-white rounded-3xl p-5 shadow-2xl">
-          <img src={tradoLogo} alt="Trado" className="h-20 w-20" />
-        </div>
+        <TradoLogo size={88} id="app" />
         <div className="text-center text-white space-y-3">
           <h1 className="text-4xl font-bold tracking-tight">Trado</h1>
           <p className="text-white/80 text-lg">Opera con total seguridad</p>
@@ -127,23 +125,23 @@ const AppLanding = () => {
 const WebLanding = () => {
   const navigate = useNavigate();
 
-  const [painRef, painVisible]         = useReveal();
-  const [howRef, howVisible]           = useReveal();
-  const [featRef, featVisible]         = useReveal();
-  const [pricingRef, pricingVisible]   = useReveal();
-  const [testiRef, testiVisible]       = useReveal();
-  const [faqRef, faqVisible]           = useReveal();
-  const [ctaRef, ctaVisible]           = useReveal();
+  const [painRef,    painVisible]    = useReveal();
+  const [howRef,     howVisible]     = useReveal();
+  const [featRef,    featVisible]    = useReveal();
+  const [pricingRef, pricingVisible] = useReveal();
+  const [testiRef,   testiVisible]   = useReveal();
+  const [faqRef,     faqVisible]     = useReveal();
+  const [ctaRef,     ctaVisible]     = useReveal();
 
   return (
     <div className="min-h-screen bg-background">
       <ScrollProgress />
 
-      {/* Navbar */}
+      {/* ── Navbar ── */}
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-border/50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={tradoLogo} alt="Trado" className="h-8 w-8" />
+            <TradoLogo size={32} id="nav" />
             <span className="font-bold text-xl text-primary">Trado</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
@@ -156,7 +154,7 @@ const WebLanding = () => {
             <Button variant="ghost" onClick={() => navigate("/auth")} className="hidden sm:flex text-primary font-semibold">
               Iniciar Sesión
             </Button>
-            <Button onClick={() => navigate("/auth")} className="bg-primary text-white shadow-md">
+            <Button onClick={() => navigate("/auth")} className="bg-gradient-to-r from-primary to-info text-white shadow-md hover:opacity-95 transition-opacity">
               <span className="hidden sm:inline">Comenzar Gratis</span>
               <span className="sm:hidden">Comenzar</span>
               <ArrowRight className="ml-1 h-4 w-4" />
@@ -165,16 +163,18 @@ const WebLanding = () => {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-primary via-primary-light to-info py-24 md:py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%23ffffff fill-opacity=0.05%3E%3Cpath d=M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30" />
+      {/* ── Hero ── */}
+      <section className="bg-gradient-to-br from-[hsl(238,72%,36%)] via-primary to-info py-24 md:py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none fill-rule=evenodd%3E%3Cg fill=%23ffffff fill-opacity=0.04%3E%3Cpath d=M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40" />
+        {/* Emerald glow blob */}
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-success/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3 pointer-events-none" />
         <div className="container mx-auto px-4 relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
 
             {/* Left: copy */}
             <div className="text-white space-y-8">
               <div className="hero-badge inline-flex items-center gap-2 bg-white/15 border border-white/20 rounded-full px-4 py-2 text-sm font-medium backdrop-blur">
-                <CheckCircle className="h-4 w-4 text-green-300" />
+                <CheckCircle className="h-4 w-4 text-emerald-400" />
                 Transacciones seguras entre personas
               </div>
 
@@ -197,10 +197,7 @@ const WebLanding = () => {
                 </Button>
               </div>
 
-              <button
-                className="hero-hint flex items-center gap-2 text-white/50 text-sm hover:text-white/80 transition-colors"
-                onClick={() => document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth" })}
-              >
+              <button className="hero-hint flex items-center gap-2 text-white/50 text-sm hover:text-white/80 transition-colors" onClick={() => document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth" })}>
                 <ChevronDown className="h-4 w-4 animate-bounce" />
                 Seguir leyendo
               </button>
@@ -214,7 +211,7 @@ const WebLanding = () => {
         </div>
       </section>
 
-      {/* Dolores */}
+      {/* ── Dolores ── */}
       <section className="py-20 bg-white">
         <div ref={painRef} className={`reveal ${painVisible ? "is-visible" : ""} container mx-auto px-4`}>
           <div className="text-center mb-14">
@@ -227,16 +224,12 @@ const WebLanding = () => {
 
           <div className="grid md:grid-cols-2 gap-5 max-w-4xl mx-auto mb-14">
             {[
-              { emoji: "😰", title: "Pagué y nunca llegó el producto", desc: "Transferiste el dinero, la otra persona desapareció y no hay forma de recuperar lo que pagaste." },
-              { emoji: "📦", title: "Entregué primero y no me pagaron", desc: "Enviaste el producto o completaste el encargo de buena fe y la otra parte dejó de responder. Perdiste tu trabajo y el dinero." },
+              { emoji: "😰", title: "Pagué y nunca llegó el producto",            desc: "Transferiste el dinero, la otra persona desapareció y no hay forma de recuperar lo que pagaste." },
+              { emoji: "📦", title: "Entregué primero y no me pagaron",           desc: "Enviaste el producto o completaste el encargo de buena fe y la otra parte dejó de responder. Perdiste tu trabajo y el dinero." },
               { emoji: "🔨", title: "Terminé el trabajo y no me pagaron lo acordado", desc: "Completaste el servicio al 100% y el cliente desapareció, te pagó menos o inventó excusas para no pagar." },
-              { emoji: "🎭", title: "El producto no era lo que mostraban", desc: "Llegó algo completamente distinto a las fotos, dañado o de menor calidad. Ya habías pagado y no hay vuelta atrás." },
+              { emoji: "🎭", title: "El producto no era lo que mostraban",        desc: "Llegó algo completamente distinto a las fotos, dañado o de menor calidad. Ya habías pagado y no hay vuelta atrás." },
             ].map(({ emoji, title, desc }, i) => (
-              <div
-                key={title}
-                className="flex gap-4 p-6 bg-red-50 border border-red-100 rounded-2xl reveal is-visible"
-                style={{ transitionDelay: `${i * 100}ms` }}
-              >
+              <div key={title} className="flex gap-4 p-6 bg-red-50 border border-red-100 rounded-2xl" style={{ transitionDelay: `${i * 100}ms` }}>
                 <span className="text-3xl flex-shrink-0">{emoji}</span>
                 <div>
                   <h3 className="font-bold text-foreground mb-1">{title}</h3>
@@ -246,15 +239,19 @@ const WebLanding = () => {
             ))}
           </div>
 
-          <div className="max-w-2xl mx-auto bg-gradient-to-br from-primary to-info rounded-3xl p-8 text-center text-white">
+          {/* Emerald CTA box */}
+          <div className="max-w-2xl mx-auto bg-gradient-to-br from-success to-primary rounded-3xl p-8 text-center text-white shadow-xl">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-full mb-4">
+              <Shield className="h-6 w-6 text-white" />
+            </div>
             <p className="text-2xl font-bold mb-3">Trado existe para que esto no vuelva a pasarte.</p>
-            <p className="text-white/80">El dinero queda retenido hasta que ambas partes confirmen que todo salió bien. Sin riesgos, sin estafas.</p>
+            <p className="text-white/85">El dinero queda retenido hasta que ambas partes confirmen que todo salió bien. Sin riesgos, sin estafas.</p>
           </div>
         </div>
       </section>
 
-      {/* Cómo funciona */}
-      <section id="como-funciona" className="py-20 bg-gray-50">
+      {/* ── Cómo funciona ── */}
+      <section id="como-funciona" className="py-20 bg-gradient-to-b from-muted/60 to-background">
         <div ref={howRef} className={`reveal ${howVisible ? "is-visible" : ""} container mx-auto px-4`}>
           <div className="text-center mb-16">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider">Simple y transparente</span>
@@ -266,22 +263,22 @@ const WebLanding = () => {
 
           <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-0 relative">
-              {/* Connecting line (large screens only) */}
-              <div className="hidden lg:block absolute top-8 left-[12.5%] right-[12.5%] h-[2px] bg-gradient-to-r from-primary/20 via-primary/60 to-primary/20" />
+              {/* Connecting line */}
+              <div className="hidden lg:block absolute top-8 left-[12.5%] right-[12.5%] h-[2px] bg-gradient-to-r from-primary/30 via-info/60 to-success/60" />
 
               {[
-                { icon: Users,     step: "01", title: "Cualquiera crea la sala",  desc: "Cualquiera de las partes crea la sala, define lo acordado —producto, servicio o trabajo— y comparte el código de acceso." },
-                { icon: Lock,      step: "02", title: "Se deposita el dinero",    desc: "El pagador ingresa a la sala y deposita el monto acordado. Trado lo retiene de forma segura hasta que todo esté listo." },
-                { icon: Package,   step: "03", title: "Se cumple lo acordado",    desc: "Se entrega el producto, se hace el envío o se completa el servicio. El receptor revisa que todo corresponda." },
-                { icon: Handshake, step: "04", title: "Se libera el pago",        desc: "Una vez confirmado que todo está en orden, Trado libera el dinero a quien corresponde." },
-              ].map(({ icon: Icon, step, title, desc }, i) => (
+                { icon: Users,     step: "01", title: "Cualquiera crea la sala",  desc: "Cualquiera de las partes crea la sala, define lo acordado —producto, servicio o trabajo— y comparte el código de acceso.", color: "bg-primary/10 text-primary",  badge: "bg-primary" },
+                { icon: Lock,      step: "02", title: "Se deposita el dinero",    desc: "El pagador ingresa a la sala y deposita el monto acordado. Trado lo retiene de forma segura hasta que todo esté listo.",   color: "bg-info/10 text-info",        badge: "bg-info" },
+                { icon: Package,   step: "03", title: "Se cumple lo acordado",    desc: "Se entrega el producto, se hace el envío o se completa el servicio. El receptor revisa que todo corresponda.",             color: "bg-warning/10 text-warning",  badge: "bg-warning" },
+                { icon: Handshake, step: "04", title: "Se libera el pago",        desc: "Una vez confirmado que todo está en orden, Trado libera el dinero a quien corresponde.",                                   color: "bg-success/10 text-success",  badge: "bg-success" },
+              ].map(({ icon: Icon, step, title, desc, color, badge }, i) => (
                 <div key={step} className="relative text-center group px-4" style={{ transitionDelay: `${i * 120}ms` }}>
                   <div className="flex justify-center mb-4">
                     <div className="relative z-10">
-                      <div className="w-16 h-16 bg-white border-2 border-primary/20 rounded-2xl flex items-center justify-center shadow-md group-hover:border-primary/60 group-hover:shadow-lg transition-all">
-                        <Icon className="h-7 w-7 text-primary" />
+                      <div className={`w-16 h-16 ${color} bg-white border-2 border-border rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all group-hover:-translate-y-1`}>
+                        <Icon className="h-7 w-7" />
                       </div>
-                      <span className="absolute -top-2 -right-2 w-6 h-6 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center shadow">{step.slice(1)}</span>
+                      <span className={`absolute -top-2 -right-2 w-6 h-6 ${badge} text-white text-xs font-bold rounded-full flex items-center justify-center shadow`}>{step.slice(1)}</span>
                     </div>
                   </div>
                   <h3 className="font-bold text-base text-foreground mb-2">{title}</h3>
@@ -293,52 +290,58 @@ const WebLanding = () => {
         </div>
       </section>
 
-      {/* Características */}
-      <section id="caracteristicas" className="py-20 bg-gradient-to-b from-primary/5 to-background">
+      {/* ── Características ── */}
+      <section id="caracteristicas" className="py-20 bg-white">
         <div ref={featRef} className={`reveal ${featVisible ? "is-visible" : ""} container mx-auto px-4`}>
           <div className="text-center mb-16">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider">Por qué elegirnos</span>
-            <h2 className="text-4xl font-bold text-foreground mt-2 mb-4">Todo lo que necesitas para transaccionar seguro</h2>
+            <h2 className="text-4xl font-bold text-foreground mt-2 mb-4">
+              Todo lo que necesitas para{" "}
+              <span className="bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">transaccionar seguro</span>
+            </h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
-                icon: Shield,
-                color: "success",
+                icon: Shield, gradient: "from-success/10 to-emerald-50",
+                border: "border-success/20", iconBg: "bg-success/10", iconColor: "text-success",
                 title: "Escrow 100% Seguro",
                 desc: "Tu dinero queda bloqueado en la plataforma. Quien recibe el pago no puede cobrarlo hasta que confirmes que se cumplió lo acordado.",
                 items: ["Dinero protegido siempre", "Devolución si hay problemas", "Mediación por nuestro equipo"],
+                check: "text-success",
               },
               {
-                icon: Users,
-                color: "info",
+                icon: Users, gradient: "from-primary/10 to-indigo-50",
+                border: "border-primary/20", iconBg: "bg-primary/10", iconColor: "text-primary",
                 title: "Reputación Verificada",
                 desc: "Cada usuario tiene un historial de transacciones y calificaciones. Opera con confianza, sabiendo siempre con quién tratas.",
                 items: ["Calificaciones reales", "Verificación de identidad", "Historial público"],
+                check: "text-primary",
               },
               {
-                icon: Clock,
-                color: "warning",
+                icon: Clock, gradient: "from-info/10 to-violet-50",
+                border: "border-info/20", iconBg: "bg-info/10", iconColor: "text-info",
                 title: "Rápido y Sin Complicaciones",
                 desc: "Crea una sala en segundos, comparte el código y empieza. Sin formularios interminables ni burocracia.",
                 items: ["Sala lista en segundos", "Pago en 1-2 días hábiles", "App para iOS y Android"],
+                check: "text-info",
               },
-            ].map(({ icon: Icon, color, title, desc, items }, i) => (
+            ].map(({ icon: Icon, gradient, border, iconBg, iconColor, title, desc, items, check }, i) => (
               <div
                 key={title}
-                className={`bg-white rounded-2xl p-8 border border-${color}/20 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 reveal is-visible`}
+                className={`bg-gradient-to-br ${gradient} rounded-2xl p-8 border ${border} shadow-lg hover:shadow-xl transition-all hover:-translate-y-1`}
                 style={{ transitionDelay: `${i * 130}ms` }}
               >
-                <div className={`p-3 bg-${color}/10 rounded-xl w-fit mb-5`}>
-                  <Icon className={`h-7 w-7 text-${color}`} />
+                <div className={`p-3 ${iconBg} rounded-xl w-fit mb-5`}>
+                  <Icon className={`h-7 w-7 ${iconColor}`} />
                 </div>
                 <h3 className="text-xl font-bold mb-3">{title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-4">{desc}</p>
                 <ul className="space-y-2">
                   {items.map(item => (
                     <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <CheckCircle className={`h-4 w-4 text-${color} flex-shrink-0`} />
+                      <CheckCircle className={`h-4 w-4 ${check} flex-shrink-0`} />
                       {item}
                     </li>
                   ))}
@@ -349,43 +352,52 @@ const WebLanding = () => {
         </div>
       </section>
 
-      {/* Precios */}
-      <section id="precios" className="py-20 bg-white">
+      {/* ── Precios ── */}
+      <section id="precios" className="py-20 bg-gradient-to-b from-muted/40 to-white">
         <div ref={pricingRef} className={`reveal ${pricingVisible ? "is-visible" : ""} container mx-auto px-4`}>
           <div className="max-w-2xl mx-auto text-center">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider">Sin sorpresas</span>
             <h2 className="text-4xl font-bold text-foreground mt-2 mb-4">Precio simple y transparente</h2>
             <p className="text-muted-foreground text-lg mb-12">Sin suscripciones, sin costos fijos. Solo pagas al cerrar un trato.</p>
 
-            <div className="bg-gradient-to-br from-primary/5 to-info/5 rounded-3xl p-10 border border-primary/10 shadow-lg">
-              <p className="text-3xl font-bold text-primary mb-3">Una pequeña comisión, toda la seguridad</p>
-              <p className="text-muted-foreground mb-8">Toda la seguridad de Trado pagando una pequeña comisión.</p>
-              <div className="grid grid-cols-2 gap-4 mb-8 text-left">
-                {[
-                  "Registro gratuito",
-                  "Sin cuota mensual",
-                  "Comisión solo al cerrar el trato",
-                  "Retiro a cuenta bancaria",
-                  "Soporte incluido",
-                  "Mediación de disputas",
-                ].map(item => (
-                  <div key={item} className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
-                    <span>{item}</span>
-                  </div>
-                ))}
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              {/* Gradient border effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary via-info to-success p-[2px] rounded-3xl" />
+              <div className="relative bg-white rounded-3xl p-10">
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-info text-white text-xs font-bold px-4 py-1.5 rounded-full mb-6">
+                  ✦ Sin costos fijos
+                </div>
+                <p className="text-3xl font-bold bg-gradient-to-r from-primary to-info bg-clip-text text-transparent mb-3">
+                  Una pequeña comisión,<br />toda la seguridad
+                </p>
+                <p className="text-muted-foreground mb-8">Toda la seguridad de Trado pagando una pequeña comisión.</p>
+                <div className="grid grid-cols-2 gap-4 mb-8 text-left">
+                  {[
+                    "Registro gratuito",
+                    "Sin cuota mensual",
+                    "Comisión solo al cerrar el trato",
+                    "Retiro a cuenta bancaria",
+                    "Soporte incluido",
+                    "Mediación de disputas",
+                  ].map(item => (
+                    <div key={item} className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <Button size="lg" onClick={() => navigate("/auth")} className="w-full bg-gradient-to-r from-primary to-info text-white text-lg h-14 font-bold shadow-lg hover:opacity-95 transition-opacity">
+                  Crear Cuenta Gratis
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </div>
-              <Button size="lg" onClick={() => navigate("/auth")} className="w-full bg-primary text-white text-lg h-14 font-bold shadow-lg">
-                Crear Cuenta Gratis
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonios */}
-      <section className="py-20 bg-gradient-to-b from-background to-primary/5">
+      {/* ── Testimonios ── */}
+      <section className="py-20 bg-white">
         <div ref={testiRef} className={`reveal ${testiVisible ? "is-visible" : ""} container mx-auto px-4`}>
           <div className="text-center mb-16">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider">Usuarios reales</span>
@@ -394,13 +406,13 @@ const WebLanding = () => {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
-              { initials: "MC", name: "María Contreras", gradient: "from-success to-info",    text: "Compré un notebook usado y me lo enviaron sin problemas. El dinero estuvo seguro hasta que confirmé que todo estaba perfecto. Nunca más transacciono sin Trado." },
-              { initials: "JR", name: "Juan Rodríguez",  gradient: "from-info to-primary",    text: "Como el que entrega primero, Trado me da mucha confianza. Quien paga deposita antes y yo puedo actuar tranquilo sabiendo que el pago está asegurado. Excelente plataforma." },
-              { initials: "AP", name: "Andrea Pizarro",  gradient: "from-warning to-success", text: "Cerré un trato en un día. El sistema es super intuitivo y la otra parte quedó muy satisfecha. Ya hice 5 transacciones y todas perfectas." },
+              { initials: "MC", name: "María Contreras", gradient: "from-success to-primary",    text: "Compré un notebook usado y me lo enviaron sin problemas. El dinero estuvo seguro hasta que confirmé que todo estaba perfecto. Nunca más transacciono sin Trado." },
+              { initials: "JR", name: "Juan Rodríguez",  gradient: "from-primary to-info",       text: "Como el que entrega primero, Trado me da mucha confianza. Quien paga deposita antes y yo puedo actuar tranquilo sabiendo que el pago está asegurado. Excelente plataforma." },
+              { initials: "AP", name: "Andrea Pizarro",  gradient: "from-info to-success",       text: "Cerré un trato en un día. El sistema es super intuitivo y la otra parte quedó muy satisfecha. Ya hice 5 transacciones y todas perfectas." },
             ].map(({ initials, name, gradient, text }, i) => (
               <div
                 key={name}
-                className="bg-white rounded-2xl p-8 border border-primary/10 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 reveal is-visible"
+                className="bg-white rounded-2xl p-8 border border-border shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
                 style={{ transitionDelay: `${i * 120}ms` }}
               >
                 <div className="flex gap-1 mb-4">
@@ -420,8 +432,8 @@ const WebLanding = () => {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="py-20 bg-white">
+      {/* ── FAQ ── */}
+      <section id="faq" className="py-20 bg-gradient-to-b from-muted/40 to-white">
         <div ref={faqRef} className={`reveal ${faqVisible ? "is-visible" : ""} container mx-auto px-4`}>
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
@@ -431,14 +443,14 @@ const WebLanding = () => {
 
             <Accordion type="single" collapsible className="space-y-3">
               {[
-                { q: "¿Cómo funciona el sistema de seguridad?",                      a: "Quien paga deposita el dinero en Trado, donde queda retenido. Quien entrega cumple lo acordado —enviar el producto, completar el servicio o entregar el trabajo— y cuando el pagador confirma que todo está correcto, liberamos el pago. Si hay algún problema, nuestro equipo media la disputa." },
-                { q: "¿Cuánto cobra Trado por cada transacción?",                    a: "Cobramos un 3% sobre el valor de la transacción, descontado del monto recibido. Quien paga no tiene comisión adicional. Sin costos ocultos ni suscripciones." },
+                { q: "¿Cómo funciona el sistema de seguridad?",                           a: "Quien paga deposita el dinero en Trado, donde queda retenido. Quien entrega cumple lo acordado —enviar el producto, completar el servicio o entregar el trabajo— y cuando el pagador confirma que todo está correcto, liberamos el pago. Si hay algún problema, nuestro equipo media la disputa." },
+                { q: "¿Cuánto cobra Trado por cada transacción?",                         a: "Cobramos un 3% sobre el valor de la transacción, descontado del monto recibido. Quien paga no tiene comisión adicional. Sin costos ocultos ni suscripciones." },
                 { q: "¿Qué pasa si el producto o servicio no corresponde a lo acordado?", a: "Quien pagó puede abrir una disputa antes de confirmar la recepción. Nuestro equipo revisará el caso con evidencias y mediará para encontrar una solución justa. El dinero permanece retenido hasta resolver." },
-                { q: "¿Cuánto tarda en llegar el dinero a quien entregó?",           a: "Una vez confirmado que todo salió bien, el dinero queda disponible en tu billetera Trado inmediatamente. El retiro a cuenta bancaria toma entre 1-2 días hábiles." },
-                { q: "¿Necesito verificar mi identidad para usar Trado?",            a: "Para transacciones básicas no es necesario, pero verificar tu identidad aumenta tu reputación y genera más confianza. Los usuarios verificados acceden a montos más altos y beneficios exclusivos." },
-                { q: "¿Trado está disponible como app?",                             a: "Sí, Trado está disponible para Android y próximamente para iOS. Puedes descargar el APK desde nuestra web o buscarla en la Play Store." },
+                { q: "¿Cuánto tarda en llegar el dinero a quien entregó?",                a: "Una vez confirmado que todo salió bien, el dinero queda disponible en tu billetera Trado inmediatamente. El retiro a cuenta bancaria toma entre 1-2 días hábiles." },
+                { q: "¿Necesito verificar mi identidad para usar Trado?",                 a: "Para transacciones básicas no es necesario, pero verificar tu identidad aumenta tu reputación y genera más confianza. Los usuarios verificados acceden a montos más altos y beneficios exclusivos." },
+                { q: "¿Trado está disponible como app?",                                  a: "Sí, Trado está disponible para Android y próximamente para iOS. Puedes descargar el APK desde nuestra web o buscarla en la Play Store." },
               ].map(({ q, a }) => (
-                <AccordionItem key={q} value={q} className="bg-background rounded-xl border border-border/50 px-6">
+                <AccordionItem key={q} value={q} className="bg-white rounded-xl border border-border/60 px-6">
                   <AccordionTrigger className="text-foreground hover:text-primary text-left font-medium">{q}</AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">{a}</AccordionContent>
                 </AccordionItem>
@@ -448,11 +460,18 @@ const WebLanding = () => {
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section className="bg-gradient-to-br from-primary via-primary-light to-info py-20">
-        <div ref={ctaRef} className={`reveal ${ctaVisible ? "is-visible" : ""} container mx-auto px-4 text-center`}>
+      {/* ── CTA Final ── */}
+      <section className="relative overflow-hidden py-24">
+        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(238,72%,36%)] via-primary to-info" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-success/25 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-info/30 rounded-full blur-3xl translate-x-1/3 translate-y-1/3 pointer-events-none" />
+        <div ref={ctaRef} className={`reveal ${ctaVisible ? "is-visible" : ""} container mx-auto px-4 text-center relative`}>
           <div className="max-w-2xl mx-auto">
-            <h2 className="text-4xl font-bold text-white mb-4">¿Listo para hacer tratos sin riesgos?</h2>
+            <div className="inline-flex items-center gap-2 bg-white/15 border border-white/20 rounded-full px-4 py-2 text-sm font-medium text-white backdrop-blur mb-6">
+              <CheckCircle className="h-4 w-4 text-emerald-400" />
+              Gratis para empezar
+            </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4">¿Listo para hacer tratos sin riesgos?</h2>
             <p className="text-white/80 text-lg mb-8">
               Crea tu cuenta gratis en menos de un minuto y haz tu primera transacción segura hoy.
             </p>
@@ -464,15 +483,13 @@ const WebLanding = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-foreground text-white py-12">
+      {/* ── Footer ── */}
+      <footer className="bg-[hsl(235,25%,10%)] text-white py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-3">
-                <div className="bg-white rounded-lg p-1">
-                  <img src={tradoLogo} alt="Trado" className="h-6 w-6" />
-                </div>
+                <TradoLogo size={28} id="footer" />
                 <span className="font-bold text-xl">Trado</span>
               </div>
               <p className="text-white/60 text-sm max-w-xs leading-relaxed">
