@@ -18,55 +18,55 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
 
-    /* Primary: Deep Blue - Trust & Security */
-    --primary: 221 83% 20%;
+    /* Primary: Indigo - Modern & Trustworthy */
+    --primary: 238 72% 44%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 221 70% 35%;
-    
-    /* Success: Green - Confirmations */
-    --success: 142 71% 45%;
+    --primary-light: 238 62% 58%;
+
+    /* Success: Emerald - Confirmations & Money */
+    --success: 158 82% 36%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 60% 55%;
+    --success-light: 158 68% 48%;
 
-    /* Secondary: Light Gray */
-    --secondary: 220 13% 95%;
-    --secondary-foreground: 220 20% 10%;
+    /* Secondary: Light Gray with indigo tint */
+    --secondary: 235 16% 95%;
+    --secondary-foreground: 235 20% 10%;
 
-    --muted: 220 13% 96%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 235 16% 96%;
+    --muted-foreground: 235 10% 46%;
 
-    --accent: 221 83% 20%;
+    --accent: 238 72% 44%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 91%;
-    --ring: 221 83% 20%;
+    --border: 235 16% 88%;
+    --input: 235 14% 91%;
+    --ring: 238 72% 44%;
 
     /* Warning: Amber for pending states */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    /* Info: Light Blue */
-    --info: 199 89% 48%;
+    /* Info: Violet - gradient accent */
+    --info: 262 65% 56%;
     --info-foreground: 0 0% 100%;
 
     --radius: 0.75rem;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(221 83% 20%) 0%, hsl(221 70% 35%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(142 60% 55%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(221 83% 20%) 0%, hsl(221 70% 30%) 50%, hsl(199 70% 40%) 100%);
-    
+    --gradient-primary: linear-gradient(135deg, hsl(238 72% 44%) 0%, hsl(238 62% 58%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(158 82% 36%) 0%, hsl(158 68% 48%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(238 72% 36%) 0%, hsl(238 65% 48%) 50%, hsl(262 65% 56%) 100%);
+
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(220 20% 10% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(220 20% 10% / 0.1), 0 2px 4px -1px hsl(220 20% 10% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(220 20% 10% / 0.1), 0 4px 6px -2px hsl(220 20% 10% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(220 20% 10% / 0.1), 0 10px 10px -5px hsl(220 20% 10% / 0.04);
-    --shadow-glow: 0 0 20px hsl(221 83% 20% / 0.3);
-    --shadow-success: 0 0 20px hsl(142 71% 45% / 0.3);
+    --shadow-sm: 0 1px 2px 0 hsl(235 20% 10% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(235 20% 10% / 0.1), 0 2px 4px -1px hsl(235 20% 10% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(235 20% 10% / 0.1), 0 4px 6px -2px hsl(235 20% 10% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(235 20% 10% / 0.1), 0 10px 10px -5px hsl(235 20% 10% / 0.04);
+    --shadow-glow: 0 0 20px hsl(238 72% 44% / 0.35);
+    --shadow-success: 0 0 20px hsl(158 82% 36% / 0.3);
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -83,34 +83,34 @@ All colors MUST be HSL.
     --popover: 220 20% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 221 70% 50%;
+    --primary: 238 70% 64%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 221 60% 60%;
+    --primary-light: 238 60% 74%;
 
-    --success: 142 71% 45%;
+    --success: 158 72% 44%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 60% 55%;
+    --success-light: 158 60% 56%;
 
-    --secondary: 220 20% 16%;
+    --secondary: 235 20% 16%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 20% 16%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 235 20% 16%;
+    --muted-foreground: 235 10% 60%;
 
-    --accent: 221 70% 50%;
+    --accent: 238 70% 64%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 18%;
-    --ring: 221 70% 50%;
+    --border: 235 20% 20%;
+    --input: 235 20% 18%;
+    --ring: 238 70% 64%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --info: 199 89% 48%;
+    --info: 262 65% 65%;
     --info-foreground: 0 0% 100%;
   }
 }
