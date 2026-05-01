@@ -124,3 +124,33 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Landing page animations ───────────────────────────────────────────────── */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-14px); }
+}
+
+.hero-badge  { animation: fadeInUp 0.5s ease 0.1s  both; }
+.hero-h1     { animation: fadeInUp 0.6s ease 0.25s both; }
+.hero-sub    { animation: fadeInUp 0.6s ease 0.42s both; }
+.hero-cta    { animation: fadeInUp 0.6s ease 0.57s both; }
+.hero-hint   { animation: fadeInUp 0.6s ease 0.72s both; }
+.hero-card   { animation: fadeInUp 0.7s ease 0.4s  both; }
+.animate-float { animation: floatY 4s ease-in-out infinite; }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
