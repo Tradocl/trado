@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import tradoLogo from "@/assets/trado-logo.png";
+import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 
 interface PasswordRequirement {
   label: string;
@@ -280,7 +281,7 @@ const Auth = () => {
         toast.error("Por favor selecciona una imagen válida");
         return;
       }
-      
+
       if (file.size > 5 * 1024 * 1024) { // 5MB
         toast.error("La imagen no debe superar 5MB");
         return;
@@ -289,6 +290,46 @@ const Auth = () => {
       setVerificationSelfie(file);
       setPreviewSelfieUrl(URL.createObjectURL(file));
     }
+  };
+
+  const handleDocumentNativeCapture = async () => {
+    try {
+      const photo = await takeNativePhoto('prompt');
+      if (!photo) return;
+      const file = dataUrlToFile(photo.dataUrl, `document-${Date.now()}.${photo.format}`);
+      setVerificationFile(file);
+      setPreviewUrl(photo.dataUrl);
+    } catch (error: any) {
+      if (error?.message !== 'User cancelled photos app') {
+        toast.error("Error al capturar imagen: " + error.message);
+      }
+    }
+  };
+
+  const handleSelfieNativeCapture = async () => {
+    try {
+      const photo = await takeNativePhoto('camera');
+      if (!photo) return;
+      const file = dataUrlToFile(photo.dataUrl, `selfie-${Date.now()}.${photo.format}`);
+      setVerificationSelfie(file);
+      setPreviewSelfieUrl(photo.dataUrl);
+    } catch (error: any) {
+      if (error?.message !== 'User cancelled photos app') {
+        toast.error("Error al capturar selfie: " + error.message);
+      }
+    }
+  };
+
+  const handleDocumentLabelClick = (e: React.MouseEvent) => {
+    if (!isNative()) return;
+    e.preventDefault();
+    handleDocumentNativeCapture();
+  };
+
+  const handleSelfieLabelClick = (e: React.MouseEvent) => {
+    if (!isNative()) return;
+    e.preventDefault();
+    handleSelfieNativeCapture();
   };
 
   const handleUploadVerification = async () => {
@@ -861,19 +902,24 @@ const Auth = () => {
                   />
                 </div>
               )}
-              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+              <label
+                className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={handleDocumentLabelClick}
+              >
                 <div className="flex flex-col items-center justify-center">
                   <Upload className="h-6 w-6 text-muted-foreground mb-1" />
                   <p className="text-xs text-muted-foreground">
                     {verificationFile ? verificationFile.name : "Sube la parte frontal de tu carnet"}
                   </p>
                 </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
+                {!isNative() && (
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                )}
               </label>
             </div>
 
@@ -888,19 +934,24 @@ const Auth = () => {
                   />
                 </div>
               )}
-              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+              <label
+                className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={handleSelfieLabelClick}
+              >
                 <div className="flex flex-col items-center justify-center">
                   <Camera className="h-6 w-6 text-muted-foreground mb-1" />
                   <p className="text-xs text-muted-foreground">
                     {verificationSelfie ? verificationSelfie.name : "Toma una selfie con tu carnet"}
                   </p>
                 </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleSelfieChange}
-                />
+                {!isNative() && (
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleSelfieChange}
+                  />
+                )}
               </label>
             </div>
 

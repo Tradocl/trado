@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Upload, CheckCircle, Clock, XCircle, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import heic2any from "heic2any";
+import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 
 const Verification = () => {
   const navigate = useNavigate();
@@ -130,27 +131,51 @@ const Verification = () => {
   const handleSelfieSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       let file = e.target.files[0];
-      
+
       // Validar tipo de archivo (incluyendo HEIC/HEIF)
       const isValidImage = file.type.startsWith('image/') || isHeicFile(file);
       if (!isValidImage) {
         toast.error("Solo se permiten imágenes");
         return;
       }
-      
+
       // Validar tamaño (máximo 10MB para HEIC, ya que puede necesitar conversión)
       const maxSize = isHeicFile(file) ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
       if (file.size > maxSize) {
         toast.error(`La imagen debe ser menor a ${isHeicFile(file) ? '10' : '5'}MB`);
         return;
       }
-      
+
       try {
         // Process file (convert if HEIC)
         file = await processFile(file);
         setSelectedSelfie(file);
       } catch (error: any) {
         toast.error(error.message || "Error al procesar la imagen");
+      }
+    }
+  };
+
+  const handleDocumentNativeCapture = async () => {
+    try {
+      const photo = await takeNativePhoto('prompt');
+      if (!photo) return;
+      setSelectedFile(dataUrlToFile(photo.dataUrl, `document-${Date.now()}.${photo.format}`));
+    } catch (error: any) {
+      if (error?.message !== 'User cancelled photos app') {
+        toast.error("Error al capturar imagen: " + error.message);
+      }
+    }
+  };
+
+  const handleSelfieNativeCapture = async () => {
+    try {
+      const photo = await takeNativePhoto('camera');
+      if (!photo) return;
+      setSelectedSelfie(dataUrlToFile(photo.dataUrl, `selfie-${Date.now()}.${photo.format}`));
+    } catch (error: any) {
+      if (error?.message !== 'User cancelled photos app') {
+        toast.error("Error al capturar selfie: " + error.message);
       }
     }
   };
@@ -322,14 +347,26 @@ const Verification = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="document">Documento de Identidad</Label>
-                    <Input
-                      id="document"
-                      type="file"
-                      accept="image/*,.heic,.heif"
-                      onChange={handleFileSelect}
-                      disabled={uploading || converting}
-                    />
-                    {selectedFile && (
+                    {isNative() ? (
+                      <button
+                        type="button"
+                        onClick={handleDocumentNativeCapture}
+                        disabled={uploading || converting}
+                        className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+                      >
+                        <Upload className="h-4 w-4 mr-2 shrink-0" />
+                        {selectedFile ? selectedFile.name : "Seleccionar o fotografiar carnet"}
+                      </button>
+                    ) : (
+                      <Input
+                        id="document"
+                        type="file"
+                        accept="image/*,.heic,.heif"
+                        onChange={handleFileSelect}
+                        disabled={uploading || converting}
+                      />
+                    )}
+                    {selectedFile && isNative() === false && (
                       <p className="text-sm text-muted-foreground">
                         Archivo seleccionado: {selectedFile.name}
                       </p>
@@ -338,14 +375,26 @@ const Verification = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="selfie">Selfie con Carnet</Label>
-                    <Input
-                      id="selfie"
-                      type="file"
-                      accept="image/*,.heic,.heif"
-                      onChange={handleSelfieSelect}
-                      disabled={uploading || converting}
-                    />
-                    {selectedSelfie && (
+                    {isNative() ? (
+                      <button
+                        type="button"
+                        onClick={handleSelfieNativeCapture}
+                        disabled={uploading || converting}
+                        className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+                      >
+                        <Upload className="h-4 w-4 mr-2 shrink-0" />
+                        {selectedSelfie ? selectedSelfie.name : "Tomar selfie con carnet"}
+                      </button>
+                    ) : (
+                      <Input
+                        id="selfie"
+                        type="file"
+                        accept="image/*,.heic,.heif"
+                        onChange={handleSelfieSelect}
+                        disabled={uploading || converting}
+                      />
+                    )}
+                    {selectedSelfie && isNative() === false && (
                       <p className="text-sm text-muted-foreground">
                         Archivo seleccionado: {selectedSelfie.name}
                       </p>

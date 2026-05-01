@@ -285,7 +285,7 @@ const Privacy = () => {
               datos personales, contáctanos:
             </p>
             <div className="space-y-2 text-muted-foreground">
-              <p><strong className="text-foreground">Email general:</strong> soporte@trado.cl</p>
+              <p><strong className="text-foreground">Email general:</strong> admin@trado.cl</p>
               <p><strong className="text-foreground">Privacidad:</strong> privacidad@trado.cl</p>
               <p><strong className="text-foreground">Horario:</strong> Lunes a Viernes, 9:00 - 18:00 hrs</p>
             </div>

@@ -1,10 +1,15 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { Capacitor } from "@capacitor/core";
+import { App as CapApp } from "@capacitor/app";
+import { SplashScreen } from "@capacitor/splash-screen";
+import { StatusBar, Style } from "@capacitor/status-bar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -31,6 +36,34 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const MobileBootstrap = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    SplashScreen.hide().catch(() => {});
+
+    try {
+      StatusBar.setStyle({ style: Style.Dark });
+      if (Capacitor.getPlatform() === 'android') {
+        StatusBar.setBackgroundColor({ color: '#1a1a2e' });
+      }
+    } catch {}
+
+    const listenerPromise = CapApp.addListener('appUrlOpen', ({ url }) => {
+      try {
+        const path = new URL(url).pathname;
+        if (path) navigate(path);
+      } catch {}
+    });
+
+    return () => { listenerPromise.then(l => l.remove()); };
+  }, [navigate]);
+
+  return null;
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -38,6 +71,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <MobileBootstrap />
           <AuthProvider>
             <Routes>
               {/* Public routes */}

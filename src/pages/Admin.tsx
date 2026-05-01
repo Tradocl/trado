@@ -462,9 +462,19 @@ export default function Admin() {
             description: updatedDescription,
           },
         });
+        // Push notification
+        const isDeposit = movement.type === "deposit";
+        supabase.functions.invoke("send-push-notification", {
+          body: {
+            userIds: [movement.wallets.user_id],
+            title: isDeposit ? "¡Depósito acreditado!" : "Retiro procesado",
+            body: `${isDeposit ? "💰" : "💸"} $${movement.amount.toLocaleString("es-CL")} CLP ${isDeposit ? "en tu billetera" : "transferidos a tu cuenta"}`,
+            url: "/wallet",
+            tag: `movement-${movementId}`,
+          },
+        }).catch(() => {});
       } catch (emailError) {
         console.error("Error sending email:", emailError);
-        // Don't fail the approval if email fails
       }
 
       toast.success(`${movement.type === "deposit" ? "Depósito" : "Retiro"} aprobado exitosamente`);
