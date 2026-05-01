@@ -153,11 +153,12 @@ const WebLanding = () => {
             <a href="#faq" className="hover:text-primary transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate("/auth")} className="text-primary font-semibold">
+            <Button variant="ghost" onClick={() => navigate("/auth")} className="hidden sm:flex text-primary font-semibold">
               Iniciar Sesión
             </Button>
             <Button onClick={() => navigate("/auth")} className="bg-primary text-white shadow-md">
-              Comenzar Gratis
+              <span className="hidden sm:inline">Comenzar Gratis</span>
+              <span className="sm:hidden">Comenzar</span>
               <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
