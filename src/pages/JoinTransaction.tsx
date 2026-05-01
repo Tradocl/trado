@@ -56,21 +56,21 @@ const JoinTransaction = () => {
         .single();
 
       if (error || !transaction) {
-        toast.error("Código inválido o transacción no encontrada");
+        toast.error("Código inválido o trato no encontrado");
         setLoading(false);
         return;
       }
 
       // Check if user is already part of this transaction
       if (transaction.seller_id === user.id || transaction.buyer_id === user.id) {
-        toast.info("Ya eres parte de esta transacción");
+        toast.info("Ya eres parte de este trato");
         navigate(`/transaction/${transaction.id}`);
         return;
       }
 
       // Check if transaction already has both parties
       if (transaction.buyer_id && transaction.seller_id) {
-        toast.error("Esta transacción ya tiene ambas partes");
+        toast.error("Este trato ya tiene ambas partes");
         setLoading(false);
         return;
       }
@@ -103,7 +103,7 @@ const JoinTransaction = () => {
                 <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-info" />
               </div>
               <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-2xl">Unirse a Sala</CardTitle>
+                <CardTitle className="text-lg sm:text-2xl">Unirse a un Trato</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">
                   Ingresa el código de invitación
                 </CardDescription>
@@ -153,7 +153,7 @@ const JoinTransaction = () => {
               </div>
 
               <div className="p-4 bg-success/10 rounded-lg border border-success/20">
-                <h4 className="font-semibold text-success mb-2">Transacción Protegida</h4>
+                <h4 className="font-semibold text-success mb-2">Trato Protegido</h4>
                 <p className="text-sm text-muted-foreground">
                   El dinero quedará retenido en Trado hasta que ambas partes confirmen. 
                   Si hay algún problema, puedes abrir una apelación.
@@ -162,7 +162,7 @@ const JoinTransaction = () => {
 
               <Button type="submit" className="w-full bg-info hover:bg-info/90" disabled={loading}>
                 <Search className="mr-2 h-4 w-4" />
-                {loading ? "Buscando..." : "Buscar Transacción"}
+                {loading ? "Buscando..." : "Buscar Trato"}
               </Button>
             </form>
           </CardContent>
