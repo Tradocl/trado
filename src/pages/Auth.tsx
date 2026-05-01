@@ -442,7 +442,7 @@ const Auth = () => {
               <TradoLogo size={96} id="auth" />
             </div>
             <CardDescription className="text-base">
-              Compra y vende con seguridad
+              Negocia seguro, sin riesgos
             </CardDescription>
           </CardHeader>
           <CardContent>
