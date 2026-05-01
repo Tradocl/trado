@@ -18,7 +18,7 @@ const AppLanding = () => {
 
         <div className="text-center text-white space-y-3">
           <h1 className="text-4xl font-bold tracking-tight">Trado</h1>
-          <p className="text-white/80 text-lg">Compra y vende con total seguridad</p>
+          <p className="text-white/80 text-lg">Opera con total seguridad</p>
         </div>
 
         <div className="flex flex-col gap-3 w-full">
@@ -91,7 +91,7 @@ const WebLanding = () => {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
-              Compra y vende<br />
+              Transa seguro<br />
               <span className="text-white/80">sin miedo a las estafas</span>
             </h1>
 
@@ -126,8 +126,8 @@ const WebLanding = () => {
 
           <div className="grid md:grid-cols-2 gap-5 max-w-4xl mx-auto mb-14">
             {[
-              { emoji: "😰", title: "Pagué y nunca llegó el producto", desc: "Transferiste el dinero, el vendedor desapareció y no hay forma de recuperar lo que pagaste." },
-              { emoji: "📦", title: "Envié el producto y no me pagaron", desc: "Mandaste el paquete de buena fe y el comprador dejó de responder. Perdiste el producto y el dinero." },
+              { emoji: "😰", title: "Pagué y nunca llegó el producto", desc: "Transferiste el dinero, la otra persona desapareció y no hay forma de recuperar lo que pagaste." },
+              { emoji: "📦", title: "Entregué primero y no me pagaron", desc: "Enviaste el producto o completaste el encargo de buena fe y la otra parte dejó de responder. Perdiste tu trabajo y el dinero." },
               { emoji: "🔨", title: "Terminé el trabajo y no me pagaron lo acordado", desc: "Completaste el servicio al 100% y el cliente desapareció, te pagó menos o inventó excusas para no pagar." },
               { emoji: "🎭", title: "El producto no era lo que mostraban", desc: "Llegó algo completamente distinto a las fotos, dañado o de menor calidad. Ya habías pagado y no hay vuelta atrás." },
             ].map(({ emoji, title, desc }) => (
@@ -161,7 +161,7 @@ const WebLanding = () => {
 
           <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
-              { icon: Users, step: "01", title: "Cualquiera crea la sala", desc: "El vendedor, el comprador o quien contrata un servicio crea la sala, define lo acordado y comparte el código." },
+              { icon: Users, step: "01", title: "Cualquiera crea la sala", desc: "Cualquiera de las partes crea la sala, define lo acordado —producto, servicio o trabajo— y comparte el código de acceso." },
               { icon: Lock, step: "02", title: "Se deposita el dinero", desc: "El pagador ingresa a la sala y deposita el monto acordado. Trado lo retiene de forma segura hasta que todo esté listo." },
               { icon: Package, step: "03", title: "Se cumple lo acordado", desc: "Se entrega el producto, se hace el envío o se completa el servicio. El receptor revisa que todo corresponda." },
               { icon: Handshake, step: "04", title: "Se libera el pago", desc: "Una vez confirmado que todo está en orden, Trado libera el dinero a quien corresponde." },
@@ -198,7 +198,7 @@ const WebLanding = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">Escrow 100% Seguro</h3>
               <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                Tu dinero queda bloqueado en la plataforma. El vendedor no puede recibirlo hasta que confirmes que llegó lo que acordaste.
+                Tu dinero queda bloqueado en la plataforma. Quien recibe el pago no puede cobrarlo hasta que confirmes que se cumplió lo acordado.
               </p>
               <ul className="space-y-2">
                 {["Dinero protegido siempre", "Devolución si hay problemas", "Mediación por nuestro equipo"].map(item => (
@@ -216,7 +216,7 @@ const WebLanding = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">Reputación Verificada</h3>
               <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                Cada usuario tiene un historial de transacciones y calificaciones. Compra y vende sabiendo con quién tratas.
+                Cada usuario tiene un historial de transacciones y calificaciones. Opera con confianza, sabiendo siempre con quién tratas.
               </p>
               <ul className="space-y-2">
                 {["Calificaciones reales", "Verificación de identidad", "Historial público"].map(item => (
@@ -255,7 +255,7 @@ const WebLanding = () => {
           <div className="max-w-2xl mx-auto text-center">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider">Sin sorpresas</span>
             <h2 className="text-4xl font-bold text-foreground mt-2 mb-4">Precio simple y transparente</h2>
-            <p className="text-muted-foreground text-lg mb-12">Sin suscripciones, sin costos fijos. Solo pagas cuando vendes.</p>
+            <p className="text-muted-foreground text-lg mb-12">Sin suscripciones, sin costos fijos. Solo pagas al cerrar un trato.</p>
 
             <div className="bg-gradient-to-br from-primary/5 to-info/5 rounded-3xl p-10 border border-primary/10 shadow-lg">
               <div className="flex items-center justify-center mb-4">
@@ -266,7 +266,7 @@ const WebLanding = () => {
                 {[
                   "Registro gratuito",
                   "Sin cuota mensual",
-                  "Comisión solo al vender",
+                  "Comisión solo al cerrar el trato",
                   "Retiro a cuenta bancaria",
                   "Soporte incluido",
                   "Mediación de disputas",
@@ -296,9 +296,9 @@ const WebLanding = () => {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
-              { initials: "MC", name: "María Contreras", gradient: "from-success to-info", text: "Compré un notebook usado y el vendedor me lo envió sin problemas. El dinero estuvo seguro hasta que confirmé que todo estaba perfecto. Nunca más compro sin Trado." },
-              { initials: "JR", name: "Juan Rodríguez", gradient: "from-info to-primary", text: "Como vendedor me da mucha confianza. El comprador deposita primero y yo puedo enviar tranquilo sabiendo que el pago está asegurado. Excelente plataforma." },
-              { initials: "AP", name: "Andrea Pizarro", gradient: "from-warning to-success", text: "Vendí mi consola en un día. El sistema es super intuitivo y el comprador quedó muy satisfecho. Ya hice 5 transacciones y todas perfectas." },
+              { initials: "MC", name: "María Contreras", gradient: "from-success to-info", text: "Compré un notebook usado y me lo enviaron sin problemas. El dinero estuvo seguro hasta que confirmé que todo estaba perfecto. Nunca más transacciono sin Trado." },
+              { initials: "JR", name: "Juan Rodríguez", gradient: "from-info to-primary", text: "Como el que entrega primero, Trado me da mucha confianza. Quien paga deposita antes y yo puedo actuar tranquilo sabiendo que el pago está asegurado. Excelente plataforma." },
+              { initials: "AP", name: "Andrea Pizarro", gradient: "from-warning to-success", text: "Cerré un trato en un día. El sistema es super intuitivo y la otra parte quedó muy satisfecha. Ya hice 5 transacciones y todas perfectas." },
             ].map(({ initials, name, gradient, text }) => (
               <div key={name} className="bg-white rounded-2xl p-8 border border-primary/10 shadow-lg hover:shadow-xl transition-all">
                 <div className="flex gap-1 mb-4">
@@ -329,10 +329,10 @@ const WebLanding = () => {
 
             <Accordion type="single" collapsible className="space-y-3">
               {[
-                { q: "¿Cómo funciona el sistema de seguridad?", a: "El comprador deposita el dinero en Trado, donde queda retenido. El vendedor envía el producto y cuando el comprador confirma que lo recibió correctamente, liberamos el pago. Si hay algún problema, nuestro equipo media la disputa." },
-                { q: "¿Cuánto cobra Trado por cada transacción?", a: "Cobramos un 3% sobre el valor de la transacción, descontado del pago al vendedor. El comprador no paga comisión. Sin costos ocultos ni suscripciones." },
-                { q: "¿Qué pasa si el producto llega dañado o no corresponde?", a: "El comprador puede abrir una disputa antes de confirmar la recepción. Nuestro equipo revisará el caso con evidencias y mediará para encontrar una solución justa. El dinero permanece retenido hasta resolver." },
-                { q: "¿Cuánto tarda en llegar el dinero al vendedor?", a: "Una vez que el comprador confirma la recepción, el dinero queda disponible en tu billetera Trado inmediatamente. El retiro a cuenta bancaria toma entre 1-2 días hábiles." },
+                { q: "¿Cómo funciona el sistema de seguridad?", a: "Quien paga deposita el dinero en Trado, donde queda retenido. Quien entrega cumple lo acordado —enviar el producto, completar el servicio o entregar el trabajo— y cuando el pagador confirma que todo está correcto, liberamos el pago. Si hay algún problema, nuestro equipo media la disputa." },
+                { q: "¿Cuánto cobra Trado por cada transacción?", a: "Cobramos un 3% sobre el valor de la transacción, descontado del monto recibido. Quien paga no tiene comisión adicional. Sin costos ocultos ni suscripciones." },
+                { q: "¿Qué pasa si el producto o servicio no corresponde a lo acordado?", a: "Quien pagó puede abrir una disputa antes de confirmar la recepción. Nuestro equipo revisará el caso con evidencias y mediará para encontrar una solución justa. El dinero permanece retenido hasta resolver." },
+                { q: "¿Cuánto tarda en llegar el dinero a quien entregó?", a: "Una vez que se confirma que todo salió bien, el dinero queda disponible en tu billetera Trado inmediatamente. El retiro a cuenta bancaria toma entre 1-2 días hábiles." },
                 { q: "¿Necesito verificar mi identidad para usar Trado?", a: "Para transacciones básicas no es necesario, pero verificar tu identidad aumenta tu reputación y genera más confianza. Los usuarios verificados acceden a montos más altos y beneficios exclusivos." },
                 { q: "¿Trado está disponible como app?", a: "Sí, Trado está disponible para Android y próximamente para iOS. Puedes descargar el APK desde nuestra web o buscarla en la Play Store." },
               ].map(({ q, a }) => (
@@ -355,7 +355,7 @@ const WebLanding = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-2xl mx-auto">
             <h2 className="text-4xl font-bold text-white mb-4">
-              ¿Listo para vender o comprar sin riesgos?
+              ¿Listo para hacer tratos sin riesgos?
             </h2>
             <p className="text-white/80 text-lg mb-8">
               Crea tu cuenta gratis en menos de un minuto y haz tu primera transacción segura hoy.
@@ -380,7 +380,7 @@ const WebLanding = () => {
                 <span className="font-bold text-xl">Trado</span>
               </div>
               <p className="text-white/60 text-sm max-w-xs leading-relaxed">
-                La plataforma escrow más segura de Chile. Compra y vende con total tranquilidad.
+                La plataforma escrow más segura de Chile. Productos, servicios y trabajos, siempre con total tranquilidad.
               </p>
             </div>
             <div>
