@@ -5,8 +5,7 @@ interface Props {
 }
 
 export const TradoLogo = ({ size = 40, id = "a", className }: Props) => {
-  const bgId   = `tl-bg-${id}`;
-  const glowId = `tl-gw-${id}`;
+  const bgId = `tl-bg-${id}`;
   return (
     <svg
       width={size}
@@ -17,30 +16,33 @@ export const TradoLogo = ({ size = 40, id = "a", className }: Props) => {
       className={className}
     >
       <defs>
-        {/* Background: indigo → violet */}
         <linearGradient id={bgId} x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
           <stop offset="0%"   stopColor="#3340d8" />
           <stop offset="100%" stopColor="#7147d4" />
         </linearGradient>
-        {/* Subtle inner glow */}
-        <radialGradient id={glowId} cx="50%" cy="30%" r="60%">
-          <stop offset="0%"   stopColor="white" stopOpacity="0.12" />
-          <stop offset="100%" stopColor="white" stopOpacity="0" />
-        </radialGradient>
       </defs>
 
       {/* Background */}
       <rect width="40" height="40" rx="10" fill={`url(#${bgId})`} />
-      <rect width="40" height="40" rx="10" fill={`url(#${glowId})`} />
 
-      {/* T — emerald stem (behind white bar) */}
-      <rect x="17" y="14" width="6" height="18" rx="3" fill="#0fba7c" />
+      {/* Shield */}
+      <path
+        d="M20 7 L32 12 V22 C32 29.5 20 35 20 35 C20 35 8 29.5 8 22 V12 Z"
+        fill="white"
+        fillOpacity="0.15"
+        stroke="white"
+        strokeOpacity="0.45"
+        strokeWidth="1.5"
+      />
 
-      {/* T — white horizontal bar (on top) */}
-      <rect x="7.5" y="10" width="25" height="7" rx="3.5" fill="white" />
-
-      {/* Emerald dot at T intersection — subtle */}
-      <circle cx="20" cy="13.5" r="2.5" fill="#0fba7c" opacity="0.55" />
+      {/* Checkmark — emerald */}
+      <path
+        d="M13.5 21 L18.5 26.5 L27.5 15"
+        stroke="#0fba7c"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 };
