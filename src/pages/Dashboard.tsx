@@ -315,7 +315,7 @@ const Dashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <CardTitle className="text-lg sm:text-2xl flex items-center gap-2 flex-wrap">
-                  <span className="truncate max-w-[200px] sm:max-w-none">¡Hola, {profile?.nickname || profile?.full_name?.split(' ')[0] || "Usuario"}!</span>
+                  <span className="truncate max-w-[160px] xs:max-w-[220px] sm:max-w-none">¡Hola, {profile?.nickname || profile?.full_name?.split(' ')[0] || "Usuario"}!</span>
                   {profile?.is_verified && (
                     <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
                   )}
@@ -705,17 +705,17 @@ const Dashboard = () => {
               <span className="text-lg sm:text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.75s', animationFillMode: 'both' }}>
-              <Button size="sm" className="w-full bg-gray-500 hover:bg-gray-600 text-white shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => navigate("/wallet")}>
-                <History className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Movimientos</span>
+              <Button className="w-full h-10 bg-gray-500 hover:bg-gray-600 text-white shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet")}>
+                <History className="h-4 w-4" />
+                <span className="text-[10px] sm:text-xs leading-none">Movimientos</span>
               </Button>
-              <Button size="sm" className="w-full bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => navigate("/wallet?action=deposit")}>
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Depositar</span>
+              <Button className="w-full h-10 bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=deposit")}>
+                <Plus className="h-4 w-4" />
+                <span className="text-[10px] sm:text-xs leading-none">Depositar</span>
               </Button>
-              <Button size="sm" className="w-full bg-destructive hover:bg-destructive/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02]" onClick={() => navigate("/wallet?action=withdraw")}>
-                <ArrowUpRight className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Retirar</span>
+              <Button className="w-full h-10 bg-destructive hover:bg-destructive/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=withdraw")}>
+                <ArrowUpRight className="h-4 w-4" />
+                <span className="text-[10px] sm:text-xs leading-none">Retirar</span>
               </Button>
             </div>
             

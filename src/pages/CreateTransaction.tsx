@@ -476,9 +476,9 @@ const CreateTransaction = () => {
                               +${formatCLP(orderDetails.appFee)}
                             </span>
                           </div>
-                          <div className="pt-3 border-t-2 border-info/30 flex justify-between items-center">
-                            <span className="font-bold text-foreground">Total que pagarás:</span>
-                            <span className="font-bold text-info text-2xl">
+                          <div className="pt-3 border-t-2 border-info/30 flex justify-between items-center gap-2">
+                            <span className="font-bold text-foreground min-w-0">Total que pagarás:</span>
+                            <span className="font-bold text-info text-xl sm:text-2xl shrink-0">
                               ${formatCLP(getBuyerPaysAmount())}
                             </span>
                           </div>
@@ -502,9 +502,9 @@ const CreateTransaction = () => {
                               -${formatCLP(orderDetails.appFee)}
                             </span>
                           </div>
-                          <div className="pt-3 border-t-2 border-success/30 flex justify-between items-center">
-                            <span className="font-bold text-foreground">Total que recibirás:</span>
-                            <span className="font-bold text-success text-2xl">
+                          <div className="pt-3 border-t-2 border-success/30 flex justify-between items-center gap-2">
+                            <span className="font-bold text-foreground min-w-0">Total que recibirás:</span>
+                            <span className="font-bold text-success text-xl sm:text-2xl shrink-0">
                               ${formatCLP(getSellerReceivesAmount())}
                             </span>
                           </div>
