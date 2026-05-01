@@ -120,16 +120,16 @@ const WebLanding = () => {
             <span className="text-primary font-semibold text-sm uppercase tracking-wider">Simple y transparente</span>
             <h2 className="text-4xl font-bold text-foreground mt-2 mb-4">¿Cómo funciona Trado?</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              En 4 pasos tienes una transacción 100% segura
+              Sirve para productos, envíos y servicios. Cualquiera puede crear la sala y acordar los términos antes de que el dinero se mueva.
             </p>
           </div>
 
           <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
-              { icon: Users, step: "01", title: "El vendedor crea la sala", desc: "Crea una sala con el nombre del producto y el precio. Comparte el código con el comprador." },
-              { icon: Lock, step: "02", title: "El comprador deposita", desc: "El comprador ingresa a la sala y deposita el dinero. Trado lo retiene de forma segura." },
-              { icon: Package, step: "03", title: "Se realiza la entrega", desc: "El vendedor entrega el producto o lo envía. El comprador lo recibe e inspecciona." },
-              { icon: Handshake, step: "04", title: "Se libera el pago", desc: "El comprador confirma que todo está bien y Trado libera el pago al vendedor." },
+              { icon: Users, step: "01", title: "Cualquiera crea la sala", desc: "El vendedor, el comprador o quien contrata un servicio crea la sala, define lo acordado y comparte el código." },
+              { icon: Lock, step: "02", title: "Se deposita el dinero", desc: "El pagador ingresa a la sala y deposita el monto acordado. Trado lo retiene de forma segura hasta que todo esté listo." },
+              { icon: Package, step: "03", title: "Se cumple lo acordado", desc: "Se entrega el producto, se hace el envío o se completa el servicio. El receptor revisa que todo corresponda." },
+              { icon: Handshake, step: "04", title: "Se libera el pago", desc: "Una vez confirmado que todo está en orden, Trado libera el dinero a quien corresponde." },
             ].map(({ icon: Icon, step, title, desc }) => (
               <div key={step} className="relative text-center group">
                 <div className="flex justify-center mb-4">
