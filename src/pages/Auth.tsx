@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
-import tradoLogo from "@/assets/trado-logo.png";
+import { TradoLogo } from "@/components/TradoLogo";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 
 interface PasswordRequirement {
@@ -439,7 +439,7 @@ const Auth = () => {
               Inicio
             </Button>
             <div className="flex justify-center mb-4">
-              <img src={tradoLogo} alt="Trado" className="h-24 w-24" />
+              <TradoLogo size={96} id="auth" />
             </div>
             <CardDescription className="text-base">
               Compra y vende con seguridad

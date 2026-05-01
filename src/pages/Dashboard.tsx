@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { formatCLP } from "@/lib/utils";
-import tradoLogo from "@/assets/trado-logo.png";
+import { TradoLogo } from "@/components/TradoLogo";
 import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
@@ -274,7 +274,7 @@ const Dashboard = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 sm:gap-3">
-            <img src={tradoLogo} alt="Trado" className="h-8 w-8 sm:h-10 sm:w-10" />
+            <TradoLogo size={36} id="dash" />
             <h1 className="text-xl sm:text-2xl font-bold">Trado</h1>
           </div>
           <div className="flex gap-1 sm:gap-2">

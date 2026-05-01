@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Mail, ArrowLeft, RefreshCw } from "lucide-react";
-import tradoLogo from "@/assets/trado-logo.png";
+import { TradoLogo } from "@/components/TradoLogo";
 
 const VerifyEmail = () => {
   const location = useLocation();
@@ -35,7 +35,7 @@ const VerifyEmail = () => {
       <Card className="w-full max-w-md shadow-2xl border-0">
         <CardHeader className="text-center space-y-4 pb-2">
           <div className="flex justify-center">
-            <img src={tradoLogo} alt="Trado" className="h-20 w-20" />
+            <TradoLogo size={80} id="verify" />
           </div>
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <Mail className="h-8 w-8 text-primary" />

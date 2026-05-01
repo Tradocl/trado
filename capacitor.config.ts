@@ -4,6 +4,9 @@ const config: CapacitorConfig = {
   appId: 'cl.trado.app',
   appName: 'Trado',
   webDir: 'dist',
+  server: {
+    androidScheme: 'https',
+  },
   android: {
     allowMixedContent: false,
     backgroundColor: '#ffffff',

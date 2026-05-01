@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Shield, CheckCircle2, Lock, Users, ArrowRight, Handshake, DollarSign, AlertCircle, Package, Wrench } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { formatCLP } from "@/lib/utils";
-import tradoLogo from "@/assets/trado-logo.png";
+import { TradoLogo } from "@/components/TradoLogo";
 
 interface TransactionPreview {
   id: string;
@@ -114,7 +114,7 @@ const InviteWelcome = () => {
       <header className="border-b bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={tradoLogo} alt="Trado" className="h-8 w-8" />
+            <TradoLogo size={32} id="inv1" />
             <span className="font-bold text-lg">Trado</span>
           </Link>
           <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
@@ -290,7 +290,7 @@ const InviteWelcome = () => {
       <footer className="border-t bg-card/50 mt-12">
         <div className="container mx-auto px-4 py-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <img src={tradoLogo} alt="Trado" className="h-6 w-6" />
+            <TradoLogo size={24} id="inv2" />
             <span className="font-semibold">Trado</span>
           </div>
           <p className="text-sm text-muted-foreground">
