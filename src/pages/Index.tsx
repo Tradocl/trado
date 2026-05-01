@@ -91,7 +91,7 @@ const WebLanding = () => {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
-              Transa seguro<br />
+              Negocia seguro<br />
               <span className="text-white/80">sin miedo a las estafas</span>
             </h1>
 
