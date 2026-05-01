@@ -113,8 +113,43 @@ const WebLanding = () => {
         </div>
       </section>
 
+      {/* Dolores */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-14">
+            <span className="text-red-500 font-semibold text-sm uppercase tracking-wider">¿Te ha pasado esto?</span>
+            <h2 className="text-4xl font-bold text-foreground mt-2 mb-4">El problema que todos conocemos</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Comprar y vender entre personas debería ser simple, pero la desconfianza lo complica todo.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5 max-w-4xl mx-auto mb-14">
+            {[
+              { emoji: "😰", title: "Pagué y nunca llegó el producto", desc: "Transferiste el dinero, el vendedor desapareció y no hay forma de recuperar lo que pagaste." },
+              { emoji: "📦", title: "Envié el producto y no me pagaron", desc: "Mandaste el paquete de buena fe y el comprador dejó de responder. Perdiste el producto y el dinero." },
+              { emoji: "🔨", title: "Terminé el trabajo y no me pagaron lo acordado", desc: "Completaste el servicio al 100% y el cliente desapareció, te pagó menos o inventó excusas para no pagar." },
+              { emoji: "🎭", title: "El producto no era lo que mostraban", desc: "Llegó algo completamente distinto a las fotos, dañado o de menor calidad. Ya habías pagado y no hay vuelta atrás." },
+            ].map(({ emoji, title, desc }) => (
+              <div key={title} className="flex gap-4 p-6 bg-red-50 border border-red-100 rounded-2xl">
+                <span className="text-3xl flex-shrink-0">{emoji}</span>
+                <div>
+                  <h3 className="font-bold text-foreground mb-1">{title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="max-w-2xl mx-auto bg-gradient-to-br from-primary to-info rounded-3xl p-8 text-center text-white">
+            <p className="text-2xl font-bold mb-3">Trado existe para que esto no vuelva a pasarte.</p>
+            <p className="text-white/80">El dinero queda retenido hasta que ambas partes confirmen que todo salió bien. Sin riesgos, sin estafas.</p>
+          </div>
+        </div>
+      </section>
+
       {/* Cómo funciona */}
-      <section id="como-funciona" className="py-20 bg-white">
+      <section id="como-funciona" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-primary font-semibold text-sm uppercase tracking-wider">Simple y transparente</span>
