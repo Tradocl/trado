@@ -120,7 +120,7 @@ const WebLanding = () => {
             <span className="text-red-500 font-semibold text-sm uppercase tracking-wider">¿Te ha pasado esto?</span>
             <h2 className="text-4xl font-bold text-foreground mt-2 mb-4">El problema que todos conocemos</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Comprar y vender entre personas debería ser simple, pero la desconfianza lo complica todo.
+              Comprar, vender o contratar servicios entre personas debería ser simple, pero la desconfianza lo complica todo.
             </p>
           </div>
 
