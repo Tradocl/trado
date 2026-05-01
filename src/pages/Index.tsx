@@ -109,21 +109,6 @@ const WebLanding = () => {
               </Button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto pt-8 border-t border-white/20">
-              <div className="text-center">
-                <p className="text-3xl font-bold">+5.000</p>
-                <p className="text-white/60 text-sm">transacciones</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold">99%</p>
-                <p className="text-white/60 text-sm">satisfacción</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold">3%</p>
-                <p className="text-white/60 text-sm">comisión total</p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -241,7 +226,7 @@ const WebLanding = () => {
               <div className="flex items-center justify-center mb-4">
                 <span className="text-3xl font-bold text-primary">Una pequeña comisión, toda la seguridad</span>
               </div>
-              <p className="text-muted-foreground mb-8">Solo el vendedor paga una pequeña comisión. El comprador no tiene ningún costo adicional.</p>
+              <p className="text-muted-foreground mb-8">Toda la seguridad de Trado pagando una pequeña comisión.</p>
               <div className="grid grid-cols-2 gap-4 mb-8 text-left">
                 {[
                   "Registro gratuito",
