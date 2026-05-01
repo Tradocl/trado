@@ -265,9 +265,9 @@ const WebLanding = () => {
           </div>
 
           <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-4 gap-0 relative">
-              {/* Connecting line (desktop) */}
-              <div className="hidden md:block absolute top-8 left-[12.5%] right-[12.5%] h-[2px] bg-gradient-to-r from-primary/20 via-primary/60 to-primary/20" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-0 relative">
+              {/* Connecting line (large screens only) */}
+              <div className="hidden lg:block absolute top-8 left-[12.5%] right-[12.5%] h-[2px] bg-gradient-to-r from-primary/20 via-primary/60 to-primary/20" />
 
               {[
                 { icon: Users,     step: "01", title: "Cualquiera crea la sala",  desc: "Cualquiera de las partes crea la sala, define lo acordado —producto, servicio o trabajo— y comparte el código de acceso." },
