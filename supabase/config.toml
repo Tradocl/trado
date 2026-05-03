@@ -56,3 +56,6 @@ verify_jwt = true
 
 [functions.notify-appeal-resolved]
 verify_jwt = true
+
+[functions.process-email-queue]
+verify_jwt = true
