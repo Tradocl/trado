@@ -1,0 +1,86 @@
+// Shared brand styles for Trado auth emails
+export const brand = {
+  primary: '#2230C2',
+  primaryDark: '#1B26A0',
+  text: '#0F1424',
+  muted: '#5B6378',
+  border: '#E5E7F0',
+  bg: '#F5F6FB',
+  card: '#FFFFFF',
+  font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+}
+
+export const styles = {
+  main: {
+    backgroundColor: brand.bg,
+    fontFamily: brand.font,
+    margin: 0,
+    padding: '40px 0',
+  },
+  container: {
+    backgroundColor: brand.card,
+    maxWidth: '520px',
+    margin: '0 auto',
+    borderRadius: '16px',
+    border: `1px solid ${brand.border}`,
+    padding: '40px 36px',
+  },
+  brandBar: {
+    fontSize: '20px',
+    fontWeight: 700 as const,
+    color: brand.primary,
+    letterSpacing: '-0.02em',
+    margin: '0 0 28px',
+  },
+  h1: {
+    fontSize: '24px',
+    fontWeight: 700 as const,
+    color: brand.text,
+    margin: '0 0 14px',
+    letterSpacing: '-0.01em',
+    lineHeight: '1.25',
+  },
+  text: {
+    fontSize: '15px',
+    color: brand.muted,
+    lineHeight: '1.6',
+    margin: '0 0 24px',
+  },
+  button: {
+    backgroundColor: brand.primary,
+    color: '#ffffff',
+    fontSize: '15px',
+    fontWeight: 600 as const,
+    borderRadius: '10px',
+    padding: '14px 28px',
+    textDecoration: 'none',
+    display: 'inline-block',
+  },
+  code: {
+    display: 'inline-block',
+    backgroundColor: brand.bg,
+    border: `1px solid ${brand.border}`,
+    borderRadius: '10px',
+    padding: '14px 24px',
+    fontSize: '24px',
+    fontWeight: 700 as const,
+    letterSpacing: '0.2em',
+    color: brand.text,
+    fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
+    margin: '0 0 24px',
+  },
+  divider: {
+    borderTop: `1px solid ${brand.border}`,
+    margin: '32px 0 20px',
+  },
+  footer: {
+    fontSize: '12px',
+    color: brand.muted,
+    lineHeight: '1.5',
+    margin: 0,
+  },
+  link: {
+    color: brand.primary,
+    wordBreak: 'break-all' as const,
+  },
+}
