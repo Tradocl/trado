@@ -2061,9 +2061,16 @@ const Transaction = () => {
                     )}
                     <div className="flex-1 min-w-0 text-left">
                       <p className="font-semibold text-xs sm:text-sm">{sellerLabel}</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                        {realSellerProfile?.full_name || "Esperando..."}
-                      </p>
+                      {realSellerProfile ? (
+                        <button
+                          className="text-xs sm:text-sm text-primary hover:underline truncate text-left"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/u/${realSellerProfile.id}`); }}
+                        >
+                          {realSellerProfile.full_name}
+                        </button>
+                      ) : (
+                        <p className="text-xs sm:text-sm text-muted-foreground">Esperando...</p>
+                      )}
                     </div>
                     {realSellerProfile && (
                       <div className="flex items-center gap-1 mr-1 sm:mr-2 shrink-0">
@@ -2109,9 +2116,16 @@ const Transaction = () => {
                     )}
                     <div className="flex-1 min-w-0 text-left">
                       <p className="font-semibold text-xs sm:text-sm">{buyerLabel}</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                        {realBuyerProfile?.full_name || "Esperando..."}
-                      </p>
+                      {realBuyerProfile ? (
+                        <button
+                          className="text-xs sm:text-sm text-primary hover:underline truncate text-left"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/u/${realBuyerProfile.id}`); }}
+                        >
+                          {realBuyerProfile.full_name}
+                        </button>
+                      ) : (
+                        <p className="text-xs sm:text-sm text-muted-foreground">Esperando...</p>
+                      )}
                     </div>
                     {realBuyerProfile && (
                       <div className="flex items-center gap-1 mr-1 sm:mr-2 shrink-0">

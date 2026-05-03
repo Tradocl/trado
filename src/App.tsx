@@ -24,6 +24,7 @@ import Admin from "./pages/Admin";
 import MovementHistory from "./pages/MovementHistory";
 import TransactionHistory from "./pages/TransactionHistory";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 import Appeal from "./pages/Appeal";
 import AdminAppeal from "./pages/AdminAppeal";
 import ReturnRoom from "./pages/ReturnRoom";
@@ -82,6 +83,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verificar-email" element={<VerifyEmail />} />
               <Route path="/invite/:id" element={<InviteWelcome />} />
+              <Route path="/u/:userId" element={<PublicProfile />} />
 
               {/* Protected routes */}
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
