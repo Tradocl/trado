@@ -1,61 +1,45 @@
 project_id = "uohlyccjugbqsxiwerrv"
 
-[functions.confirm-delivery]
-verify_jwt = true
-
-[functions.send-movement-notification]
-verify_jwt = true
-
-[functions.notify-wallet-movement]
-verify_jwt = true
-
-[functions.notify-transaction-created]
-verify_jwt = true
-
-[functions.notify-verification-submitted]
-verify_jwt = true
-
-[functions.send-payment-instructions]
-verify_jwt = true
-
-[functions.send-verification-result]
-verify_jwt = true
-
-[functions.process-escrow-deposit]
-verify_jwt = true
-
-[functions.accept-mutual-resolution]
-verify_jwt = true
-
-[functions.process-return-refund]
-verify_jwt = true
-
-[functions.resolve-appeal]
-verify_jwt = true
-
-[functions.notify-appeal-escalation]
-verify_jwt = true
-
-[functions.delete-incomplete-user]
-verify_jwt = false
-
-[functions.send-password-reset-email]
-verify_jwt = true
-
-[functions.send-welcome-email]
-verify_jwt = true
-
-[functions.notify-transaction-completed]
-verify_jwt = true
-
-[functions.notify-meeting-proposal]
-verify_jwt = true
-
-[functions.notify-transaction-action]
-verify_jwt = true
-
-[functions.notify-appeal-resolved]
-verify_jwt = true
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.accept-mutual-resolution]
+    verify_jwt = true
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.confirm-delivery]
+    verify_jwt = true
+  [functions.delete-incomplete-user]
+    verify_jwt = false
+  [functions.notify-appeal-escalation]
+    verify_jwt = true
+  [functions.notify-appeal-resolved]
+    verify_jwt = true
+  [functions.notify-meeting-proposal]
+    verify_jwt = true
+  [functions.notify-transaction-action]
+    verify_jwt = true
+  [functions.notify-transaction-completed]
+    verify_jwt = true
+  [functions.notify-transaction-created]
+    verify_jwt = true
+  [functions.notify-verification-submitted]
+    verify_jwt = true
+  [functions.notify-wallet-movement]
+    verify_jwt = true
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.process-escrow-deposit]
+    verify_jwt = true
+  [functions.process-return-refund]
+    verify_jwt = true
+  [functions.resolve-appeal]
+    verify_jwt = true
+  [functions.send-movement-notification]
+    verify_jwt = true
+  [functions.send-password-reset-email]
+    verify_jwt = true
+  [functions.send-payment-instructions]
+    verify_jwt = true
+  [functions.send-verification-result]
+    verify_jwt = true
+  [functions.send-welcome-email]
+    verify_jwt = true
