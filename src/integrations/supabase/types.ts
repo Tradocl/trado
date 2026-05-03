@@ -721,6 +721,7 @@ export type Database = {
           invite_code: string | null
           product_description: string | null
           product_name: string
+          received_at: string | null
           sale_type: string | null
           seller_id: string
           shipped_at: string | null
@@ -745,6 +746,7 @@ export type Database = {
           invite_code?: string | null
           product_description?: string | null
           product_name: string
+          received_at?: string | null
           sale_type?: string | null
           seller_id: string
           shipped_at?: string | null
@@ -769,6 +771,7 @@ export type Database = {
           invite_code?: string | null
           product_description?: string | null
           product_name?: string
+          received_at?: string | null
           sale_type?: string | null
           seller_id?: string
           shipped_at?: string | null
