@@ -45,6 +45,7 @@ interface Transaction {
   initiator_role: string | null;
   tracking_number: string | null;
   carrier: string | null;
+  received_at: string | null;
 }
 
 interface Profile {
@@ -488,7 +489,7 @@ const Transaction = () => {
     try {
       await supabase
         .from("transactions")
-        .update({ state: "awaiting_buyer_review" })
+        .update({ state: "awaiting_buyer_review", received_at: new Date().toISOString() })
         .eq("id", transaction.id);
 
       // Notify the seller that buyer received the product
