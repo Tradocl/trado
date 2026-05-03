@@ -1,0 +1,80 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+const EXPIRY_HOURS = 72;
+
+serve(async (_req) => {
+  console.log("[expire-stale-transactions] Starting run");
+
+  try {
+    const cutoff = new Date(Date.now() - EXPIRY_HOURS * 60 * 60 * 1000).toISOString();
+
+    // Find stale transactions: created or invited, no movement in 72h
+    const { data: transactions, error } = await supabase
+      .from("transactions")
+      .select("id, seller_id, buyer_id, product_name, state, updated_at")
+      .in("state", ["created", "invited"])
+      .lt("updated_at", cutoff);
+
+    if (error) throw error;
+    if (!transactions || transactions.length === 0) {
+      console.log("[expire-stale-transactions] No stale transactions found");
+      return new Response(JSON.stringify({ cancelled: 0 }), { status: 200 });
+    }
+
+    console.log(`[expire-stale-transactions] Found ${transactions.length} stale transactions`);
+
+    let cancelled = 0;
+
+    for (const tx of transactions) {
+      const { error: updateError } = await supabase
+        .from("transactions")
+        .update({ state: "cancelled" })
+        .eq("id", tx.id);
+
+      if (updateError) {
+        console.error(`[expire-stale-transactions] Error cancelling tx ${tx.id}:`, updateError);
+        continue;
+      }
+
+      // Notify seller
+      supabase.functions.invoke("send-push-notification", {
+        body: {
+          userIds: [tx.seller_id],
+          title: "Sala expirada",
+          body: `⏰ "${tx.product_name}" fue cancelada por inactividad`,
+          url: `/transaction/${tx.id}`,
+          tag: `expire-${tx.id}`,
+        },
+      }).catch(() => {});
+
+      // Notify buyer if joined
+      if (tx.buyer_id) {
+        supabase.functions.invoke("send-push-notification", {
+          body: {
+            userIds: [tx.buyer_id],
+            title: "Sala expirada",
+            body: `⏰ "${tx.product_name}" fue cancelada por inactividad`,
+            url: `/transaction/${tx.id}`,
+            tag: `expire-buyer-${tx.id}`,
+          },
+        }).catch(() => {});
+      }
+
+      cancelled++;
+      console.log(`[expire-stale-transactions] Cancelled tx ${tx.id} (state: ${tx.state})`);
+    }
+
+    console.log(`[expire-stale-transactions] Done. Cancelled ${cancelled}/${transactions.length}`);
+    return new Response(JSON.stringify({ cancelled }), { status: 200 });
+
+  } catch (error: any) {
+    console.error("[expire-stale-transactions] Error:", error);
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
+});
