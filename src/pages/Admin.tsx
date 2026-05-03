@@ -12,7 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale, Coins, ArrowDownCircle, ArrowUpCircle, Lock, Receipt, AlertTriangle, CheckCircle2, RotateCcw, Building, BadgeDollarSign } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale, Coins, ArrowDownCircle, ArrowUpCircle, Lock, Receipt, AlertTriangle, CheckCircle2, RotateCcw, Building, BadgeDollarSign, Copy, Clock, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatCLP } from "@/lib/utils";
 import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
 import { AdminReturnMediationList } from "@/components/admin/AdminReturnMediationList";
@@ -98,6 +99,9 @@ export default function Admin() {
   const [selectedVerificationId, setSelectedVerificationId] = useState<string>("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [confirmWithdrawalId, setConfirmWithdrawalId] = useState<string | null>(null);
+  const [depositSearch, setDepositSearch] = useState("");
+  const [withdrawalSearch, setWithdrawalSearch] = useState("");
   const [stats, setStats] = useState({
     totalUsers: 0,
     pendingVerifications: 0,
@@ -659,6 +663,23 @@ export default function Admin() {
     return null;
   }
 
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copiado`);
+  };
+
+  const timeAgo = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const h = Math.floor(diff / 3600000);
+    if (h < 24) return `hace ${h}h`;
+    const d = Math.floor(h / 24);
+    return `hace ${d}d`;
+  };
+
+  const pendingWithdrawal = confirmWithdrawalId
+    ? pendingWithdrawals.find(w => w.id === confirmWithdrawalId)
+    : null;
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -956,6 +977,15 @@ export default function Admin() {
                   <CardDescription>Revisa y aprueba solicitudes de depósito</CardDescription>
                 </CardHeader>
                 <CardContent>
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nombre o email..."
+                      value={depositSearch}
+                      onChange={e => setDepositSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -967,7 +997,11 @@ export default function Admin() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {pendingDeposits.map((deposit) => (
+                      {pendingDeposits.filter(d =>
+                        !depositSearch ||
+                        d.user_name?.toLowerCase().includes(depositSearch.toLowerCase()) ||
+                        d.user_email?.toLowerCase().includes(depositSearch.toLowerCase())
+                      ).map((deposit) => (
                         <TableRow key={deposit.id}>
                           <TableCell className="font-medium">{deposit.user_name}</TableCell>
                           <TableCell>{deposit.user_email}</TableCell>
@@ -975,13 +1009,15 @@ export default function Admin() {
                             +${formatCLP(deposit.amount)}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {new Date(deposit.created_at).toLocaleDateString("es-CL", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{timeAgo(deposit.created_at)}</span>
+                            </div>
+                            <p className="text-xs mt-0.5">
+                              {new Date(deposit.created_at).toLocaleDateString("es-CL", {
+                                day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+                              })}
+                            </p>
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -1099,6 +1135,15 @@ export default function Admin() {
                   <CardDescription>Revisa datos bancarios y aprueba retiros</CardDescription>
                 </CardHeader>
                 <CardContent>
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nombre o email..."
+                      value={withdrawalSearch}
+                      onChange={e => setWithdrawalSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1111,30 +1156,51 @@ export default function Admin() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {pendingWithdrawals.map((withdrawal) => (
+                      {pendingWithdrawals.filter(w =>
+                        !withdrawalSearch ||
+                        w.user_name?.toLowerCase().includes(withdrawalSearch.toLowerCase()) ||
+                        w.user_email?.toLowerCase().includes(withdrawalSearch.toLowerCase())
+                      ).map((withdrawal) => (
                         <TableRow key={withdrawal.id}>
                           <TableCell className="font-medium">{withdrawal.user_name}</TableCell>
-                          <TableCell>{withdrawal.user_email}</TableCell>
-                          <TableCell className="font-bold text-warning">
-                            -${formatCLP(withdrawal.amount)}
+                          <TableCell className="text-sm">{withdrawal.user_email}</TableCell>
+                          <TableCell>
+                            <span className={`font-bold ${withdrawal.amount >= 100000 ? "text-destructive" : "text-warning"}`}>
+                              -${formatCLP(withdrawal.amount)}
+                            </span>
+                            {withdrawal.amount >= 100000 && (
+                              <Badge variant="destructive" className="ml-1 text-xs">Alto</Badge>
+                            )}
                           </TableCell>
                           <TableCell>
-                            <div className="text-xs space-y-1">
-                              <p><strong>Titular:</strong> {withdrawal.bank_holder_name}</p>
-                              <p><strong>RUT:</strong> {withdrawal.bank_holder_rut}</p>
-                              <p><strong>Banco:</strong> {withdrawal.bank_name}</p>
-                              <p><strong>Tipo:</strong> {withdrawal.bank_account_type}</p>
-                              <p><strong>N° Cuenta:</strong> {withdrawal.bank_account_number}</p>
+                            <div className="text-xs space-y-1.5">
+                              <p className="font-medium">{withdrawal.bank_holder_name}</p>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">RUT:</span>
+                                <span>{withdrawal.bank_holder_rut}</span>
+                                <button onClick={() => copyToClipboard(withdrawal.bank_holder_rut || "", "RUT")} className="text-muted-foreground hover:text-foreground">
+                                  <Copy className="h-3 w-3" />
+                                </button>
+                              </div>
+                              <p className="text-muted-foreground">{withdrawal.bank_name} · {withdrawal.bank_account_type}</p>
+                              <div className="flex items-center gap-1">
+                                <span className="font-mono">{withdrawal.bank_account_number}</span>
+                                <button onClick={() => copyToClipboard(withdrawal.bank_account_number || "", "N° cuenta")} className="text-muted-foreground hover:text-foreground">
+                                  <Copy className="h-3 w-3" />
+                                </button>
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {new Date(withdrawal.created_at).toLocaleDateString("es-CL", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{timeAgo(withdrawal.created_at)}</span>
+                            </div>
+                            <p className="text-xs mt-0.5">
+                              {new Date(withdrawal.created_at).toLocaleDateString("es-CL", {
+                                day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+                              })}
+                            </p>
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -1142,13 +1208,9 @@ export default function Admin() {
                                 size="sm"
                                 variant="default"
                                 disabled={processingId === withdrawal.id}
-                                onClick={() => handleApproveMovement(withdrawal.id)}
+                                onClick={() => setConfirmWithdrawalId(withdrawal.id)}
                               >
-                                {processingId === withdrawal.id ? (
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
-                                ) : (
-                                  <CheckCircle className="mr-1 h-4 w-4" />
-                                )}
+                                <CheckCircle className="mr-1 h-4 w-4" />
                                 Aprobar
                               </Button>
                               <Button
@@ -1659,6 +1721,69 @@ export default function Admin() {
             </Button>
             <Button variant="destructive" onClick={handleRejectVerification}>
               Rechazar y Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withdrawal confirmation dialog */}
+      <Dialog open={!!confirmWithdrawalId} onOpenChange={() => setConfirmWithdrawalId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar aprobación de retiro</DialogTitle>
+            <DialogDescription>
+              Asegúrate de haber realizado la transferencia bancaria antes de aprobar.
+            </DialogDescription>
+          </DialogHeader>
+          {pendingWithdrawal && (
+            <div className="space-y-3 py-2">
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <span className="text-sm text-muted-foreground">Monto</span>
+                <span className="font-bold text-lg">-${formatCLP(pendingWithdrawal.amount)}</span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Titular</span>
+                  <span className="font-medium">{pendingWithdrawal.bank_holder_name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">RUT</span>
+                  <div className="flex items-center gap-2">
+                    <span>{pendingWithdrawal.bank_holder_rut}</span>
+                    <button onClick={() => copyToClipboard(pendingWithdrawal.bank_holder_rut || "", "RUT")}>
+                      <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Banco</span>
+                  <span>{pendingWithdrawal.bank_name} · {pendingWithdrawal.bank_account_type}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">N° Cuenta</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono">{pendingWithdrawal.bank_account_number}</span>
+                    <button onClick={() => copyToClipboard(pendingWithdrawal.bank_account_number || "", "N° cuenta")}>
+                      <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmWithdrawalId(null)}>Cancelar</Button>
+            <Button
+              disabled={processingId === confirmWithdrawalId}
+              onClick={async () => {
+                if (confirmWithdrawalId) {
+                  await handleApproveMovement(confirmWithdrawalId);
+                  setConfirmWithdrawalId(null);
+                }
+              }}
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Confirmar Aprobación
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -628,6 +628,9 @@ ${companyBankDetails.email}`;
                             <p className="text-xs sm:text-sm text-muted-foreground truncate">
                               {new Date(movement.created_at).toLocaleDateString("es-CL")}
                             </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {isDeposit ? "⏱ Se acredita en minutos tras aprobación" : "⏱ Procesado en 24-48 hrs hábiles"}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">

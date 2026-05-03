@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -104,6 +104,7 @@ const Transaction = () => {
   const [shippingCustomCarrier, setShippingCustomCarrier] = useState("");
   const [joinConfirmDialogOpen, setJoinConfirmDialogOpen] = useState(false);
   const [isUserVerified, setIsUserVerified] = useState<boolean | null>(null);
+  const [reviewTimeLeft, setReviewTimeLeft] = useState<string | null>(null);
 
   const [disputeReason, setDisputeReason] = useState("");
 
@@ -188,6 +189,29 @@ const Transaction = () => {
     };
     loadVerificationStatus();
   }, [user?.id]);
+
+  // Review period countdown timer
+  useEffect(() => {
+    if (transaction?.state !== "awaiting_buyer_review" || !transaction.received_at) return;
+
+    const reviewHours = transaction.sale_type === "producto_envio" ? 72 : 24;
+    const deadline = new Date(transaction.received_at).getTime() + reviewHours * 3600000;
+
+    const update = () => {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) {
+        setReviewTimeLeft("Expirando pronto...");
+        return;
+      }
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      setReviewTimeLeft(h > 0 ? `${h}h ${m}m` : `${m}m`);
+    };
+
+    update();
+    const interval = setInterval(update, 60000);
+    return () => clearInterval(interval);
+  }, [transaction?.state, transaction?.received_at, transaction?.sale_type]);
 
   const loadTransaction = async () => {
     if (!id) return;
@@ -1020,9 +1044,17 @@ const Transaction = () => {
         {isBuyer && transaction.state === "awaiting_buyer_review" && (
           <Card className="border-2 border-warning/30 shadow-xl bg-gradient-to-br from-warning/10 to-warning/5 animate-scale-in">
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Eye className="h-6 w-6 text-warning" />
-                <h4 className="font-bold text-lg">Período de Revisión</h4>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-6 w-6 text-warning" />
+                  <h4 className="font-bold text-lg">Período de Revisión</h4>
+                </div>
+                {reviewTimeLeft && (
+                  <div className="flex items-center gap-1.5 bg-warning/20 text-warning px-3 py-1 rounded-full text-sm font-semibold">
+                    <Clock className="h-4 w-4" />
+                    {reviewTimeLeft}
+                  </div>
+                )}
               </div>
               <p className="text-sm text-muted-foreground">
                 El producto está en tus manos. Revísalo con calma y decide si todo está correcto.
@@ -1056,12 +1088,20 @@ const Transaction = () => {
         {isSeller && transaction.state === "awaiting_buyer_review" && (
           <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
             <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <Eye className="h-6 w-6 text-info" />
-                <h4 className="font-bold text-lg">Comprador Revisando</h4>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-6 w-6 text-info" />
+                  <h4 className="font-bold text-lg">Comprador Revisando</h4>
+                </div>
+                {reviewTimeLeft && (
+                  <div className="flex items-center gap-1.5 bg-info/20 text-info px-3 py-1 rounded-full text-sm font-semibold">
+                    <Clock className="h-4 w-4" />
+                    {reviewTimeLeft}
+                  </div>
+                )}
               </div>
               <p className="text-sm text-muted-foreground">
-                El comprador ha recibido el producto y lo está revisando. Cuando confirme que todo está correcto, recibirás el pago.
+                El comprador está revisando el producto. Si no actúa en el tiempo restante, los fondos se liberarán automáticamente.
               </p>
             </CardContent>
           </Card>
