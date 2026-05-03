@@ -510,20 +510,6 @@ const Auth = () => {
                         console.error("Password reset error:", error);
                         toast.error("Error al enviar email de recuperación: " + error.message);
                       } else {
-                        // Additionally, send our custom branded email
-                        try {
-                          const resetLink = `${window.location.origin}/reset-password`;
-                          await supabase.functions.invoke('send-password-reset-email', {
-                            body: { 
-                              email, 
-                              resetLink,
-                              userName: undefined
-                            }
-                          });
-                        } catch (customEmailError) {
-                          console.log("Custom email sending failed, but Supabase email was sent:", customEmailError);
-                        }
-                        
                         toast.success("Te hemos enviado un email con instrucciones para recuperar tu contraseña", {
                           description: "Revisa tu bandeja de entrada y carpeta de spam.",
                           duration: 6000
@@ -574,15 +560,6 @@ const Auth = () => {
                     </svg>
                     Continuar con Google
                   </Button>
-                  
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-card px-2 text-muted-foreground">O</span>
-                    </div>
-                  </div>
                   
                 </form>
               </TabsContent>
