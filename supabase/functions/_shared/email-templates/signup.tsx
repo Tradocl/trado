@@ -2,6 +2,18 @@
 
 import * as React from 'npm:react@18.3.1'
 
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Link,
+  Preview,
+  Text,
+} from 'npm:@react-email/components@0.0.22'
+
 interface SignupEmailProps {
   siteName: string
   siteUrl: string
@@ -9,59 +21,66 @@ interface SignupEmailProps {
   confirmationUrl: string
 }
 
-export const SignupEmail = ({ confirmationUrl }: SignupEmailProps) => (
-  <html lang="es" dir="ltr">
-    <head>
-      <meta charSet="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Confirma tu email - Trado</title>
-    </head>
-    <body style={{ margin: 0, padding: 0, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", backgroundColor: '#f4f4f5' }}>
-      <table role="presentation" style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <tr>
-          <td align="center" style={{ padding: '40px 20px' }}>
-            <table role="presentation" style={{ width: '100%', maxWidth: '600px', borderCollapse: 'collapse', backgroundColor: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-              <tr>
-                <td style={{ background: 'linear-gradient(135deg, #3340d8 0%, #7147d4 100%)', padding: '40px 30px', borderRadius: '16px 16px 0 0', textAlign: 'center' }}>
-                  <h1 style={{ color: '#ffffff', fontSize: '28px', fontWeight: 700, margin: 0 }}>Trado</h1>
-                  <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px', margin: '8px 0 0 0' }}>Compra y vende con seguridad</p>
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: '40px 30px' }}>
-                  <h2 style={{ color: '#18181b', fontSize: '24px', fontWeight: 600, margin: '0 0 16px 0' }}>Confirma tu email</h2>
-                  <p style={{ color: '#52525b', fontSize: '16px', lineHeight: 1.6, margin: '0 0 24px 0' }}>
-                    ¡Bienvenido a Trado! Para activar tu cuenta y empezar a comprar y vender con seguridad, confirma tu email haciendo clic en el botón:
-                  </p>
-                  <table role="presentation" style={{ width: '100%', borderCollapse: 'collapse', margin: '32px 0' }}>
-                    <tr>
-                      <td align="center">
-                        <a href={confirmationUrl} style={{ display: 'inline-block', background: 'linear-gradient(135deg, #3340d8 0%, #7147d4 100%)', color: '#ffffff', textDecoration: 'none', padding: '16px 40px', borderRadius: '12px', fontSize: '16px', fontWeight: 600 }}>
-                          Confirmar Email
-                        </a>
-                      </td>
-                    </tr>
-                  </table>
-                  <p style={{ color: '#71717a', fontSize: '14px', lineHeight: 1.6, margin: '24px 0 0 0' }}>
-                    Si no creaste una cuenta en Trado, puedes ignorar este correo.
-                  </p>
-                  <div style={{ backgroundColor: '#f4f4f5', borderRadius: '8px', padding: '16px', marginTop: '24px' }}>
-                    <p style={{ color: '#71717a', fontSize: '12px', margin: '0 0 8px 0' }}>Si el botón no funciona, copia este enlace:</p>
-                    <p style={{ color: '#3340d8', fontSize: '12px', wordBreak: 'break-all', margin: 0 }}>{confirmationUrl}</p>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td style={{ backgroundColor: '#fafafa', padding: '24px 30px', borderRadius: '0 0 16px 16px', borderTop: '1px solid #e4e4e7', textAlign: 'center' }}>
-                  <p style={{ color: '#a1a1aa', fontSize: '12px', margin: 0 }}>© 2025 Trado. Todos los derechos reservados.</p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-    </body>
-  </html>
+export const SignupEmail = ({
+  siteName,
+  siteUrl,
+  recipient,
+  confirmationUrl,
+}: SignupEmailProps) => (
+  <Html lang="en" dir="ltr">
+    <Head />
+    <Preview>Confirm your email for {siteName}</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>Confirm your email</Heading>
+        <Text style={text}>
+          Thanks for signing up for{' '}
+          <Link href={siteUrl} style={link}>
+            <strong>{siteName}</strong>
+          </Link>
+          !
+        </Text>
+        <Text style={text}>
+          Please confirm your email address (
+          <Link href={`mailto:${recipient}`} style={link}>
+            {recipient}
+          </Link>
+          ) by clicking the button below:
+        </Text>
+        <Button style={button} href={confirmationUrl}>
+          Verify Email
+        </Button>
+        <Text style={footer}>
+          If you didn't create an account, you can safely ignore this email.
+        </Text>
+      </Container>
+    </Body>
+  </Html>
 )
 
 export default SignupEmail
+
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
+const h1 = {
+  fontSize: '22px',
+  fontWeight: 'bold' as const,
+  color: '#000000',
+  margin: '0 0 20px',
+}
+const text = {
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
+}
+const link = { color: 'inherit', textDecoration: 'underline' }
+const button = {
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  borderRadius: '8px',
+  padding: '12px 20px',
+  textDecoration: 'none',
+}
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
