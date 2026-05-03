@@ -1,0 +1,3 @@
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS received_at timestamptz;
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS pg_net;
