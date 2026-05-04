@@ -26,6 +26,12 @@ const passwordRequirements: PasswordRequirement[] = [
   { label: "Al menos un número", test: (p) => /[0-9]/.test(p) },
 ];
 
+const normalizeEmail = (value: FormDataEntryValue | string | null) =>
+  String(value ?? "").trim().toLowerCase();
+
+const isValidEmailAddress = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+
 const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
   if (!password) return { score: 0, label: "", color: "" };
   
@@ -114,7 +120,7 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
+    const email = normalizeEmail(formData.get("email"));
     const password = formData.get("password") as string;
 
     const { data, error } = await signIn(email, password);
@@ -166,7 +172,7 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
+    const email = normalizeEmail(formData.get("email"));
     const password = signupPassword;
     const fullName = formData.get("fullName") as string;
 
@@ -174,6 +180,13 @@ const Auth = () => {
     setEmailError("");
     setPasswordError("");
     setConfirmPasswordError("");
+
+    if (!isValidEmailAddress(email)) {
+      setEmailError("Ingresa un correo válido, por ejemplo admin@trado.cl");
+      toast.error("Ingresa un correo válido, por ejemplo admin@trado.cl");
+      setLoading(false);
+      return;
+    }
 
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
@@ -224,6 +237,10 @@ const Auth = () => {
       } else if (errorMsg.includes("rate limit") || errorMsg.includes("over_email_send_rate_limit") || (error as any).status === 429) {
         toast.error("Demasiados intentos de registro. Espera unos minutos antes de volver a intentarlo.", { duration: 6000 });
       } else if (errorMsg.includes("invalid") && errorMsg.includes("email")) {
+        if (isValidEmailAddress(email)) {
+          toast.error("No pudimos crear la cuenta con este correo. Intenta nuevamente en unos minutos.", { duration: 6000 });
+          return;
+        }
         setEmailError("Correo electrónico inválido");
         toast.error("El formato del correo electrónico no es válido");
       } else if (errorMsg.includes("password")) {
