@@ -1,0 +1,2 @@
+TRUNCATE TABLE public.appeal_decisions, public.appeal_evidence, public.appeal_messages, public.appeal_mutual_proposals, public.appeal_ratings, public.appeals, public.chat_messages, public.email_send_log, public.email_unsubscribe_tokens, public.meeting_proposals, public.push_subscriptions, public.ratings, public.return_requests, public.suppressed_emails, public.transactions, public.user_roles, public.wallet_movements, public.wallets, public.profiles RESTART IDENTITY CASCADE;
+DELETE FROM auth.users;
