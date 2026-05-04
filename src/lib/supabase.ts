@@ -36,7 +36,7 @@ export const signOut = async () => {
   try {
     const { error } = await supabase.auth.signOut({ scope: "local" });
     return { error };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error during signOut:", error);
     return { error };
   }
