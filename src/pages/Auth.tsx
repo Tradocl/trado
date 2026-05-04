@@ -26,6 +26,21 @@ const passwordRequirements: PasswordRequirement[] = [
   { label: "Al menos un número", test: (p) => /[0-9]/.test(p) },
 ];
 
+const normalizeEmail = (value: FormDataEntryValue | string | null) =>
+  String(value ?? "").trim().toLowerCase();
+
+const isValidEmailAddress = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+
+const getErrorStatus = (error: unknown) => {
+  if (typeof error !== "object" || error === null || !("status" in error)) return undefined;
+  const status = (error as { status?: unknown }).status;
+  return typeof status === "number" ? status : undefined;
+};
+
 const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
   if (!password) return { score: 0, label: "", color: "" };
   
@@ -114,7 +129,7 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
+    const email = normalizeEmail(formData.get("email"));
     const password = formData.get("password") as string;
 
     const { data, error } = await signIn(email, password);
@@ -166,7 +181,7 @@ const Auth = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
+    const email = normalizeEmail(formData.get("email"));
     const password = signupPassword;
     const fullName = formData.get("fullName") as string;
 
@@ -174,6 +189,13 @@ const Auth = () => {
     setEmailError("");
     setPasswordError("");
     setConfirmPasswordError("");
+
+    if (!isValidEmailAddress(email)) {
+      setEmailError("Ingresa un correo válido, por ejemplo admin@trado.cl");
+      toast.error("Ingresa un correo válido, por ejemplo admin@trado.cl");
+      setLoading(false);
+      return;
+    }
 
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
@@ -221,9 +243,13 @@ const Auth = () => {
           description: "Si no recuerdas tu contraseña, usa 'Recuperar contraseña' en Iniciar Sesión.",
           duration: 6000
         });
-      } else if (errorMsg.includes("rate limit") || errorMsg.includes("over_email_send_rate_limit") || (error as any).status === 429) {
+      } else if (errorMsg.includes("rate limit") || errorMsg.includes("over_email_send_rate_limit") || getErrorStatus(error) === 429) {
         toast.error("Demasiados intentos de registro. Espera unos minutos antes de volver a intentarlo.", { duration: 6000 });
       } else if (errorMsg.includes("invalid") && errorMsg.includes("email")) {
+        if (isValidEmailAddress(email)) {
+          toast.error("No pudimos crear la cuenta con este correo. Intenta nuevamente en unos minutos.", { duration: 6000 });
+          return;
+        }
         setEmailError("Correo electrónico inválido");
         toast.error("El formato del correo electrónico no es válido");
       } else if (errorMsg.includes("password")) {
@@ -301,9 +327,10 @@ const Auth = () => {
       const file = dataUrlToFile(photo.dataUrl, `document-${Date.now()}.${photo.format}`);
       setVerificationFile(file);
       setPreviewUrl(photo.dataUrl);
-    } catch (error: any) {
-      if (error?.message !== 'User cancelled photos app') {
-        toast.error("Error al capturar imagen: " + error.message);
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      if (message !== 'User cancelled photos app') {
+        toast.error("Error al capturar imagen: " + message);
       }
     }
   };
@@ -315,9 +342,10 @@ const Auth = () => {
       const file = dataUrlToFile(photo.dataUrl, `selfie-${Date.now()}.${photo.format}`);
       setVerificationSelfie(file);
       setPreviewSelfieUrl(photo.dataUrl);
-    } catch (error: any) {
-      if (error?.message !== 'User cancelled photos app') {
-        toast.error("Error al capturar selfie: " + error.message);
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      if (message !== 'User cancelled photos app') {
+        toast.error("Error al capturar selfie: " + message);
       }
     }
   };
@@ -399,9 +427,9 @@ const Auth = () => {
       setShowVerificationDialog(false);
       sessionStorage.removeItem('blockRedirectAfterSignup');
       navigate("/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error uploading document:", error);
-      toast.error("Error al subir el documento: " + error.message);
+      toast.error("Error al subir el documento: " + getErrorMessage(error));
     } finally {
       setUploadingDoc(false);
     }
