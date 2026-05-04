@@ -5,8 +5,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { UserRatings } from "@/components/UserRatings";
-import { ArrowLeft, Star, ShieldCheck, AlertTriangle, Package } from "lucide-react";
+import { TradoLogo } from "@/components/TradoLogo";
+import { ArrowLeft, Star, ShieldCheck, AlertTriangle, Package, Share2, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface PublicProfile {
   id: string;
@@ -42,6 +45,16 @@ const PublicProfile = () => {
     load();
   }, [userId]);
 
+  const handleShare = () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: `Perfil de ${profile?.full_name} en Trado`, url });
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Enlace copiado al portapapeles");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -69,78 +82,164 @@ const PublicProfile = () => {
     .slice(0, 2) || "?";
 
   const reputationStars = Math.round(profile.reputation_score ?? 0);
+  const reputationLabel =
+    (profile.reputation_score ?? 0) >= 4.5 ? "Excelente" :
+    (profile.reputation_score ?? 0) >= 3.5 ? "Muy bueno" :
+    (profile.reputation_score ?? 0) >= 2.5 ? "Bueno" :
+    (profile.reputation_score ?? 0) >= 1.5 ? "Regular" : "Nuevo";
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-lg mx-auto px-4 py-6">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Volver
-        </Button>
+      {/* Hero gradient banner */}
+      <div className="relative h-36 bg-gradient-to-br from-[#3340d8] via-[#4a3fd6] to-[#7147d4] overflow-hidden">
+        {/* Decorative circles */}
+        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
+        <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-white/5" />
+        <div className="absolute top-4 right-16 w-20 h-20 rounded-full bg-white/5" />
 
-        <Card className="mb-4">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-primary/20">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+        {/* Top nav */}
+        <div className="relative z-10 flex items-center justify-between px-4 pt-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="text-white/80 hover:text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="mr-1.5 h-4 w-4" /> Volver
+          </Button>
+          <div className="flex items-center gap-1.5">
+            <TradoLogo size={22} id="pub" />
+            <span className="text-white font-semibold text-sm">Trado</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleShare}
+            className="text-white/80 hover:text-white hover:bg-white/10"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl font-bold truncate">{profile.full_name}</h1>
-                  {profile.is_verified ? (
-                    <Badge className="bg-success/10 text-success border-success/30 text-xs" variant="outline">
-                      <ShieldCheck className="h-3 w-3 mr-1" />
-                      Verificado
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-warning/10 text-warning border-warning/30 text-xs" variant="outline">
-                      <AlertTriangle className="h-3 w-3 mr-1" />
-                      Sin verificar
-                    </Badge>
-                  )}
-                </div>
-                {profile.nickname && (
-                  <p className="text-sm text-muted-foreground">@{profile.nickname}</p>
-                )}
-              </div>
+      {/* Avatar — overlaps banner */}
+      <div className="max-w-lg mx-auto px-4">
+        <div className="-mt-12 mb-4 flex items-end justify-between">
+          <Avatar className="h-24 w-24 border-4 border-background shadow-xl ring-2 ring-primary/20">
+            <AvatarImage src={profile.avatar_url || undefined} />
+            <AvatarFallback className="bg-gradient-to-br from-primary to-[#7147d4] text-white font-bold text-2xl">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          {profile.is_verified && (
+            <div className="mb-2 flex items-center gap-1.5 bg-success/10 border border-success/30 text-success text-xs font-medium px-3 py-1.5 rounded-full">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Verificado
             </div>
+          )}
+        </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-6">
-              <div className="bg-muted/50 rounded-lg p-3 text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star
-                      key={s}
-                      className={`h-4 w-4 ${s <= reputationStars ? "text-warning fill-warning" : "text-muted-foreground"}`}
-                    />
-                  ))}
-                </div>
-                <p className="text-lg font-bold">{(profile.reputation_score ?? 0).toFixed(1)}</p>
-                <p className="text-xs text-muted-foreground">Reputación</p>
+        {/* Name & nickname */}
+        <div className="mb-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-bold">{profile.full_name}</h1>
+            {!profile.is_verified && (
+              <Badge className="bg-warning/10 text-warning border-warning/30 text-xs" variant="outline">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Sin verificar
+              </Badge>
+            )}
+          </div>
+          {profile.nickname && (
+            <p className="text-sm text-muted-foreground mt-0.5">@{profile.nickname}</p>
+          )}
+        </div>
+
+        {/* Stars inline */}
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex items-center gap-0.5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star
+                key={s}
+                className={`h-4 w-4 ${s <= reputationStars ? "text-warning fill-warning" : "text-muted-foreground/30"}`}
+              />
+            ))}
+          </div>
+          <span className="text-sm font-semibold">{(profile.reputation_score ?? 0).toFixed(1)}</span>
+          <span className="text-sm text-muted-foreground">· {reputationLabel}</span>
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <Card className="border-border/60">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Package className="h-5 w-5 text-primary" />
               </div>
+              <div>
+                <p className="text-2xl font-bold leading-none">{profile.total_transactions ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Transacciones</p>
+              </div>
+            </CardContent>
+          </Card>
 
-              <div className="bg-muted/50 rounded-lg p-3 text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <Package className="h-5 w-5 text-primary" />
-                </div>
-                <p className="text-lg font-bold">{profile.total_transactions ?? 0}</p>
-                <p className="text-xs text-muted-foreground">Transacciones</p>
+          <Card className="border-border/60">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
+                <Star className="h-5 w-5 text-warning fill-warning" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold leading-none">{(profile.reputation_score ?? 0).toFixed(1)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Reputación</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Trust section */}
+        <Card className="mb-5 border-border/60">
+          <CardContent className="p-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Confianza y seguridad</p>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${profile.is_verified ? "bg-success" : "bg-muted-foreground/40"}`} />
+                <span className={`text-sm ${profile.is_verified ? "text-foreground" : "text-muted-foreground"}`}>
+                  Identidad verificada
+                </span>
+                {profile.is_verified && <ShieldCheck className="h-3.5 w-3.5 text-success ml-auto" />}
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${(profile.total_transactions ?? 0) > 0 ? "bg-success" : "bg-muted-foreground/40"}`} />
+                <span className={`text-sm ${(profile.total_transactions ?? 0) > 0 ? "text-foreground" : "text-muted-foreground"}`}>
+                  Historial de transacciones
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${(profile.reputation_score ?? 0) >= 4 ? "bg-success" : "bg-muted-foreground/40"}`} />
+                <span className={`text-sm ${(profile.reputation_score ?? 0) >= 4 ? "text-foreground" : "text-muted-foreground"}`}>
+                  Reputación alta (≥ 4.0)
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
+        {/* Ratings */}
+        <Card className="mb-8 border-border/60">
+          <CardHeader className="pb-2">
             <CardTitle className="text-base">Calificaciones recibidas</CardTitle>
           </CardHeader>
-          <CardContent>
+          <Separator />
+          <CardContent className="pt-3">
             <UserRatings userId={profile.id} maxRatings={10} />
           </CardContent>
         </Card>
+
+        {/* Footer brand */}
+        <div className="flex items-center justify-center gap-2 pb-8 text-muted-foreground/50">
+          <TradoLogo size={16} id="pub2" />
+          <span className="text-xs">Perfil verificado por Trado</span>
+        </div>
       </div>
     </div>
   );
