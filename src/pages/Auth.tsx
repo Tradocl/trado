@@ -221,7 +221,9 @@ const Auth = () => {
           description: "Si no recuerdas tu contraseña, usa 'Recuperar contraseña' en Iniciar Sesión.",
           duration: 6000
         });
-      } else if (errorMsg.includes("email") || (errorMsg.includes("invalid") && errorMsg.includes("email"))) {
+      } else if (errorMsg.includes("rate limit") || errorMsg.includes("over_email_send_rate_limit") || (error as any).status === 429) {
+        toast.error("Demasiados intentos de registro. Espera unos minutos antes de volver a intentarlo.", { duration: 6000 });
+      } else if (errorMsg.includes("invalid") && errorMsg.includes("email")) {
         setEmailError("Correo electrónico inválido");
         toast.error("El formato del correo electrónico no es válido");
       } else if (errorMsg.includes("password")) {
