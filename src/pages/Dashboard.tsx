@@ -280,25 +280,23 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
+    <div className="app-shell">
       {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Logo height={36} />
-          </div>
+      <header className="app-header">
+        <div className="app-container !py-3 md:!py-4 flex justify-between items-center">
+          <Logo height={32} />
           <div className="flex gap-1 sm:gap-2">
-            <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/profile")}>
+            <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/profile")}>
               <User className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Perfil</span>
             </Button>
             {isAdmin && (
-              <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/admin")}>
+              <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/admin")}>
                 <Settings className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Admin</span>
               </Button>
             )}
-            <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={handleSignOut}>
+            <Button variant="ghost" size="sm" className="px-2 sm:px-3 text-muted-foreground" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Salir</span>
             </Button>
@@ -306,7 +304,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
+      <main className="app-container space-y-5 md:space-y-7">
         <PushNotificationBanner />
         {/* Welcome Card */}
         <Card 
