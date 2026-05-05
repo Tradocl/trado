@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield, Database, Eye, Lock, Share2, UserCheck, Bell, Trash2, Mail } from "lucide-react";
-import { LogoIcon } from "@/components/Logo";
+import { Logo } from "@/components/Logo";
 
 const Privacy = () => {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const Privacy = () => {
           </Button>
           
           <div className="flex items-center gap-4 mb-4">
-            <LogoIcon size={48} />
+            <Logo variant="white" height={48} />
             <h1 className="text-3xl md:text-4xl font-bold text-white">
               Política de Privacidad
             </h1>

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Shield, Users, ArrowRight, Star, Quote, CheckCircle, Clock, Lock, Package, Handshake, ChevronDown } from "lucide-react";
-import { Logo, LogoIcon } from "@/components/Logo";
+import { Logo } from "@/components/Logo";
 import { Capacitor } from "@capacitor/core";
 
 // If the landing receives a Supabase auth hash (email verification redirect),
@@ -121,7 +121,7 @@ const AppLanding = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info px-8">
       <div className="flex flex-col items-center gap-8 w-full max-w-sm">
-        <LogoIcon size={88} />
+        <Logo height={56} />
         <div className="text-center text-white space-y-3">
           <h1 className="text-4xl font-bold tracking-tight">Trado</h1>
           <p className="text-white/80 text-lg">Opera con total seguridad</p>

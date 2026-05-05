@@ -18,7 +18,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { LogoIcon } from "@/components/Logo";
+import { Logo } from "@/components/Logo";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 
 interface PasswordRequirement {
@@ -581,7 +581,7 @@ const Profile = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 sm:gap-3">
-            <LogoIcon size={36} />
+            <Logo height={32} />
             <h1 className="text-lg sm:text-2xl font-bold">Mi Perfil</h1>
           </div>
           <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { UserRatings } from "@/components/UserRatings";
-import { Logo, LogoIcon } from "@/components/Logo";
+import { Logo } from "@/components/Logo";
 import { ArrowLeft, Star, ShieldCheck, AlertTriangle, Package, Share2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -236,7 +236,7 @@ const PublicProfile = () => {
 
         {/* Footer brand */}
         <div className="flex items-center justify-center gap-2 pb-8 text-muted-foreground/50">
-          <LogoIcon size={16} />
+          <Logo height={20} />
           <span className="text-xs">Perfil verificado por Trado</span>
         </div>
       </div>

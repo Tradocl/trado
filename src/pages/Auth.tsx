@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { LogoIcon } from "@/components/Logo";
+import { Logo } from "@/components/Logo";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 
 interface PasswordRequirement {
@@ -439,7 +439,7 @@ const Auth = () => {
               Inicio
             </Button>
             <div className="flex justify-center mb-4">
-              <LogoIcon size={96} />
+              <Logo height={56} />
             </div>
             <CardDescription className="text-base">
               Negocia seguro, sin riesgos

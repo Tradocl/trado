@@ -1,17 +1,16 @@
 import sharp from "sharp";
 
-const svg = `<svg width="512" height="512" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+const svg = `<svg width="512" height="512" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#3340d8" />
-      <stop offset="100%" stop-color="#7147d4" />
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1F25C1" />
+      <stop offset="100%" stop-color="#7B46D8" />
     </linearGradient>
   </defs>
-  <rect width="40" height="40" rx="10" fill="url(#bg)" />
-  <path d="M20 7 L32 12 V22 C32 29.5 20 35 20 35 C20 35 8 29.5 8 22 V12 Z"
-    fill="white" fill-opacity="0.15" stroke="white" stroke-opacity="0.45" stroke-width="1.5" />
-  <path d="M13.5 21 L18.5 26.5 L27.5 15"
-    stroke="#0fba7c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  <rect width="64" height="64" rx="14" fill="url(#bg)" />
+  <text x="32" y="46" text-anchor="middle"
+    font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif"
+    font-size="42" font-weight="600" letter-spacing="-1.5" fill="#FFFFFF">t</text>
 </svg>`;
 
 const buf = Buffer.from(svg);
