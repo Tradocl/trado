@@ -179,15 +179,16 @@ ${companyBankDetails.email}`;
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number, rut")
+        .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number, rut, full_name")
         .eq("id", user.id)
         .single();
 
       if (error) throw error;
 
       if (data) {
-        setBankHolderName(data.bank_holder_name || "");
-        setBankHolderRut(data.bank_holder_rut || "");
+        // Force holder name and RUT to match profile owner — no overrides allowed
+        setBankHolderName(data.full_name || data.bank_holder_name || "");
+        setBankHolderRut(data.rut || data.bank_holder_rut || "");
         setBankName(data.bank_name || "");
         setBankAccountType(data.bank_account_type || "");
         setBankAccountNumber(data.bank_account_number || "");
