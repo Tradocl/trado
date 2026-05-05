@@ -1553,100 +1553,72 @@ const Transaction = () => {
               </div>
             </div>
             
-            {/* Current Status Progress Indicator */}
+            {/* Current Status Progress Indicator + collapsible timeline */}
             {joinerProfile && !['completed', 'cancelled', 'in_dispute'].includes(transaction.state) && !isAppealResolved && (
-              <div className="mt-4 p-4 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border border-success/30">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-success/20 rounded-full">
-                    {transaction.state === 'invited' && <DollarSign className="h-5 w-5 text-success" />}
-                    {transaction.state === 'funds_secured' && <Shield className="h-5 w-5 text-success" />}
-                    {transaction.state === 'in_delivery' && <Truck className="h-5 w-5 text-success" />}
-                    {transaction.state === 'awaiting_buyer_review' && <Eye className="h-5 w-5 text-success" />}
-                    {['return_requested', 'return_in_progress'].includes(transaction.state) && <Package className="h-5 w-5 text-warning" />}
-                    {!['invited', 'funds_secured', 'in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state) && <Check className="h-5 w-5 text-success" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-success">
-                      {transaction.state === 'invited' && `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}`}
-                      {transaction.state === 'funds_secured' && '✅ Fondos asegurados en escrow'}
-                      {transaction.state === 'in_delivery' && `📦 ${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : 'Producto en camino'}`}
-                      {transaction.state === 'awaiting_buyer_review' && '👁️ Período de revisión activo'}
-                      {transaction.state === 'return_requested' && '📦 Devolución solicitada'}
-                      {transaction.state === 'return_in_progress' && '📦 Devolución en progreso'}
-                      {transaction.state === 'created' && `✅ ${joinerRoleLabel} se ha unido`}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {transaction.state === 'invited' && `${joinerProfile?.full_name} se ha unido, falta depositar`}
-                      {transaction.state === 'funds_secured' && (
-                        transaction.sale_type === 'servicio' 
-                          ? `El proveedor debe confirmar que realizó el servicio`
-                          : transaction.sale_type === 'producto_persona'
-                          ? `Coordinen punto de encuentro para la entrega`
-                          : `El vendedor debe marcar el producto como enviado`
-                      )}
-                      {transaction.state === 'in_delivery' && `${buyerLabel} debe confirmar la recepción`}
-                      {transaction.state === 'awaiting_buyer_review' && `${buyerLabel} está revisando el producto`}
-                      {transaction.state === 'return_requested' && `Esperando respuesta del ${sellerLabel.toLowerCase()}`}
-                      {transaction.state === 'return_in_progress' && `Devolución en tránsito`}
-                       {transaction.state === 'created' && joinerProfile?.full_name}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Tracking info shown inline when product is in delivery */}
-                {transaction.state === 'in_delivery' &&
-                  transaction.sale_type === 'producto_envio' &&
-                  transaction.tracking_number &&
-                  transaction.carrier && (
-                    <div className="mt-3">
-                      <TrackingPanel
-                        trackingNumber={transaction.tracking_number}
-                        carrier={transaction.carrier}
-                      />
+              <Collapsible open={progressOpen} onOpenChange={setProgressOpen} className="mt-4">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    aria-expanded={progressOpen}
+                    className="w-full text-left p-4 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border border-success/30 hover:from-success/25 hover:to-success/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-success/20 rounded-full">
+                        {transaction.state === 'invited' && <DollarSign className="h-5 w-5 text-success" />}
+                        {transaction.state === 'funds_secured' && <Shield className="h-5 w-5 text-success" />}
+                        {transaction.state === 'in_delivery' && <Truck className="h-5 w-5 text-success" />}
+                        {transaction.state === 'awaiting_buyer_review' && <Eye className="h-5 w-5 text-success" />}
+                        {['return_requested', 'return_in_progress'].includes(transaction.state) && <Package className="h-5 w-5 text-warning" />}
+                        {!['invited', 'funds_secured', 'in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state) && <Check className="h-5 w-5 text-success" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-success">
+                          {transaction.state === 'invited' && `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}`}
+                          {transaction.state === 'funds_secured' && '✅ Fondos asegurados en escrow'}
+                          {transaction.state === 'in_delivery' && `📦 ${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : 'Producto en camino'}`}
+                          {transaction.state === 'awaiting_buyer_review' && '👁️ Período de revisión activo'}
+                          {transaction.state === 'return_requested' && '📦 Devolución solicitada'}
+                          {transaction.state === 'return_in_progress' && '📦 Devolución en progreso'}
+                          {transaction.state === 'created' && `✅ ${joinerRoleLabel} se ha unido`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {transaction.state === 'invited' && `${joinerProfile?.full_name} se ha unido, falta depositar`}
+                          {transaction.state === 'funds_secured' && (
+                            transaction.sale_type === 'servicio'
+                              ? `El proveedor debe confirmar que realizó el servicio`
+                              : transaction.sale_type === 'producto_persona'
+                              ? `Coordinen punto de encuentro para la entrega`
+                              : `El vendedor debe marcar el producto como enviado`
+                          )}
+                          {transaction.state === 'in_delivery' && `${buyerLabel} debe confirmar la recepción`}
+                          {transaction.state === 'awaiting_buyer_review' && `${buyerLabel} está revisando el producto`}
+                          {transaction.state === 'return_requested' && `Esperando respuesta del ${sellerLabel.toLowerCase()}`}
+                          {transaction.state === 'return_in_progress' && `Devolución en tránsito`}
+                          {transaction.state === 'created' && joinerProfile?.full_name}
+                        </p>
+                        <p className="text-xs text-success/80 mt-1 font-medium">
+                          {progressOpen ? 'Ocultar progreso' : 'Ver progreso completo'}
+                        </p>
+                      </div>
+                      <ChevronDown className={`h-5 w-5 text-success flex-shrink-0 transition-transform ${progressOpen ? 'rotate-180' : ''}`} />
                     </div>
-                  )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* === SECTION 4a: CHAT (prominent, drives conversation) === */}
-        {transaction.buyer_id && (
-          <TransactionChat
-            transactionId={transaction.id}
-            sellerId={transaction.seller_id}
-            sellerName={sellerProfile?.full_name || "Vendedor"}
-            buyerId={transaction.buyer_id || undefined}
-            buyerName={buyerProfile?.full_name}
-          />
-        )}
-
-        {/* === SECTION 4: PROGRESS TIMELINE (collapsible) === */}
-        <Collapsible open={progressOpen} onOpenChange={setProgressOpen} asChild>
-          <Card className="border-2 border-primary/10 shadow-lg">
-            <CollapsibleTrigger asChild>
-              <button
-                type="button"
-                className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors rounded-t-lg"
-                aria-expanded={progressOpen}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                    <Package className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-sm sm:text-base">Progreso de la Transacción</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      Estado actual: <span className="font-medium text-foreground">{stateLabels[transaction.state]?.label || transaction.state}</span>
-                    </p>
-                  </div>
-                </div>
-                <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${progressOpen ? 'rotate-180' : ''}`} />
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 border-t border-border/60">
-            
+                    {/* Tracking info shown inline when product is in delivery */}
+                    {transaction.state === 'in_delivery' &&
+                      transaction.sale_type === 'producto_envio' &&
+                      transaction.tracking_number &&
+                      transaction.carrier && (
+                        <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                          <TrackingPanel
+                            trackingNumber={transaction.tracking_number}
+                            carrier={transaction.carrier}
+                          />
+                        </div>
+                      )}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-3 p-4 bg-muted/30 rounded-xl border border-border/60">
             {/* Service timeline */}
             {transaction.sale_type === 'servicio' && (
               <div className="space-y-3 sm:space-y-4">
@@ -2052,10 +2024,23 @@ const Transaction = () => {
                 </div>
               </div>
             )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
+        </Card>
+
+        {/* === SECTION 4a: CHAT (prominent, drives conversation) === */}
+        {transaction.buyer_id && (
+          <TransactionChat
+            transactionId={transaction.id}
+            sellerId={transaction.seller_id}
+            sellerName={sellerProfile?.full_name || "Vendedor"}
+            buyerId={transaction.buyer_id || undefined}
+            buyerName={buyerProfile?.full_name}
+          />
+        )}
 
 
         {/* Create Appeal Button */}
