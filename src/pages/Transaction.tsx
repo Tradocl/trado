@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle, Clock } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle, Clock, ChevronDown, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -25,6 +25,7 @@ import { TrackingPanel, CARRIER_LABELS } from "@/components/TrackingPanel";
 import { formatCLP } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { checkTransactionLimits, getUserVerificationStatus, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import confetti from "canvas-confetti";
 
@@ -105,6 +106,7 @@ const Transaction = () => {
   const [joinConfirmDialogOpen, setJoinConfirmDialogOpen] = useState(false);
   const [isUserVerified, setIsUserVerified] = useState<boolean | null>(null);
   const [reviewTimeLeft, setReviewTimeLeft] = useState<string | null>(null);
+  const [progressOpen, setProgressOpen] = useState(false);
 
   const [disputeReason, setDisputeReason] = useState("");
 
@@ -1595,13 +1597,42 @@ const Transaction = () => {
           </CardContent>
         </Card>
 
-        {/* === SECTION 4: PROGRESS TIMELINE === */}
-        <Card className="border-2 border-primary/10 shadow-lg">
-          <CardContent className="p-4 sm:p-6">
-            <h4 className="font-bold text-lg sm:text-xl mb-4 flex items-center gap-2">
-              <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              Progreso de la Transacción
-            </h4>
+        {/* === SECTION 4a: CHAT (prominent, drives conversation) === */}
+        {transaction.buyer_id && (
+          <TransactionChat
+            transactionId={transaction.id}
+            sellerId={transaction.seller_id}
+            sellerName={sellerProfile?.full_name || "Vendedor"}
+            buyerId={transaction.buyer_id || undefined}
+            buyerName={buyerProfile?.full_name}
+          />
+        )}
+
+        {/* === SECTION 4: PROGRESS TIMELINE (collapsible) === */}
+        <Collapsible open={progressOpen} onOpenChange={setProgressOpen} asChild>
+          <Card className="border-2 border-primary/10 shadow-lg">
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors rounded-t-lg"
+                aria-expanded={progressOpen}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                    <Package className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Progreso de la Transacción</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                      Estado actual: <span className="font-medium text-foreground">{stateLabels[transaction.state]?.label || transaction.state}</span>
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${progressOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 border-t border-border/60">
             
             {/* Service timeline */}
             {transaction.sale_type === 'servicio' && (
@@ -2009,18 +2040,10 @@ const Transaction = () => {
               </div>
             )}
           </CardContent>
-        </Card>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
-        {/* === SECTION 5: CHAT (PROMINENT) === */}
-        {transaction.buyer_id && (
-          <TransactionChat
-            transactionId={transaction.id}
-            sellerId={transaction.seller_id}
-            sellerName={sellerProfile?.full_name || "Vendedor"}
-            buyerId={transaction.buyer_id || undefined}
-            buyerName={buyerProfile?.full_name}
-          />
-        )}
 
         {/* Create Appeal Button */}
         {!activeAppeal && transaction && ["funds_secured", "in_delivery", "awaiting_buyer_review", "return_requested", "return_in_progress"].includes(transaction.state) && (
