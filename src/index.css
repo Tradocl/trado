@@ -8,6 +8,9 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Bottom nav height — used by MobileBottomNav and the spacer for consistent layout */
+    --bottom-nav-h: 4rem;
+
     /* Fintech color system - Professional & Trustworthy */
     --background: 0 0% 100%;
     --foreground: 220 20% 10%;
