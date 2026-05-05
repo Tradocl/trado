@@ -1619,7 +1619,7 @@ const Transaction = () => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="mt-3 p-4 bg-muted/30 rounded-xl border border-border/60">
-                    {renderProgressTimeline()}
+                    {/* TIMELINE_CONTENT_PLACEHOLDER */}
                   </div>
                 </CollapsibleContent>
               </Collapsible>
