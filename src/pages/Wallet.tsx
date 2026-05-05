@@ -725,12 +725,12 @@ ${companyBankDetails.email}`;
                   return (
                     <div
                       key={movement.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
+                      className={`flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
                         isEscrowPending ? "border-warning/50 bg-warning/5" : ""
                       }`}
                     >
-                      <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-full ${iconBgClass}`}>
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className={`p-2 rounded-full flex-shrink-0 ${iconBgClass}`}>
                           {isEscrowPending ? (
                             <Clock className="h-5 w-5" />
                           ) : isDeposit ? (
@@ -739,9 +739,9 @@ ${companyBankDetails.email}`;
                             <ArrowUpRight className="h-5 w-5" />
                           )}
                         </div>
-                        <div>
-                          <p className="font-medium">{getShortDescription(movement)}</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm sm:text-base truncate">{getShortDescription(movement)}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             {new Date(movement.created_at).toLocaleDateString("es-CL")}
                           </p>
                           {isEscrowPending && (
@@ -749,11 +749,11 @@ ${companyBankDetails.email}`;
                           )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className={`text-lg font-bold ${textColorClass}`}>
+                      <div className="text-right flex-shrink-0">
+                        <p className={`text-base sm:text-lg font-bold whitespace-nowrap ${textColorClass}`}>
                           {amountPrefix}${formatCLP(Math.abs(movement.amount))}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground whitespace-nowrap">
                           {isEscrowPending ? "En transacción" : `Saldo: $${formatCLP(movement.balance_after)}`}
                         </p>
                       </div>
