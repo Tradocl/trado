@@ -697,11 +697,11 @@ const Dashboard = () => {
         </div>
 
         {/* Wallet Card */}
-        <Card className="border-0 shadow-xl overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
-          <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-primary/10 py-3 sm:py-6">
-            <CardTitle className="flex items-center gap-2 sm:gap-3 text-base sm:text-lg">
-              <div className="p-2 sm:p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg sm:rounded-xl shadow-sm">
-                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+        <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
+          <CardHeader className="border-b border-border/60 py-4 sm:py-5">
+            <CardTitle className="flex items-center gap-2 sm:gap-3 text-base">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Wallet className="h-5 w-5 text-primary" />
               </div>
               Mi Billetera
             </CardTitle>
