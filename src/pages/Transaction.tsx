@@ -1597,13 +1597,31 @@ const Transaction = () => {
           </CardContent>
         </Card>
 
-        {/* === SECTION 4: PROGRESS TIMELINE === */}
-        <Card className="border-2 border-primary/10 shadow-lg">
-          <CardContent className="p-4 sm:p-6">
-            <h4 className="font-bold text-lg sm:text-xl mb-4 flex items-center gap-2">
-              <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              Progreso de la Transacción
-            </h4>
+        {/* === SECTION 4: PROGRESS TIMELINE (collapsible) === */}
+        <Collapsible open={progressOpen} onOpenChange={setProgressOpen} asChild>
+          <Card className="border-2 border-primary/10 shadow-lg">
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors rounded-t-lg"
+                aria-expanded={progressOpen}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                    <Package className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Progreso de la Transacción</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                      Estado actual: <span className="font-medium text-foreground">{stateLabels[transaction.state]?.label || transaction.state}</span>
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${progressOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 border-t border-border/60">
             
             {/* Service timeline */}
             {transaction.sale_type === 'servicio' && (
