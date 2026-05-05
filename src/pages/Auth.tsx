@@ -428,22 +428,24 @@ const Auth = () => {
     <>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info p-4">
         <Card className="w-full max-w-md shadow-2xl border-0 relative">
-          <CardHeader className="text-center space-y-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/")}
-              className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Inicio
-            </Button>
-            <div className="flex justify-center mb-4">
-              <Logo height={56} />
+          <CardHeader className="space-y-3 pt-4">
+            <div className="flex items-center justify-start">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/")}
+                className="-ml-2 h-8 px-2 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Inicio
+              </Button>
             </div>
-            <CardDescription className="text-base">
-              Negocia seguro, sin riesgos
-            </CardDescription>
+            <div className="flex flex-col items-center text-center space-y-2">
+              <Logo height={56} />
+              <CardDescription className="text-base">
+                Negocia seguro, sin riesgos
+              </CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
