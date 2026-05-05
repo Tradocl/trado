@@ -117,6 +117,17 @@ const Dashboard = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Auto-open complete profile modal when redirected with ?completeProfile=1
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("completeProfile") === "1" && user) {
+      setShowCompleteProfileModal(true);
+      params.delete("completeProfile");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params}` : "");
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, [user]);
+
   // Realtime subscription for transactions
   useEffect(() => {
     if (!user) return;
