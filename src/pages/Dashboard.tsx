@@ -487,28 +487,27 @@ const Dashboard = () => {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold truncate">{transaction.product_name}</h4>
-                              {/* Show appeal status if active, otherwise show transaction state */}
-                              {transaction.appeal_status && appealStatusLabels[transaction.appeal_status] ? (
-                                <Badge className={`${appealStatusLabels[transaction.appeal_status].color} text-xs`}>
-                                  {appealStatusLabels[transaction.appeal_status].label}
-                                </Badge>
-                              ) : (
-                                <Badge className={`${stateLabels[transaction.state]?.color || "bg-gray-500"} text-xs`}>
-                                  {stateLabels[transaction.state]?.label || transaction.state}
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
+                            <h4 className="font-semibold truncate text-sm sm:text-base mb-1">
+                              {transaction.product_name}
+                            </h4>
+                            <div className="flex items-center flex-wrap gap-2 text-sm">
                               <span className="font-semibold text-foreground">${formatCLP(transaction.amount)}</span>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              <span className={`text-[11px] px-2 py-0.5 rounded-full ${
                                 isRealSeller
-                                  ? 'bg-emerald-500/10 text-emerald-600' 
+                                  ? 'bg-emerald-500/10 text-emerald-600'
                                   : 'bg-info/10 text-info'
                               }`}>
                                 {isRealSeller ? "Vendiendo" : "Comprando"}
                               </span>
+                              {transaction.appeal_status && appealStatusLabels[transaction.appeal_status] ? (
+                                <Badge className={`${appealStatusLabels[transaction.appeal_status].color} text-[11px]`}>
+                                  {appealStatusLabels[transaction.appeal_status].label}
+                                </Badge>
+                              ) : (
+                                <Badge className={`${stateLabels[transaction.state]?.color || "bg-gray-500"} text-[11px]`}>
+                                  {stateLabels[transaction.state]?.label || transaction.state}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </div>
