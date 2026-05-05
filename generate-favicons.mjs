@@ -8,9 +8,10 @@ const svg = `<svg width="512" height="512" viewBox="0 0 64 64" fill="none" xmlns
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="14" fill="url(#bg)" />
-  <text x="32" y="46" text-anchor="middle"
+  <text x="29" y="46" text-anchor="middle"
     font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif"
     font-size="42" font-weight="600" letter-spacing="-1.5" fill="#FFFFFF">t</text>
+  <circle cx="49" cy="43" r="4.5" fill="#FFFFFF"/>
 </svg>`;
 
 const buf = Buffer.from(svg);

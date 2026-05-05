@@ -1,10 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 56" width="200" height="56" role="img" aria-label="Trado">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Trado">
   <title>Trado</title>
   <defs>
-    <linearGradient id="trado-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+    <linearGradient id="trado-icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#1F25C1"/>
       <stop offset="100%" stop-color="#7B46D8"/>
     </linearGradient>
   </defs>
-  <text x="0" y="44" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="56" font-weight="600" letter-spacing="-2.5" fill="url(#trado-gradient)">trado</text>
+  <rect x="0" y="0" width="64" height="64" rx="14" fill="url(#trado-icon-gradient)"/>
+  <text x="29" y="46" text-anchor="middle" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="42" font-weight="600" letter-spacing="-1.5" fill="#FFFFFF">t</text>
+  <circle cx="49" cy="43" r="4.5" fill="#FFFFFF"/>
 </svg>
