@@ -668,18 +668,20 @@ ${companyBankDetails.email}`;
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="min-w-0">
                 <CardTitle>Movimientos Recientes</CardTitle>
                 <CardDescription>Historial de movimientos aprobados</CardDescription>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
+                className="w-full sm:w-auto justify-center"
                 onClick={() => navigate("/movement-history")}
               >
                 <History className="mr-2 h-4 w-4" />
-                Ver Historial Completo
+                <span className="sm:hidden">Ver historial</span>
+                <span className="hidden sm:inline">Ver Historial Completo</span>
               </Button>
             </div>
           </CardHeader>
