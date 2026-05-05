@@ -545,6 +545,9 @@ const WebLanding = () => {
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
-const Index = () => Capacitor.isNativePlatform() ? <AppLanding /> : <WebLanding />;
+const Index = () => {
+  useAuthHashRedirect();
+  return Capacitor.isNativePlatform() ? <AppLanding /> : <WebLanding />;
+};
 
 export default Index;
