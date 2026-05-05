@@ -1597,6 +1597,23 @@ const Transaction = () => {
           </CardContent>
         </Card>
 
+        {/* === SECTION 4a: CHAT (prominent, drives conversation) === */}
+        {transaction.buyer_id && (
+          <Card className="border-2 border-primary/20 shadow-lg overflow-hidden">
+            <div className="px-4 sm:px-5 py-3 border-b border-border/60 bg-primary/5 flex items-center gap-2">
+              <MessageCircle className="h-4 w-4 text-primary" />
+              <p className="font-semibold text-sm">Conversación de la transacción</p>
+            </div>
+            <TransactionChat
+              transactionId={transaction.id}
+              sellerId={transaction.seller_id}
+              sellerName={sellerProfile?.full_name || "Vendedor"}
+              buyerId={transaction.buyer_id || undefined}
+              buyerName={buyerProfile?.full_name}
+            />
+          </Card>
+        )}
+
         {/* === SECTION 4: PROGRESS TIMELINE (collapsible) === */}
         <Collapsible open={progressOpen} onOpenChange={setProgressOpen} asChild>
           <Card className="border-2 border-primary/10 shadow-lg">
