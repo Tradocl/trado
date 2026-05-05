@@ -2193,7 +2193,7 @@ const Transaction = () => {
 
       {/* Deposit Confirmation Dialog */}
       <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
-        <DialogContent className="overflow-hidden">
+        <DialogContent className="sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-success/10 rounded-full blur-xl animate-pulse" />
@@ -2275,7 +2275,7 @@ const Transaction = () => {
 
       {/* Dispute Dialog */}
       <Dialog open={disputeDialogOpen} onOpenChange={setDisputeDialogOpen}>
-        <DialogContent className="overflow-hidden">
+        <DialogContent className="sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-destructive/10 rounded-full blur-xl animate-pulse" />
@@ -2361,7 +2361,7 @@ const Transaction = () => {
 
       {/* Shipping Dialog - for producto_envio */}
       <Dialog open={shippingDialogOpen} onOpenChange={setShippingDialogOpen}>
-        <DialogContent className="overflow-hidden">
+        <DialogContent className="sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-info/10 rounded-full blur-xl animate-pulse" />

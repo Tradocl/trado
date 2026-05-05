@@ -82,7 +82,7 @@ export function AppealRatingDialog({ appealId, userId, isResolved }: AppealRatin
           Calificar resolución
         </Button>
       </DialogTrigger>
-      <DialogContent className="overflow-hidden">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
         {/* Decorative background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/10 rounded-full blur-xl animate-pulse" />
