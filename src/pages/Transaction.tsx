@@ -25,6 +25,7 @@ import { TrackingPanel, CARRIER_LABELS } from "@/components/TrackingPanel";
 import { formatCLP } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { checkTransactionLimits, getUserVerificationStatus, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import confetti from "canvas-confetti";
 
