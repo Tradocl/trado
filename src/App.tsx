@@ -106,6 +106,7 @@ const App = () => (
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <MobileBottomNav />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
