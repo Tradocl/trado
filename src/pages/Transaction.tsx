@@ -106,6 +106,7 @@ const Transaction = () => {
   const [joinConfirmDialogOpen, setJoinConfirmDialogOpen] = useState(false);
   const [isUserVerified, setIsUserVerified] = useState<boolean | null>(null);
   const [reviewTimeLeft, setReviewTimeLeft] = useState<string | null>(null);
+  const [progressOpen, setProgressOpen] = useState(false);
 
   const [disputeReason, setDisputeReason] = useState("");
 
