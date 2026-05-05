@@ -1588,10 +1588,23 @@ const Transaction = () => {
                       {transaction.state === 'awaiting_buyer_review' && `${buyerLabel} está revisando el producto`}
                       {transaction.state === 'return_requested' && `Esperando respuesta del ${sellerLabel.toLowerCase()}`}
                       {transaction.state === 'return_in_progress' && `Devolución en tránsito`}
-                      {transaction.state === 'created' && joinerProfile?.full_name}
+                       {transaction.state === 'created' && joinerProfile?.full_name}
                     </p>
                   </div>
                 </div>
+
+                {/* Tracking info shown inline when product is in delivery */}
+                {transaction.state === 'in_delivery' &&
+                  transaction.sale_type === 'producto_envio' &&
+                  transaction.tracking_number &&
+                  transaction.carrier && (
+                    <div className="mt-3">
+                      <TrackingPanel
+                        trackingNumber={transaction.tracking_number}
+                        carrier={transaction.carrier}
+                      />
+                    </div>
+                  )}
               </div>
             )}
           </CardContent>
