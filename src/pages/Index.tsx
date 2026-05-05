@@ -6,6 +6,26 @@ import { Shield, Users, ArrowRight, Star, Quote, CheckCircle, Clock, Lock, Packa
 import { TradoLogo } from "@/components/TradoLogo";
 import { Capacitor } from "@capacitor/core";
 
+// If the landing receives a Supabase auth hash (email verification redirect),
+// forward it to the proper page so the session/token is processed there.
+const useAuthHashRedirect = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    if (hash.includes("type=recovery")) {
+      navigate("/reset-password" + window.location.search + hash, { replace: true });
+    } else if (
+      hash.includes("access_token=") ||
+      hash.includes("type=signup") ||
+      hash.includes("type=email") ||
+      hash.includes("error=") // expired/invalid links
+    ) {
+      navigate("/verificar-email" + window.location.search + hash, { replace: true });
+    }
+  }, [navigate]);
+};
+
 // ── Scroll progress bar ───────────────────────────────────────────────────────
 
 const ScrollProgress = () => {
@@ -525,6 +545,9 @@ const WebLanding = () => {
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
-const Index = () => Capacitor.isNativePlatform() ? <AppLanding /> : <WebLanding />;
+const Index = () => {
+  useAuthHashRedirect();
+  return Capacitor.isNativePlatform() ? <AppLanding /> : <WebLanding />;
+};
 
 export default Index;
