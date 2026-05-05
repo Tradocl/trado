@@ -14,6 +14,7 @@ import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
+import { BottomNav } from "@/components/BottomNav";
 
 interface Profile {
   full_name: string;
@@ -271,26 +272,20 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
       {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <TradoLogo size={36} id="dash" />
-            <h1 className="text-xl sm:text-2xl font-bold">Trado</h1>
+      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <TradoLogo size={32} id="dash" />
+            <h1 className="text-xl font-bold">Trado</h1>
           </div>
-          <div className="flex gap-1 sm:gap-2">
-            <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/profile")}>
-              <User className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Perfil</span>
-            </Button>
+          <div className="flex gap-1">
             {isAdmin && (
-              <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/admin")}>
-                <Settings className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Admin</span>
+              <Button variant="outline" size="sm" className="px-2.5" onClick={() => navigate("/admin")}>
+                <Settings className="h-4 w-4" />
               </Button>
             )}
-            <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Salir</span>
+            <Button variant="ghost" size="sm" className="px-2.5" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -731,6 +726,8 @@ const Dashboard = () => {
           loadUserData();
         }}
       />
+
+      <BottomNav />
     </div>
   );
 };

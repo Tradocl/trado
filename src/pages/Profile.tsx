@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
+import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1368,6 +1369,7 @@ const Profile = () => {
           }}
         />
       </main>
+      <BottomNav />
     </div>
   );
 };

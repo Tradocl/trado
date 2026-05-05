@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -362,6 +363,7 @@ export default function TransactionHistory() {
           )}
         </TabsContent>
       </Tabs>
+      <BottomNav />
     </div>
   );
 }
