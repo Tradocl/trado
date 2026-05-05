@@ -429,9 +429,8 @@ ${companyBankDetails.email}`;
     setAmount(movement.amount.toString());
     setAmountDisplay(formatAmountInput(movement.amount.toString()));
     if (movement.type === "withdrawal") {
-      // Pre-fill withdrawal form fields
-      setBankHolderName(movement.bank_holder_name || "");
-      setBankHolderRut(movement.bank_holder_rut || "");
+      // Always reload from profile to enforce holder = profile owner
+      loadBankDetails();
       setBankName(movement.bank_name || "");
       setBankAccountType(movement.bank_account_type || "");
       setBankAccountNumber(movement.bank_account_number || "");
