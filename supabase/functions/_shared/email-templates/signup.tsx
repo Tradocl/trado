@@ -1,27 +1,57 @@
 /// <reference types="npm:@types/react@18.3.1" />
+
 import * as React from 'npm:react@18.3.1'
-import { Body, Button, Container, Head, Heading, Hr, Html, Link, Preview, Text } from 'npm:@react-email/components@0.0.22'
-import { styles } from './_styles.ts'
 
-interface Props { siteName: string; confirmationUrl: string }
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Link,
+  Preview,
+  Text,
+} from 'npm:@react-email/components@0.0.22'
 
-export const SignupEmail = ({ siteName, confirmationUrl }: Props) => (
-  <Html lang="es" dir="ltr">
+interface SignupEmailProps {
+  siteName: string
+  siteUrl: string
+  recipient: string
+  confirmationUrl: string
+}
+
+export const SignupEmail = ({
+  siteName,
+  siteUrl,
+  recipient,
+  confirmationUrl,
+}: SignupEmailProps) => (
+  <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirma tu correo en {siteName}</Preview>
-    <Body style={styles.main}>
-      <Container style={styles.container}>
-        <Text style={styles.brandBar}>Trado</Text>
-        <Heading style={styles.h1}>Confirma tu correo</Heading>
-        <Text style={styles.text}>
-          ¡Bienvenido a Trado! Confirma tu dirección de correo para empezar a usar tu cuenta de forma segura.
+    <Preview>Confirm your email for {siteName}</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>Confirm your email</Heading>
+        <Text style={text}>
+          Thanks for signing up for{' '}
+          <Link href={siteUrl} style={link}>
+            <strong>{siteName}</strong>
+          </Link>
+          !
         </Text>
-        <Button style={styles.button} href={confirmationUrl}>Confirmar mi correo</Button>
-        <Hr style={styles.divider} />
-        <Text style={styles.footer}>
-          Si no creaste una cuenta en Trado, ignora este correo.
-          <br /><br />
-          ¿No funciona el botón? Copia este enlace: <Link style={styles.link} href={confirmationUrl}>{confirmationUrl}</Link>
+        <Text style={text}>
+          Please confirm your email address (
+          <Link href={`mailto:${recipient}`} style={link}>
+            {recipient}
+          </Link>
+          ) by clicking the button below:
+        </Text>
+        <Button style={button} href={confirmationUrl}>
+          Verify Email
+        </Button>
+        <Text style={footer}>
+          If you didn't create an account, you can safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -29,3 +59,28 @@ export const SignupEmail = ({ siteName, confirmationUrl }: Props) => (
 )
 
 export default SignupEmail
+
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
+const h1 = {
+  fontSize: '22px',
+  fontWeight: 'bold' as const,
+  color: '#000000',
+  margin: '0 0 20px',
+}
+const text = {
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
+}
+const link = { color: 'inherit', textDecoration: 'underline' }
+const button = {
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  borderRadius: '8px',
+  padding: '12px 20px',
+  textDecoration: 'none',
+}
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
