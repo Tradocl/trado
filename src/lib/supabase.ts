@@ -7,7 +7,7 @@ export const signUp = async (
   password: string, 
   fullName: string
 ) => {
-  const redirectUrl = `${window.location.origin}/verificar-email`;
+  const redirectUrl = `${window.location.origin}/`;
   
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -36,7 +36,7 @@ export const signOut = async () => {
   try {
     const { error } = await supabase.auth.signOut({ scope: "local" });
     return { error };
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Error during signOut:", error);
     return { error };
   }
