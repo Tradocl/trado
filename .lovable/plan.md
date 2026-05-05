@@ -1,85 +1,78 @@
 
+## Objetivo
 
-## Resumen Completo de Trado para Migración a App Móvil
+Refrescar el diseño visual de toda la app autenticada (sin tocar la landing `/`) y añadir una barra de navegación inferior fija en móvil para acceder rápido a las secciones principales. Solo cambios visuales, ninguna lógica de negocio se modifica.
 
-Te preparo un documento exhaustivo que cubra arquitectura, funcionalidades, base de datos, flujos y consideraciones para que otra IA (o desarrollador) pueda llevar Trado a una app nativa de celular.
+## 1. Bottom Navigation móvil
 
-### Qué incluirá el documento
+Nuevo componente `src/components/MobileBottomNav.tsx`:
 
-1. **Visión general del producto**
-   - Qué es Trado (escrow P2P para Chile)
-   - Mercado objetivo y propuesta de valor
-   - Modelo de negocio (comisión sobre transacciones)
+- Fijo en la parte inferior (`fixed bottom-0 inset-x-0 z-40`), solo visible en móvil (`md:hidden`) usando `useIsMobile`.
+- Fondo con blur (`bg-background/85 backdrop-blur-lg border-t`), sombra superior sutil, safe-area inset para iOS (`pb-[env(safe-area-inset-bottom)]`).
+- 5 ítems con icono + label corto:
+  1. Inicio → `/dashboard` (Home)
+  2. Transacciones → `/transaction-history` (Repeat/ShoppingBag)
+  3. Crear (botón central destacado, círculo con gradient primario, ligeramente elevado) → `/create-transaction` (Plus)
+  4. Billetera → `/wallet` (Wallet)
+  5. Perfil → `/profile` (User)
+- Item activo: color `text-primary` + indicador (punto o barra superior), inactivo `text-muted-foreground`.
+- Se monta una sola vez en `App.tsx` dentro de `AuthProvider`, condicionado a que haya sesión y la ruta no sea pública (`/`, `/auth`, `/terms`, `/privacy`, `/reset-password`, `/verificar-email`, `/invite/*`).
+- Las páginas autenticadas reciben `pb-20 md:pb-0` para evitar que el contenido quede tapado (se aplicará vía clase en los contenedores raíz de cada página).
 
-2. **Stack tecnológico actual**
-   - Frontend: React 18 + Vite + TypeScript + Tailwind + shadcn/ui
-   - Backend: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
-   - PWA configurada con vite-plugin-pwa
-   - Routing: react-router-dom
+## 2. Sistema visual unificado
 
-3. **Arquitectura de base de datos**
-   - Tablas principales: profiles, transactions, wallets, wallet_movements, ratings, appeals, returns, user_roles, verification_documents
-   - Relaciones y RLS policies
-   - Funciones SECURITY DEFINER (has_role, get_safe_profile, get_own_bank_details, etc.)
-   - Storage buckets (avatars, chat-files, appeal-evidence, verification-documents)
+Ajustes en `src/index.css` (tokens existentes, sin romper la landing):
 
-4. **Edge Functions desplegadas** (lista completa con propósito)
-   - process-escrow-deposit, confirm-delivery, resolve-appeal, process-return-refund
-   - Notificaciones (notify-* y send-*)
-   - Manejo de email vía Resend
+- Añadir tokens auxiliares: `--surface` (card sutilmente diferenciada del background), `--surface-elevated`, `--shadow-card`, `--radius-lg: 1rem`.
+- Definir clases utilitarias reutilizables:
+  - `.app-shell` → contenedor principal con `min-h-screen bg-gradient-to-b from-background to-muted/30`.
+  - `.app-header` → header sticky translúcido con blur, borde inferior suave, altura uniforme.
+  - `.section-card` → card con `rounded-2xl border bg-card shadow-sm hover:shadow-md transition-shadow`.
+  - `.stat-tile` → para tarjetas tipo balance/estadística.
+- Tipografía: títulos de página `text-2xl md:text-3xl font-semibold tracking-tight`, subtítulos `text-sm text-muted-foreground`.
+- Consistencia de espaciado: `container mx-auto px-4 md:px-6 py-6 md:py-8 max-w-5xl`.
 
-5. **Funcionalidades core**
-   - Autenticación (email/password + Google OAuth, verificación de email)
-   - Sistema de billetera (depósitos manuales por transferencia, retiros con datos bancarios del usuario, saldo y saldo bloqueado)
-   - Flujo de transacciones (creación con código de invitación, join, escrow, marcado de envío, confirmación, completado)
-   - Sistema de apelaciones (9 estados, chat privado con archivos, negociación 48h, intervención de plataforma, ratings post-resolución)
-   - Sistema de devoluciones (mediación admin, refund automático)
-   - Verificación de identidad (subida de documentos, revisión admin)
-   - Ratings y reputación
-   - Panel de administración (apelaciones, devoluciones, retiros)
-   - Chat de transacciones con archivos
-   - Propuestas de reunión presencial
-   - Notificaciones por email (Resend)
+## 3. Header de app unificado
 
-6. **Flujos de usuario detallados**
-   - Onboarding (signup → verificación email → completar perfil)
-   - Crear venta (vendedor) y unirse (comprador)
-   - Depósito en escrow → entrega → confirmación → liberación
-   - Apelación de disputa
-   - Retiro de fondos
+Nuevo componente `src/components/AppHeader.tsx` (reemplaza headers ad-hoc en páginas internas):
 
-7. **Consideraciones para migración a móvil nativo**
-   - **Opción A: Capacitor** (reusa el código React actual, más rápido)
-     - appId: app.lovable.f99bb00449564c2ba5871488b9889a8d
-     - Requiere `npx cap add ios/android`, build, sync
-     - Ventajas: 95% del código se reusa
-   - **Opción B: React Native / Expo** (reescritura completa)
-     - Mantener Supabase como backend (cliente JS funciona igual)
-     - Reescribir UI con componentes nativos
-     - Mayor performance pero más trabajo
-   - **Opción C: Flutter / Kotlin nativo** (reescritura total)
-   - Componentes a adaptar: file pickers para documentos/avatares, deep linking para invite codes, push notifications (FCM/APNs en vez de email), cámara para verificación
-   - Variables de entorno necesarias: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY (o equivalentes según framework)
+- Logo a la izquierda (clickable → dashboard).
+- Título de página opcional al centro/izquierda.
+- Acciones a la derecha: notificaciones, menú usuario (avatar con dropdown: Perfil, Admin si aplica, Cerrar sesión).
+- En móvil: oculta acciones secundarias, deja solo logo + avatar (el resto vive en el bottom nav).
+- Sticky con blur.
 
-8. **Restricciones y contexto chileno**
-   - Sin pasarela de pago integrada (transferencias bancarias manuales)
-   - Razones regulatorias (CMF, Ley Fintech 21.521)
-   - Validación de RUT, ubicaciones chilenas
-   - Moneda CLP sin decimales
+## 4. Páginas a refrescar (solo estilo, no lógica)
 
-9. **Lo que NO incluye Trado actualmente** (para que la nueva IA sepa qué falta)
-   - Pasarela de pagos automática (Khipu/Fintoc pendientes)
-   - Push notifications nativas
-   - Modo offline real
-   - Geolocalización para reuniones
+Aplicar `app-shell` + `AppHeader` + `section-card` y limpiar layouts en:
 
-### Formato de entrega
+- `Dashboard.tsx` — reorganizar en grilla limpia: tarjeta de saldo destacada arriba, accesos rápidos como tiles grandes, lista de transacciones recientes en card.
+- `Wallet.tsx` — hero de balance con gradient, tabs más limpios, formularios con espaciado consistente.
+- `Profile.tsx` — secciones colapsables con cards uniformes.
+- `Transaction.tsx`, `TransactionHistory.tsx` — listas con cards más respirables, badges de estado más sutiles.
+- `CreateTransaction.tsx`, `JoinTransaction.tsx`, `InviteWelcome.tsx` — wizards centrados con max-width contenido.
+- `Verification.tsx`, `MovementHistory.tsx`, `PublicProfile.tsx`, `Appeal.tsx`, `AdminAppeal.tsx`, `ReturnRoom.tsx`, `AdminReturnRoom.tsx`, `Admin.tsx` — mismo tratamiento.
+- `Auth.tsx`, `ResetPassword.tsx`, `VerifyEmail.tsx` — card centrada con logo, fondo con gradient sutil, sin bottom nav.
+- `NotFound.tsx`, `Terms.tsx`, `Privacy.tsx` — tipografía limpia, max-width legible.
 
-Generaré un archivo **`Trado-Resumen-Completo.md`** en `/mnt/documents/` que puedes copiar y pegar en cualquier otra IA (ChatGPT, Claude, Gemini, Cursor, etc.) como contexto inicial para iniciar la migración a móvil. El archivo será autocontenido — incluirá todo lo necesario para que la otra IA entienda Trado sin acceso a este proyecto.
+## 5. Detalles de pulido
 
-### Lo que NO haré
+- Badges de estado: variantes suaves (`bg-{color}/10 text-{color} border-{color}/20`) en vez de sólidos saturados.
+- Botones primarios mantienen gradient; ghost/outline para secundarios.
+- Inputs: altura uniforme `h-11`, `rounded-xl`.
+- Animaciones de entrada (`animate-in fade-in slide-in-from-bottom-2`) en cards principales (respeta la regla de memoria de "entrance animations for modals/cards").
+- Loading skeletons consistentes donde haya spinners genéricos.
 
-- No modificaré código de la app actual.
-- No iniciaré la migración a móvil — solo preparo el documento de contexto.
-- No incluiré secretos ni claves reales (solo nombres de variables).
+## Lo que NO se toca
 
+- `src/pages/Index.tsx` (landing) — intacto.
+- Lógica de negocio, queries, edge functions, RLS, validaciones, flujos.
+- Tokens de color base (primary, success, etc.) — solo se añaden auxiliares.
+
+## Entregable
+
+Después de aprobar, implemento en este orden:
+1. Tokens + utilidades en `index.css`.
+2. `MobileBottomNav` + `AppHeader` + montaje en `App.tsx`.
+3. Refactor visual de Dashboard, Wallet, Profile (las más visibles).
+4. Resto de páginas internas con el mismo patrón.
