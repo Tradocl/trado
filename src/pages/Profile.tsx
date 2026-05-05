@@ -865,8 +865,9 @@ const Profile = () => {
                         <FormItem>
                           <FormLabel className="text-sm">Nombre del titular</FormLabel>
                           <FormControl>
-                            <Input placeholder="Juan Pérez González" {...field} className="h-9" />
+                            <Input placeholder="Juan Pérez González" {...field} readOnly disabled className="h-9 bg-muted cursor-not-allowed" />
                           </FormControl>
+                          <p className="text-xs text-muted-foreground">Solo depositamos a cuentas a nombre del titular del perfil.</p>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -882,16 +883,9 @@ const Profile = () => {
                             <Input 
                               placeholder="12.345.678-9" 
                               {...field}
-                              className="h-9"
-                              onChange={(e) => {
-                                const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
-                                if (rawValue.length <= 9) {
-                                  const formatted = rawValue.length >= 2 
-                                    ? `${rawValue.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${rawValue.slice(-1)}`
-                                    : rawValue;
-                                  field.onChange(formatted);
-                                }
-                              }}
+                              readOnly
+                              disabled
+                              className="h-9 bg-muted cursor-not-allowed"
                             />
                           </FormControl>
                           <FormMessage />
