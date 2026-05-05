@@ -48,9 +48,22 @@ const VerifyEmail = () => {
     }
   };
 
-  const handleGoToLogin = async () => {
-    await supabase.auth.signOut({ scope: "local" });
-    navigate("/auth");
+  const handleCompleteProfile = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      navigate("/dashboard?completeProfile=1");
+    } else {
+      navigate("/auth", { state: { completeProfileAfterLogin: true } });
+    }
+  };
+
+  const handleLater = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth");
+    }
   };
 
   return (
