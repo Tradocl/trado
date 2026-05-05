@@ -151,12 +151,8 @@ All colors MUST be HSL.
   }
 }
 
-/* Reserve space for the mobile bottom nav on authenticated routes */
-@media (max-width: 767px) {
-  body:has(nav[aria-label="Navegación principal"]) {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
-  }
-}
+/* Mobile bottom-nav spacing is handled by an in-component spacer div,
+   so all authenticated pages get consistent bottom padding without relying on :has(). */
 
 /* ── Landing page animations ───────────────────────────────────────────────── */
 
