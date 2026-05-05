@@ -179,15 +179,16 @@ ${companyBankDetails.email}`;
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number, rut")
+        .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number, rut, full_name")
         .eq("id", user.id)
         .single();
 
       if (error) throw error;
 
       if (data) {
-        setBankHolderName(data.bank_holder_name || "");
-        setBankHolderRut(data.bank_holder_rut || "");
+        // Force holder name and RUT to match profile owner — no overrides allowed
+        setBankHolderName(data.full_name || data.bank_holder_name || "");
+        setBankHolderRut(data.rut || data.bank_holder_rut || "");
         setBankName(data.bank_name || "");
         setBankAccountType(data.bank_account_type || "");
         setBankAccountNumber(data.bank_account_number || "");
@@ -428,9 +429,8 @@ ${companyBankDetails.email}`;
     setAmount(movement.amount.toString());
     setAmountDisplay(formatAmountInput(movement.amount.toString()));
     if (movement.type === "withdrawal") {
-      // Pre-fill withdrawal form fields
-      setBankHolderName(movement.bank_holder_name || "");
-      setBankHolderRut(movement.bank_holder_rut || "");
+      // Always reload from profile to enforce holder = profile owner
+      loadBankDetails();
       setBankName(movement.bank_name || "");
       setBankAccountType(movement.bank_account_type || "");
       setBankAccountNumber(movement.bank_account_number || "");
@@ -925,9 +925,12 @@ ${companyBankDetails.email}`;
                 <Input
                   id="bank-holder-name"
                   value={bankHolderName}
-                  onChange={(e) => setBankHolderName(e.target.value)}
+                  readOnly
+                  disabled
+                  className="bg-muted cursor-not-allowed"
                   placeholder="Juan Pérez"
                 />
+                <p className="text-xs text-muted-foreground mt-1">Solo depositamos a cuentas a nombre del titular del perfil.</p>
               </div>
 
               <div>
@@ -935,15 +938,9 @@ ${companyBankDetails.email}`;
                 <Input
                   id="bank-holder-rut"
                   value={bankHolderRut}
-                  onChange={(e) => {
-                    const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
-                    if (rawValue.length <= 9) {
-                      const formatted = rawValue.length >= 2 
-                        ? `${rawValue.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${rawValue.slice(-1)}`
-                        : rawValue;
-                      setBankHolderRut(formatted);
-                    }
-                  }}
+                  readOnly
+                  disabled
+                  className="bg-muted cursor-not-allowed"
                   placeholder="12.345.678-9"
                 />
               </div>
@@ -1049,9 +1046,12 @@ ${companyBankDetails.email}`;
                   <Input
                     id="edit-bank-holder-name"
                     value={bankHolderName}
-                    onChange={(e) => setBankHolderName(e.target.value)}
+                    readOnly
+                    disabled
+                    className="bg-muted cursor-not-allowed"
                     placeholder="Juan Pérez"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Solo depositamos a cuentas a nombre del titular del perfil.</p>
                 </div>
 
                 <div>
@@ -1059,15 +1059,9 @@ ${companyBankDetails.email}`;
                   <Input
                     id="edit-bank-holder-rut"
                     value={bankHolderRut}
-                    onChange={(e) => {
-                      const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
-                      if (rawValue.length <= 9) {
-                        const formatted = rawValue.length >= 2 
-                          ? `${rawValue.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${rawValue.slice(-1)}`
-                          : rawValue;
-                        setBankHolderRut(formatted);
-                      }
-                    }}
+                    readOnly
+                    disabled
+                    className="bg-muted cursor-not-allowed"
                     placeholder="12.345.678-9"
                   />
                 </div>
