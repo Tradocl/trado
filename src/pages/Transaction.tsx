@@ -1596,11 +1596,11 @@ const Transaction = () => {
                           {transaction.state === 'return_in_progress' && `Devolución en tránsito`}
                           {transaction.state === 'created' && joinerProfile?.full_name}
                         </p>
-                        <p className="text-xs text-success/80 mt-1 font-medium">
-                          {progressOpen ? 'Ocultar progreso' : 'Ver progreso completo'}
-                        </p>
                       </div>
-                      <ChevronDown className={`h-5 w-5 text-success flex-shrink-0 transition-transform ${progressOpen ? 'rotate-180' : ''}`} />
+                    </div>
+                    <div className="mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-success text-success-foreground font-semibold text-sm shadow-md hover:shadow-lg transition-all">
+                      <span>{progressOpen ? 'Ocultar progreso completo' : '👁️ Ver progreso completo'}</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${progressOpen ? 'rotate-180' : ''}`} />
                     </div>
 
                     {/* Tracking info shown inline when product is in delivery */}
