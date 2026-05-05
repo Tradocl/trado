@@ -219,8 +219,8 @@ const Profile = () => {
         setSelectedTheme(data.dashboard_theme || "system");
         setBackgroundUrl(data.dashboard_background_url || "");
         bankForm.reset({
-          bank_holder_name: data.bank_holder_name || "",
-          bank_holder_rut: data.bank_holder_rut || "",
+          bank_holder_name: data.full_name || data.bank_holder_name || "",
+          bank_holder_rut: data.rut || data.bank_holder_rut || "",
           bank_name: data.bank_name || "",
           bank_account_type: data.bank_account_type || "",
           bank_account_number: data.bank_account_number || "",
