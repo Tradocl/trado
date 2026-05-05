@@ -93,10 +93,13 @@ const VerifyEmail = () => {
           {verified ? (
             <>
               <p className="text-muted-foreground text-sm">
-                Tu cuenta ha sido activada correctamente. Ya puedes iniciar sesión y empezar a usar Trado.
+                Tu cuenta ha sido activada correctamente. ¿Quieres completar tu perfil ahora para empezar a transaccionar de inmediato?
               </p>
-              <Button onClick={handleGoToLogin} className="w-full">
-                Iniciar sesión
+              <Button onClick={handleCompleteProfile} className="w-full">
+                Completar mi perfil ahora
+              </Button>
+              <Button onClick={handleLater} variant="outline" className="w-full">
+                Más tarde, ir al inicio
               </Button>
             </>
           ) : (
