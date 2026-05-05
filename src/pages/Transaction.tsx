@@ -2029,18 +2029,10 @@ const Transaction = () => {
               </div>
             )}
           </CardContent>
-        </Card>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
-        {/* === SECTION 5: CHAT (PROMINENT) === */}
-        {transaction.buyer_id && (
-          <TransactionChat
-            transactionId={transaction.id}
-            sellerId={transaction.seller_id}
-            sellerName={sellerProfile?.full_name || "Vendedor"}
-            buyerId={transaction.buyer_id || undefined}
-            buyerName={buyerProfile?.full_name}
-          />
-        )}
 
         {/* Create Appeal Button */}
         {!activeAppeal && transaction && ["funds_secured", "in_delivery", "awaiting_buyer_review", "return_requested", "return_in_progress"].includes(transaction.state) && (
