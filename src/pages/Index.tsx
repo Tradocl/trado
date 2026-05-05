@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Shield, Users, ArrowRight, Star, Quote, CheckCircle, Clock, Lock, Package, Handshake, ChevronDown } from "lucide-react";
-import { TradoLogo } from "@/components/TradoLogo";
+import { Logo, LogoIcon } from "@/components/Logo";
 import { Capacitor } from "@capacitor/core";
 
 // If the landing receives a Supabase auth hash (email verification redirect),
@@ -121,7 +121,7 @@ const AppLanding = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info px-8">
       <div className="flex flex-col items-center gap-8 w-full max-w-sm">
-        <TradoLogo size={88} id="app" />
+        <LogoIcon size={88} />
         <div className="text-center text-white space-y-3">
           <h1 className="text-4xl font-bold tracking-tight">Trado</h1>
           <p className="text-white/80 text-lg">Opera con total seguridad</p>
@@ -161,8 +161,7 @@ const WebLanding = () => {
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-border/50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <TradoLogo size={32} id="nav" />
-            <span className="font-bold text-xl text-primary">Trado</span>
+            <Logo height={32} />
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <a href="#como-funciona" className="hover:text-primary transition-colors">¿Cómo funciona?</a>
@@ -509,8 +508,7 @@ const WebLanding = () => {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-3">
-                <TradoLogo size={28} id="footer" />
-                <span className="font-bold text-xl">Trado</span>
+                <Logo variant="white" height={28} />
               </div>
               <p className="text-white/60 text-sm max-w-xs leading-relaxed">
                 La plataforma escrow más segura de Chile. Productos, servicios y trabajos, siempre con total tranquilidad.

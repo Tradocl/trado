@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Mail, ArrowLeft, RefreshCw, CheckCircle2 } from "lucide-react";
-import { TradoLogo } from "@/components/TradoLogo";
+import { LogoIcon } from "@/components/Logo";
 
 const VerifyEmail = () => {
   const location = useLocation();
@@ -71,7 +71,7 @@ const VerifyEmail = () => {
       <Card className="w-full max-w-md shadow-2xl border-0 animate-in fade-in zoom-in-95 duration-500">
         <CardHeader className="text-center space-y-4 pb-2">
           <div className="flex justify-center">
-            <TradoLogo size={80} id="verify" />
+            <LogoIcon size={80} />
           </div>
           {verified ? (
             <>
