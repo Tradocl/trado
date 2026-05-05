@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, Wallet, Plus, User, Repeat } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
