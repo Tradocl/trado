@@ -527,7 +527,7 @@ const WebLanding = () => {
               <ul className="space-y-2 text-sm text-white/60">
                 <li><button onClick={() => window.location.href = "/terms"} className="hover:text-white transition-colors">Términos y Condiciones</button></li>
                 <li><button onClick={() => window.location.href = "/privacy"} className="hover:text-white transition-colors">Política de Privacidad</button></li>
-                <li><a href="mailto:admin@trado.cl" className="hover:text-white transition-colors">admin@trado.cl</a></li>
+                <li><a href="mailto:contacto@trado.cl" className="hover:text-white transition-colors">contacto@trado.cl</a></li>
               </ul>
             </div>
           </div>

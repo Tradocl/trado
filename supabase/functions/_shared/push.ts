@@ -104,7 +104,7 @@ export async function sendPushToUsers(
     const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY");
     const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY");
     const VAPID_SUBJECT =
-      Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@trado.cl";
+      Deno.env.get("VAPID_SUBJECT") ?? "mailto:contacto@trado.cl";
 
     if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
       const { default: webpush } = await import(
