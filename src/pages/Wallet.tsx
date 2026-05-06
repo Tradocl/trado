@@ -93,7 +93,7 @@ const Wallet = () => {
     bank: "Mercado Pago",
     accountType: "Cuenta Vista",
     accountNumber: "1020783447",
-    email: "admin@trado.cl",
+    email: "contacto@trado.cl",
   };
 
   const copyAllBankDetails = () => {

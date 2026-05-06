@@ -119,7 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
       accountType: "Cuenta Vista",
       accountNumber: "1020783447",
       rut: "78.236.214-3",
-      email: "admin@trado.cl",
+      email: "contacto@trado.cl",
     };
 
     const emailHtml = `
