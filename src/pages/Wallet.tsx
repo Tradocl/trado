@@ -751,11 +751,11 @@ ${companyBankDetails.email}`;
 
       {/* Deposit Dialog */}
       <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Depositar Fondos</DialogTitle>
+            <DialogTitle>Depositar fondos</DialogTitle>
             <DialogDescription>
-              Realiza una transferencia a nuestra cuenta bancaria
+              Paga directamente desde tu banco. El saldo se acredita en segundos.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -768,110 +768,24 @@ ${companyBankDetails.email}`;
                 placeholder="10.000"
                 value={amountDisplay}
                 onChange={(e) => handleAmountChange(e.target.value)}
+                className="mt-1.5"
               />
+              <p className="text-xs text-muted-foreground mt-1">Mínimo $1.000 CLP</p>
             </div>
 
-            <div className="p-4 bg-info/10 border border-info/20 rounded-lg space-y-3">
-              <p className="font-semibold text-sm">📋 Datos de la cuenta de Trado</p>
-              
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Titular:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{companyBankDetails.name}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => copyToClipboard(companyBankDetails.name)}
-                    >
-                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">RUT:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{companyBankDetails.rut}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => copyToClipboard(companyBankDetails.rut)}
-                    >
-                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Banco:</span>
-                  <span className="font-medium">{companyBankDetails.bank}</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Tipo:</span>
-                  <span className="font-medium">{companyBankDetails.accountType}</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Número de cuenta:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{companyBankDetails.accountNumber}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => copyToClipboard(companyBankDetails.accountNumber)}
-                    >
-                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Correo:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{companyBankDetails.email}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => copyToClipboard(companyBankDetails.email)}
-                    >
-                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={copyAllBankDetails}
-              >
-                {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                Copiar todos los datos
-              </Button>
+            <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm space-y-1 text-muted-foreground">
+              <p className="font-medium text-foreground">¿Cómo funciona?</p>
+              <p>1. Haz clic en "Pagar con Fintoc"</p>
+              <p>2. Selecciona tu banco y autoriza la transferencia</p>
+              <p>3. Tu saldo se actualiza automáticamente</p>
             </div>
 
-            <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                ⚠️ <strong>Instrucciones importantes:</strong><br/>
-                1. Realiza la transferencia por el monto exacto indicado<br/>
-                2. Usa como referencia tu nombre completo<br/>
-                3. Una vez realizada la transferencia, presiona "Confirmar Depósito"<br/>
-                4. Tu saldo se actualizará una vez que el administrador apruebe el depósito
-              </p>
-            </div>
-
-            <Button 
-              onClick={handleDeposit} 
-              className="w-full bg-success hover:bg-success/90"
+            <Button
+              onClick={handleDeposit}
+              className="w-full"
               disabled={submitting || !amount}
             >
-              {submitting ? "Procesando..." : "Confirmar Depósito"}
+              {submitting ? "Redirigiendo..." : "Pagar con Fintoc →"}
             </Button>
           </div>
         </DialogContent>
