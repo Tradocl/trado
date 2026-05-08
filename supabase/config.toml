@@ -43,3 +43,7 @@ project_id = "uohlyccjugbqsxiwerrv"
     verify_jwt = true
   [functions.send-welcome-email]
     verify_jwt = true
+  [functions.create-fintoc-payment]
+    verify_jwt = true
+  [functions.fintoc-webhook]
+    verify_jwt = false
