@@ -171,6 +171,12 @@ ${companyBankDetails.email}`;
     } else if (searchParams.get("action") === "withdraw") {
       loadBankDetails().then(() => setWithdrawOpen(true));
     }
+
+    if (searchParams.get("deposit") === "success") {
+      toast.success("¡Pago iniciado! Tu saldo se actualizará en segundos.", { duration: 6000 });
+    } else if (searchParams.get("deposit") === "cancelled") {
+      toast.info("Depósito cancelado.");
+    }
   }, [user, authLoading, navigate, searchParams]);
 
   const loadBankDetails = async () => {
@@ -273,55 +279,32 @@ ${companyBankDetails.email}`;
     if (!user || !amount || submitting) return;
 
     const depositAmount = parseFormattedAmount(amount);
-    if (depositAmount <= 0) {
-      toast.error("Ingresa un monto válido");
+    if (depositAmount < 1000) {
+      toast.error("Monto mínimo: $1.000");
       return;
     }
 
     setSubmitting(true);
     try {
-      const { data: wallet } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!wallet) throw new Error("Billetera no encontrada");
-
-      const { data: movement, error: movementError } = await supabase
-        .from("wallet_movements")
-        .insert({
-          wallet_id: wallet.id,
-          type: "deposit",
+      const { data, error } = await supabase.functions.invoke("create-fintoc-payment", {
+        body: {
           amount: depositAmount,
-          balance_after: wallet.balance,
-          description: "Depósito",
-          status: "pending",
-        })
-        .select()
-        .single();
+          successUrl: `${window.location.origin}/wallet?deposit=success`,
+          cancelUrl: `${window.location.origin}/wallet?deposit=cancelled`,
+        },
+      });
 
-      if (movementError) throw movementError;
+      if (error) throw error;
+      if (!data?.checkout_url) throw new Error("No se recibió URL de pago");
 
-      // Send notification email
-      try {
-        await supabase.functions.invoke("notify-wallet-movement", {
-          body: {
-            movementId: movement.id,
-          },
-        });
-      } catch (emailError) {
-        console.error("Error sending notification email:", emailError);
-        // Don't fail the deposit if email fails
-      }
-
-      toast.success("Solicitud de depósito enviada. Por favor realiza la transferencia a la cuenta indicada.");
       setDepositOpen(false);
       setAmount("");
       setAmountDisplay("");
-      loadWalletData();
+
+      // Redirect to Fintoc hosted checkout
+      window.location.href = data.checkout_url;
     } catch (error: any) {
-      toast.error("Error al solicitar depósito: " + error.message);
+      toast.error("Error al iniciar pago: " + (error.message ?? "Error desconocido"));
     } finally {
       setSubmitting(false);
     }
