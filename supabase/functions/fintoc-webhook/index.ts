@@ -7,39 +7,35 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 serve(async (req: Request) => {
-  // Fintoc sends POST with JSON body
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
 
   try {
     const event = await req.json();
-    console.log("[fintoc-webhook] Event received:", event.type, JSON.stringify(event).slice(0, 300));
+    console.log("[fintoc-webhook] Event:", event.type, JSON.stringify(event).slice(0, 400));
 
     if (event.type === "payment_intent.succeeded") {
       const metadata = event.data?.metadata ?? event.metadata ?? {};
-      const { movement_id, user_id, wallet_id } = metadata;
+      const { user_id, wallet_id, amount } = metadata;
 
-      if (!movement_id || !user_id || !wallet_id) {
-        console.error("[fintoc-webhook] Missing metadata fields:", metadata);
+      if (!user_id || !wallet_id || !amount) {
+        console.error("[fintoc-webhook] Missing metadata:", metadata);
         return new Response("Missing metadata", { status: 400 });
       }
 
-      // Get the pending movement
-      const { data: movement, error: movErr } = await supabase
+      const depositAmount = Number(amount);
+      const sessionId = event.data?.id ?? event.id ?? "unknown";
+
+      // Idempotency: check if this session was already processed
+      const { data: existing } = await supabase
         .from("wallet_movements")
-        .select("id, amount, status, wallet_id")
-        .eq("id", movement_id)
-        .single();
+        .select("id")
+        .eq("description", `Depósito Fintoc [${sessionId}]`)
+        .maybeSingle();
 
-      if (movErr || !movement) {
-        console.error("[fintoc-webhook] Movement not found:", movement_id, movErr);
-        return new Response("Movement not found", { status: 404 });
-      }
-
-      // Idempotency check: don't process already approved movements
-      if (movement.status === "approved") {
-        console.log("[fintoc-webhook] Movement already approved, skipping:", movement_id);
+      if (existing) {
+        console.log("[fintoc-webhook] Already processed session:", sessionId);
         return new Response("Already processed", { status: 200 });
       }
 
@@ -51,11 +47,10 @@ serve(async (req: Request) => {
         .single();
 
       if (walletErr || !wallet) {
-        console.error("[fintoc-webhook] Wallet not found:", wallet_id, walletErr);
+        console.error("[fintoc-webhook] Wallet not found:", wallet_id);
         return new Response("Wallet not found", { status: 404 });
       }
 
-      const depositAmount = Number(movement.amount);
       const newBalance = Number(wallet.balance) + depositAmount;
 
       // Update wallet balance
@@ -69,30 +64,24 @@ serve(async (req: Request) => {
         return new Response("Error updating wallet", { status: 500 });
       }
 
-      // Approve the movement and set correct balance_after
-      const { error: movUpdateErr } = await supabase
+      // Create approved movement — only now that payment is confirmed
+      const { error: movErr } = await supabase
         .from("wallet_movements")
-        .update({
-          status: "approved",
+        .insert({
+          wallet_id,
+          type: "deposit",
+          amount: depositAmount,
           balance_after: newBalance,
-        })
-        .eq("id", movement_id);
-
-      if (movUpdateErr) {
-        console.error("[fintoc-webhook] Error approving movement:", movUpdateErr);
-        return new Response("Error approving movement", { status: 500 });
-      }
-
-      console.log(`[fintoc-webhook] ✅ Deposit approved: user=${user_id}, amount=${depositAmount}, new_balance=${newBalance}`);
-
-      // Optionally notify the user
-      try {
-        await supabase.functions.invoke("notify-wallet-movement", {
-          body: { movementId: movement_id },
+          description: `Depósito Fintoc [${sessionId}]`,
+          status: "approved",
         });
-      } catch (notifyErr) {
-        console.error("[fintoc-webhook] Notification error (non-fatal):", notifyErr);
+
+      if (movErr) {
+        console.error("[fintoc-webhook] Error creating movement:", movErr);
+        return new Response("Error creating movement", { status: 500 });
       }
+
+      console.log(`[fintoc-webhook] ✅ Deposit confirmed: user=${user_id}, amount=${depositAmount}, new_balance=${newBalance}`);
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
@@ -100,23 +89,7 @@ serve(async (req: Request) => {
       });
     }
 
-    if (event.type === "payment_intent.failed") {
-      const metadata = event.data?.metadata ?? event.metadata ?? {};
-      const { movement_id } = metadata;
-
-      if (movement_id) {
-        await supabase
-          .from("wallet_movements")
-          .update({ status: "rejected" })
-          .eq("id", movement_id);
-
-        console.log(`[fintoc-webhook] Payment failed, movement rejected: ${movement_id}`);
-      }
-
-      return new Response(JSON.stringify({ success: true }), { status: 200 });
-    }
-
-    // Unknown event type — acknowledge to avoid retries
+    // Other events — acknowledge to avoid retries
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   } catch (error: any) {
     console.error("[fintoc-webhook] Unexpected error:", error);
