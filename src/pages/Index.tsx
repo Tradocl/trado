@@ -3,8 +3,28 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Shield, Users, ArrowRight, Star, Quote, CheckCircle, Clock, Lock, Package, Handshake, ChevronDown } from "lucide-react";
-import { TradoLogo } from "@/components/TradoLogo";
+import { Logo } from "@/components/Logo";
 import { Capacitor } from "@capacitor/core";
+
+// If the landing receives a Supabase auth hash (email verification redirect),
+// forward it to the proper page so the session/token is processed there.
+const useAuthHashRedirect = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    if (hash.includes("type=recovery")) {
+      navigate("/reset-password" + window.location.search + hash, { replace: true });
+    } else if (
+      hash.includes("access_token=") ||
+      hash.includes("type=signup") ||
+      hash.includes("type=email") ||
+      hash.includes("error=") // expired/invalid links
+    ) {
+      navigate("/verificar-email" + window.location.search + hash, { replace: true });
+    }
+  }, [navigate]);
+};
 
 // ── Scroll progress bar ───────────────────────────────────────────────────────
 
@@ -101,7 +121,7 @@ const AppLanding = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info px-8">
       <div className="flex flex-col items-center gap-8 w-full max-w-sm">
-        <TradoLogo size={88} id="app" />
+        <Logo height={56} />
         <div className="text-center text-white space-y-3">
           <h1 className="text-4xl font-bold tracking-tight">Trado</h1>
           <p className="text-white/80 text-lg">Opera con total seguridad</p>
@@ -141,8 +161,7 @@ const WebLanding = () => {
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-border/50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <TradoLogo size={32} id="nav" />
-            <span className="font-bold text-xl text-primary">Trado</span>
+            <Logo height={32} />
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <a href="#como-funciona" className="hover:text-primary transition-colors">¿Cómo funciona?</a>
@@ -444,7 +463,7 @@ const WebLanding = () => {
             <Accordion type="single" collapsible className="space-y-3">
               {[
                 { q: "¿Cómo funciona el sistema de seguridad?",                           a: "Quien paga deposita el dinero en Trado, donde queda retenido. Quien entrega cumple lo acordado —enviar el producto, completar el servicio o entregar el trabajo— y cuando el pagador confirma que todo está correcto, liberamos el pago. Si hay algún problema, nuestro equipo media la disputa." },
-                { q: "¿Cuánto cobra Trado por cada transacción?",                         a: "Cobramos un 3% sobre el valor de la transacción, descontado del monto recibido. Quien paga no tiene comisión adicional. Sin costos ocultos ni suscripciones." },
+                { q: "¿Cuánto cobra Trado por cada transacción?",                         a: "Cobramos un 5% sobre el valor de la transacción, descontado del monto recibido. Quien paga no tiene comisión adicional. Sin costos ocultos ni suscripciones." },
                 { q: "¿Qué pasa si el producto o servicio no corresponde a lo acordado?", a: "Quien pagó puede abrir una disputa antes de confirmar la recepción. Nuestro equipo revisará el caso con evidencias y mediará para encontrar una solución justa. El dinero permanece retenido hasta resolver." },
                 { q: "¿Cuánto tarda en llegar el dinero a quien entregó?",                a: "Una vez confirmado que todo salió bien, el dinero queda disponible en tu billetera Trado inmediatamente. El retiro a cuenta bancaria toma entre 1-2 días hábiles." },
                 { q: "¿Necesito verificar mi identidad para usar Trado?",                 a: "Para transacciones básicas no es necesario, pero verificar tu identidad aumenta tu reputación y genera más confianza. Los usuarios verificados acceden a montos más altos y beneficios exclusivos." },
@@ -489,8 +508,7 @@ const WebLanding = () => {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-3">
-                <TradoLogo size={28} id="footer" />
-                <span className="font-bold text-xl">Trado</span>
+                <Logo variant="white" height={28} />
               </div>
               <p className="text-white/60 text-sm max-w-xs leading-relaxed">
                 La plataforma escrow más segura de Chile. Productos, servicios y trabajos, siempre con total tranquilidad.
@@ -509,7 +527,7 @@ const WebLanding = () => {
               <ul className="space-y-2 text-sm text-white/60">
                 <li><button onClick={() => window.location.href = "/terms"} className="hover:text-white transition-colors">Términos y Condiciones</button></li>
                 <li><button onClick={() => window.location.href = "/privacy"} className="hover:text-white transition-colors">Política de Privacidad</button></li>
-                <li><a href="mailto:admin@trado.cl" className="hover:text-white transition-colors">admin@trado.cl</a></li>
+                <li><a href="mailto:contacto@trado.cl" className="hover:text-white transition-colors">contacto@trado.cl</a></li>
               </ul>
             </div>
           </div>
@@ -525,6 +543,9 @@ const WebLanding = () => {
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
-const Index = () => Capacitor.isNativePlatform() ? <AppLanding /> : <WebLanding />;
+const Index = () => {
+  useAuthHashRedirect();
+  return Capacitor.isNativePlatform() ? <AppLanding /> : <WebLanding />;
+};
 
 export default Index;

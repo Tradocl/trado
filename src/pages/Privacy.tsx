@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield, Database, Eye, Lock, Share2, UserCheck, Bell, Trash2, Mail } from "lucide-react";
-import { TradoLogo } from "@/components/TradoLogo";
+import { Logo } from "@/components/Logo";
 
 const Privacy = () => {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const Privacy = () => {
           </Button>
           
           <div className="flex items-center gap-4 mb-4">
-            <TradoLogo size={48} id="priv" />
+            <Logo variant="white" height={48} />
             <h1 className="text-3xl md:text-4xl font-bold text-white">
               Política de Privacidad
             </h1>
@@ -285,7 +285,7 @@ const Privacy = () => {
               datos personales, contáctanos:
             </p>
             <div className="space-y-2 text-muted-foreground">
-              <p><strong className="text-foreground">Email general:</strong> admin@trado.cl</p>
+              <p><strong className="text-foreground">Email general:</strong> contacto@trado.cl</p>
               <p><strong className="text-foreground">Privacidad:</strong> privacidad@trado.cl</p>
               <p><strong className="text-foreground">Horario:</strong> Lunes a Viernes, 9:00 - 18:00 hrs</p>
             </div>

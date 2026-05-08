@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { formatCLP } from "@/lib/utils";
-import { TradoLogo } from "@/components/TradoLogo";
+import { Logo } from "@/components/Logo";
 import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
@@ -116,6 +116,17 @@ const Dashboard = () => {
       loadUserData();
     }
   }, [user, authLoading, navigate]);
+
+  // Auto-open complete profile modal when redirected with ?completeProfile=1
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("completeProfile") === "1" && user) {
+      setShowCompleteProfileModal(true);
+      params.delete("completeProfile");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params}` : "");
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, [user]);
 
   // Realtime subscription for transactions
   useEffect(() => {
@@ -269,26 +280,23 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
+    <div className="app-shell">
       {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <TradoLogo size={36} id="dash" />
-            <h1 className="text-xl sm:text-2xl font-bold">Trado</h1>
-          </div>
+      <header className="app-header">
+        <div className="app-container !py-3 md:!py-4 flex justify-between items-center">
+          <Logo height={32} />
           <div className="flex gap-1 sm:gap-2">
-            <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/profile")}>
+            <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/profile")}>
               <User className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Perfil</span>
             </Button>
             {isAdmin && (
-              <Button variant="outline" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/admin")}>
+              <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/admin")}>
                 <Settings className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Admin</span>
               </Button>
             )}
-            <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={handleSignOut}>
+            <Button variant="ghost" size="sm" className="px-2 sm:px-3 text-muted-foreground" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Salir</span>
             </Button>
@@ -296,7 +304,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
+      <main className="app-container space-y-5 md:space-y-7">
         <PushNotificationBanner />
         {/* Welcome Card */}
         <Card 
@@ -419,9 +427,9 @@ const Dashboard = () => {
 
         {/* Transactions in Progress */}
         {transactions.length > 0 && (
-          <Card className="border-0 shadow-xl overflow-hidden animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b border-border/50">
-              <CardTitle className="flex items-center gap-3">
+          <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+            <CardHeader className="border-b border-border/60">
+              <CardTitle className="flex items-center gap-3 text-base">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <ShoppingBag className="h-5 w-5 text-primary" />
                 </div>
@@ -479,28 +487,27 @@ const Dashboard = () => {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold truncate">{transaction.product_name}</h4>
-                              {/* Show appeal status if active, otherwise show transaction state */}
-                              {transaction.appeal_status && appealStatusLabels[transaction.appeal_status] ? (
-                                <Badge className={`${appealStatusLabels[transaction.appeal_status].color} text-xs`}>
-                                  {appealStatusLabels[transaction.appeal_status].label}
-                                </Badge>
-                              ) : (
-                                <Badge className={`${stateLabels[transaction.state]?.color || "bg-gray-500"} text-xs`}>
-                                  {stateLabels[transaction.state]?.label || transaction.state}
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
+                            <h4 className="font-semibold truncate text-sm sm:text-base mb-1">
+                              {transaction.product_name}
+                            </h4>
+                            <div className="flex items-center flex-wrap gap-2 text-sm">
                               <span className="font-semibold text-foreground">${formatCLP(transaction.amount)}</span>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              <span className={`text-[11px] px-2 py-0.5 rounded-full ${
                                 isRealSeller
-                                  ? 'bg-emerald-500/10 text-emerald-600' 
+                                  ? 'bg-emerald-500/10 text-emerald-600'
                                   : 'bg-info/10 text-info'
                               }`}>
                                 {isRealSeller ? "Vendiendo" : "Comprando"}
                               </span>
+                              {transaction.appeal_status && appealStatusLabels[transaction.appeal_status] ? (
+                                <Badge className={`${appealStatusLabels[transaction.appeal_status].color} text-[11px]`}>
+                                  {appealStatusLabels[transaction.appeal_status].label}
+                                </Badge>
+                              ) : (
+                                <Badge className={`${stateLabels[transaction.state]?.color || "bg-gray-500"} text-[11px]`}>
+                                  {stateLabels[transaction.state]?.label || transaction.state}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -689,11 +696,11 @@ const Dashboard = () => {
         </div>
 
         {/* Wallet Card */}
-        <Card className="border-0 shadow-xl overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
-          <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-primary/10 py-3 sm:py-6">
-            <CardTitle className="flex items-center gap-2 sm:gap-3 text-base sm:text-lg">
-              <div className="p-2 sm:p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg sm:rounded-xl shadow-sm">
-                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+        <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
+          <CardHeader className="border-b border-border/60 py-4 sm:py-5">
+            <CardTitle className="flex items-center gap-2 sm:gap-3 text-base">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Wallet className="h-5 w-5 text-primary" />
               </div>
               Mi Billetera
             </CardTitle>

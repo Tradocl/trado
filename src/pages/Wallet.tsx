@@ -93,7 +93,7 @@ const Wallet = () => {
     bank: "Mercado Pago",
     accountType: "Cuenta Vista",
     accountNumber: "1020783447",
-    email: "admin@trado.cl",
+    email: "contacto@trado.cl",
   };
 
   const copyAllBankDetails = () => {
@@ -185,15 +185,16 @@ ${companyBankDetails.email}`;
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number, rut")
+        .select("bank_holder_name, bank_holder_rut, bank_name, bank_account_type, bank_account_number, rut, full_name")
         .eq("id", user.id)
         .single();
 
       if (error) throw error;
 
       if (data) {
-        setBankHolderName(data.bank_holder_name || "");
-        setBankHolderRut(data.bank_holder_rut || "");
+        // Force holder name and RUT to match profile owner — no overrides allowed
+        setBankHolderName(data.full_name || data.bank_holder_name || "");
+        setBankHolderRut(data.rut || data.bank_holder_rut || "");
         setBankName(data.bank_name || "");
         setBankAccountType(data.bank_account_type || "");
         setBankAccountNumber(data.bank_account_number || "");
@@ -411,9 +412,8 @@ ${companyBankDetails.email}`;
     setAmount(movement.amount.toString());
     setAmountDisplay(formatAmountInput(movement.amount.toString()));
     if (movement.type === "withdrawal") {
-      // Pre-fill withdrawal form fields
-      setBankHolderName(movement.bank_holder_name || "");
-      setBankHolderRut(movement.bank_holder_rut || "");
+      // Always reload from profile to enforce holder = profile owner
+      loadBankDetails();
       setBankName(movement.bank_name || "");
       setBankAccountType(movement.bank_account_type || "");
       setBankAccountNumber(movement.bank_account_number || "");
@@ -651,18 +651,20 @@ ${companyBankDetails.email}`;
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="min-w-0">
                 <CardTitle>Movimientos Recientes</CardTitle>
                 <CardDescription>Historial de movimientos aprobados</CardDescription>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
+                className="w-full sm:w-auto justify-center"
                 onClick={() => navigate("/movement-history")}
               >
                 <History className="mr-2 h-4 w-4" />
-                Ver Historial Completo
+                <span className="sm:hidden">Ver historial</span>
+                <span className="hidden sm:inline">Ver Historial Completo</span>
               </Button>
             </div>
           </CardHeader>
@@ -706,12 +708,12 @@ ${companyBankDetails.email}`;
                   return (
                     <div
                       key={movement.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
+                      className={`flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
                         isEscrowPending ? "border-warning/50 bg-warning/5" : ""
                       }`}
                     >
-                      <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-full ${iconBgClass}`}>
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className={`p-2 rounded-full flex-shrink-0 ${iconBgClass}`}>
                           {isEscrowPending ? (
                             <Clock className="h-5 w-5" />
                           ) : isDeposit ? (
@@ -720,9 +722,9 @@ ${companyBankDetails.email}`;
                             <ArrowUpRight className="h-5 w-5" />
                           )}
                         </div>
-                        <div>
-                          <p className="font-medium">{getShortDescription(movement)}</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm sm:text-base truncate">{getShortDescription(movement)}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             {new Date(movement.created_at).toLocaleDateString("es-CL")}
                           </p>
                           {isEscrowPending && (
@@ -730,11 +732,11 @@ ${companyBankDetails.email}`;
                           )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className={`text-lg font-bold ${textColorClass}`}>
+                      <div className="text-right flex-shrink-0">
+                        <p className={`text-base sm:text-lg font-bold whitespace-nowrap ${textColorClass}`}>
                           {amountPrefix}${formatCLP(Math.abs(movement.amount))}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-[11px] sm:text-sm text-muted-foreground whitespace-nowrap">
                           {isEscrowPending ? "En transacción" : `Saldo: $${formatCLP(movement.balance_after)}`}
                         </p>
                       </div>
@@ -908,9 +910,12 @@ ${companyBankDetails.email}`;
                 <Input
                   id="bank-holder-name"
                   value={bankHolderName}
-                  onChange={(e) => setBankHolderName(e.target.value)}
+                  readOnly
+                  disabled
+                  className="bg-muted cursor-not-allowed"
                   placeholder="Juan Pérez"
                 />
+                <p className="text-xs text-muted-foreground mt-1">Solo depositamos a cuentas a nombre del titular del perfil.</p>
               </div>
 
               <div>
@@ -918,15 +923,9 @@ ${companyBankDetails.email}`;
                 <Input
                   id="bank-holder-rut"
                   value={bankHolderRut}
-                  onChange={(e) => {
-                    const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
-                    if (rawValue.length <= 9) {
-                      const formatted = rawValue.length >= 2 
-                        ? `${rawValue.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${rawValue.slice(-1)}`
-                        : rawValue;
-                      setBankHolderRut(formatted);
-                    }
-                  }}
+                  readOnly
+                  disabled
+                  className="bg-muted cursor-not-allowed"
                   placeholder="12.345.678-9"
                 />
               </div>
@@ -1032,9 +1031,12 @@ ${companyBankDetails.email}`;
                   <Input
                     id="edit-bank-holder-name"
                     value={bankHolderName}
-                    onChange={(e) => setBankHolderName(e.target.value)}
+                    readOnly
+                    disabled
+                    className="bg-muted cursor-not-allowed"
                     placeholder="Juan Pérez"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Solo depositamos a cuentas a nombre del titular del perfil.</p>
                 </div>
 
                 <div>
@@ -1042,15 +1044,9 @@ ${companyBankDetails.email}`;
                   <Input
                     id="edit-bank-holder-rut"
                     value={bankHolderRut}
-                    onChange={(e) => {
-                      const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
-                      if (rawValue.length <= 9) {
-                        const formatted = rawValue.length >= 2 
-                          ? `${rawValue.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${rawValue.slice(-1)}`
-                          : rawValue;
-                        setBankHolderRut(formatted);
-                      }
-                    }}
+                    readOnly
+                    disabled
+                    className="bg-muted cursor-not-allowed"
                     placeholder="12.345.678-9"
                   />
                 </div>

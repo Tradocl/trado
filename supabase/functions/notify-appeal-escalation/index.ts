@@ -218,7 +218,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Also notify admin
     const adminEmailResponse = await resend.emails.send({
       from: "Trado Notificaciones <notificaciones@trado.cl>",
-      to: ["admin@trado.cl"],
+      to: ["contacto@trado.cl"],
       subject: `🔔 Nueva apelación requiere intervención - ${productName}`,
       html: `
         <!DOCTYPE html>

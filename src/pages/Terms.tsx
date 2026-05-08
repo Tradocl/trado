@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield, Scale, FileText, AlertTriangle, Clock, CreditCard, Users, Lock } from "lucide-react";
-import { TradoLogo } from "@/components/TradoLogo";
+import { Logo } from "@/components/Logo";
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const Terms = () => {
           </Button>
           
           <div className="flex items-center gap-4 mb-4">
-            <TradoLogo size={48} id="terms" />
+            <Logo variant="white" height={48} />
             <h1 className="text-3xl md:text-4xl font-bold text-white">
               Términos y Condiciones
             </h1>
@@ -101,7 +101,7 @@ const Terms = () => {
             <div className="text-muted-foreground space-y-4">
               <p>
                 <strong className="text-foreground">3.1. Comisión por transacción:</strong> Trado 
-                cobra una comisión del <strong className="text-foreground">3%</strong> sobre el 
+                cobra una comisión del <strong className="text-foreground">5%</strong> sobre el 
                 valor total de cada transacción completada exitosamente.
               </p>
               <p>
@@ -309,7 +309,7 @@ const Terms = () => {
               Para consultas sobre estos términos o el funcionamiento de Trado, contáctanos en:
             </p>
             <div className="space-y-2 text-muted-foreground">
-              <p><strong className="text-foreground">Email:</strong> admin@trado.cl</p>
+              <p><strong className="text-foreground">Email:</strong> contacto@trado.cl</p>
               <p><strong className="text-foreground">Horario:</strong> Lunes a Viernes, 9:00 - 18:00 hrs</p>
             </div>
           </section>

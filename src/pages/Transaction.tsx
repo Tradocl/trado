@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle, Clock } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle, Clock, ChevronDown, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -25,6 +25,7 @@ import { TrackingPanel, CARRIER_LABELS } from "@/components/TrackingPanel";
 import { formatCLP } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { checkTransactionLimits, getUserVerificationStatus, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import confetti from "canvas-confetti";
 
@@ -105,6 +106,7 @@ const Transaction = () => {
   const [joinConfirmDialogOpen, setJoinConfirmDialogOpen] = useState(false);
   const [isUserVerified, setIsUserVerified] = useState<boolean | null>(null);
   const [reviewTimeLeft, setReviewTimeLeft] = useState<string | null>(null);
+  const [progressOpen, setProgressOpen] = useState(false);
 
   const [disputeReason, setDisputeReason] = useState("");
 
@@ -1551,58 +1553,72 @@ const Transaction = () => {
               </div>
             </div>
             
-            {/* Current Status Progress Indicator */}
+            {/* Current Status Progress Indicator + collapsible timeline */}
             {joinerProfile && !['completed', 'cancelled', 'in_dispute'].includes(transaction.state) && !isAppealResolved && (
-              <div className="mt-4 p-4 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border border-success/30">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-success/20 rounded-full">
-                    {transaction.state === 'invited' && <DollarSign className="h-5 w-5 text-success" />}
-                    {transaction.state === 'funds_secured' && <Shield className="h-5 w-5 text-success" />}
-                    {transaction.state === 'in_delivery' && <Truck className="h-5 w-5 text-success" />}
-                    {transaction.state === 'awaiting_buyer_review' && <Eye className="h-5 w-5 text-success" />}
-                    {['return_requested', 'return_in_progress'].includes(transaction.state) && <Package className="h-5 w-5 text-warning" />}
-                    {!['invited', 'funds_secured', 'in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state) && <Check className="h-5 w-5 text-success" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-success">
-                      {transaction.state === 'invited' && `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}`}
-                      {transaction.state === 'funds_secured' && '✅ Fondos asegurados en escrow'}
-                      {transaction.state === 'in_delivery' && `📦 ${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : 'Producto en camino'}`}
-                      {transaction.state === 'awaiting_buyer_review' && '👁️ Período de revisión activo'}
-                      {transaction.state === 'return_requested' && '📦 Devolución solicitada'}
-                      {transaction.state === 'return_in_progress' && '📦 Devolución en progreso'}
-                      {transaction.state === 'created' && `✅ ${joinerRoleLabel} se ha unido`}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {transaction.state === 'invited' && `${joinerProfile?.full_name} se ha unido, falta depositar`}
-                      {transaction.state === 'funds_secured' && (
-                        transaction.sale_type === 'servicio' 
-                          ? `El proveedor debe confirmar que realizó el servicio`
-                          : transaction.sale_type === 'producto_persona'
-                          ? `Coordinen punto de encuentro para la entrega`
-                          : `El vendedor debe marcar el producto como enviado`
-                      )}
-                      {transaction.state === 'in_delivery' && `${buyerLabel} debe confirmar la recepción`}
-                      {transaction.state === 'awaiting_buyer_review' && `${buyerLabel} está revisando el producto`}
-                      {transaction.state === 'return_requested' && `Esperando respuesta del ${sellerLabel.toLowerCase()}`}
-                      {transaction.state === 'return_in_progress' && `Devolución en tránsito`}
-                      {transaction.state === 'created' && joinerProfile?.full_name}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              <Collapsible open={progressOpen} onOpenChange={setProgressOpen} className="mt-4">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    aria-expanded={progressOpen}
+                    className="w-full text-left p-4 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border border-success/30 hover:from-success/25 hover:to-success/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-success/20 rounded-full">
+                        {transaction.state === 'invited' && <DollarSign className="h-5 w-5 text-success" />}
+                        {transaction.state === 'funds_secured' && <Shield className="h-5 w-5 text-success" />}
+                        {transaction.state === 'in_delivery' && <Truck className="h-5 w-5 text-success" />}
+                        {transaction.state === 'awaiting_buyer_review' && <Eye className="h-5 w-5 text-success" />}
+                        {['return_requested', 'return_in_progress'].includes(transaction.state) && <Package className="h-5 w-5 text-warning" />}
+                        {!['invited', 'funds_secured', 'in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state) && <Check className="h-5 w-5 text-success" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-success">
+                          {transaction.state === 'invited' && `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}`}
+                          {transaction.state === 'funds_secured' && '✅ Fondos asegurados en escrow'}
+                          {transaction.state === 'in_delivery' && `📦 ${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : 'Producto en camino'}`}
+                          {transaction.state === 'awaiting_buyer_review' && '👁️ Período de revisión activo'}
+                          {transaction.state === 'return_requested' && '📦 Devolución solicitada'}
+                          {transaction.state === 'return_in_progress' && '📦 Devolución en progreso'}
+                          {transaction.state === 'created' && `✅ ${joinerRoleLabel} se ha unido`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {transaction.state === 'invited' && `${joinerProfile?.full_name} se ha unido, falta depositar`}
+                          {transaction.state === 'funds_secured' && (
+                            transaction.sale_type === 'servicio'
+                              ? `El proveedor debe confirmar que realizó el servicio`
+                              : transaction.sale_type === 'producto_persona'
+                              ? `Coordinen punto de encuentro para la entrega`
+                              : `El vendedor debe marcar el producto como enviado`
+                          )}
+                          {transaction.state === 'in_delivery' && `${buyerLabel} debe confirmar la recepción`}
+                          {transaction.state === 'awaiting_buyer_review' && `${buyerLabel} está revisando el producto`}
+                          {transaction.state === 'return_requested' && `Esperando respuesta del ${sellerLabel.toLowerCase()}`}
+                          {transaction.state === 'return_in_progress' && `Devolución en tránsito`}
+                          {transaction.state === 'created' && joinerProfile?.full_name}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-success text-success-foreground font-semibold text-sm shadow-md hover:shadow-lg transition-all">
+                      <span>{progressOpen ? 'Ocultar progreso completo' : '👁️ Ver progreso completo'}</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${progressOpen ? 'rotate-180' : ''}`} />
+                    </div>
 
-        {/* === SECTION 4: PROGRESS TIMELINE === */}
-        <Card className="border-2 border-primary/10 shadow-lg">
-          <CardContent className="p-4 sm:p-6">
-            <h4 className="font-bold text-lg sm:text-xl mb-4 flex items-center gap-2">
-              <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              Progreso de la Transacción
-            </h4>
-            
+                    {/* Tracking info shown inline when product is in delivery */}
+                    {transaction.state === 'in_delivery' &&
+                      transaction.sale_type === 'producto_envio' &&
+                      transaction.tracking_number &&
+                      transaction.carrier && (
+                        <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                          <TrackingPanel
+                            trackingNumber={transaction.tracking_number}
+                            carrier={transaction.carrier}
+                          />
+                        </div>
+                      )}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-3 p-4 bg-muted/30 rounded-xl border border-border/60">
             {/* Service timeline */}
             {transaction.sale_type === 'servicio' && (
               <div className="space-y-3 sm:space-y-4">
@@ -2008,10 +2024,14 @@ const Transaction = () => {
                 </div>
               </div>
             )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </CardContent>
         </Card>
 
-        {/* === SECTION 5: CHAT (PROMINENT) === */}
+        {/* === SECTION 4a: CHAT (prominent, drives conversation) === */}
         {transaction.buyer_id && (
           <TransactionChat
             transactionId={transaction.id}
@@ -2021,6 +2041,7 @@ const Transaction = () => {
             buyerName={buyerProfile?.full_name}
           />
         )}
+
 
         {/* Create Appeal Button */}
         {!activeAppeal && transaction && ["funds_secured", "in_delivery", "awaiting_buyer_review", "return_requested", "return_in_progress"].includes(transaction.state) && (
@@ -2172,7 +2193,7 @@ const Transaction = () => {
 
       {/* Deposit Confirmation Dialog */}
       <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
-        <DialogContent className="overflow-hidden">
+        <DialogContent className="sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-success/10 rounded-full blur-xl animate-pulse" />
@@ -2254,7 +2275,7 @@ const Transaction = () => {
 
       {/* Dispute Dialog */}
       <Dialog open={disputeDialogOpen} onOpenChange={setDisputeDialogOpen}>
-        <DialogContent className="overflow-hidden">
+        <DialogContent className="sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-destructive/10 rounded-full blur-xl animate-pulse" />
@@ -2340,7 +2361,7 @@ const Transaction = () => {
 
       {/* Shipping Dialog - for producto_envio */}
       <Dialog open={shippingDialogOpen} onOpenChange={setShippingDialogOpen}>
-        <DialogContent className="overflow-hidden">
+        <DialogContent className="sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-info/10 rounded-full blur-xl animate-pulse" />

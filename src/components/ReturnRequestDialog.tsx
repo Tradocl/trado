@@ -143,7 +143,7 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
           Solicitar Devolución
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overflow-hidden">
+      <DialogContent className="max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
         {/* Decorative background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-4 -right-4 w-24 h-24 bg-warning/10 rounded-full blur-xl animate-pulse" />

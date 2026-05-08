@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { UserRatings } from "@/components/UserRatings";
-import { TradoLogo } from "@/components/TradoLogo";
+import { Logo } from "@/components/Logo";
 import { ArrowLeft, Star, ShieldCheck, AlertTriangle, Package, Share2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -108,8 +108,7 @@ const PublicProfile = () => {
             <ArrowLeft className="mr-1.5 h-4 w-4" /> Volver
           </Button>
           <div className="flex items-center gap-1.5">
-            <TradoLogo size={22} id="pub" />
-            <span className="text-white font-semibold text-sm">Trado</span>
+            <Logo variant="white" height={22} />
           </div>
           <Button
             variant="ghost"
@@ -237,7 +236,7 @@ const PublicProfile = () => {
 
         {/* Footer brand */}
         <div className="flex items-center justify-center gap-2 pb-8 text-muted-foreground/50">
-          <TradoLogo size={16} id="pub2" />
+          <Logo height={20} />
           <span className="text-xs">Perfil verificado por Trado</span>
         </div>
       </div>

@@ -600,7 +600,7 @@ const CreateTransaction = () => {
 
       {/* Confirmation Modal */}
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden">
           <DialogHeader className="flex-shrink-0">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-3 bg-success/10 rounded-xl">
@@ -616,7 +616,7 @@ const CreateTransaction = () => {
           </DialogHeader>
 
           {formData && orderDetails && (
-            <div className="space-y-4 py-4 overflow-y-auto flex-1">
+            <div className="space-y-4 py-4 overflow-y-auto flex-1 min-h-0 overscroll-contain">
               <div className="p-4 bg-muted/30 rounded-lg space-y-2">
                 <h4 className="font-semibold text-sm text-muted-foreground">{itemLabel}</h4>
                 <p className="font-bold text-lg">{formData.productName}</p>
@@ -699,7 +699,7 @@ const CreateTransaction = () => {
         }
         setShowSuccessModal(open);
       }}>
-        <DialogContent className="max-w-sm overflow-hidden p-0">
+        <DialogContent className="max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain p-0">
           {/* Animated background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-success/5 via-transparent to-primary/5 pointer-events-none" />
           
