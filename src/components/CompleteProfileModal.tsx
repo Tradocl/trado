@@ -254,7 +254,9 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
                 }
               }}
               required
-              className={rutError ? "border-destructive" : ""}
+              readOnly={rutLocked}
+              disabled={rutLocked}
+              className={`${rutError ? "border-destructive" : ""} ${rutLocked ? "bg-muted cursor-not-allowed" : ""}`}
             />
             {rutError && <p className="text-xs text-destructive">{rutError}</p>}
           </div>
@@ -288,7 +290,9 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
               }}
               placeholder="+56 9 1234 5678"
               required
-              className={phoneError ? "border-destructive" : ""}
+              readOnly={phoneLocked}
+              disabled={phoneLocked}
+              className={`${phoneError ? "border-destructive" : ""} ${phoneLocked ? "bg-muted cursor-not-allowed" : ""}`}
             />
             {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
           </div>
