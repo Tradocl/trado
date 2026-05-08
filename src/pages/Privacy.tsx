@@ -27,7 +27,7 @@ const Privacy = () => {
             </h1>
           </div>
           <p className="text-white/80 text-lg">
-            Última actualización: Diciembre 2024
+            Última actualización: Mayo 2026
           </p>
         </div>
       </div>
@@ -46,13 +46,19 @@ const Privacy = () => {
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
-                En Trado nos comprometemos a proteger tu privacidad y la seguridad de tus datos 
-                personales. Esta Política de Privacidad explica cómo recopilamos, usamos, 
+                En Trado nos comprometemos a proteger tu privacidad y la seguridad de tus datos
+                personales. Esta Política de Privacidad explica cómo recopilamos, usamos,
                 almacenamos y protegemos tu información cuando utilizas nuestra plataforma.
               </p>
               <p>
-                Al utilizar Trado, aceptas las prácticas descritas en esta política. Te 
+                Al utilizar Trado, aceptas las prácticas descritas en esta política. Te
                 recomendamos leerla detenidamente para entender cómo tratamos tu información.
+              </p>
+              <p>
+                <strong className="text-foreground">Base legal:</strong> El tratamiento de tus datos
+                personales se rige por la <strong className="text-foreground">Ley N° 19.628</strong> sobre
+                Protección de la Vida Privada de Chile y las normas de la Ley N° 21.521 (Ley Fintech)
+                en lo relativo al tratamiento de datos en servicios financieros digitales.
               </p>
             </div>
           </section>
@@ -148,12 +154,25 @@ const Privacy = () => {
               </ul>
               
               <p>
-                <strong className="text-foreground">4.2. Con terceros:</strong> NO vendemos ni 
+                <strong className="text-foreground">4.2. Con terceros:</strong> NO vendemos ni
                 alquilamos tu información personal. Podemos compartir datos con:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Proveedores de servicios:</strong> Procesadores de pago, servicios de email, almacenamiento en la nube (bajo estrictos acuerdos de confidencialidad).</li>
-                <li><strong>Autoridades:</strong> Cuando sea requerido por ley o para proteger derechos legales.</li>
+                <li>
+                  <strong>Fintoc:</strong> Procesador de pagos a través del cual se realizan los
+                  depósitos a la plataforma. Fintoc recibe datos necesarios para procesar la transacción
+                  (monto, identificador de billetera). Su política de privacidad está disponible en fintoc.com.
+                </li>
+                <li>
+                  <strong>Supabase:</strong> Proveedor de infraestructura de base de datos y autenticación
+                  donde se almacena tu información de cuenta y transacciones, bajo acuerdos de tratamiento
+                  de datos conforme al estándar SOC 2.
+                </li>
+                <li><strong>Servicios de email:</strong> Para el envío de notificaciones y comunicaciones transaccionales.</li>
+                <li>
+                  <strong>Autoridades:</strong> Cuando sea requerido por ley, incluyendo la Unidad de
+                  Análisis Financiero (UAF), el Ministerio Público u otras autoridades competentes.
+                </li>
               </ul>
             </div>
           </section>
@@ -266,13 +285,32 @@ const Privacy = () => {
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
-                Podemos actualizar esta Política de Privacidad ocasionalmente. Te notificaremos 
-                sobre cambios significativos por correo electrónico o mediante un aviso destacado 
-                en la plataforma. Te recomendamos revisar esta política periódicamente.
+                Podemos actualizar esta Política de Privacidad ocasionalmente. Te notificaremos
+                sobre cambios significativos por correo electrónico o mediante un aviso destacado
+                en la plataforma con al menos 10 días hábiles de anticipación. Te recomendamos
+                revisar esta política periódicamente.
               </p>
               <p>
-                La fecha de "Última actualización" al inicio de este documento indica cuándo se 
+                La fecha de "Última actualización" al inicio de este documento indica cuándo se
                 realizaron los cambios más recientes.
+              </p>
+            </div>
+          </section>
+
+          {/* International transfers */}
+          <section className="bg-card rounded-2xl p-8 border border-border shadow-lg">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-info/10 rounded-lg">
+                <Share2 className="h-6 w-6 text-info" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">10. Transferencia Internacional de Datos</h2>
+            </div>
+            <div className="text-muted-foreground space-y-4">
+              <p>
+                Algunos de nuestros proveedores de servicios (como Supabase) pueden almacenar datos
+                en servidores fuera de Chile. En estos casos, nos aseguramos de que dichos proveedores
+                cuenten con estándares de seguridad y privacidad equivalentes o superiores a los exigidos
+                por la legislación chilena, incluyendo acuerdos contractuales de protección de datos.
               </p>
             </div>
           </section>

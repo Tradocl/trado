@@ -47,3 +47,5 @@ project_id = "uohlyccjugbqsxiwerrv"
     verify_jwt = true
   [functions.fintoc-webhook]
     verify_jwt = false
+  [functions.delete-account]
+    verify_jwt = true

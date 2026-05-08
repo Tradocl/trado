@@ -35,6 +35,7 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
 import MobileBottomNav from "./components/MobileBottomNav";
+import { CookieBanner } from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <MobileBottomNav />
+            <CookieBanner />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

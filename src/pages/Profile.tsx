@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -157,6 +158,9 @@ const Profile = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const isProfileComplete = profileData?.rut && profileData?.phone && profileData?.address &&
     profileData.rut.trim() !== '' && profileData.phone.trim() !== '' && profileData.address.trim() !== '';
@@ -533,6 +537,27 @@ const Profile = () => {
 
   const removeBackground = () => {
     setBackgroundUrl("");
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "ELIMINAR") return;
+    setDeletingAccount(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("delete-account", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error || data?.error) {
+        toast.error(data?.error ?? "Error al eliminar la cuenta");
+        return;
+      }
+      await supabase.auth.signOut();
+      navigate("/");
+    } catch (err: any) {
+      toast.error("Error inesperado: " + err.message);
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const getTimeSinceRegistration = () => {
@@ -1352,6 +1377,74 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Danger Zone */}
+        <Card className="border border-destructive/30 shadow-md bg-destructive/5">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <div>
+                <CardTitle className="text-base text-destructive">Zona de peligro</CardTitle>
+                <CardDescription className="text-xs">Acciones irreversibles</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-xs text-muted-foreground mb-3">
+              Al eliminar tu cuenta se borrarán todos tus datos personales permanentemente.
+              Necesitas tener saldo $0 y sin transacciones activas.
+            </p>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => { setDeleteConfirmText(""); setShowDeleteDialog(true); }}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar mi cuenta
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-destructive flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Eliminar cuenta permanentemente
+              </DialogTitle>
+              <DialogDescription className="space-y-2 pt-2">
+                <span className="block">Esta acción es <strong>irreversible</strong>. Se eliminarán:</span>
+                <ul className="list-disc pl-5 text-sm space-y-1">
+                  <li>Tu perfil y datos personales</li>
+                  <li>Tu historial de transacciones</li>
+                  <li>Tus datos bancarios registrados</li>
+                </ul>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <p className="text-sm font-medium">Escribe <strong>ELIMINAR</strong> para confirmar:</p>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="ELIMINAR"
+                className="font-mono"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={deletingAccount}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== "ELIMINAR" || deletingAccount}
+              >
+                {deletingAccount ? "Eliminando..." : "Eliminar cuenta"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <CompleteProfileModal
           open={showCompleteProfileModal}

@@ -27,7 +27,7 @@ const Terms = () => {
             </h1>
           </div>
           <p className="text-white/80 text-lg">
-            Última actualización: Diciembre 2024
+            Última actualización: Mayo 2026
           </p>
         </div>
       </div>
@@ -46,13 +46,19 @@ const Terms = () => {
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
-                Bienvenido a Trado. Estos Términos y Condiciones regulan el uso de nuestra plataforma 
-                de compra-venta con sistema de escrow (depósito en garantía) para transacciones entre 
+                Bienvenido a Trado. Estos Términos y Condiciones regulan el uso de nuestra plataforma
+                de compra-venta con sistema de escrow (depósito en garantía) para transacciones entre
                 particulares en Chile.
               </p>
               <p>
-                Al registrarte y utilizar Trado, aceptas estos términos en su totalidad. Si no estás 
+                Al registrarte y utilizar Trado, aceptas estos términos en su totalidad. Si no estás
                 de acuerdo con alguna parte, te recomendamos no utilizar nuestros servicios.
+              </p>
+              <p>
+                <strong className="text-foreground">Marco regulatorio:</strong> Trado opera bajo la
+                legislación chilena vigente, incluyendo la Ley N° 21.521 (Ley Fintech), la Ley N° 19.628
+                sobre protección de datos personales, y las normativas de la Comisión para el Mercado
+                Financiero (CMF) aplicables a plataformas de intermediación de pagos.
               </p>
             </div>
           </section>
@@ -83,9 +89,17 @@ const Terms = () => {
                 <li>Los fondos se liberan al vendedor (menos la comisión).</li>
               </ul>
               <p>
-                <strong className="text-foreground">2.3. Rol de Trado:</strong> Actuamos únicamente 
-                como intermediario financiero. No somos responsables de la calidad, autenticidad o 
-                estado de los productos/servicios transaccionados.
+                <strong className="text-foreground">2.3. Rol de Trado:</strong> Actuamos como
+                plataforma tecnológica de intermediación que facilita y custodia temporalmente los fondos
+                durante la transacción. No somos responsables de la calidad, autenticidad o estado de
+                los productos/servicios transaccionados. Trado no es una entidad bancaria ni una
+                institución financiera regulada como tal.
+              </p>
+              <p>
+                <strong className="text-foreground">2.4. Procesamiento de pagos:</strong> Los depósitos
+                a la billetera de Trado se procesan a través de <strong className="text-foreground">Fintoc</strong>,
+                proveedor de servicios de pago regulado. Al realizar un pago, aceptas también los términos
+                de servicio de Fintoc aplicables a la transacción.
               </p>
             </div>
           </section>
@@ -100,18 +114,26 @@ const Terms = () => {
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
-                <strong className="text-foreground">3.1. Comisión por transacción:</strong> Trado 
-                cobra una comisión del <strong className="text-foreground">5%</strong> sobre el 
-                valor total de cada transacción completada exitosamente.
+                <strong className="text-foreground">3.1. Comisión por transacción:</strong> Trado
+                cobra una comisión del <strong className="text-foreground">5%</strong> sobre el
+                valor total de cada transacción completada exitosamente. Esta comisión incluye los
+                costos de procesamiento de pago a través de Fintoc.
               </p>
               <p>
-                <strong className="text-foreground">3.2. Momento del cobro:</strong> La comisión 
+                <strong className="text-foreground">3.2. Momento del cobro:</strong> La comisión
                 se descuenta automáticamente al momento de liberar los fondos al vendedor.
               </p>
               <p>
-                <strong className="text-foreground">3.3. Transacciones canceladas:</strong> No se 
-                cobra comisión en transacciones canceladas antes de que el comprador confirme la 
-                recepción, y los fondos se devuelven íntegramente.
+                <strong className="text-foreground">3.3. Transacciones canceladas:</strong> No se
+                cobra comisión en transacciones canceladas antes de que el comprador confirme la
+                recepción. Los fondos se devuelven íntegramente a la billetera del comprador dentro
+                de la plataforma. El costo de retiro bancario posterior puede aplicar según la
+                sección 3.4.
+              </p>
+              <p>
+                <strong className="text-foreground">3.4. Retiros bancarios:</strong> Los retiros
+                desde la billetera Trado hacia cuenta bancaria son gratuitos. Trado se reserva el
+                derecho de aplicar tarifas en el futuro, notificando con al menos 15 días de anticipación.
               </p>
             </div>
           </section>
@@ -227,8 +249,16 @@ const Terms = () => {
                 <li>Evadir los mecanismos de seguridad de la plataforma.</li>
               </ul>
               <p>
-                El incumplimiento resultará en la suspensión inmediata de la cuenta y posible 
-                denuncia a las autoridades competentes.
+                El incumplimiento resultará en la suspensión inmediata de la cuenta, retención de
+                fondos disponibles y posible denuncia ante las autoridades competentes, incluyendo
+                la Unidad de Análisis Financiero (UAF), el Ministerio Público y/o la CMF según
+                corresponda.
+              </p>
+              <p>
+                <strong className="text-foreground">Prevención de lavado de activos:</strong> Trado
+                cumple con la Ley N° 19.913 que crea la UAF. Nos reservamos el derecho de reportar
+                operaciones sospechosas y de solicitar justificación del origen de fondos cuando
+                corresponda según la normativa vigente.
               </p>
             </div>
           </section>
@@ -295,9 +325,33 @@ const Terms = () => {
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
-                Trado se reserva el derecho de modificar estos términos en cualquier momento. 
-                Los cambios serán notificados por email y/o mediante aviso en la plataforma. 
-                El uso continuado después de los cambios constituye aceptación de los nuevos términos.
+                Trado se reserva el derecho de modificar estos términos en cualquier momento.
+                Los cambios serán notificados por email y/o mediante aviso en la plataforma con
+                al menos <strong className="text-foreground">10 días hábiles de anticipación</strong> para
+                cambios que afecten derechos de los usuarios. El uso continuado después de los
+                cambios constituye aceptación de los nuevos términos.
+              </p>
+            </div>
+          </section>
+
+          {/* Applicable Law */}
+          <section className="bg-card rounded-2xl p-8 border border-border shadow-lg">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-info/10 rounded-lg">
+                <Scale className="h-6 w-6 text-info" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">11. Ley Aplicable y Jurisdicción</h2>
+            </div>
+            <div className="text-muted-foreground space-y-4">
+              <p>
+                Estos Términos y Condiciones se rigen por las leyes de la República de Chile. Cualquier
+                controversia derivada del uso de la plataforma que no pueda resolverse amigablemente
+                será sometida a la jurisdicción de los Tribunales Ordinarios de Justicia de Santiago de Chile.
+              </p>
+              <p>
+                En caso de conflicto entre el usuario y Trado en materias de consumo, el usuario puede
+                también acudir al <strong className="text-foreground">Servicio Nacional del Consumidor (SERNAC)</strong>,
+                conforme a la Ley N° 19.496 sobre protección de los derechos de los consumidores.
               </p>
             </div>
           </section>
