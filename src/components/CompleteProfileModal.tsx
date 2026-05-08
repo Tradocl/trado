@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,66 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
   const [rutError, setRutError] = useState("");
   const [phoneValue, setPhoneValue] = useState("+56 9 ");
   const [phoneError, setPhoneError] = useState("");
-  
+
   // Address fields
   const [region, setRegion] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [calle, setCalle] = useState("");
   const [numero, setNumero] = useState("");
   const [depto, setDepto] = useState("");
+
+  // Lock fields that already have a saved value (cannot be overridden)
+  const [rutLocked, setRutLocked] = useState(false);
+  const [phoneLocked, setPhoneLocked] = useState(false);
+
+  // Pre-fill with existing profile data when modal opens
+  useEffect(() => {
+    if (!open || !user) return;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('rut, phone, address')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error || !data) return;
+
+      if (data.rut) {
+        setRutValue(formatRUT(data.rut.replace(/[^0-9kK]/g, '').toUpperCase()));
+        setRutLocked(true);
+      }
+      if (data.phone) {
+        setPhoneValue(data.phone);
+        setPhoneLocked(true);
+      }
+      if (data.address) {
+        // Best-effort parse of "Calle Numero[, Depto], Ciudad, Region"
+        const parts = data.address.split(',').map((p: string) => p.trim()).filter(Boolean);
+        if (parts.length >= 3) {
+          const regionPart = parts[parts.length - 1];
+          const ciudadPart = parts[parts.length - 2];
+          const street = parts[0];
+          const deptoPart = parts.length >= 4 ? parts[1] : "";
+
+          if (regiones.includes(regionPart)) setRegion(regionPart);
+          if (regionPart && ciudadesPorRegion[regionPart]?.includes(ciudadPart)) {
+            setCiudad(ciudadPart);
+          }
+          // Split "Calle Numero" — number is the last token
+          const tokens = street.split(' ');
+          if (tokens.length > 1) {
+            const last = tokens[tokens.length - 1];
+            setNumero(last);
+            setCalle(tokens.slice(0, -1).join(' '));
+          } else {
+            setCalle(street);
+          }
+          setDepto(deptoPart);
+        }
+      }
+    })();
+  }, [open, user]);
 
   const formatPhoneInput = (value: string) => {
     let digits = value.replace(/[^\d+]/g, '');
