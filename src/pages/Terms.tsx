@@ -363,7 +363,12 @@ const Terms = () => {
               Para consultas sobre estos términos o el funcionamiento de Trado, contáctanos en:
             </p>
             <div className="space-y-2 text-muted-foreground">
-              <p><strong className="text-foreground">Email:</strong> contacto@trado.cl</p>
+              <p>
+                <strong className="text-foreground">Email:</strong>{" "}
+                <a href="mailto:contacto@trado.cl" className="text-primary underline hover:text-primary/80">
+                  contacto@trado.cl
+                </a>
+              </p>
               <p><strong className="text-foreground">Horario:</strong> Lunes a Viernes, 9:00 - 18:00 hrs</p>
             </div>
           </section>

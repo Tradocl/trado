@@ -220,7 +220,7 @@ const Privacy = () => {
                 <li><strong>Retiro de consentimiento:</strong> Retirar tu consentimiento en cualquier momento para comunicaciones promocionales.</li>
               </ul>
               <p>
-                Para ejercer estos derechos, contáctanos en <strong className="text-foreground">privacidad@trado.cl</strong>
+                Para ejercer estos derechos, contáctanos en <a href="mailto:contacto@trado.cl" className="text-primary underline hover:text-primary/80 font-semibold">contacto@trado.cl</a>
               </p>
             </div>
           </section>
@@ -323,8 +323,12 @@ const Privacy = () => {
               datos personales, contáctanos:
             </p>
             <div className="space-y-2 text-muted-foreground">
-              <p><strong className="text-foreground">Email general:</strong> contacto@trado.cl</p>
-              <p><strong className="text-foreground">Privacidad:</strong> privacidad@trado.cl</p>
+              <p>
+                <strong className="text-foreground">Email:</strong>{" "}
+                <a href="mailto:contacto@trado.cl" className="text-primary underline hover:text-primary/80">
+                  contacto@trado.cl
+                </a>
+              </p>
               <p><strong className="text-foreground">Horario:</strong> Lunes a Viernes, 9:00 - 18:00 hrs</p>
             </div>
           </section>
