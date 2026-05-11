@@ -13,6 +13,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const MAX_DEPOSIT_AMOUNT = 5_000_000;
+const ALLOWED_HOST_SUFFIXES = [
+  "trado.cl",
+  ".trado.cl",
+  ".lovable.app",
+  ".lovable.dev",
+  "localhost",
+];
+
+function isAllowedRedirect(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:" && u.hostname !== "localhost") return false;
+    return ALLOWED_HOST_SUFFIXES.some((suffix) =>
+      suffix.startsWith(".") ? u.hostname.endsWith(suffix) : u.hostname === suffix
+    );
+  } catch {
+    return false;
+  }
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -36,7 +58,21 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Monto mínimo: $1.000 CLP" }), { status: 400, headers: corsHeaders });
     }
 
-    // Get wallet id — needed for the webhook to credit the right wallet
+    if (amount > MAX_DEPOSIT_AMOUNT) {
+      return new Response(
+        JSON.stringify({ error: `Monto máximo por depósito: $${MAX_DEPOSIT_AMOUNT.toLocaleString("es-CL")} CLP` }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    if (!isAllowedRedirect(successUrl) || !isAllowedRedirect(cancelUrl)) {
+      console.error("[create-fintoc-payment] Invalid redirect URL", { successUrl, cancelUrl });
+      return new Response(
+        JSON.stringify({ error: "URL de redirección no permitida" }),
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     const { data: wallet, error: walletError } = await supabase
       .from("wallets")
       .select("id")
@@ -47,8 +83,6 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Billetera no encontrada" }), { status: 404, headers: corsHeaders });
     }
 
-    // Create Fintoc checkout session — NO movement created here.
-    // The movement is created only when the webhook confirms payment succeeded.
     const fintocResponse = await fetch("https://api.fintoc.com/v2/checkout_sessions", {
       method: "POST",
       headers: {
