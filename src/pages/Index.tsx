@@ -2,9 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Shield, Users, ArrowRight, Star, Quote, CheckCircle, Clock, Lock, Package, Handshake, ChevronDown } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Shield, Users, ArrowRight, Star, Quote, CheckCircle, Clock, Lock, Package, Handshake, ChevronDown, Play } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Capacitor } from "@capacitor/core";
+import { AnimatedFlowDemo } from "@/components/AnimatedFlowDemo";
 
 // If the landing receives a Supabase auth hash (email verification redirect),
 // forward it to the proper page so the session/token is processed there.
@@ -144,10 +146,12 @@ const AppLanding = () => {
 
 const WebLanding = () => {
   const navigate = useNavigate();
+  const [videoOpen, setVideoOpen] = useState(false);
 
   const [painRef,    painVisible]    = useReveal();
   const [howRef,     howVisible]     = useReveal();
   const [featRef,    featVisible]    = useReveal();
+  const [demoRef,    demoVisible]    = useReveal();
   const [pricingRef, pricingVisible] = useReveal();
   const [testiRef,   testiVisible]   = useReveal();
   const [faqRef,     faqVisible]     = useReveal();
@@ -211,7 +215,8 @@ const WebLanding = () => {
                   Empezar Ahora — Es Gratis
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-                <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 bg-transparent text-lg px-10 py-6 h-auto" onClick={() => document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth" })}>
+                <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 bg-transparent text-lg px-10 py-6 h-auto" onClick={() => setVideoOpen(true)}>
+                  <Play className="mr-2 h-5 w-5 fill-white" />
                   Ver cómo funciona
                 </Button>
               </div>
@@ -266,6 +271,20 @@ const WebLanding = () => {
             <p className="text-2xl font-bold mb-3">Trado existe para que esto no vuelva a pasarte.</p>
             <p className="text-white/85">El dinero queda retenido hasta que ambas partes confirmen que todo salió bien. Sin riesgos, sin estafas.</p>
           </div>
+        </div>
+      </section>
+
+      {/* ── Demo animada ── */}
+      <section className="py-20 bg-gradient-to-b from-white to-muted/40">
+        <div ref={demoRef} className={`reveal ${demoVisible ? "is-visible" : ""} container mx-auto px-4`}>
+          <div className="text-center mb-12">
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider">Trado en vivo</span>
+            <h2 className="text-4xl font-bold text-foreground mt-2 mb-4">Mira Trado en acción</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Así protegemos cada transacción, paso a paso.
+            </p>
+          </div>
+          <AnimatedFlowDemo />
         </div>
       </section>
 
@@ -539,6 +558,32 @@ const WebLanding = () => {
           </div>
         </div>
       </footer>
+
+      {/* Video walkthrough modal — placeholder until real recording is added */}
+      <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle>Cómo funciona Trado</DialogTitle>
+          </DialogHeader>
+          <div className="px-6 pb-6">
+            <div className="aspect-video rounded-2xl bg-gradient-to-br from-[#3340d8] via-[#5040d8] to-[#7147d4] flex flex-col items-center justify-center text-white relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=40 height=40 viewBox=0 0 40 40 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=%23ffffff fill-opacity=0.06%3E%3Cpath d=M20 20L0 0h40z/%3E%3C/g%3E%3C/svg%3E')] opacity-40" />
+              <div className="relative z-10 flex flex-col items-center gap-4">
+                <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur border-2 border-white/30 flex items-center justify-center">
+                  <Play className="h-9 w-9 text-white fill-white ml-1" />
+                </div>
+                <p className="text-2xl font-bold">Video próximamente</p>
+                <p className="text-white/70 text-sm max-w-md text-center px-4">
+                  Estamos grabando un walkthrough completo de Trado.
+                </p>
+              </div>
+            </div>
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              Mientras tanto, mira el flujo animado más abajo ↓
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
