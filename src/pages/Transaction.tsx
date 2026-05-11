@@ -491,7 +491,7 @@ const Transaction = () => {
       setShippingCustomCarrier("");
       loadTransaction();
     } catch (error: any) {
-      toast.error("Error al actualizar estado: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setMarkingShipped(false);
     }
@@ -523,7 +523,7 @@ const Transaction = () => {
       toast.success("¡Producto recibido! Ahora puedes revisarlo con calma.");
       loadTransaction();
     } catch (error: any) {
-      toast.error("Error al actualizar estado: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setMarkingReceived(false);
     }
@@ -549,7 +549,7 @@ const Transaction = () => {
       toast.success("Transacción cancelada correctamente");
       navigate("/dashboard");
     } catch (error: any) {
-      toast.error("Error al cancelar la transacción: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setCancellingTransaction(false);
     }
@@ -581,7 +581,7 @@ const Transaction = () => {
       setDisputeReason("");
       loadTransaction();
     } catch (error: any) {
-      toast.error("Error al abrir disputa: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setOpeningDispute(false);
     }
@@ -779,7 +779,7 @@ const Transaction = () => {
       await loadTransaction();
     } catch (error: any) {
       console.error("Error joining transaction:", error);
-      toast.error("Error al unirse: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setJoiningTransaction(false);
     }
