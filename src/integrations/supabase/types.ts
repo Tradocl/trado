@@ -1066,6 +1066,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_or_service: { Args: never; Returns: boolean }
       mask_bank_account: { Args: { account_number: string }; Returns: string }
       move_to_dlq: {
         Args: {
