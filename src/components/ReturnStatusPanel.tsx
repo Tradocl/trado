@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { ReturnSellerResponsePanel } from "@/components/return/ReturnSellerResponsePanel";
 import { ReturnMediationPanel } from "@/components/return/ReturnMediationPanel";
+import { translateError } from "@/lib/error-messages";
 
 interface ReturnRequest {
   id: string;
@@ -132,7 +133,7 @@ export const ReturnStatusPanel = ({
       toast.success("Envío de retorno confirmado");
       onStatusChange();
     } catch (error: any) {
-      toast.error("Error: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setLoading(false);
     }
@@ -162,7 +163,7 @@ export const ReturnStatusPanel = ({
       toast.success("Devolución completada - Reembolso procesado");
       onStatusChange();
     } catch (error: any) {
-      toast.error("Error: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setLoading(false);
     }
