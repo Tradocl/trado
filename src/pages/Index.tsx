@@ -386,10 +386,12 @@ const WebLanding = () => {
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-info text-white text-xs font-bold px-4 py-1.5 rounded-full mb-6">
                   ✦ Sin costos fijos
                 </div>
-                <p className="text-3xl font-bold bg-gradient-to-r from-primary to-info bg-clip-text text-transparent mb-3">
-                  Una pequeña comisión,<br />toda la seguridad
-                </p>
-                <p className="text-muted-foreground mb-8">Toda la seguridad de Trado pagando una pequeña comisión.</p>
+                <div className="flex items-baseline justify-center gap-2 mb-3">
+                  <span className="text-6xl font-extrabold bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">5%</span>
+                  <span className="text-xl text-muted-foreground">por transacción</span>
+                </div>
+                <p className="text-muted-foreground mb-2">Mínimo $1.000 · Máximo $20.000 CLP</p>
+                <p className="text-sm text-muted-foreground mb-8">Solo pagas cuando se cierra el trato. Sin suscripciones, sin costos ocultos.</p>
                 <div className="grid grid-cols-2 gap-4 mb-8 text-left">
                   {[
                     "Registro gratuito",
