@@ -876,16 +876,17 @@ export default function Admin() {
                               variant="link"
                               size="sm"
                               onClick={async () => {
-                                const path = verification.verification_document_url!.split('/verification-documents/')[1];
-                                if (path) {
-                                  const { data } = await supabase.storage
-                                    .from('verification-documents')
-                                    .createSignedUrl(path, 3600);
-                                  if (data?.signedUrl) {
-                                    window.open(data.signedUrl, "_blank");
-                                  } else {
-                                    toast.error("Error al abrir el documento");
-                                  }
+                                const stored = verification.verification_document_url!;
+                                const path = stored.includes('/verification-documents/')
+                                  ? stored.split('/verification-documents/')[1]
+                                  : stored;
+                                const { data } = await supabase.storage
+                                  .from('verification-documents')
+                                  .createSignedUrl(path, 3600);
+                                if (data?.signedUrl) {
+                                  window.open(data.signedUrl, "_blank");
+                                } else {
+                                  toast.error("Error al abrir el documento");
                                 }
                               }}
                             >
@@ -897,16 +898,17 @@ export default function Admin() {
                               variant="link"
                               size="sm"
                               onClick={async () => {
-                                const path = verification.verification_selfie_url!.split('/verification-documents/')[1];
-                                if (path) {
-                                  const { data } = await supabase.storage
-                                    .from('verification-documents')
-                                    .createSignedUrl(path, 3600);
-                                  if (data?.signedUrl) {
-                                    window.open(data.signedUrl, "_blank");
-                                  } else {
-                                    toast.error("Error al abrir la selfie");
-                                  }
+                                const stored = verification.verification_selfie_url!;
+                                const path = stored.includes('/verification-documents/')
+                                  ? stored.split('/verification-documents/')[1]
+                                  : stored;
+                                const { data } = await supabase.storage
+                                  .from('verification-documents')
+                                  .createSignedUrl(path, 3600);
+                                if (data?.signedUrl) {
+                                  window.open(data.signedUrl, "_blank");
+                                } else {
+                                  toast.error("Error al abrir la selfie");
                                 }
                               }}
                             >

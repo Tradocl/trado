@@ -209,21 +209,12 @@ const Verification = () => {
 
       if (selfieUploadError) throw selfieUploadError;
 
-      // Obtener URLs públicas
-      const { data: docUrlData } = supabase.storage
-        .from('verification-documents')
-        .getPublicUrl(fileName);
-
-      const { data: selfieUrlData } = supabase.storage
-        .from('verification-documents')
-        .getPublicUrl(selfieName);
-
-      // Actualizar perfil
+      // Store storage paths (not public URLs) — bucket is private, admin uses signed URLs to view.
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          verification_document_url: docUrlData.publicUrl,
-          verification_selfie_url: selfieUrlData.publicUrl,
+          verification_document_url: fileName,
+          verification_selfie_url: selfieName,
           verification_status: 'in_review',
           verification_submitted_at: new Date().toISOString()
         })

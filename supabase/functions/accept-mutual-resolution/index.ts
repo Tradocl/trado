@@ -139,19 +139,27 @@ serve(async (req: Request): Promise<Response> => {
     const buyerProposedAmount = Number(proposal.buyer_amount);
     const sellerProposedAmount = Number(proposal.seller_amount);
 
-    // Validate total doesn't exceed transaction amount
-    if (buyerProposedAmount + sellerProposedAmount > transactionAmount) {
-      console.error(`[accept-mutual-resolution] Invalid amounts: buyer=${buyerProposedAmount}, seller=${sellerProposedAmount}, total=${transactionAmount}`);
-      return new Response(JSON.stringify({ error: "Los montos propuestos exceden el total de la transacción" }), {
+    if (buyerProposedAmount < 0 || sellerProposedAmount < 0) {
+      return new Response(JSON.stringify({ error: "Los montos no pueden ser negativos" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    // Commission is paid by the party who initiated the transaction
-    // If buyer initiated, they already paid commission in their deposit (no deduction from seller)
-    // If seller initiated, commission is deducted from seller's portion
+    // Commission is paid by the party who initiated the transaction.
+    // If buyer initiated, they already paid commission in their deposit (escrow = amount + commission)
+    // If seller initiated, commission is deducted from seller's portion (escrow = amount)
     const initiatorRole = tx.initiator_role || 'seller';
+    const escrowAmount = initiatorRole === 'buyer' ? transactionAmount + commission : transactionAmount;
+
+    // Validate total doesn't exceed actual escrow held
+    if (buyerProposedAmount + sellerProposedAmount > escrowAmount) {
+      console.error(`[accept-mutual-resolution] Invalid amounts: buyer=${buyerProposedAmount}, seller=${sellerProposedAmount}, escrow=${escrowAmount}`);
+      return new Response(JSON.stringify({ error: "Los montos propuestos exceden el escrow de la transacción" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
     
     // Calculate actual amounts after commission
     let buyerFinalAmount = buyerProposedAmount;
@@ -217,10 +225,6 @@ serve(async (req: Request): Promise<Response> => {
       }
       proposalUpdated = true;
       console.log("[accept-mutual-resolution] Proposal updated to accepted");
-
-      // Calculate total escrow to release (the amount that was in blocked_balance for this transaction)
-      // This is either the transaction amount or transaction amount + commission depending on who initiated
-      const escrowAmount = initiatorRole === 'buyer' ? transactionAmount + commission : transactionAmount;
 
       // 8.5. Update the original escrow_lock movement to approved
       const { error: updateEscrowMovementError } = await supabaseClient
