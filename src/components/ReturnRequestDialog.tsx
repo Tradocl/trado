@@ -8,6 +8,7 @@ import { RotateCcw, AlertTriangle, AlertCircle, Info, DollarSign } from "lucide-
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatCLP } from "@/lib/utils";
+import { translateError } from "@/lib/error-messages";
 
 interface ReturnRequestDialogProps {
   transactionId: string;
@@ -115,7 +116,7 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
       resetAndClose();
       onRequestCreated();
     } catch (error: any) {
-      toast.error("Error al crear solicitud: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setLoading(false);
     }

@@ -13,6 +13,7 @@ import { Logo } from "@/components/Logo";
 import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
+import { getStateLabel } from "@/lib/transaction-labels";
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 
 interface Profile {
@@ -54,19 +55,6 @@ const resolvedAppealStatuses = [
   "cerrada"
 ];
 
-const stateLabels: Record<string, { label: string; color: string }> = {
-  created: { label: "Esperando Contraparte", color: "bg-gray-500" },
-  invited: { label: "Comprador Unido", color: "bg-blue-500" },
-  awaiting_deposit: { label: "Esperando Depósito", color: "bg-yellow-500" },
-  funds_secured: { label: "Fondos Asegurados", color: "bg-green-500" },
-  in_delivery: { label: "En Entrega", color: "bg-purple-500" },
-  awaiting_buyer_review: { label: "Período de Revisión", color: "bg-amber-500" },
-  return_requested: { label: "Devolución Solicitada", color: "bg-orange-500" },
-  return_in_progress: { label: "Devolución en Proceso", color: "bg-orange-600" },
-  completed: { label: "Completada", color: "bg-emerald-500" },
-  cancelled: { label: "Cancelada", color: "bg-red-500" },
-  in_dispute: { label: "En Disputa", color: "bg-orange-500" },
-};
 
 const appealStatusLabels: Record<string, { label: string; color: string }> = {
   apelacion_abierta: { label: "En Apelación", color: "bg-orange-500" },
@@ -503,11 +491,14 @@ const Dashboard = () => {
                                 <Badge className={`${appealStatusLabels[transaction.appeal_status].color} text-[11px]`}>
                                   {appealStatusLabels[transaction.appeal_status].label}
                                 </Badge>
-                              ) : (
-                                <Badge className={`${stateLabels[transaction.state]?.color || "bg-gray-500"} text-[11px]`}>
-                                  {stateLabels[transaction.state]?.label || transaction.state}
-                                </Badge>
-                              )}
+                              ) : (() => {
+                                const { label, color } = getStateLabel(transaction.state);
+                                return (
+                                  <Badge className={`${color} text-[11px]`}>
+                                    {label}
+                                  </Badge>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>

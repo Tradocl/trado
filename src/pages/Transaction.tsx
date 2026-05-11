@@ -28,6 +28,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { checkTransactionLimits, getUserVerificationStatus, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import confetti from "canvas-confetti";
+import { translateError } from "@/lib/error-messages";
+import { getStateLabel } from "@/lib/transaction-labels";
 
 interface Transaction {
   id: string;
@@ -58,19 +60,6 @@ interface Profile {
   total_transactions: number;
 }
 
-const stateLabels: Record<string, { label: string; color: string }> = {
-  created: { label: "Creada", color: "bg-secondary" },
-  invited: { label: "Comprador Unido", color: "bg-info" },
-  awaiting_deposit: { label: "Esperando Depósito", color: "bg-warning" },
-  funds_secured: { label: "Fondos Asegurados", color: "bg-success" },
-  in_delivery: { label: "En Entrega", color: "bg-info" },
-  awaiting_buyer_review: { label: "Período de Revisión", color: "bg-warning" },
-  return_requested: { label: "Devolución Solicitada", color: "bg-warning" },
-  return_in_progress: { label: "Devolución en Proceso", color: "bg-warning" },
-  completed: { label: "Completada", color: "bg-success" },
-  cancelled: { label: "Cancelada", color: "bg-destructive" },
-  in_dispute: { label: "En Disputa", color: "bg-destructive" },
-};
 
 const Transaction = () => {
   const { id } = useParams();
@@ -502,7 +491,7 @@ const Transaction = () => {
       setShippingCustomCarrier("");
       loadTransaction();
     } catch (error: any) {
-      toast.error("Error al actualizar estado: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setMarkingShipped(false);
     }
@@ -534,7 +523,7 @@ const Transaction = () => {
       toast.success("¡Producto recibido! Ahora puedes revisarlo con calma.");
       loadTransaction();
     } catch (error: any) {
-      toast.error("Error al actualizar estado: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setMarkingReceived(false);
     }
@@ -560,7 +549,7 @@ const Transaction = () => {
       toast.success("Transacción cancelada correctamente");
       navigate("/dashboard");
     } catch (error: any) {
-      toast.error("Error al cancelar la transacción: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setCancellingTransaction(false);
     }
@@ -592,7 +581,7 @@ const Transaction = () => {
       setDisputeReason("");
       loadTransaction();
     } catch (error: any) {
-      toast.error("Error al abrir disputa: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setOpeningDispute(false);
     }
@@ -790,7 +779,7 @@ const Transaction = () => {
       await loadTransaction();
     } catch (error: any) {
       console.error("Error joining transaction:", error);
-      toast.error("Error al unirse: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setJoiningTransaction(false);
     }
@@ -1513,9 +1502,10 @@ const Transaction = () => {
                     );
                   }
                   
+                  const { label, color } = getStateLabel(transaction.state);
                   return (
-                    <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg`}>
-                      {stateLabels[transaction.state]?.label || transaction.state}
+                    <Badge className={`${color} text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg`}>
+                      {label}
                     </Badge>
                   );
                 })()}

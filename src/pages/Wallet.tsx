@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check } from "lucide-react";
+import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check, ShieldCheck } from "lucide-react";
+import { translateError } from "@/lib/error-messages";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
@@ -316,7 +317,7 @@ ${companyBankDetails.email}`;
       // Redirect to Fintoc hosted checkout
       window.location.href = data.checkout_url;
     } catch (error: any) {
-      toast.error("Error al iniciar pago: " + (error.message ?? "Error desconocido"));
+      toast.error(translateError(error));
     } finally {
       setSubmitting(false);
     }
@@ -405,7 +406,7 @@ ${companyBankDetails.email}`;
       setBankAccountNumber("");
       loadWalletData();
     } catch (error: any) {
-      toast.error("Error al solicitar retiro: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setSubmitting(false);
     }
@@ -498,7 +499,7 @@ ${companyBankDetails.email}`;
       setBankAccountNumber("");
       loadWalletData();
     } catch (error: any) {
-      toast.error("Error al actualizar movimiento: " + error.message);
+      toast.error(translateError(error));
     } finally {
       setSubmitting(false);
     }
@@ -517,7 +518,7 @@ ${companyBankDetails.email}`;
       toast.success("Movimiento cancelado");
       loadWalletData();
     } catch (error: any) {
-      toast.error("Error al cancelar movimiento: " + error.message);
+      toast.error(translateError(error));
     }
   };
 
@@ -789,6 +790,16 @@ ${companyBankDetails.email}`;
               <p>1. Haz clic en "Pagar con Fintoc"</p>
               <p>2. Selecciona tu banco y autoriza la transferencia</p>
               <p>3. Tu saldo se actualiza automáticamente</p>
+            </div>
+
+            <div className="p-3 bg-info/10 border border-info/30 rounded-lg text-xs text-muted-foreground flex gap-2">
+              <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
+              <p>
+                <span className="font-medium text-foreground">Fintoc</span> es nuestra pasarela de pago segura,
+                regulada y autorizada en Chile. Al hacer clic, te conectaremos directamente con tu banco para
+                transferir el monto. Tu plata queda inmediatamente en custodia de Trado hasta confirmar la
+                entrega del producto/servicio.
+              </p>
             </div>
 
             <Button
