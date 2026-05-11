@@ -14,6 +14,7 @@ import { formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge";
 import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
+import { checkDepositLimits, getUserVerificationStatus } from "@/lib/transaction-limits";
 
 interface Movement {
   id: string;
@@ -282,6 +283,13 @@ ${companyBankDetails.email}`;
     const depositAmount = parseFormattedAmount(amount);
     if (depositAmount < 1000) {
       toast.error("Monto mínimo: $1.000");
+      return;
+    }
+
+    const isVerified = await getUserVerificationStatus(user.id);
+    const limitCheck = await checkDepositLimits(user.id, depositAmount, isVerified);
+    if (!limitCheck.allowed) {
+      toast.error(limitCheck.message ?? "Depósito no permitido");
       return;
     }
 
