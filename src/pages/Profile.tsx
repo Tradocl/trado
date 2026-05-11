@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield } from "lucide-react";
+import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle } from "lucide-react";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { PushNotificationCard } from "@/components/PushNotificationCard";
 import { supabase } from "@/lib/supabase";
