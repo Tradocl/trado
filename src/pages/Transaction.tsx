@@ -1502,9 +1502,10 @@ const Transaction = () => {
                     );
                   }
                   
+                  const { label, color } = getStateLabel(transaction.state);
                   return (
-                    <Badge className={`${stateLabels[transaction.state]?.color || "bg-secondary"} text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg`}>
-                      {stateLabels[transaction.state]?.label || transaction.state}
+                    <Badge className={`${color} text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg`}>
+                      {label}
                     </Badge>
                   );
                 })()}
