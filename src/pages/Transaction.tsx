@@ -28,6 +28,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { checkTransactionLimits, getUserVerificationStatus, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import confetti from "canvas-confetti";
+import { translateError } from "@/lib/error-messages";
+import { getStateLabel } from "@/lib/transaction-labels";
 
 interface Transaction {
   id: string;
@@ -58,19 +60,6 @@ interface Profile {
   total_transactions: number;
 }
 
-const stateLabels: Record<string, { label: string; color: string }> = {
-  created: { label: "Creada", color: "bg-secondary" },
-  invited: { label: "Comprador Unido", color: "bg-info" },
-  awaiting_deposit: { label: "Esperando Depósito", color: "bg-warning" },
-  funds_secured: { label: "Fondos Asegurados", color: "bg-success" },
-  in_delivery: { label: "En Entrega", color: "bg-info" },
-  awaiting_buyer_review: { label: "Período de Revisión", color: "bg-warning" },
-  return_requested: { label: "Devolución Solicitada", color: "bg-warning" },
-  return_in_progress: { label: "Devolución en Proceso", color: "bg-warning" },
-  completed: { label: "Completada", color: "bg-success" },
-  cancelled: { label: "Cancelada", color: "bg-destructive" },
-  in_dispute: { label: "En Disputa", color: "bg-destructive" },
-};
 
 const Transaction = () => {
   const { id } = useParams();
