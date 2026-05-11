@@ -49,18 +49,6 @@ serve(async (req: Request) => {
         return new Response("Missing metadata", { status: 400 });
       }
 
-      // Idempotency: check if this session was already processed
-      const { data: existing } = await supabase
-        .from("wallet_movements")
-        .select("id")
-        .eq("description", `Depósito Fintoc [${sessionId}]`)
-        .maybeSingle();
-
-      if (existing) {
-        console.log("[fintoc-webhook] Already processed session:", sessionId);
-        return new Response("Already processed", { status: 200 });
-      }
-
       // Verify wallet belongs to the claimed user
       const { data: wallet, error: walletErr } = await supabase
         .from("wallets")
@@ -78,8 +66,40 @@ serve(async (req: Request) => {
         return new Response("Metadata mismatch", { status: 400 });
       }
 
-      const newBalance = Number(wallet.balance) + depositAmount;
+      // True idempotency: try to INSERT the movement first using a unique
+      // session_id column. If the row already exists (concurrent webhook retry),
+      // skip the wallet update entirely.
+      const { data: insertedMov, error: movInsertErr } = await supabase
+        .from("wallet_movements")
+        .insert({
+          wallet_id,
+          type: "deposit",
+          amount: depositAmount,
+          balance_after: Number(wallet.balance) + depositAmount,
+          description: `Depósito Fintoc [${sessionId}]`,
+          status: "approved",
+          external_session_id: sessionId,
+        })
+        .select("id")
+        .maybeSingle();
 
+      if (movInsertErr) {
+        // Postgres unique violation = 23505. If this happens, another webhook
+        // already inserted for this session — do nothing.
+        if ((movInsertErr as any).code === "23505") {
+          console.log("[fintoc-webhook] Already processed session (race caught by DB):", sessionId);
+          return new Response("Already processed", { status: 200 });
+        }
+        console.error("[fintoc-webhook] Error creating movement:", movInsertErr);
+        return new Response("Error creating movement", { status: 500 });
+      }
+
+      if (!insertedMov) {
+        console.log("[fintoc-webhook] Insert returned no row (likely concurrent):", sessionId);
+        return new Response("Already processed", { status: 200 });
+      }
+
+      const newBalance = Number(wallet.balance) + depositAmount;
       const { error: walletUpdateErr } = await supabase
         .from("wallets")
         .update({ balance: newBalance })
@@ -87,23 +107,10 @@ serve(async (req: Request) => {
 
       if (walletUpdateErr) {
         console.error("[fintoc-webhook] Error updating wallet:", walletUpdateErr);
+        // Critical: balance update failed AFTER movement was inserted.
+        // Roll back the movement insert to avoid an orphaned approved deposit.
+        await supabase.from("wallet_movements").delete().eq("id", insertedMov.id);
         return new Response("Error updating wallet", { status: 500 });
-      }
-
-      const { error: movErr } = await supabase
-        .from("wallet_movements")
-        .insert({
-          wallet_id,
-          type: "deposit",
-          amount: depositAmount,
-          balance_after: newBalance,
-          description: `Depósito Fintoc [${sessionId}]`,
-          status: "approved",
-        });
-
-      if (movErr) {
-        console.error("[fintoc-webhook] Error creating movement:", movErr);
-        return new Response("Error creating movement", { status: 500 });
       }
 
       console.log(`[fintoc-webhook] Deposit confirmed: user=${user_id}, amount=${depositAmount}, new_balance=${newBalance}`);

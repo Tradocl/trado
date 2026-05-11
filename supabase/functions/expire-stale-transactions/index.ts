@@ -30,8 +30,25 @@ serve(async (_req) => {
     console.log(`[expire-stale-transactions] Found ${transactions.length} stale transactions`);
 
     let cancelled = 0;
+    let skipped = 0;
 
     for (const tx of transactions) {
+      // Safety: skip if any escrow funds are locked for this transaction.
+      // Cancelling here would orphan the buyer's blocked balance.
+      const { data: lockedMovs } = await supabase
+        .from("wallet_movements")
+        .select("id")
+        .eq("transaction_id", tx.id)
+        .eq("type", "escrow_lock")
+        .in("status", ["pending", "approved"])
+        .limit(1);
+
+      if (lockedMovs && lockedMovs.length > 0) {
+        console.warn(`[expire-stale-transactions] Skipping tx ${tx.id} — escrow already locked`);
+        skipped++;
+        continue;
+      }
+
       const { error: updateError } = await supabase
         .from("transactions")
         .update({ state: "cancelled" })
@@ -70,8 +87,8 @@ serve(async (_req) => {
       console.log(`[expire-stale-transactions] Cancelled tx ${tx.id} (state: ${tx.state})`);
     }
 
-    console.log(`[expire-stale-transactions] Done. Cancelled ${cancelled}/${transactions.length}`);
-    return new Response(JSON.stringify({ cancelled }), { status: 200 });
+    console.log(`[expire-stale-transactions] Done. Cancelled ${cancelled}, skipped ${skipped} of ${transactions.length}`);
+    return new Response(JSON.stringify({ cancelled, skipped }), { status: 200 });
 
   } catch (error: any) {
     console.error("[expire-stale-transactions] Error:", error);

@@ -576,17 +576,20 @@ const Transaction = () => {
 
     setOpeningDispute(true);
     try {
-      await supabase
+      const { error } = await supabase
         .from("transactions")
         .update({
           state: "in_dispute",
           dispute_opened_at: new Date().toISOString(),
+          dispute_reason: disputeReason.trim(),
         })
         .eq("id", transaction.id);
 
-      // You could also create a disputes table to track dispute details
+      if (error) throw error;
+
       toast.success("Disputa abierta. Un administrador la revisará pronto.");
       setDisputeDialogOpen(false);
+      setDisputeReason("");
       loadTransaction();
     } catch (error: any) {
       toast.error("Error al abrir disputa: " + error.message);

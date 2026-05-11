@@ -36,6 +36,7 @@ const Wallet = () => {
   const [searchParams] = useSearchParams();
   const [balance, setBalance] = useState(0);
   const [blockedBalance, setBlockedBalance] = useState(0);
+  const [walletId, setWalletId] = useState<string | null>(null);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [pendingMovements, setPendingMovements] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,60 +113,6 @@ ${companyBankDetails.email}`;
       return;
     }
 
-    if (user) {
-      loadWalletData();
-      
-      const movementsChannel = supabase
-        .channel('wallet_movements_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'wallet_movements',
-          },
-          (payload: any) => {
-            const updatedMovement = payload.new;
-            
-            if (updatedMovement.status === 'approved') {
-              toast.success(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} aprobado por $${formatCLP(updatedMovement.amount)}`, {
-                duration: 5000,
-              });
-              loadWalletData();
-            } else if (updatedMovement.status === 'rejected') {
-              toast.error(`${updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro'} rechazado por $${formatCLP(updatedMovement.amount)}`, {
-                duration: 5000,
-              });
-              loadWalletData();
-            }
-          }
-        )
-        .subscribe();
-
-      const walletChannel = supabase
-        .channel('wallet_balance_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'wallets',
-            filter: `user_id=eq.${user.id}`
-          },
-          (payload: any) => {
-            console.log('Wallet actualizada:', payload.new);
-            setBalance(payload.new.balance);
-            setBlockedBalance(payload.new.blocked_balance ?? 0);
-          }
-        )
-        .subscribe();
-      
-      return () => {
-        supabase.removeChannel(movementsChannel);
-        supabase.removeChannel(walletChannel);
-      };
-    }
-
     if (searchParams.get("action") === "deposit") {
       setDepositOpen(true);
     } else if (searchParams.get("action") === "withdraw") {
@@ -177,7 +124,70 @@ ${companyBankDetails.email}`;
     } else if (searchParams.get("deposit") === "cancelled") {
       toast.info("Depósito cancelado.");
     }
+
+    if (user) {
+      loadWalletData();
+
+      const walletChannel = supabase
+        .channel(`wallet_balance:${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'wallets',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload: any) => {
+            setBalance(payload.new.balance);
+            setBlockedBalance(payload.new.blocked_balance ?? 0);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(walletChannel);
+      };
+    }
   }, [user, authLoading, navigate, searchParams]);
+
+  // Subscribe to wallet_movements once we know the wallet id (so we filter at source)
+  useEffect(() => {
+    if (!walletId || !user) return;
+
+    const movementsChannel = supabase
+      .channel(`wallet_movements:${walletId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'wallet_movements',
+          filter: `wallet_id=eq.${walletId}`,
+        },
+        (payload: any) => {
+          const updatedMovement = payload.new;
+          if (!updatedMovement?.status || !updatedMovement?.type) {
+            loadWalletData();
+            return;
+          }
+          const label = updatedMovement.type === 'deposit' ? 'Depósito' : 'Retiro';
+          const amountText = updatedMovement.amount != null ? `$${formatCLP(updatedMovement.amount)}` : '';
+          if (updatedMovement.status === 'approved') {
+            toast.success(`${label} aprobado ${amountText}`.trim(), { duration: 5000 });
+            loadWalletData();
+          } else if (updatedMovement.status === 'rejected') {
+            toast.error(`${label} rechazado ${amountText}`.trim(), { duration: 5000 });
+            loadWalletData();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(movementsChannel);
+    };
+  }, [walletId, user]);
 
   const loadBankDetails = async () => {
     if (!user) return;
@@ -219,6 +229,7 @@ ${companyBankDetails.email}`;
 
       setBalance(wallet.balance);
       setBlockedBalance(wallet.blocked_balance ?? 0);
+      setWalletId(wallet.id);
 
       // Get approved movements + pending escrow_lock movements
       const { data: approvedMovements, error: approvedError } = await supabase
