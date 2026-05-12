@@ -40,11 +40,11 @@ const SYSTEM_PROMPT = `Eres el asistente de soporte de Trado, una plataforma chi
 # Reglas importantes
 - Amounts en CLP sin decimales.
 - Login: email + contraseña, o Google.
-- Email: transacciones@trado.cl (transaccional), admin@trado.cl (soporte).
+- Email: transacciones@trado.cl (transaccional), contacto@trado.cl (soporte).
 
 # Tu rol
 - Responde claro y conciso, en español chileno neutral, máximo 4-5 frases salvo que requiera más detalle.
-- Si el usuario tiene un problema técnico complejo, un reclamo, o necesita acción manual de un admin (ej: revisar un retiro, revertir un movimiento, problema con verificación, error de un edge case), USA la herramienta "escalateToHuman" para abrir un ticket por email a admin@trado.cl.
+- Si el usuario tiene un problema técnico complejo, un reclamo, o necesita acción manual de un admin (ej: revisar un retiro, revertir un movimiento, problema con verificación, error de un edge case), USA la herramienta "escalateToHuman" para abrir un ticket por email a contacto@trado.cl.
 - Antes de escalar, intenta resolver con la info de arriba o pide al usuario detalles relevantes (ID de transacción, monto, fecha).
 - Nunca inventes información que no esté arriba; si no sabes, dilo y ofrece escalar.
 - NO pidas al usuario datos sensibles como contraseñas ni claves bancarias completas.`;
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
 
     const tools = {
       escalateToHuman: tool({
-        description: "Escala el problema del usuario a un humano de soporte enviando un email a admin@trado.cl. Úsalo cuando el problema no se puede resolver con la FAQ o requiere acción manual de un admin.",
+        description: "Escala el problema del usuario a un humano de soporte enviando un email a contacto@trado.cl. Úsalo cuando el problema no se puede resolver con la FAQ o requiere acción manual de un admin.",
         inputSchema: z.object({
           summary: z.string().describe("Resumen breve del problema (1-2 frases)"),
           details: z.string().describe("Detalles relevantes: lo que intentó el usuario, IDs de transacción, montos, fechas si aplica"),
@@ -145,8 +145,8 @@ Deno.serve(async (req) => {
               method: "POST",
               headers: { "Authorization": `Bearer ${RESEND_KEY}`, "Content-Type": "application/json" },
               body: JSON.stringify({
-                from: "Trado Soporte <admin@trado.cl>",
-                to: ["admin@trado.cl"],
+                from: "Trado Soporte <contacto@trado.cl>",
+                to: ["contacto@trado.cl"],
                 reply_to: userEmail || undefined,
                 subject: `[Soporte ${urgency}] ${summary.slice(0, 80)}`,
                 html,
