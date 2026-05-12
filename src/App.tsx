@@ -105,11 +105,14 @@ const App = () => (
               <Route path="/admin/appeal/:appealId" element={<ProtectedRoute><AdminAppeal /></ProtectedRoute>} />
               <Route path="/return/:returnId" element={<ProtectedRoute><ReturnRoom /></ProtectedRoute>} />
               <Route path="/admin/return/:returnId" element={<ProtectedRoute><AdminReturnRoom /></ProtectedRoute>} />
+              <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+              <Route path="/support/:threadId" element={<ProtectedRoute><Support /></ProtectedRoute>} />
 
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <MobileBottomNav />
+            <SupportFab />
             <CookieBanner />
           </AuthProvider>
         </BrowserRouter>
