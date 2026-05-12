@@ -33,8 +33,10 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import MobileBottomNav from "./components/MobileBottomNav";
+import { SupportFab } from "./components/SupportFab";
 import { CookieBanner } from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
