@@ -33,8 +33,10 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import MobileBottomNav from "./components/MobileBottomNav";
+import { SupportFab } from "./components/SupportFab";
 import { CookieBanner } from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
@@ -103,11 +105,14 @@ const App = () => (
               <Route path="/admin/appeal/:appealId" element={<ProtectedRoute><AdminAppeal /></ProtectedRoute>} />
               <Route path="/return/:returnId" element={<ProtectedRoute><ReturnRoom /></ProtectedRoute>} />
               <Route path="/admin/return/:returnId" element={<ProtectedRoute><AdminReturnRoom /></ProtectedRoute>} />
+              <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+              <Route path="/support/:threadId" element={<ProtectedRoute><Support /></ProtectedRoute>} />
 
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <MobileBottomNav />
+            <SupportFab />
             <CookieBanner />
           </AuthProvider>
         </BrowserRouter>
