@@ -42,6 +42,9 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const AdminBlog = lazy(() => import("./pages/AdminBlog"));
 
 const queryClient = new QueryClient();
 
@@ -99,6 +102,10 @@ const App = () => (
                 <Route path="/verificar-email" element={<VerifyEmail />} />
                 <Route path="/invite/:id" element={<InviteWelcome />} />
                 <Route path="/u/:userId" element={<PublicProfile />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/categoria/:categorySlug" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/admin/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
 
                 {/* Protected routes */}
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

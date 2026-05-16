@@ -556,6 +556,7 @@ const WebLanding = () => {
                 <li><button onClick={() => document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth" })} className="hover:text-white transition-colors">¿Cómo funciona?</button></li>
                 <li><button onClick={() => document.getElementById("precios")?.scrollIntoView({ behavior: "smooth" })} className="hover:text-white transition-colors">Precios</button></li>
                 <li><button onClick={() => document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" })} className="hover:text-white transition-colors">FAQ</button></li>
+                <li><a href="/blog" className="hover:text-white transition-colors">Blog</a></li>
               </ul>
             </div>
             <div>
