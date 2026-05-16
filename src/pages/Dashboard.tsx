@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
@@ -269,6 +270,12 @@ const Dashboard = () => {
 
   return (
     <div className="app-shell">
+      <Helmet>
+        <title>Mi panel — Trado</title>
+        <meta name="description" content="Tu panel Trado: balance en escrow, transacciones activas y acceso rápido a depósitos, retiros y verificación." />
+        <meta name="robots" content="noindex" />
+      </Helmet>
+      <h1 className="sr-only">Panel de control de Trado</h1>
       {/* Header */}
       <header className="app-header">
         <div className="app-container !py-3 md:!py-4 flex justify-between items-center">

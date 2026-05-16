@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield, Database, Eye, Lock, Share2, UserCheck, Bell, Trash2, Mail } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -8,6 +9,13 @@ const Privacy = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Política de privacidad — Trado</title>
+        <meta name="description" content="Cómo Trado recopila, usa y protege tus datos personales según la ley chilena." />
+        <link rel="canonical" href="https://trado.cl/privacy" />
+        <meta property="og:title" content="Política de privacidad — Trado" />
+        <meta property="og:url" content="https://trado.cl/privacy" />
+      </Helmet>
       {/* Header */}
       <div className="bg-gradient-to-br from-primary via-primary-light to-info py-12">
         <div className="container mx-auto px-4">
