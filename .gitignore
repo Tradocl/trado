@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Android release signing — NEVER commit
+android/keystore.properties
+android/app/*.jks
+android/app/*.keystore
+*.jks
+*.keystore
+
+# Android build artifacts
+android/.gradle/
+android/local.properties
+android/app/release/
+android/app/build/
