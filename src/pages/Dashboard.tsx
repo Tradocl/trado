@@ -422,6 +422,8 @@ const Dashboard = () => {
 
         {/* Transactions in Progress */}
         {transactions.length > 0 && (
+          <>
+          <h2 className="sr-only">Transacciones en curso</h2>
           <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
             <CardHeader className="border-b border-border/60">
               <CardTitle className="flex items-center gap-3 text-base">
