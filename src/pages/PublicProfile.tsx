@@ -114,6 +114,7 @@ const PublicProfile = () => {
             variant="ghost"
             size="sm"
             onClick={handleShare}
+            aria-label="Compartir perfil"
             className="text-white/80 hover:text-white hover:bg-white/10"
           >
             <Share2 className="h-4 w-4" />
@@ -226,7 +227,7 @@ const PublicProfile = () => {
         {/* Ratings */}
         <Card className="mb-8 border-border/60">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Calificaciones recibidas</CardTitle>
+            <h2 className="text-base font-semibold leading-none tracking-tight">Calificaciones recibidas</h2>
           </CardHeader>
           <Separator />
           <CardContent className="pt-3">

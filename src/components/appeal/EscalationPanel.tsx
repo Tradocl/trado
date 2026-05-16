@@ -326,7 +326,7 @@ export function EscalationPanel({
                     {pf.preview ? (
                       <img 
                         src={pf.preview} 
-                        alt={pf.file.name}
+                        alt={`Vista previa de evidencia para escalar: ${pf.file.name.replace(/\.[^.]+$/, "")}`}
                         className="w-full h-20 object-cover rounded-lg border"
                       />
                     ) : (
@@ -415,7 +415,7 @@ export function EscalationPanel({
                   {item.file_type.startsWith("image/") ? (
                     <img
                       src={item.file_url}
-                      alt={item.file_name}
+                      alt={`Evidencia para escalar: ${item.file_name.replace(/\.[^.]+$/, "")}`}
                       className="w-full h-12 object-cover rounded border"
                     />
                   ) : (

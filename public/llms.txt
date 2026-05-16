@@ -1,0 +1,17 @@
+# Trado
+
+> Plataforma P2P de escrow para Chile. Protege el dinero del comprador hasta confirmar la entrega del producto o servicio, eliminando estafas en transacciones entre personas.
+
+Trado es una aplicación web y móvil (Android/iOS) que permite a usuarios chilenos comprar, vender y contratar servicios de forma segura. El comprador deposita el monto, Trado lo retiene como escrow, y el vendedor recibe el pago solo cuando se confirma la entrega. Si hay disputa, un equipo mediador resuelve. Comisión: 5% por transacción.
+
+## Pages
+
+- [Inicio](/): Cómo funciona Trado, precios, FAQ y registro.
+- [Iniciar sesión / Registro](/auth): Acceso para usuarios nuevos y existentes.
+- [Términos y condiciones](/terms): Reglas de uso de la plataforma.
+- [Política de privacidad](/privacy): Tratamiento de datos personales según ley chilena.
+
+## Optional
+
+- [Recuperar contraseña](/reset-password): Reset de credenciales por email.
+- [Verificación de correo](/verificar-email): Confirmación de email tras registro.
