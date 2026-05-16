@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -535,6 +536,12 @@ ${companyBankDetails.email}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
+      <Helmet>
+        <title>Mi billetera — Trado</title>
+        <meta name="description" content="Administra tu saldo, depósitos y retiros en Trado." />
+        <meta name="robots" content="noindex" />
+      </Helmet>
+      <h1 className="sr-only">Mi billetera Trado</h1>
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>

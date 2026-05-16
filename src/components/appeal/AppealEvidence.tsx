@@ -242,7 +242,7 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin 
       return (
         <img
           src={item.file_url}
-          alt={item.file_name}
+          alt={`Evidencia de apelación: ${item.file_name.replace(/\.[^.]+$/, "")}`}
           className="w-full h-48 object-cover rounded-lg"
         />
       );
@@ -320,7 +320,7 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin 
                     {pf.preview ? (
                       <img 
                         src={pf.preview} 
-                        alt={pf.file.name}
+                        alt={`Vista previa de evidencia: ${pf.file.name.replace(/\.[^.]+$/, "")}`}
                         className="w-full h-24 object-cover rounded-lg border"
                       />
                     ) : (

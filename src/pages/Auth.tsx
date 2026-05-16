@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase, signIn, signUp } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -428,6 +429,14 @@ const Auth = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Iniciar sesión o registrarse — Trado</title>
+        <meta name="description" content="Accede a tu cuenta Trado o regístrate gratis para empezar a usar el escrow P2P más seguro de Chile." />
+        <link rel="canonical" href="https://trado.cl/auth" />
+        <meta property="og:title" content="Iniciar sesión — Trado" />
+        <meta property="og:url" content="https://trado.cl/auth" />
+      </Helmet>
+      <h1 className="sr-only">Iniciar sesión o registrarse en Trado</h1>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info p-4">
         <Card className="w-full max-w-md shadow-2xl border-0 relative">
           <CardHeader className="space-y-3 pt-4">
