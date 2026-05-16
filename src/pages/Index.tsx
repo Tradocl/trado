@@ -176,6 +176,15 @@ const WebLanding = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Trado — Negocia Seguro con Escrow P2P | Chile</title>
+        <meta name="description" content="Trado protege tu dinero en escrow hasta confirmar la entrega. Compra, vende y contrata servicios sin riesgos en Chile." />
+        <link rel="canonical" href="https://trado.cl/" />
+        <meta property="og:title" content="Trado — Negocia Seguro con Escrow P2P" />
+        <meta property="og:description" content="Tu dinero protegido en escrow hasta confirmar la entrega. Sin estafas, sin riesgos." />
+        <meta property="og:url" content="https://trado.cl/" />
+        <script type="application/ld+json">{JSON.stringify(FAQ_JSON_LD)}</script>
+      </Helmet>
       <ScrollProgress />
 
       {/* ── Navbar ── */}
@@ -495,14 +504,7 @@ const WebLanding = () => {
             </div>
 
             <Accordion type="single" collapsible className="space-y-3">
-              {[
-                { q: "¿Cómo funciona el sistema de seguridad?",                           a: "Quien paga deposita el dinero en Trado, donde queda retenido. Quien entrega cumple lo acordado —enviar el producto, completar el servicio o entregar el trabajo— y cuando el pagador confirma que todo está correcto, liberamos el pago. Si hay algún problema, nuestro equipo media la disputa." },
-                { q: "¿Cuánto cobra Trado por cada transacción?",                         a: "Cobramos un 5% sobre el valor de la transacción, descontado del monto recibido. Quien paga no tiene comisión adicional. Sin costos ocultos ni suscripciones." },
-                { q: "¿Qué pasa si el producto o servicio no corresponde a lo acordado?", a: "Quien pagó puede abrir una disputa antes de confirmar la recepción. Nuestro equipo revisará el caso con evidencias y mediará para encontrar una solución justa. El dinero permanece retenido hasta resolver." },
-                { q: "¿Cuánto tarda en llegar el dinero a quien entregó?",                a: "Una vez confirmado que todo salió bien, el dinero queda disponible en tu billetera Trado inmediatamente. El retiro a cuenta bancaria toma entre 1-2 días hábiles." },
-                { q: "¿Necesito verificar mi identidad para usar Trado?",                 a: "Para transacciones básicas no es necesario, pero verificar tu identidad aumenta tu reputación y genera más confianza. Los usuarios verificados acceden a montos más altos y beneficios exclusivos." },
-                { q: "¿Trado está disponible como app?",                                  a: "Sí, Trado está disponible para Android y próximamente para iOS. Puedes descargar el APK desde nuestra web o buscarla en la Play Store." },
-              ].map(({ q, a }) => (
+              {FAQ_ITEMS.map(({ q, a }) => (
                 <AccordionItem key={q} value={q} className="bg-white rounded-xl border border-border/60 px-6">
                   <AccordionTrigger className="text-foreground hover:text-primary text-left font-medium">{q}</AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">{a}</AccordionContent>
