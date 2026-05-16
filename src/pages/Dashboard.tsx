@@ -519,6 +519,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
+          </>
         )}
 
         {/* Complete Profile Card - Show for users with incomplete profile */}
