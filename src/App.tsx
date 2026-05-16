@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,33 +11,43 @@ import { App as CapApp } from "@capacitor/app";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Wallet from "./pages/Wallet";
-import CreateTransaction from "./pages/CreateTransaction";
-import JoinTransaction from "./pages/JoinTransaction";
-import Transaction from "./pages/Transaction";
-import InviteWelcome from "./pages/InviteWelcome";
-import Verification from "./pages/Verification";
-import Admin from "./pages/Admin";
-import MovementHistory from "./pages/MovementHistory";
-import TransactionHistory from "./pages/TransactionHistory";
-import Profile from "./pages/Profile";
-import PublicProfile from "./pages/PublicProfile";
-import Appeal from "./pages/Appeal";
-import AdminAppeal from "./pages/AdminAppeal";
-import ReturnRoom from "./pages/ReturnRoom";
-import AdminReturnRoom from "./pages/AdminReturnRoom";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import ResetPassword from "./pages/ResetPassword";
-import VerifyEmail from "./pages/VerifyEmail";
-import NotFound from "./pages/NotFound";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { CookieBanner } from "./components/CookieBanner";
 
+// Eager: most frequent entry points
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import NotFound from "./pages/NotFound";
+
+// Lazy: protected/secondary routes, loaded on demand
+const Wallet = lazy(() => import("./pages/Wallet"));
+const CreateTransaction = lazy(() => import("./pages/CreateTransaction"));
+const JoinTransaction = lazy(() => import("./pages/JoinTransaction"));
+const Transaction = lazy(() => import("./pages/Transaction"));
+const InviteWelcome = lazy(() => import("./pages/InviteWelcome"));
+const Verification = lazy(() => import("./pages/Verification"));
+const Admin = lazy(() => import("./pages/Admin"));
+const MovementHistory = lazy(() => import("./pages/MovementHistory"));
+const TransactionHistory = lazy(() => import("./pages/TransactionHistory"));
+const Profile = lazy(() => import("./pages/Profile"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+const Appeal = lazy(() => import("./pages/Appeal"));
+const AdminAppeal = lazy(() => import("./pages/AdminAppeal"));
+const ReturnRoom = lazy(() => import("./pages/ReturnRoom"));
+const AdminReturnRoom = lazy(() => import("./pages/AdminReturnRoom"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+
 const queryClient = new QueryClient();
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+  </div>
+);
 
 const MobileBootstrap = () => {
   const navigate = useNavigate();
@@ -76,37 +86,39 @@ const App = () => (
         <BrowserRouter>
           <MobileBootstrap />
           <AuthProvider>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/verificar-email" element={<VerifyEmail />} />
-              <Route path="/invite/:id" element={<InviteWelcome />} />
-              <Route path="/u/:userId" element={<PublicProfile />} />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/verificar-email" element={<VerifyEmail />} />
+                <Route path="/invite/:id" element={<InviteWelcome />} />
+                <Route path="/u/:userId" element={<PublicProfile />} />
 
-              {/* Protected routes */}
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-              <Route path="/create-transaction" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
-              <Route path="/create-sale" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
-              <Route path="/join-transaction" element={<ProtectedRoute><JoinTransaction /></ProtectedRoute>} />
-              <Route path="/transaction/:id" element={<ProtectedRoute><Transaction /></ProtectedRoute>} />
-              <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/movement-history" element={<ProtectedRoute><MovementHistory /></ProtectedRoute>} />
-              <Route path="/transaction-history" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/appeal/:appealId" element={<ProtectedRoute><Appeal /></ProtectedRoute>} />
-              <Route path="/admin/appeal/:appealId" element={<ProtectedRoute><AdminAppeal /></ProtectedRoute>} />
-              <Route path="/return/:returnId" element={<ProtectedRoute><ReturnRoom /></ProtectedRoute>} />
-              <Route path="/admin/return/:returnId" element={<ProtectedRoute><AdminReturnRoom /></ProtectedRoute>} />
+                {/* Protected routes */}
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+                <Route path="/create-transaction" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
+                <Route path="/create-sale" element={<ProtectedRoute><CreateTransaction /></ProtectedRoute>} />
+                <Route path="/join-transaction" element={<ProtectedRoute><JoinTransaction /></ProtectedRoute>} />
+                <Route path="/transaction/:id" element={<ProtectedRoute><Transaction /></ProtectedRoute>} />
+                <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/movement-history" element={<ProtectedRoute><MovementHistory /></ProtectedRoute>} />
+                <Route path="/transaction-history" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/appeal/:appealId" element={<ProtectedRoute><Appeal /></ProtectedRoute>} />
+                <Route path="/admin/appeal/:appealId" element={<ProtectedRoute><AdminAppeal /></ProtectedRoute>} />
+                <Route path="/return/:returnId" element={<ProtectedRoute><ReturnRoom /></ProtectedRoute>} />
+                <Route path="/admin/return/:returnId" element={<ProtectedRoute><AdminReturnRoom /></ProtectedRoute>} />
 
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                {/* Catch-all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
             <MobileBottomNav />
             <CookieBanner />
           </AuthProvider>
