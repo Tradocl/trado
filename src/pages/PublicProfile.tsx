@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -90,6 +91,13 @@ const PublicProfile = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{`Perfil de ${profile.full_name} — Trado`}</title>
+        <meta name="description" content={`Perfil público de ${profile.full_name} en Trado: reputación, calificaciones y verificación de identidad.`} />
+        <link rel="canonical" href={`https://trado.cl/u/${profile.id}`} />
+        <meta property="og:title" content={`${profile.full_name} en Trado`} />
+        <meta property="og:url" content={`https://trado.cl/u/${profile.id}`} />
+      </Helmet>
       {/* Hero gradient banner */}
       <div className="relative h-36 bg-gradient-to-br from-[#3340d8] via-[#4a3fd6] to-[#7147d4] overflow-hidden">
         {/* Decorative circles */}
@@ -114,6 +122,7 @@ const PublicProfile = () => {
             variant="ghost"
             size="sm"
             onClick={handleShare}
+            aria-label="Compartir perfil"
             className="text-white/80 hover:text-white hover:bg-white/10"
           >
             <Share2 className="h-4 w-4" />
@@ -226,7 +235,7 @@ const PublicProfile = () => {
         {/* Ratings */}
         <Card className="mb-8 border-border/60">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Calificaciones recibidas</CardTitle>
+            <h2 className="text-base font-semibold leading-none tracking-tight">Calificaciones recibidas</h2>
           </CardHeader>
           <Separator />
           <CardContent className="pt-3">

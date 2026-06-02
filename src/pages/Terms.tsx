@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield, Scale, FileText, AlertTriangle, Clock, CreditCard, Users, Lock } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -8,6 +9,13 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Términos y condiciones — Trado</title>
+        <meta name="description" content="Términos de uso de la plataforma de escrow P2P Trado en Chile." />
+        <link rel="canonical" href="https://trado.cl/terms" />
+        <meta property="og:title" content="Términos y condiciones — Trado" />
+        <meta property="og:url" content="https://trado.cl/terms" />
+      </Helmet>
       {/* Header */}
       <div className="bg-gradient-to-br from-primary via-primary-light to-info py-12">
         <div className="container mx-auto px-4">
