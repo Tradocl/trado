@@ -49,3 +49,7 @@ project_id = "uohlyccjugbqsxiwerrv"
     verify_jwt = false
   [functions.delete-account]
     verify_jwt = true
+  [functions.create-mercadopago-payment]
+    verify_jwt = true
+  [functions.mercadopago-webhook]
+    verify_jwt = false

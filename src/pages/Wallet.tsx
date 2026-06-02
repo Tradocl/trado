@@ -299,7 +299,7 @@ ${companyBankDetails.email}`;
 
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-fintoc-payment", {
+      const { data, error } = await supabase.functions.invoke("create-mercadopago-payment", {
         body: {
           amount: depositAmount,
           successUrl: `${window.location.origin}/wallet?deposit=success`,
@@ -308,14 +308,15 @@ ${companyBankDetails.email}`;
       });
 
       if (error) throw error;
-      if (!data?.checkout_url) throw new Error("No se recibió URL de pago");
+      const checkoutUrl = data?.init_point ?? data?.sandbox_init_point;
+      if (!checkoutUrl) throw new Error("No se recibió URL de pago");
 
       setDepositOpen(false);
       setAmount("");
       setAmountDisplay("");
 
-      // Redirect to Fintoc hosted checkout
-      window.location.href = data.checkout_url;
+      // Redirect to Mercado Pago Checkout Pro
+      window.location.href = checkoutUrl;
     } catch (error: any) {
       toast.error(translateError(error));
     } finally {
@@ -787,27 +788,27 @@ ${companyBankDetails.email}`;
 
             <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm space-y-1 text-muted-foreground">
               <p className="font-medium text-foreground">¿Cómo funciona?</p>
-              <p>1. Haz clic en "Pagar con Fintoc"</p>
-              <p>2. Selecciona tu banco y autoriza la transferencia</p>
+              <p>1. Haz clic en "Pagar con Mercado Pago"</p>
+              <p>2. Elige tu medio de pago (tarjeta, transferencia, saldo MP)</p>
               <p>3. Tu saldo se actualiza automáticamente</p>
             </div>
 
             <div className="p-3 bg-info/10 border border-info/30 rounded-lg text-xs text-muted-foreground flex gap-2">
               <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
               <p>
-                <span className="font-medium text-foreground">Fintoc</span> es nuestra pasarela de pago segura,
-                regulada y autorizada en Chile. Al hacer clic, te conectaremos directamente con tu banco para
-                transferir el monto. Tu plata queda inmediatamente en custodia de Trado hasta confirmar la
-                entrega del producto/servicio.
+                <span className="font-medium text-foreground">Mercado Pago</span> es nuestra pasarela de pago
+                segura, regulada y autorizada en Chile. Al hacer clic te llevaremos a su checkout oficial donde
+                puedes pagar con tarjeta de crédito/débito, transferencia o saldo de tu cuenta Mercado Pago.
+                Tu plata queda en custodia de Trado hasta confirmar la entrega.
               </p>
             </div>
 
             <Button
               onClick={handleDeposit}
-              className="w-full"
+              className="w-full bg-[#009ee3] hover:bg-[#0089c4] text-white"
               disabled={submitting || !amount}
             >
-              {submitting ? "Redirigiendo..." : "Pagar con Fintoc →"}
+              {submitting ? "Redirigiendo..." : "Pagar con Mercado Pago →"}
             </Button>
           </div>
         </DialogContent>
