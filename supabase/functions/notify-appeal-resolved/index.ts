@@ -123,7 +123,7 @@ serve(async (req) => {
             
             <div style="padding: 32px;">
               <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
-                Hola <strong>${recipientName}</strong>,
+                Hola <strong>${sanitizeHtml(recipientName)}</strong>,
               </p>
               
               <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
