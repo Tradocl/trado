@@ -367,10 +367,26 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const token = authHeader.replace(/^Bearer\s+/i, "");
 
-    const { transactionId, actionType, actorId, additionalData }: ActionRequest = await req.json();
+    // Allow service-role callers (server-to-server) or verified end-users
+    let callerId: string | null = null;
+    if (token === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")) {
+      callerId = null; // trusted server caller
+    } else {
+      const { data: authData, error: authErr } = await supabase.auth.getUser(token);
+      if (authErr || !authData?.user) {
+        return new Response(JSON.stringify({ error: "Token inválido" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      callerId = authData.user.id;
+    }
 
-    if (!transactionId || !actionType || !actorId) {
+    const { transactionId, actionType, additionalData }: ActionRequest = await req.json();
+
+    if (!transactionId || !actionType) {
       return new Response(JSON.stringify({ error: "Datos incompletos" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
