@@ -135,7 +135,7 @@ serve(async (req) => {
               
               <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 20px 0;">
                 <h3 style="color: #166534; margin: 0 0 12px 0; font-size: 16px;">Detalles de la Resolución</h3>
-                <p style="margin: 0 0 8px 0;"><strong>Transacción:</strong> ${transaction.product_name}</p>
+                <p style="margin: 0 0 8px 0;"><strong>Transacción:</strong> ${sanitizeHtml(transaction.product_name)}</p>
                 <p style="margin: 0 0 8px 0;"><strong>Monto original:</strong> $${formatCLP(transaction.amount)} CLP</p>
                 <p style="margin: 0 0 12px 0;"><strong>Decisión:</strong> ${resolutionLabel}</p>
                 ${distributionHtml}
