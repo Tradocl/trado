@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendPushToUsers } from "../_shared/push.ts";
+import { logEmailSend } from "../_shared/log-email.ts";
+
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -384,7 +386,7 @@ const handler = async (req: Request): Promise<Response> => {
       callerId = authData.user.id;
     }
 
-    const { transactionId, actionType, additionalData }: ActionRequest = await req.json();
+    const { transactionId, actionType, actorId: bodyActorId, additionalData }: ActionRequest = await req.json();
 
     if (!transactionId || !actionType) {
       return new Response(JSON.stringify({ error: "Datos incompletos" }), {
@@ -418,7 +420,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Determine actor: for end-user callers, force actor = callerId AND verify participation.
-    // Service-role callers may notify either side (default: notify the other party).
+    // Service-role callers may notify either side. They can pass body.actorId; defaults to seller.
     let actorId: string;
     if (callerId) {
       if (callerId !== transaction.seller_id && callerId !== transaction.buyer_id) {
@@ -429,9 +431,14 @@ const handler = async (req: Request): Promise<Response> => {
       }
       actorId = callerId;
     } else {
-      // Server caller: default actor = seller (recipient becomes buyer); body can override safely.
-      actorId = transaction.seller_id;
+      if (bodyActorId && (bodyActorId === transaction.seller_id || bodyActorId === transaction.buyer_id)) {
+        actorId = bodyActorId;
+      } else {
+        actorId = transaction.seller_id;
+      }
     }
+
+
 
     // Determine recipient (the other party)
     const recipientId = actorId === transaction.seller_id
@@ -526,6 +533,20 @@ const handler = async (req: Request): Promise<Response> => {
     ]);
 
     console.log(`Notification sent for action ${actionType}:`, emailResponse);
+
+    // Persist audit row to email_send_log (best-effort)
+    const emailErr = (emailResponse as any)?.error;
+    const messageId = (emailResponse as any)?.data?.id ?? null;
+    await logEmailSend({
+      template_name: `notify-${actionType}`,
+      recipient_email: recipientProfile.email,
+      message_id: messageId,
+      status: emailErr ? "failed" : "sent",
+      error_message: emailErr ? (emailErr.message ?? String(emailErr)) : null,
+      metadata: { transactionId, actionType, recipientId },
+    });
+
+
 
     // Send push notification (fire and forget)
     const pushBody = `${config.emoji} ${transaction.product_name}`;
