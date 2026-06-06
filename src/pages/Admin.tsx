@@ -299,9 +299,10 @@ export default function Admin() {
         .eq("type", "deposit")
         .eq("status", "approved");
 
-      const totalDeposits = depositsData?.reduce((sum, d) => sum + d.amount, 0) || 0;
+      const deposits = (depositsData as { amount: number; external_fee: number | null }[] | null) || [];
+      const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
       // Mercado Pago fee withheld before funds reach the Trado account
-      const totalMpFees = depositsData?.reduce((sum, d) => sum + (d.external_fee || 0), 0) || 0;
+      const totalMpFees = deposits.reduce((sum, d) => sum + (d.external_fee || 0), 0);
 
       // 3. Total withdrawals approved
       const { data: withdrawalsData } = await supabase

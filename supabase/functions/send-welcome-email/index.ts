@@ -29,11 +29,8 @@ const generateWelcomeEmailHtml = (userName: string) => `
           <!-- Header with gradient -->
           <tr>
             <td style="background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #06b6d4 100%); padding: 50px 30px; border-radius: 16px 16px 0 0; text-align: center;">
-              <div style="background-color: rgba(255, 255, 255, 0.15); width: 100px; height: 100px; border-radius: 24px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9 12l2 2 4-4" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+              <div style="background-color: rgba(255, 255, 255, 0.15); width: 100px; height: 100px; border-radius: 24px; display: inline-block; line-height: 100px; margin-bottom: 20px; font-size: 56px;">
+                🛡️
               </div>
               <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">¡Bienvenido a Trado!</h1>
               <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; margin: 12px 0 0 0;">Tu cuenta ha sido creada exitosamente</p>
@@ -56,23 +53,16 @@ const generateWelcomeEmailHtml = (userName: string) => `
               <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 24px 0;">
                 <tr>
                   <td style="padding: 16px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%); border-radius: 12px; vertical-align: top; width: 50%;">
-                    <div style="width: 40px; height: 40px; background-color: rgba(34, 197, 94, 0.2); border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
+                    <div style="width: 40px; height: 40px; background-color: rgba(34, 197, 94, 0.2); border-radius: 10px; margin-bottom: 12px; text-align: center; line-height: 40px; font-size: 22px;">
+                      🔒
                     </div>
                     <p style="color: #18181b; font-size: 14px; font-weight: 600; margin: 0 0 4px 0;">100% Seguro</p>
                     <p style="color: #71717a; font-size: 13px; margin: 0; line-height: 1.4;">Tu dinero protegido hasta confirmar la entrega</p>
                   </td>
                   <td style="width: 16px;"></td>
                   <td style="padding: 16px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%); border-radius: 12px; vertical-align: top; width: 50%;">
-                    <div style="width: 40px; height: 40px; background-color: rgba(6, 182, 212, 0.2); border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="9" cy="7" r="4" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
+                    <div style="width: 40px; height: 40px; background-color: rgba(6, 182, 212, 0.2); border-radius: 10px; margin-bottom: 12px; text-align: center; line-height: 40px; font-size: 22px;">
+                      ⭐
                     </div>
                     <p style="color: #18181b; font-size: 14px; font-weight: 600; margin: 0 0 4px 0;">Reputación</p>
                     <p style="color: #71717a; font-size: 13px; margin: 0; line-height: 1.4;">Sistema de calificaciones para mayor confianza</p>
