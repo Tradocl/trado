@@ -482,11 +482,22 @@ const handler = async (req: Request): Promise<Response> => {
       ctaUrl = `${baseUrl}/wallet`;
     }
 
+    // Sanitize caller-supplied additionalData fields before HTML interpolation
+    const escapeHtml = (s: any) => String(s ?? "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    const safeAdditional: Record<string, any> = {};
+    if (additionalData && typeof additionalData === "object") {
+      for (const [k, v] of Object.entries(additionalData)) {
+        safeAdditional[k] = typeof v === "string" ? escapeHtml(v) : v;
+      }
+    }
+
     // Generate email content
     const description = config.getDescription(
-      actorProfile.full_name,
-      transaction.product_name,
-      additionalData
+      escapeHtml(actorProfile.full_name),
+      escapeHtml(transaction.product_name),
+      safeAdditional
     );
 
     const emailHtml = generateEmailHtml(
