@@ -554,6 +554,7 @@ export type Database = {
           verification_selfie_url: string | null
           verification_status: string | null
           verification_submitted_at: string | null
+          welcome_email_sent: boolean
         }
         Insert: {
           address?: string | null
@@ -583,6 +584,7 @@ export type Database = {
           verification_selfie_url?: string | null
           verification_status?: string | null
           verification_submitted_at?: string | null
+          welcome_email_sent?: boolean
         }
         Update: {
           address?: string | null
@@ -612,6 +614,7 @@ export type Database = {
           verification_selfie_url?: string | null
           verification_status?: string | null
           verification_submitted_at?: string | null
+          welcome_email_sent?: boolean
         }
         Relationships: []
       }

@@ -29,6 +29,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const maybeSendWelcome = (s: Session | null) => {
+      if (!s?.user) return;
+      // Fire-and-forget; edge function is idempotent (skips if already sent).
+      setTimeout(() => {
+        supabase.functions.invoke("send-welcome-email", { body: {} }).catch((e) => {
+          console.log("welcome email invoke failed", e);
+        });
+      }, 0);
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -36,6 +46,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
         if (session?.user) {
           setupPushNotifications(session.user.id);
+          if (event === "SIGNED_IN") maybeSendWelcome(session);
         } else {
           removePushListeners();
         }
@@ -48,6 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
       if (session?.user) {
         setupPushNotifications(session.user.id);
+        // Do NOT send welcome here — onAuthStateChange fires SIGNED_IN for new sessions.
       }
     });
 
