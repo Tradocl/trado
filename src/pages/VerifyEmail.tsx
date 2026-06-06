@@ -15,21 +15,41 @@ const VerifyEmail = () => {
   const [verified, setVerified] = useState(false);
 
   useEffect(() => {
+    const checkProfileAndRedirect = async (userId: string) => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("rut, phone, address, profile_completed")
+        .eq("id", userId)
+        .maybeSingle();
+      const complete = !!(
+        data &&
+        (data.profile_completed ||
+          (data.rut?.trim() && data.phone?.trim() && data.address?.trim()))
+      );
+      if (complete) {
+        navigate("/dashboard", { replace: true });
+        return true;
+      }
+      return false;
+    };
+
     // Detect verification: either via session created by email link, or auth state change
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user?.email_confirmed_at) {
-        setVerified(true);
+        const redirected = await checkProfileAndRedirect(session.user.id);
+        if (!redirected) setVerified(true);
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user?.email_confirmed_at) {
-        setVerified(true);
+        const redirected = await checkProfileAndRedirect(session.user.id);
+        if (!redirected) setVerified(true);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const handleResend = async () => {
     if (!email) {
