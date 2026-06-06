@@ -551,6 +551,7 @@ export type Database = {
           updated_at: string | null
           verification_document_url: string | null
           verification_rejection_reason: string | null
+          verification_result_email_key: string | null
           verification_result_email_sent_at: string | null
           verification_result_email_status: string | null
           verification_selfie_url: string | null
@@ -583,6 +584,7 @@ export type Database = {
           updated_at?: string | null
           verification_document_url?: string | null
           verification_rejection_reason?: string | null
+          verification_result_email_key?: string | null
           verification_result_email_sent_at?: string | null
           verification_result_email_status?: string | null
           verification_selfie_url?: string | null
@@ -615,6 +617,7 @@ export type Database = {
           updated_at?: string | null
           verification_document_url?: string | null
           verification_rejection_reason?: string | null
+          verification_result_email_key?: string | null
           verification_result_email_sent_at?: string | null
           verification_result_email_status?: string | null
           verification_selfie_url?: string | null
