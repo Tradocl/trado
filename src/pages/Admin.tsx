@@ -88,7 +88,6 @@ export default function Admin() {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: roleLoading } = useAdminRole();
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [pendingDeposits, setPendingDeposits] = useState<WalletMovement[]>([]);
   const [approvedDeposits, setApprovedDeposits] = useState<WalletMovement[]>([]);
   const [pendingWithdrawals, setPendingWithdrawals] = useState<WalletMovement[]>([]);
   const [approvedWithdrawals, setApprovedWithdrawals] = useState<WalletMovement[]>([]);
@@ -158,15 +157,8 @@ export default function Admin() {
       if (profilesError) throw profilesError;
       setProfiles(profilesData || []);
 
-      // Load pending deposits
-      const { data: pendingDepositsData, error: pendingDepositsError } = await supabase
-        .from("wallet_movements")
-        .select("*")
-        .eq("status", "pending")
-        .eq("type", "deposit")
-        .order("created_at", { ascending: false });
-
-      if (pendingDepositsError) throw pendingDepositsError;
+      // Deposits are auto-credited by the Mercado Pago webhook (status=approved
+      // directly), so there is no pending-deposit approval flow anymore.
 
       // Load approved deposits (last 20)
       const { data: approvedDepositsData, error: approvedDepositsError } = await supabase
@@ -219,12 +211,10 @@ export default function Admin() {
         );
       };
 
-      const enrichedPendingDeposits = await enrichMovements(pendingDepositsData);
       const enrichedApprovedDeposits = await enrichMovements(approvedDepositsData);
       const enrichedPendingWithdrawals = await enrichMovements(pendingWithdrawalsData);
       const enrichedApprovedWithdrawals = await enrichMovements(approvedWithdrawalsData);
 
-      setPendingDeposits(enrichedPendingDeposits);
       setApprovedDeposits(enrichedApprovedDeposits);
       setPendingWithdrawals(enrichedPendingWithdrawals);
       setApprovedWithdrawals(enrichedApprovedWithdrawals);
@@ -267,7 +257,7 @@ export default function Admin() {
       setStats({
         totalUsers: profilesData?.length || 0,
         pendingVerifications: verificationsData?.length || 0,
-        pendingDeposits: pendingDepositsData?.length || 0,
+        pendingDeposits: 0,
         pendingWithdrawals: pendingWithdrawalsData?.length || 0,
         totalTransactions: transactionsData?.length || 0,
         pendingAppeals: pendingAppealsData?.length || 0,
@@ -716,11 +706,12 @@ export default function Admin() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Depósitos Pendientes</CardTitle>
+            <CardTitle className="text-sm font-medium">Depósitos (Mercado Pago)</CardTitle>
             <Wallet className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingDeposits}</div>
+            <div className="text-2xl font-bold">${formatCLP(tokenStats.totalDeposits)}</div>
+            <p className="text-xs text-muted-foreground">Acreditados automáticamente</p>
           </CardContent>
         </Card>
         <Card>
@@ -747,11 +738,6 @@ export default function Admin() {
         <TabsList>
           <TabsTrigger value="deposits">
             Depósitos
-            {stats.pendingDeposits > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {stats.pendingDeposits}
-              </Badge>
-            )}
           </TabsTrigger>
           <TabsTrigger value="withdrawals">
             Retiros
@@ -959,161 +945,67 @@ export default function Admin() {
         </TabsContent>
 
         <TabsContent value="deposits" className="space-y-4">
-          <Tabs defaultValue="pending" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="pending">
-                Por Aprobar
-                {stats.pendingDeposits > 0 && (
-                  <Badge variant="destructive" className="ml-2">
-                    {stats.pendingDeposits}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="approved">Aprobados</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="pending">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Depósitos Pendientes de Aprobación</CardTitle>
-                  <CardDescription>Revisa y aprueba solicitudes de depósito</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar por nombre o email..."
-                      value={depositSearch}
-                      onChange={e => setDepositSearch(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Usuario</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Monto</TableHead>
-                        <TableHead>Fecha Solicitud</TableHead>
-                        <TableHead>Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pendingDeposits.filter(d =>
-                        !depositSearch ||
-                        d.user_name?.toLowerCase().includes(depositSearch.toLowerCase()) ||
-                        d.user_email?.toLowerCase().includes(depositSearch.toLowerCase())
-                      ).map((deposit) => (
-                        <TableRow key={deposit.id}>
-                          <TableCell className="font-medium">{deposit.user_name}</TableCell>
-                          <TableCell>{deposit.user_email}</TableCell>
-                          <TableCell className="font-bold text-success">
-                            +${formatCLP(deposit.amount)}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{timeAgo(deposit.created_at)}</span>
-                            </div>
-                            <p className="text-xs mt-0.5">
-                              {new Date(deposit.created_at).toLocaleDateString("es-CL", {
-                                day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
-                              })}
-                            </p>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="default"
-                                disabled={processingId === deposit.id}
-                                onClick={() => handleApproveMovement(deposit.id)}
-                              >
-                                {processingId === deposit.id ? (
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
-                                ) : (
-                                  <CheckCircle className="mr-1 h-4 w-4" />
-                                )}
-                                Aprobar
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                disabled={processingId === deposit.id}
-                                onClick={() => handleRejectMovement(deposit.id)}
-                              >
-                                {processingId === deposit.id ? (
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1" />
-                                ) : (
-                                  <XCircle className="mr-1 h-4 w-4" />
-                                )}
-                                Rechazar
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {pendingDeposits.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                            No hay depósitos pendientes
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="approved">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Depósitos Aprobados</CardTitle>
-                  <CardDescription>Últimos 20 depósitos aprobados</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Usuario</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Monto</TableHead>
-                        <TableHead>Fecha Aprobación</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {approvedDeposits.map((deposit) => (
-                        <TableRow key={deposit.id}>
-                          <TableCell className="font-medium">{deposit.user_name}</TableCell>
-                          <TableCell>{deposit.user_email}</TableCell>
-                          <TableCell className="font-bold text-success">
-                            +${formatCLP(deposit.amount)}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {new Date(deposit.reviewed_at || deposit.created_at).toLocaleDateString("es-CL", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {approvedDeposits.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                            No hay depósitos aprobados
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <Card>
+            <CardHeader>
+              <CardTitle>Depósitos vía Mercado Pago</CardTitle>
+              <CardDescription>
+                Los depósitos se acreditan automáticamente al confirmarse el pago en Mercado Pago.
+                No requieren aprobación manual. Últimos 20 acreditados.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nombre o email..."
+                  value={depositSearch}
+                  onChange={e => setDepositSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Monto</TableHead>
+                    <TableHead>Fecha Acreditación</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {approvedDeposits.filter(d =>
+                    !depositSearch ||
+                    d.user_name?.toLowerCase().includes(depositSearch.toLowerCase()) ||
+                    d.user_email?.toLowerCase().includes(depositSearch.toLowerCase())
+                  ).map((deposit) => (
+                    <TableRow key={deposit.id}>
+                      <TableCell className="font-medium">{deposit.user_name}</TableCell>
+                      <TableCell>{deposit.user_email}</TableCell>
+                      <TableCell className="font-bold text-success">
+                        +${formatCLP(deposit.amount)}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(deposit.reviewed_at || deposit.created_at).toLocaleDateString("es-CL", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {approvedDeposits.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                        Aún no hay depósitos acreditados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="withdrawals" className="space-y-4">
