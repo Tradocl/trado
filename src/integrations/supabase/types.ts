@@ -551,6 +551,9 @@ export type Database = {
           updated_at: string | null
           verification_document_url: string | null
           verification_rejection_reason: string | null
+          verification_result_email_key: string
+          verification_result_email_sent_at: string | null
+          verification_result_email_status: string | null
           verification_selfie_url: string | null
           verification_status: string | null
           verification_submitted_at: string | null
@@ -581,6 +584,9 @@ export type Database = {
           updated_at?: string | null
           verification_document_url?: string | null
           verification_rejection_reason?: string | null
+          verification_result_email_key?: string
+          verification_result_email_sent_at?: string | null
+          verification_result_email_status?: string | null
           verification_selfie_url?: string | null
           verification_status?: string | null
           verification_submitted_at?: string | null
@@ -611,6 +617,9 @@ export type Database = {
           updated_at?: string | null
           verification_document_url?: string | null
           verification_rejection_reason?: string | null
+          verification_result_email_key?: string
+          verification_result_email_sent_at?: string | null
+          verification_result_email_status?: string | null
           verification_selfie_url?: string | null
           verification_status?: string | null
           verification_submitted_at?: string | null
@@ -985,6 +994,7 @@ export type Database = {
           bank_name: string | null
           created_at: string | null
           description: string | null
+          external_fee: number
           external_session_id: string | null
           id: string
           refunded_at: string | null
@@ -1005,6 +1015,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           description?: string | null
+          external_fee?: number
           external_session_id?: string | null
           id?: string
           refunded_at?: string | null
@@ -1025,6 +1036,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           description?: string | null
+          external_fee?: number
           external_session_id?: string | null
           id?: string
           refunded_at?: string | null
