@@ -417,9 +417,25 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Determine actor: for end-user callers, force actor = callerId AND verify participation.
+    // Service-role callers may notify either side (default: notify the other party).
+    let actorId: string;
+    if (callerId) {
+      if (callerId !== transaction.seller_id && callerId !== transaction.buyer_id) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      actorId = callerId;
+    } else {
+      // Server caller: default actor = seller (recipient becomes buyer); body can override safely.
+      actorId = transaction.seller_id;
+    }
+
     // Determine recipient (the other party)
-    const recipientId = actorId === transaction.seller_id 
-      ? transaction.buyer_id 
+    const recipientId = actorId === transaction.seller_id
+      ? transaction.buyer_id
       : transaction.seller_id;
 
     if (!recipientId) {
