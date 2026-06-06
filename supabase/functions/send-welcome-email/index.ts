@@ -190,10 +190,10 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // Load profile to check idempotency and get email/name
+    // Load profile to get email/name
     const { data: profile } = await admin
       .from("profiles")
-      .select("email, full_name, welcome_email_sent")
+      .select("email, full_name")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -206,7 +206,23 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    if (profile?.welcome_email_sent) {
+    // Atomically claim the welcome-email lock to prevent duplicate sends from
+    // concurrent invocations (auth state events can fire multiple times).
+    const { data: claimed, error: claimError } = await admin
+      .from("profiles")
+      .update({ welcome_email_sent: true })
+      .eq("id", user.id)
+      .eq("welcome_email_sent", false)
+      .select("id")
+      .maybeSingle();
+
+    if (claimError) {
+      console.error("Error claiming welcome lock:", claimError);
+      throw claimError;
+    }
+
+    if (!claimed) {
+      // Another invocation already claimed it (or it was already sent).
       return new Response(JSON.stringify({ success: true, skipped: true }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -231,14 +247,11 @@ const handler = async (req: Request): Promise<Response> => {
     const emailData = await emailResponse.json();
 
     if (!emailResponse.ok) {
+      // Roll back the lock so a future retry can resend
+      await admin.from("profiles").update({ welcome_email_sent: false }).eq("id", user.id);
       console.error("Resend API error:", emailData);
       throw new Error(emailData.message || "Error sending email");
     }
-
-    await admin
-      .from("profiles")
-      .update({ welcome_email_sent: true })
-      .eq("id", user.id);
 
     console.log("Welcome email sent successfully to", email);
 

@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
       if (session?.user) {
         setupPushNotifications(session.user.id);
-        maybeSendWelcome(session);
+        // Do NOT send welcome here — onAuthStateChange fires SIGNED_IN for new sessions.
       }
     });
 

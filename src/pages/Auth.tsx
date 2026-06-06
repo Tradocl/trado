@@ -236,17 +236,8 @@ const Auth = () => {
       sessionStorage.removeItem('blockRedirectAfterSignup');
       setLoading(false);
     } else if (data.user) {
-      // Send welcome email
-      try {
-        await supabase.functions.invoke('send-welcome-email', {
-          body: { 
-            email,
-            userName: fullName
-          }
-        });
-      } catch (welcomeEmailError) {
-        console.log("Welcome email sending failed:", welcomeEmailError);
-      }
+      // Welcome email is sent automatically by AuthContext on SIGNED_IN (idempotent).
+      
       
       setSignupPassword("");
       setConfirmPassword("");
