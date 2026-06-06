@@ -215,10 +215,25 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!emailResponse.ok) {
       console.error("Resend API error:", emailData);
+      await logEmailSend({
+        template_name: "welcome",
+        recipient_email: email,
+        status: "failed",
+        error_message: emailData?.message ?? "Resend error",
+        metadata: { userName },
+      });
       throw new Error(emailData.message || "Error sending email");
     }
 
     console.log("Welcome email sent successfully:", emailData);
+    await logEmailSend({
+      template_name: "welcome",
+      recipient_email: email,
+      message_id: emailData?.id ?? null,
+      status: "sent",
+      metadata: { userName },
+    });
+
 
     return new Response(
       JSON.stringify({ success: true, data: emailData }),
