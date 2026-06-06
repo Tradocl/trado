@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check, ShieldCheck, RotateCcw } from "lucide-react";
 import { translateError } from "@/lib/error-messages";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -50,6 +50,8 @@ const Wallet = () => {
   const [amountDisplay, setAmountDisplay] = useState("");
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [refundableDeposits, setRefundableDeposits] = useState<Movement[]>([]);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
   
   // Withdrawal form fields
   const [bankHolderName, setBankHolderName] = useState("");
@@ -270,6 +272,24 @@ ${companyBankDetails.email}`;
 
       if (pendingError) throw pendingError;
       setPendingMovements(pendingData || []);
+
+      // Refundable MP deposits: approved, not yet refunded, within 90 days,
+      // and only those still fully covered by the current balance.
+      const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: refundableData } = await supabase
+        .from("wallet_movements")
+        .select("*")
+        .eq("wallet_id", wallet.id)
+        .eq("type", "deposit")
+        .eq("status", "approved")
+        .is("refunded_at", null)
+        .like("external_session_id", "mp_%")
+        .gte("created_at", cutoff)
+        .order("created_at", { ascending: false });
+
+      setRefundableDeposits(
+        (refundableData || []).filter((d) => Number(d.amount) <= Number(wallet.balance))
+      );
     } catch (error: any) {
       toast.error("Error al cargar billetera: " + error.message);
     } finally {
@@ -322,6 +342,25 @@ ${companyBankDetails.email}`;
       toast.error(translateError(error));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleRefund = async (movementId: string) => {
+    if (refundingId) return;
+    setRefundingId(movementId);
+    try {
+      const { data, error } = await supabase.functions.invoke("refund-mercadopago-deposit", {
+        body: { movementId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success("Reembolso enviado. El dinero vuelve a tu medio de pago original en unos días.", { duration: 6000 });
+      loadWalletData();
+    } catch (error: any) {
+      toast.error(translateError(error));
+    } finally {
+      setRefundingId(null);
     }
   };
 
@@ -664,6 +703,51 @@ ${companyBankDetails.email}`;
                       </div>
                     );
                   })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {refundableDeposits.length > 0 && (
+          <Card className="border-info/40 bg-info/5">
+            <CardHeader className="py-3 sm:py-6">
+              <CardTitle className="flex items-center gap-2 text-info text-sm sm:text-base">
+                <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5" />
+                ¿Te arrepentiste de un depósito?
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Reembolsa un depósito de Mercado Pago sin costo. El dinero vuelve a tu medio de pago
+                original (no a una cuenta bancaria). Solo depósitos no usados, dentro de 90 días.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2 sm:space-y-3">
+                {refundableDeposits.map((deposit) => (
+                  <div
+                    key={deposit.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-info/30 rounded-lg bg-background gap-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm sm:text-base">
+                        Depósito ${formatCLP(deposit.amount)}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {new Date(deposit.created_at).toLocaleDateString("es-CL", {
+                          day: "2-digit", month: "short", year: "numeric",
+                        })}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-info/50 text-info hover:bg-info/10"
+                      disabled={refundingId === deposit.id}
+                      onClick={() => handleRefund(deposit.id)}
+                    >
+                      {refundingId === deposit.id ? "Procesando..." : "Reembolsar"}
+                    </Button>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

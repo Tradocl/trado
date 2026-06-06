@@ -988,6 +988,7 @@ export type Database = {
           external_fee: number
           external_session_id: string | null
           id: string
+          refunded_at: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
@@ -1008,6 +1009,7 @@ export type Database = {
           external_fee?: number
           external_session_id?: string | null
           id?: string
+          refunded_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
@@ -1028,6 +1030,7 @@ export type Database = {
           external_fee?: number
           external_session_id?: string | null
           id?: string
+          refunded_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
