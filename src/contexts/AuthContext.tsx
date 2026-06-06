@@ -15,6 +15,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
+const welcomeEmailInvocations = new Set<string>();
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -31,11 +33,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const maybeSendWelcome = (s: Session | null) => {
       if (!s?.user) return;
+      if (welcomeEmailInvocations.has(s.user.id)) return;
+      welcomeEmailInvocations.add(s.user.id);
       // Fire-and-forget; edge function is idempotent (skips if already sent).
-      setTimeout(() => {
-        supabase.functions.invoke("send-welcome-email", { body: {} }).catch((e) => {
-          console.log("welcome email invoke failed", e);
-        });
+      setTimeout(async () => {
+        const { error } = await supabase.functions.invoke("send-welcome-email", { body: {} });
+        if (error) {
+          welcomeEmailInvocations.delete(s.user.id);
+          console.log("welcome email invoke failed", error);
+        }
       }, 0);
     };
 
