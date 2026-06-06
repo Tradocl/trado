@@ -994,6 +994,7 @@ export type Database = {
           bank_name: string | null
           created_at: string | null
           description: string | null
+          external_fee: number
           external_session_id: string | null
           id: string
           refunded_at: string | null
@@ -1014,6 +1015,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           description?: string | null
+          external_fee?: number
           external_session_id?: string | null
           id?: string
           refunded_at?: string | null
@@ -1034,6 +1036,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           description?: string | null
+          external_fee?: number
           external_session_id?: string | null
           id?: string
           refunded_at?: string | null
