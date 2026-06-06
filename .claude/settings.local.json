@@ -19,7 +19,8 @@
       "Bash(git commit *)",
       "Bash(git pull *)",
       "Bash(npx tsc *)",
-      "Bash(node -e \"const p = require\\('./node_modules/@capacitor/core/package.json'\\); console.log\\(p.version\\)\")"
+      "Bash(node -e \"const p = require\\('./node_modules/@capacitor/core/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(git fetch *)"
     ]
   }
 }

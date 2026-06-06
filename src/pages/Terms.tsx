@@ -105,9 +105,9 @@ const Terms = () => {
               </p>
               <p>
                 <strong className="text-foreground">2.4. Procesamiento de pagos:</strong> Los depósitos
-                a la billetera de Trado se procesan a través de <strong className="text-foreground">Fintoc</strong>,
+                a la billetera de Trado se procesan a través de <strong className="text-foreground">Mercado Pago</strong>,
                 proveedor de servicios de pago regulado. Al realizar un pago, aceptas también los términos
-                de servicio de Fintoc aplicables a la transacción.
+                de servicio de Mercado Pago aplicables a la transacción.
               </p>
             </div>
           </section>
@@ -125,7 +125,7 @@ const Terms = () => {
                 <strong className="text-foreground">3.1. Comisión por transacción:</strong> Trado
                 cobra una comisión del <strong className="text-foreground">5%</strong> sobre el
                 valor total de cada transacción completada exitosamente. Esta comisión incluye los
-                costos de procesamiento de pago a través de Fintoc.
+                costos de procesamiento de pago a través de Mercado Pago.
               </p>
               <p>
                 <strong className="text-foreground">3.2. Momento del cobro:</strong> La comisión

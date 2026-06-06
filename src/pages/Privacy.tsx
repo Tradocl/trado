@@ -167,9 +167,9 @@ const Privacy = () => {
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>
-                  <strong>Fintoc:</strong> Procesador de pagos a través del cual se realizan los
-                  depósitos a la plataforma. Fintoc recibe datos necesarios para procesar la transacción
-                  (monto, identificador de billetera). Su política de privacidad está disponible en fintoc.com.
+                  <strong>Mercado Pago:</strong> Procesador de pagos a través del cual se realizan los
+                  depósitos a la plataforma. Mercado Pago recibe datos necesarios para procesar la transacción
+                  (monto, identificador de billetera). Su política de privacidad está disponible en mercadopago.cl.
                 </li>
                 <li>
                   <strong>Supabase:</strong> Proveedor de infraestructura de base de datos y autenticación
