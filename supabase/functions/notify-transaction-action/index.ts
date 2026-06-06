@@ -418,7 +418,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Determine actor: for end-user callers, force actor = callerId AND verify participation.
-    // Service-role callers may notify either side (default: notify the other party).
+    // Service-role callers may notify either side. They can pass body.actorId; defaults to seller.
     let actorId: string;
     if (callerId) {
       if (callerId !== transaction.seller_id && callerId !== transaction.buyer_id) {
@@ -429,9 +429,14 @@ const handler = async (req: Request): Promise<Response> => {
       }
       actorId = callerId;
     } else {
-      // Server caller: default actor = seller (recipient becomes buyer); body can override safely.
-      actorId = transaction.seller_id;
+      const bodyActor = (req as any)._bodyActorId as string | undefined;
+      if (bodyActor && (bodyActor === transaction.seller_id || bodyActor === transaction.buyer_id)) {
+        actorId = bodyActor;
+      } else {
+        actorId = transaction.seller_id;
+      }
     }
+
 
     // Determine recipient (the other party)
     const recipientId = actorId === transaction.seller_id
