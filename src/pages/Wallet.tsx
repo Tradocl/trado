@@ -309,7 +309,7 @@ ${companyBankDetails.email}`;
       });
 
       if (error) throw error;
-      const checkoutUrl = data?.init_point ?? data?.sandbox_init_point;
+      const checkoutUrl = data?.sandbox_init_point ?? data?.init_point;
       if (!checkoutUrl) throw new Error("No se recibió URL de pago");
 
       setDepositOpen(false);
