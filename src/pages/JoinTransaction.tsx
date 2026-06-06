@@ -48,13 +48,11 @@ const JoinTransaction = () => {
     setLoading(true);
 
     try {
-      // Find transaction by invite code
-      const { data: transaction, error } = await supabase
-        .from("transactions")
-        .select("id, seller_id, buyer_id, sale_type")
-        .eq("invite_code", inviteCode.toUpperCase())
-        .single();
+      // Look up by invite code via secure RPC (no broad table SELECT)
+      const { data: matches, error } = await supabase
+        .rpc("find_transaction_by_invite_code", { _invite_code: inviteCode });
 
+      const transaction = Array.isArray(matches) ? matches[0] : null;
       if (error || !transaction) {
         toast.error("Código inválido o trato no encontrado");
         setLoading(false);

@@ -168,12 +168,17 @@ const generateWelcomeEmailHtml = (userName: string) => `
 </html>
 `;
 
+import { requireServiceRole } from "../_shared/auth.ts";
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-welcome-email function called");
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const authFail = await requireServiceRole(req);
+  if (authFail) return new Response(authFail.body, { status: authFail.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
     const { email, userName }: WelcomeEmailRequest = await req.json();

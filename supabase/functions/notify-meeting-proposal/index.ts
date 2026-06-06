@@ -39,23 +39,78 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Verify JWT and resolve calling user
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const { data: authData, error: authErr } = await supabase.auth.getUser(token);
+    if (authErr || !authData?.user) {
+      return new Response(JSON.stringify({ error: "Token inválido" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = authData.user.id;
+
     const {
       transactionId,
-      proposerName,
-      recipientEmail,
-      recipientName,
       productName,
       location,
       datetime,
       message,
     }: MeetingProposalRequest = await req.json();
 
-    if (!transactionId || !proposerName || !recipientEmail || !recipientName || !productName || !location || !datetime) {
+    if (!transactionId || !productName || !location || !datetime) {
       return new Response(JSON.stringify({ error: "Datos incompletos" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Verify caller is a participant and derive proposer/recipient server-side
+    const { data: tx, error: txErr } = await supabase
+      .from("transactions")
+      .select("id, seller_id, buyer_id")
+      .eq("id", transactionId)
+      .maybeSingle();
+    if (txErr || !tx) {
+      return new Response(JSON.stringify({ error: "Transacción no encontrada" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (tx.seller_id !== callerId && tx.buyer_id !== callerId) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const counterpartyId = tx.seller_id === callerId ? tx.buyer_id : tx.seller_id;
+    if (!counterpartyId) {
+      return new Response(JSON.stringify({ error: "Sin contraparte" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, nickname, email")
+      .in("id", [callerId, counterpartyId]);
+    const proposerProfile = profiles?.find((p: any) => p.id === callerId);
+    const recipientProfile = profiles?.find((p: any) => p.id === counterpartyId);
+    if (!recipientProfile?.email) {
+      return new Response(JSON.stringify({ error: "Sin email de contraparte" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const sanitize = (s: any) => String(s ?? "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    const proposerName = sanitize(proposerProfile?.nickname || proposerProfile?.full_name || "Un usuario");
+    const recipientName = sanitize(recipientProfile?.nickname || recipientProfile?.full_name || "Hola");
+    const recipientEmail = recipientProfile.email;
+    const safeProduct = sanitize(productName);
+    const safeLocation = sanitize(location);
+    const safeMessage = message ? sanitize(message) : undefined;
 
     const formattedDate = new Date(datetime).toLocaleDateString("es-CL", {
       weekday: "long",
@@ -94,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
                     </p>
                     
                     <p style="color: #b0b0b0; font-size: 16px; margin: 0 0 30px; line-height: 1.6;">
-                      <strong style="color: #e0e0e0;">${proposerName}</strong> te ha enviado una propuesta de encuentro para la transacción de <strong style="color: #667eea;">${productName}</strong>.
+                      <strong style="color: #e0e0e0;">${proposerName}</strong> te ha enviado una propuesta de encuentro para la transacción de <strong style="color: #667eea;">${safeProduct}</strong>.
                     </p>
                     
                     <!-- Meeting Details Card -->
@@ -107,20 +162,20 @@ const handler = async (req: Request): Promise<Response> => {
                             <tr>
                               <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                                 <span style="color: #888; font-size: 14px;">📍 Lugar</span><br>
-                                <span style="color: #e0e0e0; font-size: 16px; font-weight: 500;">${location}</span>
+                                <span style="color: #e0e0e0; font-size: 16px; font-weight: 500;">${safeLocation}</span>
                               </td>
                             </tr>
                             <tr>
-                              <td style="padding: 10px 0; ${message ? 'border-bottom: 1px solid rgba(255,255,255,0.1);' : ''}">
+                              <td style="padding: 10px 0; ${safeMessage ? 'border-bottom: 1px solid rgba(255,255,255,0.1);' : ''}">
                                 <span style="color: #888; font-size: 14px;">📅 Fecha y Hora</span><br>
                                 <span style="color: #e0e0e0; font-size: 16px; font-weight: 500;">${formattedDate}</span>
                               </td>
                             </tr>
-                            ${message ? `
+                            ${safeMessage ? `
                             <tr>
                               <td style="padding: 10px 0;">
                                 <span style="color: #888; font-size: 14px;">💬 Mensaje</span><br>
-                                <span style="color: #e0e0e0; font-size: 16px; font-style: italic;">"${message}"</span>
+                                <span style="color: #e0e0e0; font-size: 16px; font-style: italic;">"${safeMessage}"</span>
                               </td>
                             </tr>
                             ` : ''}
@@ -175,13 +230,13 @@ const handler = async (req: Request): Promise<Response> => {
       resend.emails.send({
         from: "Trado <notificaciones@trado.cl>",
         to: [recipientEmail],
-        subject: `📍 ${proposerName} te propone un encuentro para ${productName}`,
+        subject: `📍 ${proposerName} te propone un encuentro para ${safeProduct}`,
         html: emailHtml,
       }),
       recipientUser
         ? sendPushToUsers([recipientUser.id], {
             title: "Trado - Nueva Propuesta de Encuentro",
-            body: `${proposerName} te propone un encuentro para ${productName}`,
+            body: `${proposerName} te propone un encuentro para ${safeProduct}`,
             url: `${baseUrl}/transaction/${transactionId}`,
             tag: `meeting-${transactionId}`,
           }).catch((err) => console.error("Push failed (non-blocking):", err))

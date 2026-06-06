@@ -1,4 +1,5 @@
 import { sendPushToUsers, PushPayload } from "../_shared/push.ts";
+import { requireServiceRole } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,6 +16,14 @@ interface RequestBody {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const authFail = await requireServiceRole(req);
+  if (authFail) {
+    return new Response(authFail.body, {
+      status: authFail.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
