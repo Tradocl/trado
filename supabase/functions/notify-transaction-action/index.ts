@@ -384,7 +384,7 @@ const handler = async (req: Request): Promise<Response> => {
       callerId = authData.user.id;
     }
 
-    const { transactionId, actionType, additionalData }: ActionRequest = await req.json();
+    const { transactionId, actionType, actorId: bodyActorId, additionalData }: ActionRequest = await req.json();
 
     if (!transactionId || !actionType) {
       return new Response(JSON.stringify({ error: "Datos incompletos" }), {
