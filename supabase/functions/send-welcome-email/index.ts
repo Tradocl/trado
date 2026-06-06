@@ -168,7 +168,11 @@ const generateWelcomeEmailHtml = (userName: string) => `
 </html>
 `;
 
-import { requireServiceRole } from "../_shared/auth.ts";
+import { requireUser } from "../_shared/auth.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-welcome-email function called");
@@ -177,20 +181,35 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const authFail = await requireServiceRole(req);
-  if (authFail) return new Response(authFail.body, { status: authFail.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  const authResult = await requireUser(req);
+  if (authResult instanceof Response) {
+    return new Response(authResult.body, { status: authResult.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const { user } = authResult;
 
   try {
-    const { email, userName }: WelcomeEmailRequest = await req.json();
-    
-    console.log("Sending welcome email to:", email);
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    if (!email || !userName) {
-      console.error("Missing required fields");
-      return new Response(
-        JSON.stringify({ error: "Email and userName are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Load profile to check idempotency and get email/name
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("email, full_name, welcome_email_sent")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const email = profile?.email || user.email;
+    const userName = profile?.full_name || "Usuario";
+
+    if (!email) {
+      return new Response(JSON.stringify({ error: "No email available" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (profile?.welcome_email_sent) {
+      return new Response(JSON.stringify({ success: true, skipped: true }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const emailHtml = generateWelcomeEmailHtml(userName);
@@ -216,7 +235,12 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(emailData.message || "Error sending email");
     }
 
-    console.log("Welcome email sent successfully:", emailData);
+    await admin
+      .from("profiles")
+      .update({ welcome_email_sent: true })
+      .eq("id", user.id);
+
+    console.log("Welcome email sent successfully to", email);
 
     return new Response(
       JSON.stringify({ success: true, data: emailData }),
