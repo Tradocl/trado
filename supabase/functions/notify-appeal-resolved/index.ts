@@ -150,7 +150,7 @@ serve(async (req) => {
                   ${isMutualAgreement ? "Detalle del acuerdo:" : "Notas del administrador:"}
                 </p>
                 <p style="color: #374151; font-size: 14px; margin: 0; font-style: italic;">
-                  "${resolutionNotes}"
+                  "${sanitizeHtml(resolutionNotes)}"
                 </p>
               </div>
               
