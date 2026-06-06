@@ -1,180 +1,140 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const REFUND_WINDOW_DAYS = 90;
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "No autorizado" }), { status: 401, headers: corsHeaders });
-    }
+    // AuthN: caller must be authenticated and admin
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    if (!token) return json({ error: "Unauthorized" }, 401);
 
-    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
+
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userData.user.id,
+      _role: "admin",
     });
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Token inválido" }), { status: 401, headers: corsHeaders });
-    }
+    if (!isAdmin) return json({ error: "Forbidden" }, 403);
 
-    // Rate limit: max 3 refund attempts per minute per user
-    const { data: allowed, error: rlError } = await supabase.rpc("check_rate_limit", {
-      _identifier: user.id,
-      _action: "refund_deposit",
-      _max_per_minute: 3,
-    });
-    if (rlError) {
-      console.error("[refund-mercadopago-deposit] Rate limit check failed:", rlError);
-    } else if (allowed === false) {
-      return new Response(
-        JSON.stringify({ error: "Demasiados intentos. Espera un minuto e intenta de nuevo." }),
-        { status: 429, headers: corsHeaders }
-      );
-    }
+    const body = await req.json().catch(() => ({}));
+    const movementId = body?.movement_id as string | undefined;
+    if (!movementId) return json({ error: "movement_id required" }, 400);
 
-    const { movementId } = await req.json();
-    if (!movementId) {
-      return new Response(JSON.stringify({ error: "Falta movementId" }), { status: 400, headers: corsHeaders });
-    }
-
-    // Load the deposit movement together with its wallet (ownership check)
-    const { data: movement, error: movErr } = await supabase
+    // Load movement
+    const { data: mov, error: movErr } = await supabase
       .from("wallet_movements")
-      .select("id, wallet_id, type, amount, status, external_session_id, refunded_at, created_at, wallets!inner(id, user_id, balance)")
+      .select("id, wallet_id, type, amount, status, description, external_session_id, refunded_at")
       .eq("id", movementId)
+      .maybeSingle();
+
+    if (movErr || !mov) return json({ error: "Movement not found" }, 404);
+    if (mov.type !== "deposit") return json({ error: "Movement is not a deposit" }, 400);
+    if (mov.status !== "approved") return json({ error: "Only approved deposits can be refunded" }, 400);
+    if (mov.refunded_at) return json({ error: "Deposit already refunded" }, 400);
+
+    const sessionId = mov.external_session_id ?? "";
+    const paymentId = sessionId.startsWith("mp_") ? sessionId.slice(3) : null;
+    if (!paymentId) return json({ error: "Not a Mercado Pago deposit" }, 400);
+
+    const amount = Number(mov.amount);
+
+    // Load wallet to ensure sufficient balance
+    const { data: wallet, error: wErr } = await supabase
+      .from("wallets")
+      .select("id, balance, user_id")
+      .eq("id", mov.wallet_id)
       .single();
+    if (wErr || !wallet) return json({ error: "Wallet not found" }, 404);
 
-    if (movErr || !movement) {
-      return new Response(JSON.stringify({ error: "Depósito no encontrado" }), { status: 404, headers: corsHeaders });
+    if (Number(wallet.balance) < amount) {
+      return json({ error: "Saldo insuficiente para reembolsar" }, 400);
     }
 
-    const wallet: any = movement.wallets;
-    if (!wallet || wallet.user_id !== user.id) {
-      return new Response(JSON.stringify({ error: "No autorizado" }), { status: 403, headers: corsHeaders });
-    }
-
-    if (movement.type !== "deposit" || movement.status !== "approved") {
-      return new Response(JSON.stringify({ error: "Solo se pueden reembolsar depósitos acreditados" }), { status: 400, headers: corsHeaders });
-    }
-
-    if (movement.refunded_at) {
-      return new Response(JSON.stringify({ error: "Este depósito ya fue reembolsado" }), { status: 409, headers: corsHeaders });
-    }
-
-    const sessionId: string = movement.external_session_id ?? "";
-    if (!sessionId.startsWith("mp_")) {
-      return new Response(JSON.stringify({ error: "Este depósito no se puede reembolsar por Mercado Pago" }), { status: 400, headers: corsHeaders });
-    }
-    const paymentId = sessionId.slice(3);
-
-    // Refund window
-    const createdAt = new Date(movement.created_at).getTime();
-    const ageDays = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
-    if (ageDays > REFUND_WINDOW_DAYS) {
-      return new Response(
-        JSON.stringify({ error: `El reembolso solo está disponible dentro de ${REFUND_WINDOW_DAYS} días del depósito` }),
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
-    const amount = Number(movement.amount);
-    const currentBalance = Number(wallet.balance);
-    if (currentBalance < amount) {
-      return new Response(
-        JSON.stringify({ error: "Saldo insuficiente para reembolsar (parte de este depósito ya fue usado)" }),
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
-    // Issue a TOTAL refund on the original MP payment. Empty body = total refund.
-    // Idempotency key prevents double refunds on retries.
-    const refundResp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}/refunds`, {
+    // Call Mercado Pago refunds API
+    const mpResp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}/refunds`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
         "Content-Type": "application/json",
-        "X-Idempotency-Key": `refund_${paymentId}`,
+        "X-Idempotency-Key": `refund_${movementId}`,
       },
-      body: "{}",
+      body: JSON.stringify({ amount }),
     });
 
-    if (!refundResp.ok) {
-      const errBody = await refundResp.text();
-      console.error("[refund-mercadopago-deposit] MP refund failed:", paymentId, refundResp.status, errBody);
-      return new Response(JSON.stringify({ error: "Mercado Pago rechazó el reembolso" }), { status: 502, headers: corsHeaders });
+    const mpBody = await mpResp.json().catch(() => ({}));
+    if (!mpResp.ok) {
+      console.error("[refund-mercadopago-deposit] MP refund failed:", mpResp.status, mpBody);
+      return json({ error: "Mercado Pago rechazó el reembolso", details: mpBody }, 502);
     }
 
-    // MP refund succeeded. Debit the wallet idempotently.
-    const refundSessionId = `mprefund_${paymentId}`;
-    const newBalance = currentBalance - amount;
+    // Debit wallet and record refund movement
+    const newBalance = Number(wallet.balance) - amount;
 
-    const { data: insertedMov, error: refundInsertErr } = await supabase
+    const { data: refundMov, error: insErr } = await supabase
       .from("wallet_movements")
       .insert({
-        wallet_id: movement.wallet_id,
+        wallet_id: mov.wallet_id,
         type: "refund",
-        amount,
+        amount: -amount,
         balance_after: newBalance,
-        description: `Reembolso depósito Mercado Pago [${paymentId}]`,
+        description: `Reembolso Mercado Pago [${paymentId}]`,
         status: "approved",
-        external_session_id: refundSessionId,
+        external_session_id: `mp_refund_${paymentId}`,
       })
       .select("id")
       .maybeSingle();
 
-    if (refundInsertErr) {
-      if ((refundInsertErr as any).code === "23505") {
-        // Already processed (concurrent/retried) — MP refund is idempotent too.
-        return new Response(JSON.stringify({ success: true, alreadyProcessed: true }), { status: 200, headers: corsHeaders });
-      }
-      console.error("[refund-mercadopago-deposit] Refund movement insert error:", refundInsertErr);
-      return new Response(JSON.stringify({ error: "Error registrando el reembolso" }), { status: 500, headers: corsHeaders });
+    if (insErr) {
+      console.error("[refund-mercadopago-deposit] Insert refund movement failed:", insErr);
+      return json({ error: "Error registrando movimiento de reembolso" }, 500);
     }
 
-    // Debit wallet balance
-    const { error: walletUpdateErr } = await supabase
+    const { error: updWalletErr } = await supabase
       .from("wallets")
       .update({ balance: newBalance })
-      .eq("id", movement.wallet_id);
+      .eq("id", mov.wallet_id);
 
-    if (walletUpdateErr) {
-      console.error("[refund-mercadopago-deposit] Wallet update failed, rolling back:", walletUpdateErr);
-      if (insertedMov) await supabase.from("wallet_movements").delete().eq("id", insertedMov.id);
-      return new Response(JSON.stringify({ error: "Error actualizando el saldo" }), { status: 500, headers: corsHeaders });
+    if (updWalletErr) {
+      console.error("[refund-mercadopago-deposit] Wallet update failed:", updWalletErr);
+      if (refundMov) await supabase.from("wallet_movements").delete().eq("id", refundMov.id);
+      return json({ error: "Error actualizando wallet" }, 500);
     }
 
-    // Mark the original deposit as refunded so it can't be refunded again
-    await supabase
+    const { error: markErr } = await supabase
       .from("wallet_movements")
       .update({ refunded_at: new Date().toISOString() })
-      .eq("id", movement.id);
+      .eq("id", movementId);
 
-    console.log(`[refund-mercadopago-deposit] Refunded payment ${paymentId} for user ${user.id}, amount ${amount}`);
+    if (markErr) {
+      console.error("[refund-mercadopago-deposit] Mark refunded_at failed:", markErr);
+    }
 
-    return new Response(JSON.stringify({ success: true, amount }), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
+    return json({
+      success: true,
+      refund_id: mpBody?.id,
+      refund_movement_id: refundMov?.id,
+      new_balance: newBalance,
     });
-  } catch (error: any) {
-    console.error("[refund-mercadopago-deposit] Unexpected error:", error);
-    return new Response(JSON.stringify({ error: error.message ?? "Error interno" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    });
+  } catch (err: any) {
+    console.error("[refund-mercadopago-deposit] Unexpected:", err);
+    return json({ error: err?.message ?? "Unexpected error" }, 500);
   }
 });
