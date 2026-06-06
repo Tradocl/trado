@@ -532,6 +532,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Notification sent for action ${actionType}:`, emailResponse);
 
+    // Persist audit row to email_send_log (best-effort)
+    try {
+      const emailErr = (emailResponse as any)?.error;
+      const messageId = (emailResponse as any)?.data?.id ?? null;
+      await supabase.from("email_send_log").insert({
+        template_name: `notify-${actionType}`,
+        recipient_email: recipientProfile.email,
+        message_id: messageId,
+        status: emailErr ? "failed" : "sent",
+        error_message: emailErr ? (emailErr.message ?? String(emailErr)) : null,
+        metadata: { transactionId, actionType, recipientId },
+      });
+    } catch (logErr) {
+      console.error("email_send_log insert failed (non-blocking):", logErr);
+    }
+
+
     // Send push notification (fire and forget)
     const pushBody = `${config.emoji} ${transaction.product_name}`;
     supabase.functions.invoke('send-push-notification', {
