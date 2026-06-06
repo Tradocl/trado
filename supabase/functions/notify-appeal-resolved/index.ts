@@ -175,7 +175,7 @@ serve(async (req) => {
       from: "Trado <notificaciones@trado.cl>",
       to: [buyerProfile.email],
       subject: `✅ Apelación resuelta: ${transaction.product_name}`,
-      html: createEmailHtml(buyerProfile.full_name, "buyer"),
+      html: createEmailHtml(buyerProfile.full_name ?? "", "buyer"),
     });
 
     console.log("[notify-appeal-resolved] Buyer email sent:", buyerEmailResponse);
