@@ -52,6 +52,21 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Token inválido" }), { status: 401, headers: corsHeaders });
     }
 
+    // Rate limit: max 5 payment-preference creations per minute per user
+    const { data: allowed, error: rlError } = await supabase.rpc("check_rate_limit", {
+      _identifier: user.id,
+      _action: "create_mp_payment",
+      _max_per_minute: 5,
+    });
+    if (rlError) {
+      console.error("[create-mercadopago-payment] Rate limit check failed:", rlError);
+    } else if (allowed === false) {
+      return new Response(
+        JSON.stringify({ error: "Demasiados intentos. Espera un minuto e intenta de nuevo." }),
+        { status: 429, headers: corsHeaders }
+      );
+    }
+
     const { amount, successUrl, cancelUrl } = await req.json();
 
     if (!amount || amount < 1000) {

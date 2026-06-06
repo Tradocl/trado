@@ -52,6 +52,12 @@ const JoinTransaction = () => {
       const { data: matches, error } = await supabase
         .rpc("find_transaction_by_invite_code", { _invite_code: inviteCode });
 
+      if (error?.message?.includes("rate_limit_exceeded")) {
+        toast.error("Demasiados intentos. Espera un minuto e intenta de nuevo.");
+        setLoading(false);
+        return;
+      }
+
       const transaction = Array.isArray(matches) ? matches[0] : null;
       if (error || !transaction) {
         toast.error("Código inválido o trato no encontrado");
