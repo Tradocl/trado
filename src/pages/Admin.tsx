@@ -299,7 +299,7 @@ export default function Admin() {
         .eq("type", "deposit")
         .eq("status", "approved");
 
-      const deposits = (depositsData as { amount: number; external_fee: number | null }[] | null) || [];
+      const deposits = ((depositsData as unknown) as { amount: number; external_fee: number | null }[] | null) || [];
       const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
       // Mercado Pago fee withheld before funds reach the Trado account
       const totalMpFees = deposits.reduce((sum, d) => sum + (d.external_fee || 0), 0);
