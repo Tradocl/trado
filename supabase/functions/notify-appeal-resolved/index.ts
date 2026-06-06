@@ -20,10 +20,15 @@ interface NotifyAppealResolvedRequest {
   isMutualAgreement: boolean;
 }
 
+import { requireServiceRole, sanitizeHtml } from "../_shared/auth.ts";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const authFail = await requireServiceRole(req);
+  if (authFail) return new Response(authFail.body, { status: authFail.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
     const body: NotifyAppealResolvedRequest = await req.json();
@@ -145,7 +150,7 @@ serve(async (req) => {
                   ${isMutualAgreement ? "Detalle del acuerdo:" : "Notas del administrador:"}
                 </p>
                 <p style="color: #374151; font-size: 14px; margin: 0; font-style: italic;">
-                  "${resolutionNotes}"
+                  "${sanitizeHtml(resolutionNotes)}"
                 </p>
               </div>
               

@@ -367,10 +367,26 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const token = authHeader.replace(/^Bearer\s+/i, "");
 
-    const { transactionId, actionType, actorId, additionalData }: ActionRequest = await req.json();
+    // Allow service-role callers (server-to-server) or verified end-users
+    let callerId: string | null = null;
+    if (token === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")) {
+      callerId = null; // trusted server caller
+    } else {
+      const { data: authData, error: authErr } = await supabase.auth.getUser(token);
+      if (authErr || !authData?.user) {
+        return new Response(JSON.stringify({ error: "Token inválido" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      callerId = authData.user.id;
+    }
 
-    if (!transactionId || !actionType || !actorId) {
+    const { transactionId, actionType, additionalData }: ActionRequest = await req.json();
+
+    if (!transactionId || !actionType) {
       return new Response(JSON.stringify({ error: "Datos incompletos" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -401,9 +417,25 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Determine actor: for end-user callers, force actor = callerId AND verify participation.
+    // Service-role callers may notify either side (default: notify the other party).
+    let actorId: string;
+    if (callerId) {
+      if (callerId !== transaction.seller_id && callerId !== transaction.buyer_id) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      actorId = callerId;
+    } else {
+      // Server caller: default actor = seller (recipient becomes buyer); body can override safely.
+      actorId = transaction.seller_id;
+    }
+
     // Determine recipient (the other party)
-    const recipientId = actorId === transaction.seller_id 
-      ? transaction.buyer_id 
+    const recipientId = actorId === transaction.seller_id
+      ? transaction.buyer_id
       : transaction.seller_id;
 
     if (!recipientId) {
@@ -450,11 +482,22 @@ const handler = async (req: Request): Promise<Response> => {
       ctaUrl = `${baseUrl}/wallet`;
     }
 
+    // Sanitize caller-supplied additionalData fields before HTML interpolation
+    const escapeHtml = (s: any) => String(s ?? "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    const safeAdditional: Record<string, any> = {};
+    if (additionalData && typeof additionalData === "object") {
+      for (const [k, v] of Object.entries(additionalData)) {
+        safeAdditional[k] = typeof v === "string" ? escapeHtml(v) : v;
+      }
+    }
+
     // Generate email content
     const description = config.getDescription(
-      actorProfile.full_name,
-      transaction.product_name,
-      additionalData
+      escapeHtml(actorProfile.full_name),
+      escapeHtml(transaction.product_name),
+      safeAdditional
     );
 
     const emailHtml = generateEmailHtml(

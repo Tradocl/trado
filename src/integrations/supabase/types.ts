@@ -1162,6 +1162,16 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      find_transaction_by_invite_code: {
+        Args: { _invite_code: string }
+        Returns: {
+          buyer_id: string
+          id: string
+          sale_type: string
+          seller_id: string
+          state: string
+        }[]
+      }
       generate_invite_code: { Args: never; Returns: string }
       get_own_bank_details: {
         Args: { _user_id: string }
