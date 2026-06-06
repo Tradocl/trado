@@ -866,6 +866,7 @@ export type Database = {
           created_at: string | null
           deposited_at: string | null
           dispute_opened_at: string | null
+          dispute_reason: string | null
           email_thread_id: string | null
           id: string
           initiator_role: string | null
@@ -891,6 +892,7 @@ export type Database = {
           created_at?: string | null
           deposited_at?: string | null
           dispute_opened_at?: string | null
+          dispute_reason?: string | null
           email_thread_id?: string | null
           id?: string
           initiator_role?: string | null
@@ -916,6 +918,7 @@ export type Database = {
           created_at?: string | null
           deposited_at?: string | null
           dispute_opened_at?: string | null
+          dispute_reason?: string | null
           email_thread_id?: string | null
           id?: string
           initiator_role?: string | null
@@ -979,6 +982,7 @@ export type Database = {
           bank_name: string | null
           created_at: string | null
           description: string | null
+          external_session_id: string | null
           id: string
           reviewed_at: string | null
           reviewed_by: string | null
@@ -997,6 +1001,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           description?: string | null
+          external_session_id?: string | null
           id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -1015,6 +1020,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           description?: string | null
+          external_session_id?: string | null
           id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
