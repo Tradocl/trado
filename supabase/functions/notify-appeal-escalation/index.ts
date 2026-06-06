@@ -10,6 +10,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+function esc(s: string | null | undefined): string {
+  if (!s) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 interface AppealEscalationRequest {
   appealId: string;
 }
