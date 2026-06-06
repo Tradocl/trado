@@ -1,4 +1,5 @@
 import { sendPushToUsers, PushPayload } from "../_shared/push.ts";
+import { requireServiceRole } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
