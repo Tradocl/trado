@@ -39,6 +39,8 @@ interface WalletMovement {
   description: string;
   created_at: string;
   reviewed_at: string | null;
+  refunded_at?: string | null;
+  external_session_id?: string | null;
   status: string;
   user_name?: string;
   user_email?: string;
@@ -543,6 +545,26 @@ export default function Admin() {
     }
   };
 
+  const handleRefundDeposit = async (movementId: string) => {
+    if (processingId) return;
+    setProcessingId(movementId);
+    try {
+      const { data, error } = await supabase.functions.invoke("refund-mercadopago-deposit", {
+        body: { movement_id: movementId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success("Reembolso enviado a Mercado Pago. El dinero vuelve al medio de pago original del usuario.");
+      loadAdminData();
+    } catch (error: any) {
+      console.error("Error refunding deposit:", error);
+      toast.error("Error al reembolsar: " + (error?.message ?? "desconocido"));
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const handleApproveVerification = async (profileId: string) => {
     if (processingId) return;
     setProcessingId(profileId);
@@ -1003,6 +1025,7 @@ export default function Admin() {
                     <TableHead>Email</TableHead>
                     <TableHead>Monto</TableHead>
                     <TableHead>Fecha Acreditación</TableHead>
+                    <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1010,7 +1033,9 @@ export default function Admin() {
                     !depositSearch ||
                     d.user_name?.toLowerCase().includes(depositSearch.toLowerCase()) ||
                     d.user_email?.toLowerCase().includes(depositSearch.toLowerCase())
-                  ).map((deposit) => (
+                  ).map((deposit) => {
+                    const isMpDeposit = deposit.external_session_id?.startsWith("mp_");
+                    return (
                     <TableRow key={deposit.id}>
                       <TableCell className="font-medium">{deposit.user_name}</TableCell>
                       <TableCell>{deposit.user_email}</TableCell>
@@ -1026,11 +1051,33 @@ export default function Admin() {
                           minute: "2-digit"
                         })}
                       </TableCell>
+                      <TableCell>
+                        {deposit.refunded_at ? (
+                          <Badge variant="secondary">Reembolsado</Badge>
+                        ) : isMpDeposit ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={processingId === deposit.id}
+                            onClick={() => handleRefundDeposit(deposit.id)}
+                          >
+                            {processingId === deposit.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-1" />
+                            ) : (
+                              <RotateCcw className="mr-1 h-4 w-4" />
+                            )}
+                            Reembolsar
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                   {approvedDeposits.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         Aún no hay depósitos acreditados
                       </TableCell>
                     </TableRow>
