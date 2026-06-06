@@ -39,23 +39,78 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Verify JWT and resolve calling user
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const { data: authData, error: authErr } = await supabase.auth.getUser(token);
+    if (authErr || !authData?.user) {
+      return new Response(JSON.stringify({ error: "Token inválido" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerId = authData.user.id;
+
     const {
       transactionId,
-      proposerName,
-      recipientEmail,
-      recipientName,
       productName,
       location,
       datetime,
       message,
     }: MeetingProposalRequest = await req.json();
 
-    if (!transactionId || !proposerName || !recipientEmail || !recipientName || !productName || !location || !datetime) {
+    if (!transactionId || !productName || !location || !datetime) {
       return new Response(JSON.stringify({ error: "Datos incompletos" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Verify caller is a participant and derive proposer/recipient server-side
+    const { data: tx, error: txErr } = await supabase
+      .from("transactions")
+      .select("id, seller_id, buyer_id")
+      .eq("id", transactionId)
+      .maybeSingle();
+    if (txErr || !tx) {
+      return new Response(JSON.stringify({ error: "Transacción no encontrada" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (tx.seller_id !== callerId && tx.buyer_id !== callerId) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const counterpartyId = tx.seller_id === callerId ? tx.buyer_id : tx.seller_id;
+    if (!counterpartyId) {
+      return new Response(JSON.stringify({ error: "Sin contraparte" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, nickname, email")
+      .in("id", [callerId, counterpartyId]);
+    const proposerProfile = profiles?.find((p: any) => p.id === callerId);
+    const recipientProfile = profiles?.find((p: any) => p.id === counterpartyId);
+    if (!recipientProfile?.email) {
+      return new Response(JSON.stringify({ error: "Sin email de contraparte" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const sanitize = (s: any) => String(s ?? "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    const proposerName = sanitize(proposerProfile?.nickname || proposerProfile?.full_name || "Un usuario");
+    const recipientName = sanitize(recipientProfile?.nickname || recipientProfile?.full_name || "Hola");
+    const recipientEmail = recipientProfile.email;
+    const safeProduct = sanitize(productName);
+    const safeLocation = sanitize(location);
+    const safeMessage = message ? sanitize(message) : undefined;
 
     const formattedDate = new Date(datetime).toLocaleDateString("es-CL", {
       weekday: "long",
