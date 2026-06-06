@@ -18,6 +18,14 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const authFail = await requireServiceRole(req);
+  if (authFail) {
+    return new Response(authFail.body, {
+      status: authFail.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const body = (await req.json()) as RequestBody;
 
