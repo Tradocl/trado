@@ -554,21 +554,30 @@ export default function Admin() {
         .eq("id", profileId)
         .single();
 
-      const { error } = await supabase
+      const { data: updatedProfile, error } = await supabase
         .from("profiles")
         .update({
           verification_status: "approved",
           is_verified: true,
         })
-        .eq("id", profileId);
+        .eq("id", profileId)
+        .eq("verification_status", "in_review")
+        .select("id")
+        .maybeSingle();
 
       if (error) throw error;
+      if (!updatedProfile) {
+        toast.info("Esta verificación ya fue procesada");
+        loadAdminData();
+        return;
+      }
 
       // Send email notification
       if (profile) {
         try {
           await supabase.functions.invoke("send-verification-result", {
             body: {
+              profileId,
               userEmail: profile.email,
               userName: profile.full_name,
               status: "approved",
@@ -612,22 +621,34 @@ export default function Admin() {
         .eq("id", selectedVerificationId)
         .single();
 
-      const { error } = await supabase
+      const { data: updatedProfile, error } = await supabase
         .from("profiles")
         .update({
           verification_status: "rejected",
           is_verified: false,
           verification_rejection_reason: rejectionReason.trim(),
         })
-        .eq("id", selectedVerificationId);
+        .eq("id", selectedVerificationId)
+        .eq("verification_status", "in_review")
+        .select("id")
+        .maybeSingle();
 
       if (error) throw error;
+      if (!updatedProfile) {
+        toast.info("Esta verificación ya fue procesada");
+        setRejectDialogOpen(false);
+        setRejectionReason("");
+        setSelectedVerificationId("");
+        loadAdminData();
+        return;
+      }
 
       // Send email notification
       if (profile) {
         try {
           await supabase.functions.invoke("send-verification-result", {
             body: {
+              profileId: selectedVerificationId,
               userEmail: profile.email,
               userName: profile.full_name,
               status: "rejected",
