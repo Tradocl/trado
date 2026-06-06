@@ -39,12 +39,29 @@ const InviteWelcome = () => {
   const loadTransactionPreview = async () => {
     if (!id) return;
 
+    // iOS link detection (Mail/Messages/WhatsApp) can append stray characters to
+    // the end of a URL. Strip anything that is not a valid UUID character so the
+    // RPC does not fail with an invalid-uuid cast error.
+    const cleanId = decodeURIComponent(id).trim().replace(/[^0-9a-fA-F-]/g, "");
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRe.test(cleanId)) {
+      setError("El enlace está incompleto o mal copiado. Pídele a quien te invitó que lo reenvíe.");
+      setLoading(false);
+      return;
+    }
+
     try {
       // Use public RPC function that doesn't require authentication
       const { data: txData, error: txError } = await supabase
-        .rpc("get_transaction_preview", { transaction_id: id });
+        .rpc("get_transaction_preview", { transaction_id: cleanId });
 
-      if (txError || !txData || txData.length === 0) {
+      if (txError) {
+        console.error("[InviteWelcome] RPC error:", txError);
+        setError(`No se pudo cargar la invitación (${txError.message}). Revisa tu conexión e inténtalo de nuevo.`);
+        setLoading(false);
+        return;
+      }
+      if (!txData || txData.length === 0) {
         setError("Transacción no encontrada");
         setLoading(false);
         return;
@@ -69,7 +86,7 @@ const InviteWelcome = () => {
       });
     } catch (err: any) {
       console.error("Error loading transaction preview:", err);
-      setError("Error al cargar la invitación");
+      setError(`Error al cargar la invitación: ${err?.message ?? "desconocido"}`);
     } finally {
       setLoading(false);
     }
