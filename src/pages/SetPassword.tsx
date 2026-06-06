@@ -44,7 +44,10 @@ const SetPassword = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({
+      password,
+      data: { password_set: true },
+    });
     if (error) {
       toast.error("No se pudo guardar la contraseña: " + error.message);
       setLoading(false);
