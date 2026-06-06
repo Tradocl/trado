@@ -10,6 +10,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+function esc(s: string | null | undefined): string {
+  if (!s) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 interface AppealEscalationRequest {
   appealId: string;
 }
@@ -111,9 +121,9 @@ const handler = async (req: Request): Promise<Response> => {
     const sellerProfile = Array.isArray(txData.seller) ? txData.seller[0] : txData.seller;
     const buyerEmail = buyerProfile?.email;
     const sellerEmail = sellerProfile?.email;
-    const buyerName = buyerProfile?.full_name || "Comprador";
-    const sellerName = sellerProfile?.full_name || "Vendedor";
-    const productName = txData.product_name;
+    const buyerName = esc(buyerProfile?.full_name) || "Comprador";
+    const sellerName = esc(sellerProfile?.full_name) || "Vendedor";
+    const productName = esc(txData.product_name);
     const amount = txData.amount;
     
     // Determine who requested the escalation

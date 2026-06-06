@@ -501,7 +501,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const emailHtml = generateEmailHtml(
-      recipientProfile.full_name,
+      escapeHtml(recipientProfile.full_name ?? ""),
       config.emoji,
       config.title,
       description,
