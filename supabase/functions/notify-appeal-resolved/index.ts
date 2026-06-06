@@ -123,7 +123,7 @@ serve(async (req) => {
             
             <div style="padding: 32px;">
               <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
-                Hola <strong>${recipientName}</strong>,
+                Hola <strong>${sanitizeHtml(recipientName)}</strong>,
               </p>
               
               <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
@@ -135,7 +135,7 @@ serve(async (req) => {
               
               <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 20px 0;">
                 <h3 style="color: #166534; margin: 0 0 12px 0; font-size: 16px;">Detalles de la Resolución</h3>
-                <p style="margin: 0 0 8px 0;"><strong>Transacción:</strong> ${transaction.product_name}</p>
+                <p style="margin: 0 0 8px 0;"><strong>Transacción:</strong> ${sanitizeHtml(transaction.product_name)}</p>
                 <p style="margin: 0 0 8px 0;"><strong>Monto original:</strong> $${formatCLP(transaction.amount)} CLP</p>
                 <p style="margin: 0 0 12px 0;"><strong>Decisión:</strong> ${resolutionLabel}</p>
                 ${distributionHtml}
@@ -175,7 +175,7 @@ serve(async (req) => {
       from: "Trado <notificaciones@trado.cl>",
       to: [buyerProfile.email],
       subject: `✅ Apelación resuelta: ${transaction.product_name}`,
-      html: createEmailHtml(buyerProfile.full_name, "buyer"),
+      html: createEmailHtml(buyerProfile.full_name ?? "", "buyer"),
     });
 
     console.log("[notify-appeal-resolved] Buyer email sent:", buyerEmailResponse);
