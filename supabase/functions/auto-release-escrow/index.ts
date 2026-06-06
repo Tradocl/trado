@@ -125,7 +125,7 @@ serve(async (_req) => {
         }
       }
 
-      // Notify seller (push + email via notify-transaction-action) — fire & forget
+      // Notify seller
       supabase.functions.invoke("send-push-notification", {
         body: {
           userIds: [tx.seller_id],
@@ -136,28 +136,9 @@ serve(async (_req) => {
         },
       }).catch(() => {});
 
-      try {
-        await fetch(`${SUPABASE_URL}/functions/v1/notify-transaction-action`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-          body: JSON.stringify({
-            transactionId: tx.id,
-            actionType: "funds_released",
-            actorId: tx.buyer_id,
-            additionalData: { amount: amountToSeller },
-          }),
-        });
-      } catch (notifyErr) {
-        console.error(`[auto-release-escrow] notify failed for tx ${tx.id}:`, notifyErr);
-      }
-
       released++;
       console.log(`[auto-release-escrow] Released tx ${tx.id} successfully`);
     }
-
 
     console.log(`[auto-release-escrow] Done. Released ${released}/${transactions.length}`);
     return new Response(JSON.stringify({ processed: transactions.length, released }), { status: 200 });

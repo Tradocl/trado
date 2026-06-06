@@ -752,6 +752,14 @@ const Transaction = () => {
         });
       }, 250);
 
+      // Send payment instructions email
+      try {
+        await supabase.functions.invoke("send-payment-instructions", {
+          body: { transactionId: transaction.id },
+        });
+      } catch (emailError) {
+        console.error("Error sending payment instructions:", emailError);
+      }
 
       // Notify the seller/creator that someone joined
       try {

@@ -204,29 +204,10 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`[process-escrow-deposit] Successfully processed deposit for transaction ${transactionId}`);
 
-    // Notify seller that funds are secured (fire & forget)
-    try {
-      await fetch(`${SUPABASE_URL}/functions/v1/notify-transaction-action`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({
-          transactionId,
-          actionType: "funds_deposited",
-          actorId: tx.buyer_id,
-        }),
-      });
-    } catch (notifyErr) {
-      console.error("[process-escrow-deposit] notify-transaction-action failed:", notifyErr);
-    }
-
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-
   } catch (error: any) {
     console.error("[process-escrow-deposit] Error:", error);
     return new Response(JSON.stringify({ error: error.message ?? "Error interno" }), {

@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { logEmailSend } from "../_shared/log-email.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -449,14 +447,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     const buyerEmailData = await buyerEmailResponse.json();
     console.log("Buyer email response:", buyerEmailData);
-    await logEmailSend({
-      template_name: "transaction-completed-buyer",
-      recipient_email: buyerEmail,
-      message_id: buyerEmailData?.id ?? null,
-      status: buyerEmailResponse.ok ? "sent" : "failed",
-      error_message: buyerEmailResponse.ok ? null : (buyerEmailData?.message ?? "Resend error"),
-      metadata: { transactionId, productName },
-    });
 
     // Send email to seller
     const sellerEmailHtml = generateSellerEmailHtml(sellerName, productName, amount, actualCommission, buyerName, transactionId);
@@ -476,15 +466,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     const sellerEmailData = await sellerEmailResponse.json();
     console.log("Seller email response:", sellerEmailData);
-    await logEmailSend({
-      template_name: "transaction-completed-seller",
-      recipient_email: sellerEmail,
-      message_id: sellerEmailData?.id ?? null,
-      status: sellerEmailResponse.ok ? "sent" : "failed",
-      error_message: sellerEmailResponse.ok ? null : (sellerEmailData?.message ?? "Resend error"),
-      metadata: { transactionId, productName },
-    });
-
 
     return new Response(
       JSON.stringify({ 

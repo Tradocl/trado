@@ -35,6 +35,8 @@ project_id = "uohlyccjugbqsxiwerrv"
     verify_jwt = true
   [functions.send-movement-notification]
     verify_jwt = true
+  [functions.send-payment-instructions]
+    verify_jwt = true
   [functions.send-verification-result]
     verify_jwt = true
   [functions.send-welcome-email]

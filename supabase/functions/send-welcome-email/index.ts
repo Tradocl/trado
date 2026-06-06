@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { logEmailSend } from "../_shared/log-email.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -215,25 +213,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!emailResponse.ok) {
       console.error("Resend API error:", emailData);
-      await logEmailSend({
-        template_name: "welcome",
-        recipient_email: email,
-        status: "failed",
-        error_message: emailData?.message ?? "Resend error",
-        metadata: { userName },
-      });
       throw new Error(emailData.message || "Error sending email");
     }
 
     console.log("Welcome email sent successfully:", emailData);
-    await logEmailSend({
-      template_name: "welcome",
-      recipient_email: email,
-      message_id: emailData?.id ?? null,
-      status: "sent",
-      metadata: { userName },
-    });
-
 
     return new Response(
       JSON.stringify({ success: true, data: emailData }),
