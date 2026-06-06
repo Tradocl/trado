@@ -91,7 +91,7 @@ serve(async (req: Request) => {
       amount,
     });
 
-    const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
+    const mpResponse = await fetch("https://api.sandbox.mercadopago.com/checkout/preferences", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,

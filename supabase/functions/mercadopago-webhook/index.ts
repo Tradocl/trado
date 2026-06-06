@@ -63,7 +63,7 @@ serve(async (req: Request) => {
     }
 
     // Re-fetch the payment from MP to verify authenticity and current status
-    const payResp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+    const payResp = await fetch(`https://api.sandbox.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { "Authorization": `Bearer ${MP_ACCESS_TOKEN}` },
     });
 
