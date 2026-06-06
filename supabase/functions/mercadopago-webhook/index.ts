@@ -90,6 +90,11 @@ serve(async (req: Request) => {
     const { user_id, wallet_id } = metadata;
     const depositAmount = Number(pay.transaction_amount);
 
+    // MP deducts a processor fee before the money reaches the Trado account.
+    // Wallet is credited the gross amount; record the fee for accounting.
+    const netReceived = Number(pay.transaction_details?.net_received_amount ?? depositAmount);
+    const mpFee = Math.max(0, Math.round((depositAmount - netReceived) * 100) / 100);
+
     if (!user_id || !wallet_id || !depositAmount) {
       console.error("[mercadopago-webhook] Missing metadata:", metadata);
       return new Response("Missing metadata", { status: 400 });
@@ -126,6 +131,7 @@ serve(async (req: Request) => {
         description: `Depósito Mercado Pago [${paymentId}]`,
         status: "approved",
         external_session_id: sessionId,
+        external_fee: mpFee,
       })
       .select("id")
       .maybeSingle();

@@ -118,8 +118,10 @@ export default function Admin() {
     totalWithdrawals: 0,
     activeEscrow: 0,
     totalCommissions: 0,
-    expectedBankBalance: 0, // Depósitos - Retiros (lo que debe haber en cuenta Trado)
+    totalMpFees: 0, // Comisiones cobradas por Mercado Pago en los depósitos
+    expectedBankBalance: 0, // Depósitos - Fees MP - Retiros (lo que debe haber en cuenta Trado)
     theoreticalWalletBalance: 0, // Depósitos - Retiros - Comisiones (lo que debería haber en wallets)
+    tradoNetProfit: 0, // Comisiones Trado - Fees MP (ganancia neta real)
     discrepancy: 0,
     movementsByType: [] as { type: string; count: number; total: number }[],
     walletDetails: [] as { user_name: string; user_email: string; balance: number }[],
@@ -290,14 +292,16 @@ export default function Admin() {
         blocked_balance: w.blocked_balance || 0,
       })).sort((a, b) => b.balance - a.balance) || [];
 
-      // 2. Total deposits approved
+      // 2. Total deposits approved (gross credited to wallets) + MP fees withheld
       const { data: depositsData } = await supabase
         .from("wallet_movements")
-        .select("amount")
+        .select("amount, external_fee")
         .eq("type", "deposit")
         .eq("status", "approved");
 
       const totalDeposits = depositsData?.reduce((sum, d) => sum + d.amount, 0) || 0;
+      // Mercado Pago fee withheld before funds reach the Trado account
+      const totalMpFees = depositsData?.reduce((sum, d) => sum + (d.external_fee || 0), 0) || 0;
 
       // 3. Total withdrawals approved
       const { data: withdrawalsData } = await supabase
@@ -349,14 +353,19 @@ export default function Admin() {
       }));
 
       // Calculate balances
-      // expectedBankBalance = Depósitos - Retiros (lo que Trado debe tener en su cuenta bancaria)
-      const expectedBankBalance = totalDeposits - totalWithdrawals;
-      
+      // expectedBankBalance = Depósitos - Fees MP - Retiros
+      // (lo que REALMENTE debe haber en la cuenta Trado: MP descuenta su comisión
+      //  antes de que el dinero llegue, aunque al usuario se le acredita el bruto)
+      const expectedBankBalance = totalDeposits - totalMpFees - totalWithdrawals;
+
       // theoreticalWalletBalance = Depósitos - Retiros - Comisiones (lo que debería estar en wallets de usuarios)
       const theoreticalWalletBalance = totalDeposits - totalWithdrawals - totalCommissions;
-      
+
       // discrepancy = diferencia entre lo teórico y lo real en wallets
       const discrepancy = theoreticalWalletBalance - totalCirculating;
+
+      // Ganancia neta real de Trado = comisiones cobradas - fees pagados a MP
+      const tradoNetProfit = totalCommissions - totalMpFees;
 
       setTokenStats({
         totalCirculating,
@@ -364,8 +373,10 @@ export default function Admin() {
         totalWithdrawals,
         activeEscrow,
         totalCommissions,
+        totalMpFees,
         expectedBankBalance,
         theoreticalWalletBalance,
+        tradoNetProfit,
         discrepancy,
         movementsByType,
         walletDetails,
@@ -1308,7 +1319,7 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.expectedBankBalance)}</div>
-                <p className="text-xs text-muted-foreground">Depósitos - Retiros (debe haber en banco)</p>
+                <p className="text-xs text-muted-foreground">Depósitos - Fees MP - Retiros (real en banco)</p>
               </CardContent>
             </Card>
             <Card>
@@ -1327,8 +1338,8 @@ export default function Admin() {
                 <BadgeDollarSign className="h-4 w-4 text-success" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-success">${formatCLP(tokenStats.totalCommissions)}</div>
-                <p className="text-xs text-muted-foreground">Comisiones cobradas (ganancias)</p>
+                <div className="text-2xl font-bold text-success">${formatCLP(tokenStats.tradoNetProfit)}</div>
+                <p className="text-xs text-muted-foreground">Comisiones - fees MP (ganancia neta)</p>
               </CardContent>
             </Card>
             <Card className={tokenStats.discrepancy === 0 ? "border-2 border-success/50 bg-success/5" : "border-2 border-destructive/50 bg-destructive/5"}>
@@ -1352,7 +1363,7 @@ export default function Admin() {
           </div>
 
           {/* Segunda fila: Métricas de flujo */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Depósitos Históricos</CardTitle>
@@ -1391,6 +1402,16 @@ export default function Admin() {
               <CardContent>
                 <div className="text-2xl font-bold">${formatCLP(tokenStats.totalCommissions)}</div>
                 <p className="text-xs text-muted-foreground">De transacciones completadas</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Fees Mercado Pago</CardTitle>
+                <Receipt className="h-4 w-4 text-destructive" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">${formatCLP(tokenStats.totalMpFees)}</div>
+                <p className="text-xs text-muted-foreground">~3,8% retenido por MP en depósitos</p>
               </CardContent>
             </Card>
           </div>
@@ -1442,11 +1463,11 @@ export default function Admin() {
                 {/* Desglose de Cuenta Trado */}
                 <div className="p-4 rounded-lg border bg-card">
                   <h4 className="font-semibold mb-3">Desglose de Cuenta Bancaria Trado:</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
                       <div className="text-sm text-muted-foreground">Debe haber en cuenta</div>
                       <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.expectedBankBalance)}</div>
-                      <div className="text-xs text-muted-foreground mt-1">Depósitos - Retiros</div>
+                      <div className="text-xs text-muted-foreground mt-1">Depósitos - Fees MP - Retiros</div>
                     </div>
                     <div className="p-3 rounded-lg bg-info/10 border border-info/20">
                       <div className="text-sm text-muted-foreground">De eso, es de usuarios</div>
@@ -1455,8 +1476,13 @@ export default function Admin() {
                     </div>
                     <div className="p-3 rounded-lg bg-success/10 border border-success/20">
                       <div className="text-sm text-muted-foreground">De eso, es de Trado</div>
-                      <div className="text-xl font-bold text-success">${formatCLP(tokenStats.totalCommissions)}</div>
-                      <div className="text-xs text-muted-foreground mt-1">Comisiones (ganancia)</div>
+                      <div className="text-xl font-bold text-success">${formatCLP(tokenStats.tradoNetProfit)}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Comisiones - fees MP</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                      <div className="text-sm text-muted-foreground">Pagado a Mercado Pago</div>
+                      <div className="text-xl font-bold text-destructive">${formatCLP(tokenStats.totalMpFees)}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Costo de procesamiento</div>
                     </div>
                   </div>
                 </div>
@@ -1485,7 +1511,7 @@ export default function Admin() {
                     </div>
                     <p className="text-sm mt-2">
                       ✓ Depósitos - Retiros - Comisiones = Balance en Wallets<br/>
-                      ✓ Cuenta Trado = Obligación con Usuarios + Ganancias de Trado
+                      ✓ Cuenta Trado (Depósitos - Fees MP - Retiros) = Obligación con Usuarios + Ganancia neta Trado
                     </p>
                   </div>
                 )}
