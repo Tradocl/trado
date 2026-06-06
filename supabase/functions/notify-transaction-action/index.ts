@@ -429,13 +429,13 @@ const handler = async (req: Request): Promise<Response> => {
       }
       actorId = callerId;
     } else {
-      const bodyActor = (req as any)._bodyActorId as string | undefined;
-      if (bodyActor && (bodyActor === transaction.seller_id || bodyActor === transaction.buyer_id)) {
-        actorId = bodyActor;
+      if (bodyActorId && (bodyActorId === transaction.seller_id || bodyActorId === transaction.buyer_id)) {
+        actorId = bodyActorId;
       } else {
         actorId = transaction.seller_id;
       }
     }
+
 
 
     // Determine recipient (the other party)
