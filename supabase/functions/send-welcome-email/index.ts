@@ -158,11 +158,11 @@ const generateWelcomeEmailHtml = (userName: string) => `
 </html>
 `;
 
-import { requireUser } from "../_shared/auth.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 const handler = async (req: Request): Promise<Response> => {
   console.log("send-welcome-email function called");
@@ -171,11 +171,22 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const authResult = await requireUser(req);
-  if (authResult instanceof Response) {
-    return new Response(authResult.body, { status: authResult.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+  if (!authHeader?.toLowerCase().startsWith("bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
-  const { user } = authResult;
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  const authClient = createClient(SUPABASE_URL, ANON_KEY);
+  const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+  if (claimsError || !claimsData?.claims?.sub) {
+    console.error("getClaims failed:", claimsError);
+    return new Response(JSON.stringify({ error: "Invalid token" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const user = { id: claimsData.claims.sub as string, email: claimsData.claims.email as string | undefined };
 
   try {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
