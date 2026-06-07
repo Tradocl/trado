@@ -88,6 +88,11 @@ const Auth = () => {
       }
 
       if (user) {
+        const { userNeedsPassword } = await import("@/lib/password-gate");
+        if (userNeedsPassword(user)) {
+          navigate("/set-password");
+          return;
+        }
         // All users (including Google) go directly to dashboard
         const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
         if (redirectUrl) {
