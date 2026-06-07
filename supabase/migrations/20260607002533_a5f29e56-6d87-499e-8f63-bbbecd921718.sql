@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.get_transaction_preview(uuid, text);
