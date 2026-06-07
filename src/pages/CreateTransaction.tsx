@@ -33,6 +33,7 @@ const CreateTransaction = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdTransactionId, setCreatedTransactionId] = useState<string | null>(null);
+  const [createdInviteCode, setCreatedInviteCode] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [saleType, setSaleType] = useState<SaleType>("producto_envio");
   const [mainType, setMainType] = useState<MainType>("producto");
@@ -175,6 +176,7 @@ const CreateTransaction = () => {
 
       setShowConfirmModal(false);
       setCreatedTransactionId(transaction.id);
+      setCreatedInviteCode(inviteCode);
       setShowSuccessModal(true);
     } catch (error: any) {
       toast.error("Error al crear transacción: " + error.message);
@@ -203,18 +205,24 @@ const CreateTransaction = () => {
     if (createdTransactionId) {
       const appUrl = getAppUrl();
       const link = `${appUrl}/invite/${createdTransactionId}`;
-      navigator.clipboard.writeText(link);
+      navigator.clipboard.writeText(`${link}${codeFallbackLine()}`);
       setCopiedLink(true);
-      toast.success("Enlace copiado al portapapeles");
+      toast.success("Enlace y código copiados al portapapeles");
       setTimeout(() => setCopiedLink(false), 2000);
     }
+  };
+
+  const codeFallbackLine = () => {
+    if (!createdInviteCode) return "";
+    const appUrl = getAppUrl();
+    return `\n\nSi el enlace no funciona, entra a ${appUrl}/join-transaction y usa el código: ${createdInviteCode}`;
   };
 
   const shareInviteLink = async () => {
     if (createdTransactionId && formData) {
       const appUrl = getAppUrl();
       const link = `${appUrl}/invite/${createdTransactionId}`;
-      const text = `Te invito a unirte a mi transacción segura en Trado para: ${formData.productName}`;
+      const text = `Te invito a unirte a mi transacción segura en Trado para: ${formData.productName}${codeFallbackLine()}`;
 
       await nativeShare(
         { title: 'Invitación a Trado', text, url: link, dialogTitle: 'Compartir invitación' },
@@ -227,7 +235,7 @@ const CreateTransaction = () => {
     if (createdTransactionId && formData) {
       const appUrl = getAppUrl();
       const link = `${appUrl}/invite/${createdTransactionId}`;
-      const text = `¡Hola! Te invito a unirte a mi transacción segura en Trado para: *${formData.productName}*\n\nÚnete aquí: ${link}`;
+      const text = `¡Hola! Te invito a unirte a mi transacción segura en Trado para: *${formData.productName}*\n\nÚnete aquí: ${link}${codeFallbackLine()}`;
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(whatsappUrl, '_blank');
     }
@@ -767,7 +775,35 @@ const CreateTransaction = () => {
               </DialogDescription>
             </div>
 
-            <div 
+            {createdInviteCode && (
+              <div
+                className="mt-4 p-4 rounded-lg border border-dashed border-primary/40 bg-primary/5 text-center animate-fade-in"
+                style={{ animationDelay: '0.45s', animationFillMode: 'backwards' }}
+              >
+                <p className="text-xs text-muted-foreground mb-1">
+                  ¿No le funciona el enlace? Puede unirse con este código
+                </p>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-2xl font-bold tracking-widest font-mono">{createdInviteCode}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(createdInviteCode);
+                      toast.success("Código copiado");
+                    }}
+                    className="text-muted-foreground hover:text-foreground"
+                    aria-label="Copiar código"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Ingresándolo en trado.cl → Unirse a transacción
+                </p>
+              </div>
+            )}
+
+            <div
               className="space-y-3 py-6 animate-fade-in"
               style={{ animationDelay: '0.5s', animationFillMode: 'backwards' }}
             >

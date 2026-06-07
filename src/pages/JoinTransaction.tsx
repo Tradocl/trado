@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,12 +16,17 @@ import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 const JoinTransaction = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const { showCompleteProfileModal, requireCompleteProfile, onProfileCompleted, closeModal } = useRequireCompleteProfile();
 
-  // Load user verification status
+  // Prefill the invite code from the URL (?code=XXXX) so a shared fallback link works
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (code) setInviteCode(code.trim().toUpperCase());
+  }, [searchParams]);
 
   // Load user verification status
   useEffect(() => {
