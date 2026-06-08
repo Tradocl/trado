@@ -122,7 +122,7 @@ serve(async (req) => {
       });
     };
 
-    const subject = `${thread.subjectPrefix} Apelación resuelta · ${productName}`;
+    const subject = buildThreadSubject(thread, tx.product_name);
 
     await Promise.all([
       sendEmail({
