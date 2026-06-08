@@ -110,10 +110,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
-    const transactionUrl = `${baseUrl}/transaction/${transactionId}`;
+    const transactionUrl = txUrl(transactionId);
 
-    const fmt = (n: number) => `$${n.toLocaleString("es-CL")}`;
 
     const saleTypeLabel =
       saleType === "service"
