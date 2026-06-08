@@ -103,6 +103,7 @@ export default function Admin() {
   const [confirmWithdrawalId, setConfirmWithdrawalId] = useState<string | null>(null);
   const [depositSearch, setDepositSearch] = useState("");
   const [withdrawalSearch, setWithdrawalSearch] = useState("");
+  const [sendingTestEmails, setSendingTestEmails] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     pendingVerifications: 0,
