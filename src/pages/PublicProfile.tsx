@@ -20,6 +20,7 @@ interface PublicProfile {
   reputation_score: number;
   total_transactions: number;
   is_verified: boolean;
+  created_at: string;
 }
 
 const PublicProfile = () => {
