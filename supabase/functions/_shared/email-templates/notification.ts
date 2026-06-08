@@ -126,16 +126,8 @@ function renderStateIllustration(
   }
 }
 
-// Legacy unused block removed below
-function _unused_legacy_svg_block() {
-  const _ = `
 
-        "Pago liberado",
-      );
-    default:
-      return "";
-  }
-}
+
 
 export const formatCLP = (n: number | null | undefined): string => {
   const v = Number(n ?? 0);
