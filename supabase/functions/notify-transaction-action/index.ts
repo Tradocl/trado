@@ -1,359 +1,276 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendPushToUsers } from "../_shared/push.ts";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+import {
+  appealUrl,
+  buildThreadHeaders,
+  escapeHtml,
+  formatCLP,
+  persistThreadAnchor,
+  renderTransactionalEmail,
+  sendEmail,
+  SITE_URL,
+  type TimelineKey,
+  txUrl,
+  walletUrl,
+} from "../_shared/email-templates/notification.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface ActionRequest {
   transactionId: string;
   actionType: string;
-  actorId: string;
-  additionalData?: Record<string, any>;
+  actorId?: string;
+  additionalData?: Record<string, unknown>;
 }
 
-// Action types configuration
-const actionConfig: Record<string, {
-  emoji: string;
-  title: string;
-  getDescription: (actorName: string, productName: string, data?: Record<string, any>) => string;
+interface ActionCfg {
+  headline: (actorName: string, productName: string) => string;
+  status?: string;
+  next: (actorName: string, productName: string, d: Record<string, unknown>) => string;
   ctaText: string;
-  ctaPath: string; // 'transaction' or 'appeal' or 'return'
-}> = {
-  // Transaction actions
+  ctaUrlFor: (txId: string, d: Record<string, unknown>) => string;
+  timeline?: TimelineKey;
+  timelineProblem?: boolean;
+  audience?: "other" | "actor" | "both";
+}
+
+const A: Record<string, ActionCfg> = {
   buyer_joined: {
-    emoji: "🤝",
-    title: "Trado - Nuevo Participante",
-    getDescription: (actorName, productName) => 
-      `<strong>${actorName}</strong> se ha unido a tu transacción de <strong>${productName}</strong> en Trado.`,
-    ctaText: "Ver Transacción",
-    ctaPath: "transaction",
+    headline: (a, p) => `${a} se unió a la sala de ${p}`,
+    status: "Comprador unido a la sala",
+    next: (a) => `Esperamos que <strong>${a}</strong> deposite el pago en custodia. Te avisamos en cuanto esté listo.`,
+    ctaText: "Ir a la sala",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "invited",
   },
   funds_deposited: {
-    emoji: "💰",
-    title: "Trado - Fondos Asegurados",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha depositado los fondos para <strong>${productName}</strong> en Trado. ¡Ya puedes proceder con el envío/entrega!`,
-    ctaText: "Ver Transacción",
-    ctaPath: "transaction",
+    headline: (_a, p) => `Fondos en custodia para ${p}`,
+    status: "Pago asegurado por Trado",
+    next: (_a, _p, d) => {
+      const t = (d.saleType as string) || "";
+      if (t === "service") {
+        return "Puedes realizar el servicio. Cuando termines, márcalo desde la sala para que el comprador confirme.";
+      }
+      if (t === "in_person_product") {
+        return "Coordina con el comprador la fecha y lugar de entrega desde la sala. Una vez entregado, el comprador confirma y se liberan los fondos.";
+      }
+      return "Envía el producto y registra el seguimiento desde la sala. Cuando el comprador reciba y confirme, se liberan los fondos.";
+    },
+    ctaText: "Ir a la sala",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "funds_secured",
   },
   marked_shipped: {
-    emoji: "📦",
-    title: "Trado - Pedido Enviado",
-    getDescription: (actorName, productName, data) =>
-      `<strong>${actorName}</strong> ha marcado el pedido de <strong>${productName}</strong> como enviado en Trado.${data?.trackingInfo ? ` Tracking: ${data.trackingInfo}` : ''}`,
-    ctaText: "Ver Transacción",
-    ctaPath: "transaction",
+    headline: (_a, p) => `Tu producto va en camino: ${p}`,
+    status: "Envío en curso",
+    next: (_a, _p, d) => {
+      const t = d.trackingInfo ? `Seguimiento: <strong>${escapeHtml(String(d.trackingInfo))}</strong>. ` : "";
+      return `${t}Cuando recibas el producto, revísalo y confirma la entrega desde la sala para liberar el pago.`;
+    },
+    ctaText: "Ver seguimiento",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "in_delivery",
   },
   marked_received: {
-    emoji: "✅",
-    title: "Trado - Producto Recibido",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha confirmado que recibió el producto <strong>${productName}</strong> en Trado. Ahora tiene un período para revisarlo.`,
-    ctaText: "Ver Transacción",
-    ctaPath: "transaction",
+    headline: (a, p) => `${a} recibió ${p}`,
+    status: "Producto recibido, en revisión",
+    next: () => "El comprador está revisando que todo esté bien. Si pasa el plazo o confirma, los fondos se liberan a tu billetera.",
+    ctaText: "Ver transacción",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "awaiting_buyer_review",
   },
-  // Meeting actions
+  funds_released: {
+    headline: (_a, p) => `Pago liberado: ${p}`,
+    status: "Venta completada",
+    next: (_a, _p, d) => {
+      const amount = d.amount ? formatCLP(Number(d.amount)) : null;
+      return amount
+        ? `Recibiste <strong>${amount}</strong> en tu billetera Trado. Puedes retirarlo a tu cuenta bancaria cuando quieras.`
+        : "Los fondos ya están en tu billetera Trado.";
+    },
+    ctaText: "Ver mi billetera",
+    ctaUrlFor: () => walletUrl(),
+    timeline: "completed",
+  },
   meeting_proposed: {
-    emoji: "📍",
-    title: "Trado - Nueva Propuesta de Encuentro",
-    getDescription: (actorName, productName, data) =>
-      `<strong>${actorName}</strong> te propone un encuentro para <strong>${productName}</strong> en Trado.${data?.location ? ` Lugar: ${data.location}` : ''}${data?.datetime ? ` Fecha: ${data.datetime}` : ''}`,
-    ctaText: "Ver y Responder",
-    ctaPath: "transaction",
+    headline: (a, p) => `${a} propone un encuentro para ${p}`,
+    status: "Nueva propuesta de encuentro",
+    next: (_a, _p, d) => {
+      const loc = d.location ? `Lugar: <strong>${escapeHtml(String(d.location))}</strong>. ` : "";
+      const dt = d.datetime ? `Fecha: <strong>${escapeHtml(String(d.datetime))}</strong>. ` : "";
+      return `${loc}${dt}Acepta, rechaza o propón otra alternativa desde la sala.`;
+    },
+    ctaText: "Ver propuesta",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "funds_secured",
   },
   meeting_accepted: {
-    emoji: "✅",
-    title: "Trado - Encuentro Confirmado",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha aceptado tu propuesta de encuentro para <strong>${productName}</strong> en Trado. ¡Coordinen la entrega!`,
-    ctaText: "Ver Detalles",
-    ctaPath: "transaction",
+    headline: (a, p) => `${a} aceptó el encuentro para ${p}`,
+    status: "Encuentro confirmado",
+    next: () => "Coordinen la entrega en el lugar y fecha acordados. Cuando se concrete, el comprador confirma en la sala y se liberan los fondos.",
+    ctaText: "Ver detalles",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "in_delivery",
   },
   meeting_rejected: {
-    emoji: "❌",
-    title: "Trado - Propuesta Rechazada",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha rechazado tu propuesta de encuentro para <strong>${productName}</strong> en Trado. Puedes proponer otra alternativa.`,
-    ctaText: "Proponer Nueva Fecha",
-    ctaPath: "transaction",
+    headline: (a, p) => `${a} rechazó el encuentro para ${p}`,
+    status: "Propuesta rechazada",
+    next: () => "Puedes proponer otra fecha o lugar desde la sala.",
+    ctaText: "Proponer nueva fecha",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "funds_secured",
   },
-  // Appeal actions
   appeal_created: {
-    emoji: "⚖️",
-    title: "Trado - Nueva Apelación",
-    getDescription: (actorName, productName, data) =>
-      `<strong>${actorName}</strong> ha iniciado una apelación para la transacción de <strong>${productName}</strong> en Trado.${data?.reason ? ` Motivo: ${data.reason}` : ''} Tienes 48 horas para negociar una resolución.`,
-    ctaText: "Ver Apelación",
-    ctaPath: "appeal",
+    headline: (a, p) => `${a} abrió una disputa por ${p}`,
+    status: "Disputa abierta · 48h para negociar",
+    next: (_a, _p, d) => {
+      const r = d.reason ? `Motivo: <strong>${escapeHtml(String(d.reason))}</strong>. ` : "";
+      return `${r}Tienen 48 horas para llegar a un acuerdo mutuo. Sube evidencia y propón una resolución desde la sala de la disputa.`;
+    },
+    ctaText: "Ver disputa",
+    ctaUrlFor: (_id, d) => d.appealId ? appealUrl(String(d.appealId)) : txUrl(_id),
+    timeline: "awaiting_buyer_review",
+    timelineProblem: true,
   },
   appeal_evidence_uploaded: {
-    emoji: "📎",
-    title: "Trado - Nueva Evidencia",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha subido nueva evidencia a la apelación de <strong>${productName}</strong> en Trado.`,
-    ctaText: "Ver Evidencia",
-    ctaPath: "appeal",
+    headline: (a, p) => `${a} subió evidencia a la disputa de ${p}`,
+    next: () => "Revisa la nueva evidencia y, si quieres, sube la tuya o envía una propuesta de acuerdo.",
+    ctaText: "Ver evidencia",
+    ctaUrlFor: (_id, d) => d.appealId ? appealUrl(String(d.appealId)) : txUrl(_id),
+    timeline: "awaiting_buyer_review",
+    timelineProblem: true,
   },
   appeal_escalated: {
-    emoji: "🚨",
-    title: "Trado - Caso Escalado",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha escalado la apelación de <strong>${productName}</strong> a un administrador de Trado. Un mediador revisará el caso.`,
-    ctaText: "Ver Apelación",
-    ctaPath: "appeal",
+    headline: (_a, p) => `Disputa de ${p} escalada a Trado`,
+    status: "En revisión por un administrador",
+    next: () => "Un mediador de Trado revisará el caso, leerá la evidencia y el chat, y tomará una decisión imparcial. Sube ahora toda la evidencia que tengas.",
+    ctaText: "Ver disputa",
+    ctaUrlFor: (_id, d) => d.appealId ? appealUrl(String(d.appealId)) : txUrl(_id),
+    timeline: "awaiting_buyer_review",
+    timelineProblem: true,
   },
   appeal_proposal_sent: {
-    emoji: "🤝",
-    title: "Trado - Nueva Propuesta de Acuerdo",
-    getDescription: (actorName, productName, data) =>
-      `<strong>${actorName}</strong> te ha enviado una propuesta de acuerdo mutuo para <strong>${productName}</strong> en Trado.${data?.distribution ? ` Propuesta: ${data.distribution}` : ''}`,
-    ctaText: "Ver Propuesta",
-    ctaPath: "appeal",
+    headline: (a, p) => `${a} te envió una propuesta de acuerdo por ${p}`,
+    status: "Propuesta de acuerdo mutuo",
+    next: (_a, _p, d) => {
+      const dist = d.distribution ? `Propuesta: <strong>${escapeHtml(String(d.distribution))}</strong>. ` : "";
+      return `${dist}Acepta, rechaza o envía una contra-propuesta desde la disputa.`;
+    },
+    ctaText: "Ver propuesta",
+    ctaUrlFor: (_id, d) => d.appealId ? appealUrl(String(d.appealId)) : txUrl(_id),
+    timeline: "awaiting_buyer_review",
+    timelineProblem: true,
   },
   appeal_proposal_rejected: {
-    emoji: "❌",
-    title: "Trado - Propuesta Rechazada",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha rechazado tu propuesta de acuerdo para <strong>${productName}</strong> en Trado. Puedes enviar una contra-propuesta.`,
-    ctaText: "Ver Apelación",
-    ctaPath: "appeal",
+    headline: (a, p) => `${a} rechazó tu propuesta de acuerdo por ${p}`,
+    next: () => "Puedes enviar una contra-propuesta o escalar el caso a un administrador de Trado.",
+    ctaText: "Ver disputa",
+    ctaUrlFor: (_id, d) => d.appealId ? appealUrl(String(d.appealId)) : txUrl(_id),
+    timeline: "awaiting_buyer_review",
+    timelineProblem: true,
   },
   appeal_proposal_cancelled: {
-    emoji: "🔙",
-    title: "Trado - Propuesta Cancelada",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha cancelado su propuesta de acuerdo para <strong>${productName}</strong> en Trado.`,
-    ctaText: "Ver Apelación",
-    ctaPath: "appeal",
+    headline: (a, p) => `${a} canceló su propuesta de acuerdo por ${p}`,
+    next: () => "Puedes enviar tu propia propuesta o seguir conversando en la disputa.",
+    ctaText: "Ver disputa",
+    ctaUrlFor: (_id, d) => d.appealId ? appealUrl(String(d.appealId)) : txUrl(_id),
+    timeline: "awaiting_buyer_review",
+    timelineProblem: true,
   },
   appeal_resolved: {
-    emoji: "✅",
-    title: "Trado - Apelación Resuelta",
-    getDescription: (actorName, productName, data) =>
-      `La apelación de <strong>${productName}</strong> ha sido resuelta en Trado.${data?.resolution ? ` Resolución: ${data.resolution}` : ''}`,
-    ctaText: "Ver Resultado",
-    ctaPath: "transaction",
+    headline: (_a, p) => `Disputa resuelta: ${p}`,
+    status: "Caso cerrado",
+    next: (_a, _p, d) => {
+      const r = d.resolution ? `Resolución: <strong>${escapeHtml(String(d.resolution))}</strong>. ` : "";
+      return `${r}Los fondos fueron distribuidos según el acuerdo. Revisa el detalle en tu transacción.`;
+    },
+    ctaText: "Ver resultado",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "completed",
   },
-  // Return actions
   return_requested: {
-    emoji: "↩️",
-    title: "Trado - Solicitud de Devolución",
-    getDescription: (actorName, productName, data) =>
-      `<strong>${actorName}</strong> ha solicitado una devolución para <strong>${productName}</strong> en Trado.${data?.reason ? ` Motivo: ${data.reason}` : ''}`,
-    ctaText: "Revisar Solicitud",
-    ctaPath: "transaction",
+    headline: (a, p) => `${a} solicitó la devolución de ${p}`,
+    status: "Solicitud de devolución",
+    next: (_a, _p, d) => {
+      const r = d.reason ? `Motivo: <strong>${escapeHtml(String(d.reason))}</strong>. ` : "";
+      return `${r}Acepta o rechaza la devolución desde la sala. Si la aceptas, se coordina el envío de retorno.`;
+    },
+    ctaText: "Revisar solicitud",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "awaiting_buyer_review",
+    timelineProblem: true,
   },
   return_accepted: {
-    emoji: "✅",
-    title: "Trado - Devolución Aceptada",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha aceptado tu solicitud de devolución para <strong>${productName}</strong> en Trado. Procede a enviar el producto.`,
-    ctaText: "Ver Detalles",
-    ctaPath: "transaction",
+    headline: (a, p) => `${a} aceptó tu devolución de ${p}`,
+    status: "Devolución aceptada",
+    next: () => "Envía el producto de vuelta y registra el seguimiento desde la sala. Cuando el vendedor lo reciba, se procesa el reembolso.",
+    ctaText: "Ver detalles",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "in_delivery",
+    timelineProblem: true,
   },
   return_rejected: {
-    emoji: "⚖️",
-    title: "Trado - Devolución en Mediación",
-    getDescription: (actorName, productName) =>
-      `<strong>${actorName}</strong> ha rechazado tu solicitud de devolución para <strong>${productName}</strong> en Trado. El caso será revisado por un administrador.`,
-    ctaText: "Ver Mediación",
-    ctaPath: "transaction",
+    headline: (a, p) => `${a} rechazó tu devolución de ${p}`,
+    status: "Devolución en mediación",
+    next: () => "Un administrador de Trado revisará el caso y decidirá. Sube evidencia desde la sala para apoyar tu posición.",
+    ctaText: "Ver mediación",
+    ctaUrlFor: (id) => txUrl(id),
+    timelineProblem: true,
   },
-  // Funds released action
-  funds_released: {
-    emoji: "💸",
-    title: "Trado - ¡Fondos Liberados!",
-    getDescription: (actorName, productName, data) =>
-      `<strong>${actorName}</strong> ha confirmado la recepción de <strong>${productName}</strong> y los fondos han sido liberados a tu billetera en Trado.${data?.amount ? ` Monto: $${Number(data.amount).toLocaleString('es-CL')} CLP` : ''}`,
-    ctaText: "Ver Mi Billetera",
-    ctaPath: "wallet",
-  },
-  // Admin resolution actions
   admin_appeal_resolved: {
-    emoji: "⚖️",
-    title: "Trado - Apelación Resuelta por Administrador",
-    getDescription: (actorName, productName, data) => {
-      let resolutionText = "La apelación ha sido resuelta.";
-      if (data?.resolution === "liberar_fondos_vendedor") {
-        resolutionText = "Se liberaron los fondos al vendedor.";
-      } else if (data?.resolution === "reembolso_total") {
-        resolutionText = "Se otorgó reembolso total al comprador.";
-      } else if (data?.resolution === "reembolso_parcial") {
-        resolutionText = `Se acordó un reembolso parcial.${data?.buyerAmount ? ` Comprador: $${Number(data.buyerAmount).toLocaleString('es-CL')}` : ''}${data?.sellerAmount ? `, Vendedor: $${Number(data.sellerAmount).toLocaleString('es-CL')}` : ''}`;
+    headline: (_a, p) => `Disputa resuelta por Trado: ${p}`,
+    status: "Decisión del administrador",
+    next: (_a, _p, d) => {
+      const r = d.resolution;
+      if (r === "liberar_fondos_vendedor") return "Los fondos fueron liberados al vendedor.";
+      if (r === "reembolso_total") return "Se otorgó reembolso total al comprador.";
+      if (r === "reembolso_parcial") {
+        const b = d.buyerAmount ? formatCLP(Number(d.buyerAmount)) : null;
+        const s = d.sellerAmount ? formatCLP(Number(d.sellerAmount)) : null;
+        return `Reembolso parcial. ${b ? `Comprador: <strong>${b}</strong>. ` : ""}${s ? `Vendedor: <strong>${s}</strong>.` : ""}`;
       }
-      return `Un administrador de Trado ha resuelto la apelación de <strong>${productName}</strong>. ${resolutionText}`;
+      return "Revisa el detalle de la resolución en tu transacción.";
     },
-    ctaText: "Ver Resultado",
-    ctaPath: "transaction",
+    ctaText: "Ver resultado",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "completed",
   },
   admin_return_mediation_resolved: {
-    emoji: "📦",
-    title: "Trado - Mediación de Devolución Resuelta",
-    getDescription: (actorName, productName, data) => {
-      const paidBy = data?.shippingPaidBy === "seller" 
-        ? "El vendedor pagará el envío de retorno." 
-        : "El comprador pagará el envío de retorno.";
-      return `Un administrador de Trado ha resuelto la mediación de devolución de <strong>${productName}</strong>. ${paidBy}`;
-    },
-    ctaText: "Ver Detalles",
-    ctaPath: "transaction",
+    headline: (_a, p) => `Mediación de devolución resuelta: ${p}`,
+    status: "Decisión del administrador",
+    next: (_a, _p, d) =>
+      d.shippingPaidBy === "seller"
+        ? "El vendedor pagará el envío de retorno."
+        : "El comprador pagará el envío de retorno.",
+    ctaText: "Ver detalles",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "in_delivery",
+    timelineProblem: true,
   },
-  // Mutual proposal acceptance
   mutual_proposal_accepted: {
-    emoji: "🤝",
-    title: "Trado - ¡Acuerdo Mutuo Aceptado!",
-    getDescription: (actorName, productName, data) => {
-      let distributionText = "Los fondos han sido distribuidos según el acuerdo.";
-      if (data?.buyerAmount && data?.sellerAmount) {
-        distributionText = `Comprador: $${Number(data.buyerAmount).toLocaleString('es-CL')}, Vendedor: $${Number(data.sellerAmount).toLocaleString('es-CL')}`;
-      } else if (data?.buyerAmount) {
-        distributionText = `Reembolso total de $${Number(data.buyerAmount).toLocaleString('es-CL')} al comprador.`;
-      } else if (data?.sellerAmount) {
-        distributionText = `Fondos liberados de $${Number(data.sellerAmount).toLocaleString('es-CL')} al vendedor.`;
-      }
-      return `Se ha aceptado el acuerdo mutuo para la apelación de <strong>${productName}</strong> en Trado. ${distributionText}`;
+    headline: (_a, p) => `Acuerdo mutuo aceptado: ${p}`,
+    status: "Acuerdo cerrado",
+    next: (_a, _p, d) => {
+      const b = d.buyerAmount ? formatCLP(Number(d.buyerAmount)) : null;
+      const s = d.sellerAmount ? formatCLP(Number(d.sellerAmount)) : null;
+      if (b && s) return `Distribución: comprador <strong>${b}</strong>, vendedor <strong>${s}</strong>. Los fondos ya fueron distribuidos.`;
+      if (b) return `Reembolso total al comprador: <strong>${b}</strong>.`;
+      if (s) return `Fondos liberados al vendedor: <strong>${s}</strong>.`;
+      return "Los fondos fueron distribuidos según el acuerdo.";
     },
-    ctaText: "Ver Transacción",
-    ctaPath: "transaction",
+    ctaText: "Ver transacción",
+    ctaUrlFor: (id) => txUrl(id),
+    timeline: "completed",
   },
 };
 
-function generateEmailHtml(
-  recipientName: string,
-  emoji: string,
-  title: string,
-  description: string,
-  ctaText: string,
-  ctaUrl: string
-): string {
-  const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
-  
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-            line-height: 1.6; 
-            color: #1a1a1a; 
-            margin: 0;
-            padding: 0;
-            background-color: #f8fafc;
-          }
-          .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            padding: 40px 20px;
-          }
-          .card {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            overflow: hidden;
-          }
-          .header { 
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); 
-            color: white; 
-            padding: 32px; 
-            text-align: center;
-          }
-          .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-          }
-          .header .emoji {
-            font-size: 48px;
-            margin-bottom: 16px;
-            display: block;
-          }
-          .content { 
-            padding: 32px;
-          }
-          .message-box {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
-            border-left: 4px solid #7c3aed;
-          }
-          .message-box p {
-            margin: 0;
-            color: #4b5563;
-            font-size: 15px;
-            line-height: 1.7;
-          }
-          .cta-button {
-            display: block;
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-            color: white !important;
-            text-decoration: none;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-weight: 600;
-            text-align: center;
-            margin: 24px 0;
-            font-size: 16px;
-          }
-          .footer {
-            text-align: center;
-            padding: 24px;
-            color: #9ca3af;
-            font-size: 13px;
-            border-top: 1px solid #f3f4f6;
-          }
-          .footer a {
-            color: #7c3aed;
-            text-decoration: none;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="card">
-            <div class="header">
-              <span class="emoji">${emoji}</span>
-              <h1>${title}</h1>
-            </div>
-            <div class="content">
-              <p style="margin: 0 0 24px 0; color: #4b5563;">
-                Hola <strong>${recipientName}</strong>,
-              </p>
-              
-              <div class="message-box">
-                <p>${description}</p>
-              </div>
-              
-              <a href="${ctaUrl}" class="cta-button">${ctaText}</a>
-              
-              <p style="color: #9ca3af; font-size: 13px; text-align: center; margin: 0;">
-                Si tienes alguna pregunta, responde a este correo o visita nuestra plataforma.
-              </p>
-            </div>
-            <div class="footer">
-              <p>Este es un correo automático de <a href="${baseUrl}">Trado</a>.</p>
-              <p>Tu plataforma segura para transacciones entre personas.</p>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
-}
-
 const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -369,10 +286,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
     const token = authHeader.replace(/^Bearer\s+/i, "");
 
-    // Allow service-role callers (server-to-server) or verified end-users
     let callerId: string | null = null;
     if (token === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")) {
-      callerId = null; // trusted server caller
+      callerId = null;
     } else {
       const { data: authData, error: authErr } = await supabase.auth.getUser(token);
       if (authErr || !authData?.user) {
@@ -384,8 +300,7 @@ const handler = async (req: Request): Promise<Response> => {
       callerId = authData.user.id;
     }
 
-    const { transactionId, actionType, additionalData }: ActionRequest = await req.json();
-
+    const { transactionId, actionType, additionalData = {} }: ActionRequest = await req.json();
     if (!transactionId || !actionType) {
       return new Response(JSON.stringify({ error: "Datos incompletos" }), {
         status: 400,
@@ -393,32 +308,27 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const config = actionConfig[actionType];
-    if (!config) {
-      console.error("Unknown action type:", actionType);
+    const cfg = A[actionType];
+    if (!cfg) {
       return new Response(JSON.stringify({ error: "Tipo de acción desconocido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fetch transaction with profiles
     const { data: transaction, error: txError } = await supabase
       .from("transactions")
-      .select("id, product_name, seller_id, buyer_id")
+      .select("id, product_name, amount, commission, sale_type, invite_code, seller_id, buyer_id")
       .eq("id", transactionId)
       .single();
 
     if (txError || !transaction) {
-      console.error("Transaction not found:", txError);
       return new Response(JSON.stringify({ error: "Transacción no encontrada" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Determine actor: for end-user callers, force actor = callerId AND verify participation.
-    // Service-role callers may notify either side (default: notify the other party).
     let actorId: string;
     if (callerId) {
       if (callerId !== transaction.seller_id && callerId !== transaction.buyer_id) {
@@ -429,123 +339,101 @@ const handler = async (req: Request): Promise<Response> => {
       }
       actorId = callerId;
     } else {
-      // Server caller: default actor = seller (recipient becomes buyer); body can override safely.
       actorId = transaction.seller_id;
     }
 
-    // Determine recipient (the other party)
     const recipientId = actorId === transaction.seller_id
       ? transaction.buyer_id
       : transaction.seller_id;
-
     if (!recipientId) {
-      console.log("No recipient to notify (other party not joined yet)");
-      return new Response(JSON.stringify({ success: true, message: "No recipient to notify" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ success: true, message: "No recipient to notify" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
-    // Fetch profiles
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, full_name, email")
       .in("id", [actorId, recipientId]);
 
-    if (!profiles || profiles.length < 2) {
-      console.error("Could not fetch profiles");
-      return new Response(JSON.stringify({ error: "Perfiles no encontrados" }), {
+    const actorProfile = profiles?.find((p) => p.id === actorId);
+    const recipientProfile = profiles?.find((p) => p.id === recipientId);
+    if (!actorProfile || !recipientProfile?.email) {
+      return new Response(JSON.stringify({ error: "Perfiles incompletos" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const actorProfile = profiles.find(p => p.id === actorId);
-    const recipientProfile = profiles.find(p => p.id === recipientId);
+    const actorName = escapeHtml(actorProfile.full_name || "Tu contraparte");
+    const productName = escapeHtml(transaction.product_name);
+    const recipientName = escapeHtml(recipientProfile.full_name || "");
+    const data: Record<string, unknown> = { ...additionalData, saleType: transaction.sale_type };
 
-    if (!actorProfile || !recipientProfile) {
-      console.error("Missing profile data");
-      return new Response(JSON.stringify({ error: "Datos de perfil incompletos" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const headline = cfg.headline(actorName, productName);
+    const nextStep = cfg.next(actorName, productName, data);
+    const ctaUrl = cfg.ctaUrlFor(transactionId, data);
+    const referenceCode = transaction.invite_code ||
+      transaction.id.substring(0, 8).toUpperCase();
 
-    // Build CTA URL based on action type
-    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
-    let ctaUrl = `${baseUrl}/transaction/${transactionId}`;
-    if (config.ctaPath === "appeal" && additionalData?.appealId) {
-      ctaUrl = `${baseUrl}/appeal/${additionalData.appealId}`;
-    } else if (config.ctaPath === "return" && additionalData?.returnId) {
-      ctaUrl = `${baseUrl}/return/${additionalData.returnId}`;
-    } else if (config.ctaPath === "wallet") {
-      ctaUrl = `${baseUrl}/wallet`;
-    }
+    const summaryRows = [
+      { label: "Producto", value: productName },
+      { label: "Monto", value: formatCLP(Number(transaction.amount)) },
+      {
+        label: actorId === transaction.seller_id ? "Vendedor" : "Comprador",
+        value: actorName,
+      },
+    ];
 
-    // Sanitize caller-supplied additionalData fields before HTML interpolation
-    const escapeHtml = (s: any) => String(s ?? "")
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    const safeAdditional: Record<string, any> = {};
-    if (additionalData && typeof additionalData === "object") {
-      for (const [k, v] of Object.entries(additionalData)) {
-        safeAdditional[k] = typeof v === "string" ? escapeHtml(v) : v;
-      }
-    }
+    const thread = await buildThreadHeaders(supabase, transactionId, referenceCode);
 
-    // Generate email content
-    const description = config.getDescription(
-      escapeHtml(actorProfile.full_name),
-      escapeHtml(transaction.product_name),
-      safeAdditional
-    );
+    const html = renderTransactionalEmail({
+      recipientName,
+      headline,
+      statusLine: cfg.status,
+      nextStep,
+      summaryTitle: "Detalles de la transacción",
+      summaryRows,
+      timelineActive: cfg.timeline,
+      timelineProblem: cfg.timelineProblem,
+      referenceCode,
+      ctaText: cfg.ctaText,
+      ctaUrl,
+      footerNote:
+        "Si no reconoces esta actividad, escríbenos a contacto@trado.cl.",
+    });
 
-    const emailHtml = generateEmailHtml(
-      escapeHtml(recipientProfile.full_name ?? ""),
-      config.emoji,
-      config.title,
-      description,
-      config.ctaText,
-      ctaUrl
-    );
+    const subject = `${thread.subjectPrefix} ${headline}`;
 
-    // Send email + push in parallel
     const [emailResponse] = await Promise.all([
-      resend.emails.send({
-        from: "Trado <notificaciones@trado.cl>",
-        to: [recipientProfile.email],
-        subject: `${config.emoji} ${config.title} - ${transaction.product_name}`,
-        html: emailHtml,
+      sendEmail({
+        to: recipientProfile.email,
+        subject,
+        html,
+        headers: thread.headers,
       }),
       sendPushToUsers([recipientId], {
-        title: config.title,
-        body: `${transaction.product_name}`,
+        title: "Trado",
+        body: headline,
         url: ctaUrl,
-        tag: `transaction-${transactionId}-${actionType}`,
+        tag: `tx-${transactionId}-${actionType}`,
       }).catch((err) => console.error("Push failed (non-blocking):", err)),
     ]);
 
-    console.log(`Notification sent for action ${actionType}:`, emailResponse);
+    if (thread.isNewThread && thread.anchorId) {
+      await persistThreadAnchor(supabase, transactionId, thread.anchorId);
+    }
 
-    // Send push notification (fire and forget)
-    const pushBody = `${config.emoji} ${transaction.product_name}`;
-    supabase.functions.invoke('send-push-notification', {
-      body: {
-        userIds: [recipientId],
-        title: config.title.replace('Trado - ', ''),
-        body: pushBody,
-        url: ctaUrl.replace(Deno.env.get("SITE_URL") || "https://trado.cl", ''),
-        tag: `tx-${transactionId}-${actionType}`,
-      },
-    }).catch(() => {});
+    console.log(`[notify-transaction-action] sent ${actionType}`, emailResponse);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error sending notification:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
