@@ -680,6 +680,16 @@ const CreateTransaction = () => {
                 </p>
               </div>
 
+              {formData.buyerEmail && (
+                <div className="p-4 bg-info/10 rounded-lg border border-info/20 flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-info flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Se enviará invitación a</p>
+                    <p className="font-medium text-sm">{formData.buyerEmail}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20 space-y-3">
                 <h4 className="font-semibold text-primary mb-3">Resumen Financiero</h4>
                 
