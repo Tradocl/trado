@@ -9,8 +9,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { UserRatings } from "@/components/UserRatings";
 import { Logo } from "@/components/Logo";
-import { ArrowLeft, Star, ShieldCheck, AlertTriangle, Package, Share2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Star, ShieldCheck, AlertTriangle, Package, Share2, CheckCircle2, Calendar } from "lucide-react";
 import { toast } from "sonner";
+
+function formatMemberSince(dateString: string): string {
+  const date = new Date(dateString);
+  const months = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+  ];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `Miembro desde ${month} ${year}`;
+}
 
 interface PublicProfile {
   id: string;
