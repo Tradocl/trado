@@ -383,7 +383,7 @@ const Dashboard = () => {
                   />
                 </div>
                 <p className="text-xs opacity-70 mt-1">
-                  Disponible: <strong>${formatCLP(Math.max(0, UNVERIFIED_LIMITS.TOTAL_ACCUMULATED - accumulatedTotal))}</strong> • Máx. $100.000/tx
+                  Disponible: <strong>${formatCLP(Math.max(0, UNVERIFIED_LIMITS.TOTAL_ACCUMULATED - accumulatedTotal))}</strong> • Máximo por transacción: $100.000
                 </p>
               </div>
             )}
