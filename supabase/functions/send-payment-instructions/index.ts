@@ -174,6 +174,12 @@ const handler = async (req: Request): Promise<Response> => {
 </body>
 </html>`;
 
+    // Thread under the same transaction (Gmail/Apple Mail grouping)
+    const { buildThreadHeaders, persistThreadAnchor } = await import(
+      "../_shared/email-templates/notification.ts"
+    );
+    const thread = await buildThreadHeaders(supabase, transactionId, referenceCode);
+
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -183,8 +189,9 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Trado <notificaciones@trado.cl>",
         to: [buyerEmail],
-        subject: `Te uniste a la sala #${referenceCode} — revisa tu saldo y paga seguro`,
+        subject: `${thread.subjectPrefix} Te uniste a la sala — revisa tu saldo y paga seguro`,
         html: emailHtml,
+        headers: thread.headers,
       }),
     });
 
@@ -193,6 +200,10 @@ const handler = async (req: Request): Promise<Response> => {
     if (!response.ok) {
       console.error("Error from Resend API:", data);
       throw new Error(data.message || "Failed to send email");
+    }
+
+    if (thread.isNewThread && thread.anchorId) {
+      await persistThreadAnchor(supabase, transactionId, thread.anchorId);
     }
 
     return new Response(
