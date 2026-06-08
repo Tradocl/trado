@@ -157,31 +157,35 @@ export interface SummaryRow {
 
 export interface RenderEmailOptions {
   recipientName: string;
-  headline: string; // Big H1 in the card
-  statusLine?: string; // 1-line context above the call-out, e.g. "Fondos en custodia"
-  intro?: string; // Optional intro paragraph (HTML allowed; pre-sanitized upstream)
-  nextStep?: string; // Bold "Próximo paso" line
+  headline: string;
+  statusLine?: string;
+  intro?: string;
+  nextStep?: string;
   ctaText?: string;
   ctaUrl?: string;
   secondaryCtaText?: string;
   secondaryCtaUrl?: string;
-  summaryTitle?: string; // e.g. "Detalles de la transacción"
+  summaryTitle?: string;
   summaryRows?: SummaryRow[];
   timelineActive?: TimelineKey;
   timelineProblem?: boolean;
-  referenceCode?: string; // e.g. invite_code → "#ABC12345"
+  referenceCode?: string;
   footerNote?: string;
   baseUrl?: string;
+  tone?: EmailTone;
+  eyebrow?: string; // small label above headline, e.g. "Nueva transacción"
 }
 
 export function renderTransactionalEmail(o: RenderEmailOptions): string {
   const baseUrl = o.baseUrl || Deno.env.get("SITE_URL") || "https://trado.cl";
+  const tone: EmailTone = o.tone || (o.timelineProblem ? "warning" : "info");
+  const theme = TONE_THEMES[tone];
 
   const summary = o.summaryRows && o.summaryRows.length
-    ? `<div style="background:${TRADO.bg};border:1px solid ${TRADO.border};border-radius:12px;padding:16px 18px;margin:0 0 20px;">
+    ? `<div style="background:${TRADO.bg};border:1px solid ${TRADO.border};border-radius:14px;padding:18px 20px;margin:0 0 22px;">
         ${
       o.summaryTitle
-        ? `<div style="font-size:12px;color:${TRADO.muted};text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:10px;">${o.summaryTitle}</div>`
+        ? `<div style="font-size:11px;color:${TRADO.muted};text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:12px;">${o.summaryTitle}</div>`
         : ""
     }
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
@@ -189,11 +193,11 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
       o.summaryRows.map((r, i) =>
         `<tr>
               <td style="padding:${
-          i === 0 ? "0" : "8px"
-        } 0 8px;border-top:${i === 0 ? "none" : `1px solid ${TRADO.border}`};font-size:13px;color:${TRADO.muted};">${r.label}</td>
+          i === 0 ? "0" : "10px"
+        } 0 10px;border-top:${i === 0 ? "none" : `1px solid ${TRADO.border}`};font-size:13px;color:${TRADO.muted};">${r.label}</td>
               <td style="padding:${
-          i === 0 ? "0" : "8px"
-        } 0 8px;border-top:${i === 0 ? "none" : `1px solid ${TRADO.border}`};font-size:14px;color:${TRADO.text};font-weight:${r.emphasis ? "700" : "500"};text-align:right;">${r.value}</td>
+          i === 0 ? "0" : "10px"
+        } 0 10px;border-top:${i === 0 ? "none" : `1px solid ${TRADO.border}`};font-size:14px;color:${TRADO.text};font-weight:${r.emphasis ? "700" : "500"};text-align:right;">${r.value}</td>
             </tr>`
       ).join("")
     }
@@ -202,29 +206,35 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
     : "";
 
   const statusBlock = o.statusLine
-    ? `<div style="background:#EEF0FE;border:1px solid #D6DAF7;border-radius:10px;padding:10px 14px;margin:0 0 16px;font-size:13px;color:${TRADO.primaryDark};font-weight:600;">${o.statusLine}</div>`
+    ? `<div style="background:${theme.badgeBg};border-radius:999px;padding:8px 16px;margin:0 0 18px;font-size:13px;color:${theme.badgeText};font-weight:600;display:inline-block;">
+        <span style="margin-right:6px;">${theme.icon}</span>${o.statusLine}
+      </div>`
     : "";
 
   const nextStep = o.nextStep
-    ? `<div style="margin:0 0 20px;padding:14px 16px;background:${TRADO.bg};border-left:3px solid ${TRADO.primary};border-radius:0 8px 8px 0;">
-        <div style="font-size:12px;color:${TRADO.muted};text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:4px;">Próximo paso</div>
-        <div style="font-size:14px;color:${TRADO.text};line-height:1.5;">${o.nextStep}</div>
+    ? `<div style="margin:0 0 22px;padding:16px 18px;background:linear-gradient(135deg, ${TRADO.bg} 0%, #FFFFFF 100%);border:1px solid ${TRADO.border};border-left:4px solid;border-image:${theme.accentGradient} 1;border-radius:0 12px 12px 0;">
+        <div style="font-size:11px;color:${TRADO.muted};text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:6px;">Próximo paso</div>
+        <div style="font-size:14px;color:${TRADO.text};line-height:1.55;">${o.nextStep}</div>
       </div>`
     : "";
 
   const cta = o.ctaText && o.ctaUrl
-    ? `<div style="text-align:center;margin:24px 0 8px;">
-        <a href="${o.ctaUrl}" style="display:inline-block;background:${TRADO.primary};color:#ffffff;font-size:15px;font-weight:600;border-radius:10px;padding:14px 28px;text-decoration:none;">${o.ctaText}</a>
+    ? `<div style="text-align:center;margin:28px 0 8px;">
+        <a href="${o.ctaUrl}" style="display:inline-block;background:${theme.accentGradient};background-color:${TRADO.primary};color:#ffffff;font-size:15px;font-weight:600;border-radius:12px;padding:15px 32px;text-decoration:none;box-shadow:0 8px 20px -8px rgba(34,48,194,0.5);">${o.ctaText}</a>
         ${
       o.secondaryCtaText && o.secondaryCtaUrl
-        ? `<div style="margin-top:12px;"><a href="${o.secondaryCtaUrl}" style="display:inline-block;color:${TRADO.primary};font-size:14px;font-weight:600;text-decoration:none;">${o.secondaryCtaText} →</a></div>`
+        ? `<div style="margin-top:14px;"><a href="${o.secondaryCtaUrl}" style="display:inline-block;color:${TRADO.primary};font-size:14px;font-weight:600;text-decoration:none;">${o.secondaryCtaText} →</a></div>`
         : ""
     }
       </div>`
     : "";
 
   const ref = o.referenceCode
-    ? `<div style="font-size:12px;color:${TRADO.muted};margin:0 0 8px;">Referencia <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:${TRADO.text};font-weight:600;">#${o.referenceCode}</span></div>`
+    ? `<div style="font-size:11px;color:rgba(255,255,255,0.85);margin:0;letter-spacing:0.04em;">REFERENCIA <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#fff;font-weight:700;">#${o.referenceCode}</span></div>`
+    : "";
+
+  const eyebrow = o.eyebrow
+    ? `<div style="font-size:11px;color:${TRADO.muted};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin:0 0 8px;">${o.eyebrow}</div>`
     : "";
 
   return `<!DOCTYPE html>
@@ -235,31 +245,44 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
 <title>${o.headline}</title>
 </head>
 <body style="margin:0;padding:0;background:${TRADO.bg};font-family:${TRADO.font};color:${TRADO.text};">
-  <div style="max-width:560px;margin:32px auto;background:${TRADO.card};border:1px solid ${TRADO.border};border-radius:16px;overflow:hidden;">
-    <div style="padding:28px 32px 0;">
-      <div style="font-size:20px;font-weight:700;color:${TRADO.primary};letter-spacing:-0.02em;">Trado</div>
+  <div style="max-width:580px;margin:32px auto;background:${TRADO.card};border-radius:20px;overflow:hidden;box-shadow:0 4px 24px -8px rgba(15,20,36,0.12);">
+    <!-- Colorful gradient header -->
+    <div style="background:${theme.gradient};padding:28px 32px 24px;position:relative;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="vertical-align:middle;">
+            <div style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">Trado</div>
+          </td>
+          <td style="text-align:right;vertical-align:middle;">
+            ${ref}
+          </td>
+        </tr>
+      </table>
+      <div style="margin-top:18px;height:4px;width:48px;background:rgba(255,255,255,0.55);border-radius:2px;"></div>
     </div>
-    <div style="padding:20px 32px 28px;">
-      ${ref}
-      <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:${TRADO.text};letter-spacing:-0.01em;line-height:1.3;">${o.headline}</h1>
-      <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${TRADO.muted};">
+    <div style="padding:28px 32px 32px;">
+      ${eyebrow}
+      <h1 style="margin:0 0 14px;font-size:24px;font-weight:800;color:${TRADO.text};letter-spacing:-0.015em;line-height:1.25;">${o.headline}</h1>
+      ${statusBlock}
+      <p style="margin:0 0 20px;font-size:15px;line-height:1.65;color:${TRADO.muted};">
         Hola <strong style="color:${TRADO.text};">${o.recipientName}</strong>,${
     o.intro ? ` ${o.intro}` : ""
   }
       </p>
-      ${statusBlock}
       ${summary}
       ${nextStep}
       ${renderTimeline(o.timelineActive, o.timelineProblem)}
       ${cta}
       ${
     o.footerNote
-      ? `<p style="margin:18px 0 0;font-size:13px;color:${TRADO.muted};line-height:1.5;">${o.footerNote}</p>`
+      ? `<p style="margin:20px 0 0;font-size:13px;color:${TRADO.muted};line-height:1.55;">${o.footerNote}</p>`
       : ""
   }
-      <div style="border-top:1px solid ${TRADO.border};margin:28px 0 16px;"></div>
-      <p style="margin:0;font-size:12px;color:${TRADO.muted};line-height:1.5;text-align:center;">
-        Correo automático de <a href="${baseUrl}" style="color:${TRADO.primary};text-decoration:none;">Trado</a> · Tu plataforma segura para transacciones P2P en Chile.
+    </div>
+    <!-- Footer band -->
+    <div style="background:${TRADO.bg};padding:18px 32px;text-align:center;border-top:1px solid ${TRADO.border};">
+      <p style="margin:0;font-size:12px;color:${TRADO.muted};line-height:1.5;">
+        Correo automático de <a href="${baseUrl}" style="color:${TRADO.primary};text-decoration:none;font-weight:600;">Trado</a> · Transacciones P2P seguras en Chile 🇨🇱
       </p>
     </div>
   </div>
@@ -278,8 +301,6 @@ export interface ThreadInfo {
 
 /**
  * Returns Gmail/Apple Mail threading headers for a transaction.
- * Stores first Message-ID in transactions.email_thread_id so all later emails
- * for the same transaction thread together. Subject must include `subjectPrefix`.
  */
 export async function buildThreadHeaders(
   // deno-lint-ignore no-explicit-any
@@ -312,6 +333,17 @@ export async function buildThreadHeaders(
         anchorId,
       };
     }
+  } catch (e) {
+    console.error("[buildThreadHeaders] lookup failed", e);
+  }
+  const anchorId = `<tx-${transactionId}@trado.cl>`;
+  return {
+    subjectPrefix,
+    headers: { "Message-ID": anchorId },
+    isNewThread: true,
+    anchorId,
+  };
+}
   } catch (e) {
     console.error("[buildThreadHeaders] lookup failed", e);
   }
