@@ -8,16 +8,73 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 export const TRADO = {
   primary: "#2230C2",
   primaryDark: "#1B26A0",
+  primaryGlow: "#5A66F0",
+  accent: "#FF6B4A",
+  accentSoft: "#FFE6DE",
   text: "#0F1424",
   muted: "#5B6378",
   border: "#E5E7F0",
   bg: "#F5F6FB",
   card: "#FFFFFF",
   success: "#10B981",
+  successSoft: "#D1FADF",
   warning: "#F59E0B",
+  warningSoft: "#FEF0C7",
   danger: "#EF4444",
+  dangerSoft: "#FEE4E2",
+  info: "#2230C2",
+  infoSoft: "#E0E4FF",
   font:
     "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+};
+
+export type EmailTone = "info" | "success" | "warning" | "danger" | "celebrate";
+
+interface ToneTheme {
+  gradient: string;
+  accentGradient: string;
+  badgeBg: string;
+  badgeText: string;
+  icon: string;
+}
+
+const TONE_THEMES: Record<EmailTone, ToneTheme> = {
+  info: {
+    gradient: "linear-gradient(135deg, #2230C2 0%, #5A66F0 55%, #8B95FF 100%)",
+    accentGradient: "linear-gradient(135deg, #2230C2 0%, #5A66F0 100%)",
+    badgeBg: "#E0E4FF",
+    badgeText: "#1B26A0",
+    icon: "✦",
+  },
+  success: {
+    gradient: "linear-gradient(135deg, #047857 0%, #10B981 55%, #6EE7B7 100%)",
+    accentGradient: "linear-gradient(135deg, #047857 0%, #10B981 100%)",
+    badgeBg: "#D1FADF",
+    badgeText: "#065F46",
+    icon: "✓",
+  },
+  warning: {
+    gradient: "linear-gradient(135deg, #B45309 0%, #F59E0B 55%, #FCD34D 100%)",
+    accentGradient: "linear-gradient(135deg, #B45309 0%, #F59E0B 100%)",
+    badgeBg: "#FEF0C7",
+    badgeText: "#92400E",
+    icon: "!",
+  },
+  danger: {
+    gradient: "linear-gradient(135deg, #B91C1C 0%, #EF4444 55%, #FCA5A5 100%)",
+    accentGradient: "linear-gradient(135deg, #B91C1C 0%, #EF4444 100%)",
+    badgeBg: "#FEE4E2",
+    badgeText: "#991B1B",
+    icon: "!",
+  },
+  celebrate: {
+    gradient:
+      "linear-gradient(135deg, #2230C2 0%, #7C3AED 35%, #EC4899 70%, #FF6B4A 100%)",
+    accentGradient: "linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)",
+    badgeBg: "#FCE7F3",
+    badgeText: "#9D174D",
+    icon: "★",
+  },
 };
 
 export function escapeHtml(s: unknown): string {
