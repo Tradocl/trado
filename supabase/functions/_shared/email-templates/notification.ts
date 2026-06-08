@@ -178,6 +178,7 @@ function renderStateIllustration(
     default:
       return "";
   }
+}
 
 export const formatCLP = (n: number | null | undefined): string => {
   const v = Number(n ?? 0);
