@@ -147,6 +147,13 @@ export function MutualResolutionPanel({
 
       if (error) throw error;
 
+      // Transition appeal to en_negociacion once negotiation starts (idempotent)
+      await supabase
+        .from("appeals")
+        .update({ status: "en_negociacion" })
+        .eq("id", appealId)
+        .eq("status", "apelacion_abierta");
+
       // Send notification to the other party
       const distributionLabel = selectedRecipient === "buyer" 
         ? `Reembolso al comprador (${formatCLP(totalAmount)})`
