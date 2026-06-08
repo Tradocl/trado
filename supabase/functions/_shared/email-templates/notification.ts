@@ -237,6 +237,8 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
     ? `<div style="font-size:11px;color:${TRADO.muted};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin:0 0 8px;">${o.eyebrow}</div>`
     : "";
 
+  const illo = renderStateIllustration(o.timelineActive, o.timelineProblem);
+
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -258,6 +260,7 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
           </td>
         </tr>
       </table>
+      ${illo}
       <div style="margin-top:18px;height:4px;width:48px;background:rgba(255,255,255,0.55);border-radius:2px;"></div>
     </div>
     <div style="padding:28px 32px 32px;">
