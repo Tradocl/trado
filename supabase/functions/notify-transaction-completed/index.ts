@@ -114,7 +114,7 @@ serve(async (req) => {
       referenceCode: refCode,
     });
 
-    const subject = `${thread.subjectPrefix} Transacción completada · ${productName}`;
+    const subject = buildThreadSubject(thread, productName);
 
     const [buyerRes, sellerRes] = await Promise.all([
       sendEmail({
