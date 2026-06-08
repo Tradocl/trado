@@ -183,7 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Trado <notificaciones@trado.cl>",
         to: [buyerEmail],
-        subject: `Te uniste a la sala #${referenceCode} — paga seguro con escrow`,
+        subject: `Te uniste a la sala #${referenceCode} — revisa tu saldo y paga seguro`,
         html: emailHtml,
       }),
     });
