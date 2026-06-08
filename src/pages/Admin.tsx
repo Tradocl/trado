@@ -817,6 +817,7 @@ export default function Admin() {
         </Button>
       </div>
 
+      <Tabs defaultValue="deposits" className="space-y-4">
         <TabsList>
           <TabsTrigger value="deposits">
             Depósitos
