@@ -405,7 +405,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Si no reconoces esta actividad, escríbenos a contacto@trado.cl.",
     });
 
-    const subject = `${thread.subjectPrefix} ${headline}`;
+    const subject = buildThreadSubject(thread, transaction.product_name);
 
     const [emailResponse] = await Promise.all([
       sendEmail({
