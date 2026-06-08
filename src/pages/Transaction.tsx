@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle, Clock, ChevronDown, MessageCircle } from "lucide-react";
+import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle, Clock, ChevronDown, MessageCircle, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -2515,10 +2515,12 @@ const Transaction = () => {
                       {creatorProfile ? (
                         <button
                           type="button"
-                          className="font-medium text-primary hover:underline text-left"
+                          className="font-medium text-primary hover:underline underline-offset-2 decoration-dotted text-left inline-flex items-center gap-1"
                           onClick={() => navigate(`/u/${creatorProfile.id}`)}
+                          title="Ver perfil público"
                         >
                           {creatorProfile.full_name}
+                          <User className="h-3 w-3 opacity-60" />
                         </button>
                       ) : (
                         <p className="font-medium">Cargando...</p>
