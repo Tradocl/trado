@@ -88,7 +88,7 @@ serve(async (req) => {
     const amount = Number(tx.amount) || 0;
     const commission = Number(tx.commission) || 0;
     const sellerReceives = amount - commission;
-    const referenceCode = tx.invite_code || tx.id.substring(0, 8).toUpperCase();
+    const referenceCode = tx.id.substring(0, 8).toUpperCase();
     const inviteLink = `${Deno.env.get("SITE_URL") || "https://trado.cl"}/join/${tx.invite_code || ""}`;
 
     const thread = await buildThreadHeaders(supabase, transactionId, referenceCode);
