@@ -396,6 +396,27 @@ export interface ThreadInfo {
 }
 
 /**
+ * Builds a STABLE subject so Gmail/Apple Mail thread all messages of a
+ * transaction together. Subject text stays identical across the lifecycle
+ * (Gmail normalizes "Re:"/"Fwd:" prefixes but DIFFERENT subjects break
+ * threads even with In-Reply-To headers).
+ *
+ * - First email: `Trado · CODE · Producto`
+ * - Follow-ups: `Re: Trado · CODE · Producto`
+ *
+ * Step-specific copy lives in the email headline/preheader, never in the subject.
+ */
+export function buildThreadSubject(
+  thread: ThreadInfo,
+  productOrTopic: string,
+): string {
+  const clean = (productOrTopic || "").replace(/\s+/g, " ").trim() ||
+    "Transacción";
+  const base = `${thread.subjectPrefix} ${clean}`.replace(/\s+/g, " ").trim();
+  return thread.isNewThread ? base : `Re: ${base}`;
+}
+
+/**
  * Returns Gmail/Apple Mail threading headers for a transaction.
  */
 export async function buildThreadHeaders(
