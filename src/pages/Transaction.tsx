@@ -254,7 +254,7 @@ const Transaction = () => {
       // Load seller profile using safe function (only non-sensitive fields)
       const { data: sellerData } = await supabase
         .rpc("get_safe_profile", { profile_id: txData.seller_id })
-        .single();
+        .maybeSingle();
 
       setSellerProfile(sellerData);
 
@@ -262,9 +262,11 @@ const Transaction = () => {
       if (txData.buyer_id) {
         const { data: buyerData } = await supabase
           .rpc("get_safe_profile", { profile_id: txData.buyer_id })
-          .single();
+          .maybeSingle();
 
         setBuyerProfile(buyerData);
+      } else {
+        setBuyerProfile(null);
       }
     } catch (error: any) {
       toast.error("Error al cargar transacción: " + error.message);
