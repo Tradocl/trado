@@ -31,16 +31,16 @@ serve(async (req) => {
   }
   const token = authHeader.replace(/^Bearer\s+/i, "").trim();
   const authClient = createClient(SUPABASE_URL, ANON_KEY);
-  const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
-  if (claimsError || !claimsData?.claims?.sub) {
+  const { data: userData, error: userError } = await authClient.auth.getUser(token);
+  if (userError || !userData?.user?.id) {
     return new Response(JSON.stringify({ error: "Invalid token" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
   const user = {
-    id: claimsData.claims.sub as string,
-    email: claimsData.claims.email as string | undefined,
+    id: userData.user.id,
+    email: userData.user.email as string | undefined,
   };
 
   try {
