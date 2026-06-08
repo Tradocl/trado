@@ -407,7 +407,7 @@ export async function buildThreadHeaders(
   const code = referenceCode || (transactionId
     ? transactionId.substring(0, 8).toUpperCase()
     : "");
-  const subjectPrefix = code ? `[Trado #${code}]` : "[Trado]";
+  const subjectPrefix = code ? `Trado · ${code} ·` : `Trado ·`;
   if (!transactionId) {
     return { subjectPrefix, headers: {}, isNewThread: true };
   }
