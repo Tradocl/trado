@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireServiceRole } from "../_shared/auth.ts";
 import {
   buildThreadHeaders,
+  buildThreadSubject,
   escapeHtml,
   formatCLP,
   persistThreadAnchor,
@@ -121,7 +122,7 @@ serve(async (req) => {
       });
     };
 
-    const subject = `${thread.subjectPrefix} Apelación resuelta · ${productName}`;
+    const subject = buildThreadSubject(thread, tx.product_name);
 
     await Promise.all([
       sendEmail({

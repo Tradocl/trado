@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendPushToUsers } from "../_shared/push.ts";
 import {
   buildThreadHeaders,
+  buildThreadSubject,
   escapeHtml,
   persistThreadAnchor,
   renderTransactionalEmail,
@@ -145,7 +146,7 @@ serve(async (req) => {
       referenceCode: refCode,
     });
 
-    const subject = `${thread.subjectPrefix} Propuesta de encuentro · ${safeProduct}`;
+    const subject = buildThreadSubject(thread, productName);
 
     await Promise.all([
       sendEmail({

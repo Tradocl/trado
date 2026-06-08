@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {
   buildThreadHeaders,
+  buildThreadSubject,
   escapeHtml,
   formatCLP,
   persistThreadAnchor,
@@ -118,7 +119,7 @@ serve(async (req) => {
 
     const emailResponse = await sendEmail({
       to: seller.email,
-      subject: `${thread.subjectPrefix} Sala creada — esperando al comprador`,
+      subject: buildThreadSubject(thread, tx.product_name),
       html,
       headers: thread.headers,
     });
