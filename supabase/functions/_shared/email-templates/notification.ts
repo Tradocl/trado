@@ -323,7 +323,7 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
     : "";
 
   const ref = o.referenceCode
-    ? `<div style="font-size:11px;color:rgba(255,255,255,0.85);margin:0;letter-spacing:0.04em;">REFERENCIA <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#fff;font-weight:700;">#${o.referenceCode}</span></div>`
+    ? `<div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#fff;font-weight:700;background:rgba(255,255,255,0.18);border-radius:999px;padding:5px 10px;display:inline-block;white-space:nowrap;">#${o.referenceCode}</div>`
     : "";
 
   const eyebrow = o.eyebrow
