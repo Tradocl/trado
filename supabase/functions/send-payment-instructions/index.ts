@@ -171,7 +171,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const data = await sendEmail({
       to: buyerEmail,
-      subject: `${thread.subjectPrefix} Te uniste a la sala — revisa tu saldo y paga seguro`,
+      subject: buildThreadSubject(thread, productName),
       html,
       headers: thread.headers,
     });
