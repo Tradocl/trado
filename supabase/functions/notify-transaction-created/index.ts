@@ -118,7 +118,7 @@ serve(async (req) => {
 
     const emailResponse = await sendEmail({
       to: seller.email,
-      subject: `${thread.subjectPrefix} Sala creada — esperando al comprador`,
+      subject: buildThreadSubject(thread, tx.product_name),
       html,
       headers: thread.headers,
     });
