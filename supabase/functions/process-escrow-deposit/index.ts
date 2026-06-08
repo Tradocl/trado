@@ -97,22 +97,23 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("La transacción no está en un estado válido para depositar");
     }
 
-    // Check if escrow_lock already exists for this transaction
-    const { data: existingLock, error: lockCheckError } = await supabaseClient
-      .from("wallet_movements")
+    // RACE CONDITION FIX: Use atomic transaction state update as a lock.
+    // Only one concurrent request can succeed in changing state from a valid deposit state.
+    const { data: locked, error: lockError } = await supabaseClient
+      .from("transactions")
+      .update({ state: "funds_secured", deposited_at: new Date().toISOString() })
+      .eq("id", transactionId)
+      .in("state", validStates)
       .select("id")
-      .eq("transaction_id", transactionId)
-      .eq("type", "escrow_lock")
-      .in("status", ["pending", "approved"])
       .maybeSingle();
 
-    if (lockCheckError) {
-      console.error("[process-escrow-deposit] Error checking existing lock", lockCheckError);
-      throw new Error("Error al verificar el estado del depósito");
+    if (lockError) {
+      console.error("[process-escrow-deposit] Error acquiring transaction lock", lockError);
+      throw new Error("Error al procesar el depósito");
     }
 
-    if (existingLock) {
-      console.log(`[process-escrow-deposit] Escrow lock already exists for transaction ${transactionId}`);
+    if (!locked) {
+      console.log(`[process-escrow-deposit] Transaction ${transactionId} already processed by concurrent request`);
       return new Response(JSON.stringify({ success: true, message: "Los fondos ya fueron bloqueados" }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -191,17 +192,7 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("No se pudo registrar el movimiento");
     }
 
-    // Update transaction state
-    const { error: txUpdateError } = await supabaseClient
-      .from("transactions")
-      .update({ state: "funds_secured", deposited_at: new Date().toISOString() })
-      .eq("id", transactionId);
-
-    if (txUpdateError) {
-      console.error("[process-escrow-deposit] Error updating transaction", txUpdateError);
-      throw new Error("No se pudo actualizar la transacción");
-    }
-
+    // Transaction state was already updated to "funds_secured" in the lock step above.
     console.log(`[process-escrow-deposit] Successfully processed deposit for transaction ${transactionId}`);
 
     return new Response(JSON.stringify({ success: true }), {

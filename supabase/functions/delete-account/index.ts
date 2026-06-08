@@ -42,7 +42,7 @@ serve(async (req: Request) => {
   // Block deletion if wallet has balance OR blocked funds in escrow
   const { data: wallet } = await adminClient
     .from("wallets")
-    .select("balance, blocked_balance")
+    .select("id, balance, blocked_balance")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -76,11 +76,12 @@ serve(async (req: Request) => {
     );
   }
 
-  // Block deletion if user has pending withdrawals
+  // Block deletion if user has pending withdrawals — filter by wallet_id to only check THIS user's movements
   if (wallet) {
     const { data: pendingMovs } = await adminClient
       .from("wallet_movements")
       .select("id")
+      .eq("wallet_id", wallet.id)
       .eq("status", "pending")
       .in("type", ["withdrawal", "deposit"])
       .limit(1);
