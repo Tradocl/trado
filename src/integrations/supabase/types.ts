@@ -1211,6 +1211,7 @@ export type Database = {
         Args: { profile_id: string }
         Returns: {
           avatar_url: string
+          created_at: string
           full_name: string
           id: string
           is_verified: boolean

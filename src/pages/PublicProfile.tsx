@@ -9,8 +9,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { UserRatings } from "@/components/UserRatings";
 import { Logo } from "@/components/Logo";
-import { ArrowLeft, Star, ShieldCheck, AlertTriangle, Package, Share2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Star, ShieldCheck, AlertTriangle, Package, Share2, CheckCircle2, Calendar } from "lucide-react";
 import { toast } from "sonner";
+
+function formatMemberSince(dateString: string): string {
+  const date = new Date(dateString);
+  const months = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+  ];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `Miembro desde ${month} ${year}`;
+}
 
 interface PublicProfile {
   id: string;
@@ -20,6 +31,7 @@ interface PublicProfile {
   reputation_score: number;
   total_transactions: number;
   is_verified: boolean;
+  created_at: string;
 }
 
 const PublicProfile = () => {
@@ -160,6 +172,12 @@ const PublicProfile = () => {
           </div>
           {profile.nickname && (
             <p className="text-sm text-muted-foreground mt-0.5">@{profile.nickname}</p>
+          )}
+          {profile.created_at && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1.5">
+              <Calendar className="h-3.5 w-3.5" />
+              <span>{formatMemberSince(profile.created_at)}</span>
+            </div>
           )}
         </div>
 
