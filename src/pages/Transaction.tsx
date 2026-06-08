@@ -2512,7 +2512,17 @@ const Transaction = () => {
                         : (isService ? 'Cliente' : 'Comprador')}
                     </p>
                     <div className="flex items-center gap-2">
-                      <p className="font-medium">{creatorProfile?.full_name || 'Cargando...'}</p>
+                      {creatorProfile ? (
+                        <button
+                          type="button"
+                          className="font-medium text-primary hover:underline text-left"
+                          onClick={() => navigate(`/u/${creatorProfile.id}`)}
+                        >
+                          {creatorProfile.full_name}
+                        </button>
+                      ) : (
+                        <p className="font-medium">Cargando...</p>
+                      )}
                       {creatorProfile?.is_verified && (
                         <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
                           <ShieldCheck className="h-3 w-3 mr-1" />

@@ -660,6 +660,17 @@ const Profile = () => {
                     <Clock className="h-4 w-4" />
                     <span className="text-sm">Miembro hace {getTimeSinceRegistration()}</span>
                   </div>
+                  {user?.id && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => navigate(`/u/${user.id}`)}
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      Ver mi perfil público
+                    </Button>
+                  )}
                 </div>
 
                 <div className="grid gap-4">
