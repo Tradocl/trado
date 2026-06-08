@@ -121,25 +121,32 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
+    const txChannel = supabase
       .channel('dashboard-transactions')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'transactions',
-        },
-        (payload) => {
-          console.log("Transaction updated:", payload);
-          // Reload transactions when any change occurs
-          loadUserData();
+        { event: '*', schema: 'public', table: 'transactions' },
+        () => loadUserData()
+      )
+      .subscribe();
+
+    // Realtime for wallet movements — keeps accumulated total in sync
+    const movChannel = supabase
+      .channel('dashboard-wallet-movements')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'wallet_movements' },
+        async () => {
+          if (!user) return;
+          const total = await calculateUserTotalTransactions(user.id);
+          setAccumulatedTotal(total);
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(txChannel);
+      supabase.removeChannel(movChannel);
     };
   }, [user]);
 

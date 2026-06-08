@@ -334,6 +334,11 @@ ${companyBankDetails.email}`;
       return;
     }
 
+    if (withdrawAmount < 1000) {
+      toast.error("Monto mínimo de retiro: $1.000");
+      return;
+    }
+
     if (withdrawAmount > balance) {
       toast.error("Saldo insuficiente");
       return;
@@ -872,6 +877,7 @@ ${companyBankDetails.email}`;
                   className="bg-muted cursor-not-allowed"
                   placeholder="12.345.678-9"
                 />
+                <p className="text-xs text-muted-foreground mt-1">Fijo por seguridad — debe coincidir con el RUT de tu perfil.</p>
               </div>
 
               <div>

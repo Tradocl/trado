@@ -91,7 +91,7 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin 
           if (filePath) {
             const { data: signedData } = await supabase.storage
               .from("appeal-evidence")
-              .createSignedUrl(filePath, 3600); // 1 hour expiry
+              .createSignedUrl(filePath, 86400); // 24 hour expiry
             
             if (signedData?.signedUrl) {
               signedUrl = signedData.signedUrl;

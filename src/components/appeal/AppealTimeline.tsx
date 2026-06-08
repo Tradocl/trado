@@ -22,11 +22,25 @@ interface AppealTimelineProps {
 export function AppealTimeline({ appeal, transaction }: AppealTimelineProps) {
   const [decision, setDecision] = useState<any>(null);
 
+  const resolvedStatuses = ["resuelta_a_favor_comprador", "resuelta_a_favor_vendedor", "resuelta_parcial", "cerrada"];
+
   useEffect(() => {
-    if (["resuelta_a_favor_comprador", "resuelta_a_favor_vendedor", "resuelta_parcial", "cerrada"].includes(appeal.status)) {
+    if (resolvedStatuses.includes(appeal.status)) {
       fetchDecision();
     }
-  }, [appeal.status]);
+
+    // Realtime: reload decision if admin resolves while user is watching
+    const channel = supabase
+      .channel(`appeal-decision-${appeal.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "appeal_decisions", filter: `appeal_id=eq.${appeal.id}` },
+        () => fetchDecision()
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [appeal.id, appeal.status]);
 
   const fetchDecision = async () => {
     try {

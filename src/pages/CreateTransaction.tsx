@@ -50,8 +50,7 @@ const CreateTransaction = () => {
   } | null>(null);
   const [pendingFormEvent, setPendingFormEvent] = useState<React.FormEvent<HTMLFormElement> | null>(null);
   const [buyerEmail, setBuyerEmail] = useState("");
-
-  // Load user verification status
+  const [pendingTransactionsCount, setPendingTransactionsCount] = useState(0);
 
   // Load user verification status
   useEffect(() => {
@@ -62,6 +61,17 @@ const CreateTransaction = () => {
       }
     };
     loadVerificationStatus();
+  }, [user]);
+
+  // Load pending transactions count for warning
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("transactions")
+      .select("id", { count: "exact", head: true })
+      .eq("seller_id", user.id)
+      .eq("state", "created")
+      .then(({ count }) => setPendingTransactionsCount(count ?? 0));
   }, [user]);
 
   // Dynamic labels based on type and role
@@ -105,12 +115,21 @@ const CreateTransaction = () => {
       return;
     }
 
+    if (buyerEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail.trim())) {
+      toast.error("El correo del comprador no es válido");
+      return;
+    }
+
     if (!termsAccepted) {
       toast.error("Debes aceptar los términos para continuar");
       return;
     }
 
-    // Check transaction limits for unverified users
+    // Check transaction limits for unverified users (wait until verification status is loaded)
+    if (isVerified === null) {
+      toast.error("Espera un momento mientras verificamos tu estado de cuenta");
+      return;
+    }
     if (isVerified === false) {
       const limitCheck = await checkTransactionLimits(user.id, parsedAmount, false);
       if (!limitCheck.allowed) {
@@ -322,6 +341,16 @@ const CreateTransaction = () => {
                     </Button>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Pending transactions warning */}
+            {pendingTransactionsCount > 0 && (
+              <div className="mb-4 p-3 bg-muted/50 border border-border rounded-lg flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  Tienes {pendingTransactionsCount} sala{pendingTransactionsCount > 1 ? "s" : ""} pendiente{pendingTransactionsCount > 1 ? "s" : ""} esperando comprador. Considera compartir el enlace antes de crear una nueva.
+                </p>
               </div>
             )}
 
