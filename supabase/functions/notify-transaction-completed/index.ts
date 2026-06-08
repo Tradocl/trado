@@ -105,7 +105,7 @@ serve(async (req) => {
         { label: "Total recibido", value: formatCLP(sellerNet), emphasis: true },
       ],
       nextStep:
-        "Podés solicitar el retiro a tu cuenta bancaria desde Mi Billetera cuando quieras.",
+        "Puedes solicitar el retiro a tu cuenta bancaria desde Mi Billetera cuando quieras.",
       ctaText: "Ir a Mi Billetera",
       ctaUrl: walletUrl(),
       secondaryCtaText: "Ver detalle de la venta",

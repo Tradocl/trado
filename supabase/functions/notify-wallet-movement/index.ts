@@ -102,8 +102,8 @@ serve(async (req) => {
       summaryTitle: "Datos del movimiento",
       summaryRows: summary,
       nextStep: isDeposit
-        ? "Verificá la transferencia bancaria recibida y aprobá o rechazá la solicitud desde el panel admin."
-        : "Realizá la transferencia a los datos bancarios indicados y aprobá la solicitud al finalizar.",
+        ? "Verifica la transferencia bancaria recibida y aprueba o rechaza la solicitud desde el panel admin."
+        : "Realiza la transferencia a los datos bancarios indicados y aprueba la solicitud al finalizar.",
       ctaText: "Abrir panel admin",
       ctaUrl: `${Deno.env.get("SITE_URL") || "https://trado.cl"}/admin/wallet-movements`,
     });

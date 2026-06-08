@@ -79,7 +79,7 @@ serve(async (req) => {
       headline: "Bienvenido a Trado",
       statusLine: "Tu cuenta está lista",
       intro:
-        "te damos la bienvenida a la plataforma de transacciones seguras entre personas en Chile. Ya podés crear o unirte a salas para comprar y vender con custodia de fondos.",
+        "te damos la bienvenida a la plataforma de transacciones seguras entre personas en Chile. Ya puedes crear o unirte a salas para comprar y vender con custodia de fondos.",
       summaryTitle: "Cómo funciona en 3 pasos",
       summaryRows: [
         { label: "1.", value: "Creá o unite a una sala con un comprador/vendedor" },
@@ -87,7 +87,7 @@ serve(async (req) => {
         { label: "3.", value: "Liberamos el pago al confirmar la recepción" },
       ],
       nextStep:
-        "Completá tu perfil y verificá tu identidad para operar sin límites.",
+        "Completa tu perfil y verifica tu identidad para operar sin límites.",
       ctaText: "Ir al dashboard",
       ctaUrl: `${SITE_URL()}/dashboard`,
       secondaryCtaText: "Cargar saldo en Mi Billetera",

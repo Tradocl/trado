@@ -78,9 +78,9 @@ const A: Record<string, ActionCfg> = {
     timeline: "in_delivery",
   },
   marked_received: {
-    headline: (a, p) => `${a} recibió ${p}`,
-    status: "Producto recibido, en revisión",
-    next: () => "El comprador está revisando que todo esté bien. Si pasa el plazo o confirma, los fondos se liberan a tu billetera.",
+    headline: (a, p) => `${a} marcó ${p} como entregado`,
+    status: "Entrega marcada, en revisión",
+    next: () => "El comprador está revisando que todo esté bien. Si confirma la recepción o vence el plazo, los fondos se liberan a tu billetera.",
     ctaText: "Ver transacción",
     ctaUrlFor: (id) => txUrl(id),
     timeline: "awaiting_buyer_review",

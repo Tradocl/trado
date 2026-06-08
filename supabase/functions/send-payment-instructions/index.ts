@@ -141,11 +141,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     const nextStep = `
       <ol style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.7;color:#0F1424;">
-        <li><strong>Revisa tu saldo en Mi Billetera.</strong> Si ya tienes saldo suficiente, puedes pagar directo desde la sala.</li>
-        <li><strong>Si te falta saldo, recárgalo</strong> con nuestra pasarela segura (tarjeta, débito y otros medios).</li>
-        <li><strong>Vuelve a la sala y confirma el pago.</strong> Ese monto queda en custodia: ${safeSellerName} no recibe nada hasta que tú confirmes.</li>
-        <li><strong>Recibes ${itemWord}</strong> y revisas que esté todo bien.</li>
-        <li><strong>Confirmas la entrega</strong> y recién ahí se libera el pago al vendedor.</li>
+        <li><strong>Revisa tu saldo en la sala.</strong> Si ya tienes saldo suficiente en tu billetera Trado, puedes pagar desde ahí.</li>
+        <li><strong>Si no tienes saldo, recárgalo</strong> en Mi Billetera con nuestra pasarela segura (tarjeta, débito y otros medios).</li>
+        <li><strong>Vuelve a la sala y confirma el pago.</strong> El monto queda en custodia: ${safeSellerName} no recibe nada hasta que tú confirmes la entrega.</li>
+        <li><strong>Recibes ${itemWord}</strong> y revisas que todo esté como acordaron.</li>
+        <li><strong>Confirmas la recepción</strong> y se libera el pago al vendedor.</li>
       </ol>`;
 
     const thread = await buildThreadHeaders(supabase, transactionId, referenceCode);

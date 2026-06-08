@@ -249,7 +249,7 @@ function buildAll(): TestEmail[] {
       statusLine: "Periodo de revisión",
       tone: "info",
       intro:
-        "el courier reportó la entrega. Tienes tiempo para revisarlo antes de confirmar la recepción.",
+        "el vendedor marcó como entregado. Tienes tiempo para revisar antes de confirmar la recepción.",
       nextStep:
         "Si todo está correcto, confirma la recepción y libera los fondos. Si hay un problema, abre una devolución dentro de la sala.",
       ctaText: "Confirmar recepción",

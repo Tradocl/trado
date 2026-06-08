@@ -98,7 +98,7 @@ serve(async (req) => {
           intro:
             "tu identidad fue verificada con éxito. Tu cuenta ahora muestra el sello de verificada, lo que aumenta la confianza en cada transacción.",
           nextStep:
-            "Ya podés operar sin los límites de cuenta no verificada. ¡Bienvenido al ecosistema Trado!",
+            "Ya puedes operar sin los límites de cuenta no verificada. ¡Bienvenido al ecosistema Trado!",
           ctaText: "Ir al dashboard",
           ctaUrl: `${SITE_URL()}/dashboard`,
         })
@@ -122,7 +122,7 @@ serve(async (req) => {
           ctaText: "Intentar nuevamente",
           ctaUrl: `${SITE_URL()}/verification`,
           footerNote:
-            "Si tenés dudas, respondé este correo y te ayudamos.",
+            "Si tienes dudas, responde este correo y te ayudamos.",
         });
 
     try {

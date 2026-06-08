@@ -68,7 +68,7 @@ serve(async (req) => {
         { label: "Selfie", value: `<a href="${escapeHtml(selfieUrl)}">Ver selfie</a>` },
       ],
       nextStep:
-        "Revisá los archivos en el panel admin y aprobá o rechazá la verificación con un motivo claro.",
+        "Revisa los archivos en el panel admin y aprueba o rechaza la verificación con un motivo claro.",
       ctaText: "Abrir panel admin",
       ctaUrl: `${Deno.env.get("SITE_URL") || "https://trado.cl"}/admin/verifications`,
     });

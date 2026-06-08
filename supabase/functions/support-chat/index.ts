@@ -8,6 +8,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 const SYSTEM_PROMPT = `Eres el asistente de soporte de Trado, una plataforma chilena de pagos P2P con escrow (custodia).
 
 # Cómo funciona Trado
@@ -141,6 +144,7 @@ Deno.serve(async (req) => {
             <hr/>
             <p style="color:#888;font-size:12px">Enviado desde el chat de soporte de Trado</p>`;
           try {
+            // Notify admin
             const res = await fetch("https://api.resend.com/emails", {
               method: "POST",
               headers: { "Authorization": `Bearer ${RESEND_KEY}`, "Content-Type": "application/json" },
@@ -156,8 +160,43 @@ Deno.serve(async (req) => {
               const txt = await res.text();
               return { ok: false, message: `Error al enviar: ${txt.slice(0, 120)}` };
             }
+
+            // Confirm receipt to user
+            if (userEmail) {
+              const userHtml = `
+                <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#0F1424;">
+                  <div style="background:#6366f1;padding:24px;border-radius:12px 12px 0 0;">
+                    <h1 style="color:#fff;margin:0;font-size:22px;">Trado</h1>
+                  </div>
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:32px;border-radius:0 0 12px 12px;">
+                    <h2 style="margin-top:0;">Recibimos tu mensaje</h2>
+                    <p style="color:#6b7280;">Hola <strong>${escapeHtml(userName)}</strong>, gracias por escribirnos. Un miembro del equipo Trado revisará tu caso y te responderá a este correo lo antes posible.</p>
+                    <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;">
+                      <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Tu mensaje</p>
+                      <table style="width:100%;font-size:14px;border-collapse:collapse;">
+                        <tr><td style="padding:4px 0;color:#6b7280;width:100px;">Asunto</td><td style="padding:4px 0;font-weight:500;">${escapeHtml(summary)}</td></tr>
+                        <tr><td style="padding:4px 0;color:#6b7280;vertical-align:top;">Detalle</td><td style="padding:4px 0;">${escapeHtml(details)}</td></tr>
+                      </table>
+                    </div>
+                    <a href="https://trado.cl/support" style="display:inline-block;background:#6366f1;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:8px;">Volver al centro de ayuda</a>
+                    <p style="font-size:12px;color:#9ca3af;margin-top:24px;">Correo automático de <a href="https://trado.cl" style="color:#6366f1;">Trado</a> · Transacciones P2P seguras en Chile 🇨🇱</p>
+                  </div>
+                </div>`;
+
+              await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${RESEND_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  from: "Trado Soporte <contacto@trado.cl>",
+                  to: [userEmail],
+                  subject: "Recibimos tu mensaje de soporte · Trado",
+                  html: userHtml,
+                }),
+              });
+            }
+
             await supabase.from("support_threads").update({ status: "escalated", escalated_at: new Date().toISOString() }).eq("id", threadId);
-            return { ok: true, message: "Ticket enviado al equipo de soporte. Te responderán por email pronto." };
+            return { ok: true, message: "Ticket enviado al equipo de soporte. Te responderán por correo pronto." };
           } catch (e) {
             return { ok: false, message: `Error al escalar: ${(e as Error).message}` };
           }

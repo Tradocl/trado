@@ -82,9 +82,9 @@ serve(async (req) => {
       summaryRows: summary,
       nextStep: approved
         ? isDeposit
-          ? "Ya podés usar tu saldo para pagar en cualquier sala Trado."
+          ? "Ya puedes usar tu saldo para pagar en cualquier sala Trado."
           : "Recordá que la acreditación bancaria puede tardar hasta 24 h hábiles según tu banco."
-        : "Si creés que es un error, respondé este correo y revisamos tu caso.",
+        : "Si crees que es un error, responde este correo y revisamos tu caso.",
       ctaText: "Ir a Mi Billetera",
       ctaUrl: walletUrl(),
     });
