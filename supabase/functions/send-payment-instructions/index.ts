@@ -18,23 +18,19 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Get auth header and verify JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      console.error("No authorization header provided");
       return new Response(
         JSON.stringify({ error: "Authorization required" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Initialize Supabase clients: service role for DB ops, anon+JWT for auth verification
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verify the JWT using a separate client with anon key + Authorization header
     const token = authHeader.replace("Bearer ", "");
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
@@ -42,7 +38,6 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: { user }, error: authError } = await userClient.auth.getUser();
 
     if (authError || !user) {
-      console.error("Auth error:", authError);
       return new Response(
         JSON.stringify({ error: "Invalid authentication" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -58,14 +53,15 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Fetch transaction with buyer and seller profiles - server-side lookup
     const { data: transaction, error: txError } = await supabase
       .from("transactions")
       .select(`
         id,
         amount,
+        commission,
         product_name,
         invite_code,
+        sale_type,
         buyer_id,
         seller_id,
         buyer:profiles!transactions_buyer_id_fkey(email, full_name),
@@ -75,271 +71,104 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (txError || !transaction) {
-      console.error("Transaction fetch error:", txError);
       return new Response(
         JSON.stringify({ error: "Transaction not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Verify the authenticated user is a participant in this transaction
     if (user.id !== transaction.buyer_id && user.id !== transaction.seller_id) {
-      console.error("User is not a participant in this transaction");
       return new Response(
         JSON.stringify({ error: "Not authorized for this transaction" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Extract data from server-side lookup (not from client request)
     const buyerProfile = Array.isArray(transaction.buyer) ? transaction.buyer[0] : transaction.buyer;
     const sellerProfile = Array.isArray(transaction.seller) ? transaction.seller[0] : transaction.seller;
     const buyerEmail = buyerProfile?.email;
     const buyerName = buyerProfile?.full_name || "Comprador";
-    const sellerName = sellerProfile?.full_name || "Vendedor";
+    const sellerName = sellerProfile?.full_name || "la otra parte";
     const referenceCode = transaction.invite_code || transaction.id.substring(0, 8).toUpperCase();
     const totalAmount = transaction.amount;
+    const commission = transaction.commission || 0;
     const productName = transaction.product_name;
+    const saleType = transaction.sale_type;
 
     if (!buyerEmail) {
-      console.error("Buyer email not found for transaction:", transactionId);
       return new Response(
         JSON.stringify({ error: "Buyer email not found" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Sending payment instructions to:", buyerEmail);
-
     const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
+    const transactionUrl = `${baseUrl}/transaction/${transactionId}`;
 
-    // Datos bancarios de Trado
-    const bankDetails = {
-      bank: "Mercado Pago",
-      accountType: "Cuenta Vista",
-      accountNumber: "1020783447",
-      rut: "78.236.214-3",
-      email: "contacto@trado.cl",
-    };
+    const fmt = (n: number) => `$${n.toLocaleString("es-CL")}`;
 
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-              line-height: 1.6; 
-              color: #1a1a1a; 
-              margin: 0;
-              padding: 0;
-              background-color: #f8fafc;
-            }
-            .container { 
-              max-width: 600px; 
-              margin: 0 auto; 
-              padding: 40px 20px;
-            }
-            .card {
-              background: #ffffff;
-              border-radius: 16px;
-              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-              overflow: hidden;
-            }
-            .header { 
-              background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); 
-              color: white; 
-              padding: 32px; 
-              text-align: center;
-            }
-            .header h1 {
-              margin: 0;
-              font-size: 24px;
-              font-weight: 600;
-            }
-            .header .emoji {
-              font-size: 48px;
-              margin-bottom: 16px;
-              display: block;
-            }
-            .header .subtitle {
-              margin: 8px 0 0 0;
-              font-size: 14px;
-              opacity: 0.9;
-            }
-            .content { 
-              padding: 32px;
-            }
-            .highlight-box {
-              background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-              border: 1px solid #c4b5fd;
-              border-radius: 12px;
-              padding: 24px;
-              text-align: center;
-              margin-bottom: 24px;
-            }
-            .highlight-box .label {
-              font-size: 14px;
-              color: #5b21b6;
-              margin-bottom: 8px;
-              font-weight: 500;
-            }
-            .highlight-box .amount {
-              font-size: 36px;
-              font-weight: 700;
-              color: #6d28d9;
-              margin: 0;
-            }
-            .reference-badge {
-              display: inline-block;
-              background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-              color: white;
-              padding: 8px 20px;
-              border-radius: 20px;
-              font-size: 16px;
-              font-weight: 600;
-              margin-top: 12px;
-              letter-spacing: 1px;
-            }
-            .bank-details {
-              background: #f8fafc;
-              border-radius: 12px;
-              padding: 20px;
-              margin-bottom: 24px;
-            }
-            .bank-details h3 {
-              margin: 0 0 16px 0;
-              font-size: 16px;
-              font-weight: 600;
-              color: #374151;
-            }
-            .bank-row {
-              display: flex;
-              justify-content: space-between;
-              padding: 10px 0;
-              border-bottom: 1px solid #e5e7eb;
-            }
-            .bank-row:last-child {
-              border-bottom: none;
-              padding-bottom: 0;
-            }
-            .bank-row .label {
-              color: #6b7280;
-              font-size: 14px;
-            }
-            .bank-row .value {
-              color: #1f2937;
-              font-weight: 500;
-              font-size: 14px;
-            }
-            .warning-box {
-              background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-              border: 1px solid #fbbf24;
-              border-radius: 12px;
-              padding: 20px;
-              margin-bottom: 24px;
-            }
-            .warning-box h4 {
-              margin: 0 0 8px 0;
-              font-size: 14px;
-              font-weight: 600;
-              color: #92400e;
-            }
-            .warning-box p {
-              margin: 0;
-              color: #78350f;
-              font-size: 14px;
-            }
-            .cta-button {
-              display: block;
-              background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-              color: white !important;
-              text-decoration: none;
-              padding: 16px 32px;
-              border-radius: 12px;
-              font-weight: 600;
-              text-align: center;
-              margin: 24px 0;
-              font-size: 16px;
-            }
-            .footer {
-              text-align: center;
-              padding: 24px;
-              color: #9ca3af;
-              font-size: 13px;
-              border-top: 1px solid #f3f4f6;
-            }
-            .footer a {
-              color: #7c3aed;
-              text-decoration: none;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="card">
-              <div class="header">
-                <span class="emoji">💳</span>
-                <h1>Instrucciones de Pago</h1>
-                <p class="subtitle">Orden #${referenceCode}</p>
-              </div>
-              <div class="content">
-                <p style="margin: 0 0 24px 0; color: #4b5563;">
-                  Hola <strong>${buyerName}</strong>, para asegurar tu compra de <strong>${productName}</strong> de <strong>${sellerName}</strong>, transfiere a la cuenta de custodia de Trado:
-                </p>
-                
-                <div class="highlight-box">
-                  <div class="label">Monto a transferir</div>
-                  <div class="amount">$${totalAmount.toLocaleString('es-CL')}</div>
-                  <span class="reference-badge">#${referenceCode}</span>
-                </div>
-                
-                <div class="bank-details">
-                  <h3>🏦 Datos Bancarios</h3>
-                  <div class="bank-row">
-                    <span class="label">Banco</span>
-                    <span class="value">${bankDetails.bank}</span>
-                  </div>
-                  <div class="bank-row">
-                    <span class="label">Tipo de cuenta</span>
-                    <span class="value">${bankDetails.accountType}</span>
-                  </div>
-                  <div class="bank-row">
-                    <span class="label">N° de cuenta</span>
-                    <span class="value">${bankDetails.accountNumber}</span>
-                  </div>
-                  <div class="bank-row">
-                    <span class="label">RUT</span>
-                    <span class="value">${bankDetails.rut}</span>
-                  </div>
-                  <div class="bank-row">
-                    <span class="label">Email</span>
-                    <span class="value">${bankDetails.email}</span>
-                  </div>
-                </div>
-                
-                <div class="warning-box">
-                  <h4>⚠️ Importante</h4>
-                  <p>En el asunto o comentario de la transferencia debes poner el código: <strong>#${referenceCode}</strong></p>
-                </div>
-                
-                <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
-                  Una vez transferido, responde a este correo con el comprobante. Tu dinero está protegido en custodia hasta que confirmes la recepción del producto.
-                </p>
-                
-                <a href="${baseUrl}/transaction/${transactionId}" class="cta-button">Ver Transacción</a>
-              </div>
-              <div class="footer">
-                <p>Este es un correo automático de <a href="${baseUrl}">Trado</a>.</p>
-                <p>Tu plataforma segura para transacciones entre personas.</p>
-              </div>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+    const saleTypeLabel =
+      saleType === "service"
+        ? "el servicio"
+        : saleType === "in_person_product"
+        ? "el producto (entrega presencial)"
+        : saleType === "shipped_product"
+        ? "el producto (envío)"
+        : "la transacción";
+
+    const emailHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Te uniste a la sala de Trado</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f6fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#0F1424;">
+  <div style="max-width:560px;margin:32px auto;background:#ffffff;border:1px solid #E5E7F0;border-radius:16px;overflow:hidden;">
+    <div style="padding:28px 32px 0;">
+      <div style="font-size:20px;font-weight:700;color:#2230C2;letter-spacing:-0.02em;">Trado</div>
+    </div>
+    <div style="padding:20px 32px 8px;">
+      <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0F1424;letter-spacing:-0.01em;">Te uniste a la sala #${referenceCode}</h1>
+      <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#5B6378;">
+        Hola <strong style="color:#0F1424;">${buyerName}</strong>, ya estás dentro de la sala de escrow con <strong style="color:#0F1424;">${sellerName}</strong> por ${saleTypeLabel}: <strong style="color:#0F1424;">${productName}</strong>.
+      </p>
+
+      <div style="background:#F5F6FB;border:1px solid #E5E7F0;border-radius:12px;padding:18px 20px;margin:0 0 20px;">
+        <div style="font-size:13px;color:#5B6378;margin-bottom:4px;">Monto total a pagar</div>
+        <div style="font-size:28px;font-weight:700;color:#0F1424;letter-spacing:-0.01em;">${fmt(totalAmount)}</div>
+        ${commission > 0 ? `<div style="font-size:12px;color:#5B6378;margin-top:6px;">Incluye comisión Trado de ${fmt(commission)}</div>` : ""}
+      </div>
+
+      <h2 style="margin:24px 0 10px;font-size:16px;font-weight:700;color:#0F1424;">¿Cómo sigue el proceso?</h2>
+      <ol style="margin:0 0 20px;padding-left:20px;font-size:14px;line-height:1.7;color:#0F1424;">
+        <li><strong>Paga desde la sala</strong> con tarjeta, débito o los medios disponibles en nuestra pasarela de pagos segura. No necesitas hacer transferencias manuales.</li>
+        <li><strong>Tu dinero queda en custodia</strong> de Trado. ${sellerName} no recibe nada hasta que tú confirmes.</li>
+        <li><strong>Recibes ${saleType === "service" ? "el servicio" : "el producto"}</strong> y revisas que esté todo bien.</li>
+        <li><strong>Confirmas la entrega</strong> desde la sala y recién ahí se libera el pago al vendedor.</li>
+      </ol>
+
+      <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#5B6378;">
+        Si algo no llega como acordaron, puedes abrir una disputa desde la misma sala y nuestro equipo media para resolverlo.
+      </p>
+
+      <div style="text-align:center;margin:28px 0 8px;">
+        <a href="${transactionUrl}" style="display:inline-block;background:#2230C2;color:#ffffff;font-size:15px;font-weight:600;border-radius:10px;padding:14px 28px;text-decoration:none;">Ir a la sala y pagar</a>
+      </div>
+
+      <p style="margin:20px 0 0;font-size:13px;color:#5B6378;text-align:center;">
+        O abre este enlace: <a href="${transactionUrl}" style="color:#2230C2;word-break:break-all;">${transactionUrl}</a>
+      </p>
+
+      <div style="border-top:1px solid #E5E7F0;margin:28px 0 18px;"></div>
+      <p style="margin:0;font-size:12px;color:#5B6378;line-height:1.5;text-align:center;">
+        Este es un correo automático de Trado. Si no reconoces esta sala, ignora este mensaje o contáctanos en <a href="mailto:contacto@trado.cl" style="color:#2230C2;">contacto@trado.cl</a>.
+      </p>
+    </div>
+    <div style="padding:0 32px 28px;"></div>
+  </div>
+</body>
+</html>`;
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -348,9 +177,9 @@ const handler = async (req: Request): Promise<Response> => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Trado Notificaciones <notificaciones@trado.cl>",
+        from: "Trado <notificaciones@trado.cl>",
         to: [buyerEmail],
-        subject: `Instrucciones de Pago - Orden #${referenceCode}`,
+        subject: `Te uniste a la sala #${referenceCode} — paga seguro con escrow`,
         html: emailHtml,
       }),
     });
@@ -362,23 +191,15 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(data.message || "Failed to send email");
     }
 
-    console.log("Payment instructions sent successfully:", data);
-
     return new Response(
       JSON.stringify({ success: true, data }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
     console.error("Error in send-payment-instructions function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 };
