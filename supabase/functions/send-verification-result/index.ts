@@ -1,16 +1,23 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { requireServiceRole } from "../_shared/auth.ts";
+import {
+  escapeHtml,
+  renderTransactionalEmail,
+  sendEmail,
+  SITE_URL,
+} from "../_shared/email-templates/notification.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-interface VerificationResultRequest {
+interface ReqBody {
   profileId: string;
   userEmail: string;
   userName: string;
@@ -18,50 +25,48 @@ interface VerificationResultRequest {
   rejectionReason?: string;
 }
 
-import { requireServiceRole } from "../_shared/auth.ts";
-
-const handler = async (req: Request): Promise<Response> => {
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-
   const authFail = await requireServiceRole(req);
-  if (authFail) return new Response(authFail.body, { status: authFail.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
+  if (authFail) {
+    return new Response(authFail.body, {
+      status: authFail.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   try {
-    const { profileId, userEmail, userName, status, rejectionReason }: VerificationResultRequest = await req.json();
-
-    console.log("Sending verification result notification:", { profileId, userEmail, userName, status });
-
+    const { profileId, userEmail, userName, status, rejectionReason }: ReqBody =
+      await req.json();
     if (!profileId || !userEmail || !userName || !["approved", "rejected"].includes(status)) {
       return new Response(JSON.stringify({ error: "Invalid request" }), {
         status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-    const { data: profile, error: profileError } = await admin
+    const { data: profile, error: pErr } = await admin
       .from("profiles")
-      .select("verification_status, verification_submitted_at, verification_result_email_key")
+      .select(
+        "verification_status, verification_submitted_at, verification_result_email_key",
+      )
       .eq("id", profileId)
       .maybeSingle();
-
-    if (profileError) throw profileError;
+    if (pErr) throw pErr;
     if (!profile) {
       return new Response(JSON.stringify({ error: "Profile not found" }), {
         status: 404,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
     if (profile.verification_status !== status) {
-      return new Response(JSON.stringify({ error: "Verification status mismatch" }), {
+      return new Response(JSON.stringify({ error: "Status mismatch" }), {
         status: 409,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
     const submissionKey = profile.verification_submitted_at || "no-submission-date";
     const emailKey = `${status}:${submissionKey}`;
     const { data: claimed, error: claimError } = await admin
@@ -75,112 +80,61 @@ const handler = async (req: Request): Promise<Response> => {
       .neq("verification_result_email_key", emailKey)
       .select("id")
       .maybeSingle();
-
     if (claimError) throw claimError;
     if (!claimed) {
       return new Response(JSON.stringify({ success: true, skipped: true }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const isApproved = status === "approved";
-    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
-    
-    const emailHtml = isApproved ? `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #22c55e;">
-          ✅ ¡Verificación Aprobada!
-        </h1>
-        <p>Hola ${userName},</p>
-        
-        <div style="background-color: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #22c55e;">
-          <p style="margin: 0; font-size: 16px; color: #15803d;">
-            <strong>¡Felicitaciones!</strong> Tu identidad ha sido verificada exitosamente en Trado.
-          </p>
-        </div>
-        
-        <p>Tu cuenta ahora tiene el sello de verificación, lo que aumentará tu reputación en la plataforma y generará más confianza con otros usuarios.</p>
-        
-        <p style="margin-top: 30px;">
-          <a href="${baseUrl}/dashboard" 
-             style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; 
-                    text-decoration: none; border-radius: 5px; font-weight: bold;">
-            Ir a Trado
-          </a>
-        </p>
-        
-        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-          Gracias por ser parte de Trado, la plataforma de compra y venta segura.
-        </p>
-        
-        <p>Saludos,<br>Equipo Trado</p>
-      </div>
-    ` : `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #ef4444;">
-          ❌ Verificación No Aprobada
-        </h1>
-        <p>Hola ${userName},</p>
-        
-        <div style="background-color: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
-          <p style="margin: 0; font-size: 16px; color: #991b1b;">
-            Lamentablemente, no pudimos verificar tu identidad con la documentación enviada en Trado.
-          </p>
-        </div>
-        
-        ${rejectionReason ? `
-          <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-            <p style="margin: 0 0 5px 0; font-weight: bold; color: #92400e;">Motivo del rechazo:</p>
-            <p style="margin: 0; color: #78350f; white-space: pre-wrap;">${rejectionReason}</p>
-          </div>
-        ` : `
-          <p><strong>Posibles motivos:</strong></p>
-          <ul style="color: #6b7280;">
-            <li>La imagen del documento no es clara o legible</li>
-            <li>La selfie con el carnet no muestra tu rostro o el documento con claridad</li>
-            <li>Los datos del documento no coinciden con tu información registrada</li>
-            <li>El documento no es válido o está vencido</li>
-          </ul>
-        `}
-        
-        <p><strong>¿Qué puedes hacer?</strong></p>
-        <p>Puedes intentar nuevamente subiendo imágenes más claras donde se vean todos los datos de tu cédula y tu rostro de forma nítida.</p>
-        
-        <p style="margin-top: 30px;">
-          <a href="${baseUrl}/verification" 
-             style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; 
-                    text-decoration: none; border-radius: 5px; font-weight: bold;">
-            Intentar Nuevamente
-          </a>
-        </p>
-        
-        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-          Si tienes dudas, contáctanos respondiendo a este email.
-        </p>
-        
-        <p>Saludos,<br>Equipo Trado</p>
-      </div>
-    `;
+    const approved = status === "approved";
+    const safeName = escapeHtml(userName);
+    const html = approved
+      ? renderTransactionalEmail({
+          recipientName: safeName,
+          headline: "¡Verificación aprobada!",
+          statusLine: "Tu identidad fue confirmada",
+          intro:
+            "tu identidad fue verificada con éxito. Tu cuenta ahora muestra el sello de verificada, lo que aumenta la confianza en cada transacción.",
+          nextStep:
+            "Ya podés operar sin los límites de cuenta no verificada. ¡Bienvenido al ecosistema Trado!",
+          ctaText: "Ir al dashboard",
+          ctaUrl: `${SITE_URL()}/dashboard`,
+        })
+      : renderTransactionalEmail({
+          recipientName: safeName,
+          headline: "Verificación no aprobada",
+          statusLine: "Necesitamos que reintentes el envío",
+          intro:
+            "no pudimos verificar tu identidad con los documentos enviados.",
+          summaryTitle: rejectionReason ? "Motivo del rechazo" : "Posibles motivos",
+          summaryRows: rejectionReason
+            ? [{ label: "Detalle", value: escapeHtml(rejectionReason) }]
+            : [
+                { label: "•", value: "Documento poco legible o cortado" },
+                { label: "•", value: "Selfie no muestra tu rostro y el carnet" },
+                { label: "•", value: "Datos del carnet no coinciden con tu perfil" },
+                { label: "•", value: "Documento vencido o inválido" },
+              ],
+          nextStep:
+            "Reintenta el envío con fotos claras, bien iluminadas y donde se vea el documento completo y tu rostro.",
+          ctaText: "Intentar nuevamente",
+          ctaUrl: `${SITE_URL()}/verification`,
+          footerNote:
+            "Si tenés dudas, respondé este correo y te ayudamos.",
+        });
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Trado Notificaciones <notificaciones@trado.cl>",
-        to: [userEmail],
-        subject: isApproved 
-          ? "✅ ¡Tu verificación ha sido aprobada!" 
-          : "❌ Verificación no aprobada - Inténtalo nuevamente",
-        html: emailHtml,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
+    try {
+      await sendEmail({
+        to: userEmail,
+        subject: approved
+          ? "Tu verificación fue aprobada"
+          : "Tu verificación no fue aprobada",
+        html,
+      });
+    } catch (sendErr) {
+      // Roll back the claim
       await admin
         .from("profiles")
         .update({
@@ -190,29 +144,18 @@ const handler = async (req: Request): Promise<Response> => {
         })
         .eq("id", profileId)
         .eq("verification_result_email_key", emailKey);
-      throw new Error(`Resend API error: ${error}`);
+      throw sendErr;
     }
 
-    const data = await response.json();
-    console.log("Verification result email sent successfully:", data);
-
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error: any) {
-    console.error("Error in send-verification-result function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+  } catch (err) {
+    console.error("[send-verification-result]", err);
+    return new Response(JSON.stringify({ error: (err as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
-};
-
-serve(handler);
+});
