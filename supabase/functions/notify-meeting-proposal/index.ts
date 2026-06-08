@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendPushToUsers } from "../_shared/push.ts";
 import {
   buildThreadHeaders,
+  buildThreadSubject,
   escapeHtml,
   persistThreadAnchor,
   renderTransactionalEmail,
