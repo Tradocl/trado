@@ -88,91 +88,48 @@ export function escapeHtml(s: unknown): string {
 }
 
 /**
- * Inline SVG microillustration that mirrors the current transaction state.
- * Rendered inside the gradient header for instant visual recognition.
- * Uses currentColor + white so it inherits the header palette.
+ * Microillustration that mirrors the current transaction state.
+ * Uses emoji (rendered natively by every email client — Gmail/Outlook/Apple
+ * Mail all strip inline <svg>, which is why SVG icons disappear in real
+ * inboxes). Each emoji is rendered large inside a translucent badge that
+ * sits in the gradient header.
  */
 function renderStateIllustration(
   key?: TimelineKey,
   problem?: boolean,
 ): string {
-  const stroke = "rgba(255,255,255,0.95)";
-  const fill = "rgba(255,255,255,0.18)";
-  const wrap = (svg: string, label: string) => `
-    <div style="margin-top:18px;display:inline-block;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:14px;padding:10px 14px 10px 10px;">
+  const wrap = (emoji: string, label: string) => `
+    <div style="margin-top:18px;display:inline-block;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:14px;padding:10px 16px 10px 12px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="vertical-align:middle;padding-right:10px;line-height:0;">${svg}</td>
-        <td style="vertical-align:middle;font-size:13px;font-weight:600;color:#fff;letter-spacing:0.01em;">${label}</td>
+        <td style="vertical-align:middle;padding-right:12px;font-size:30px;line-height:1;">${emoji}</td>
+        <td style="vertical-align:middle;font-size:14px;font-weight:600;color:#fff;letter-spacing:0.01em;">${label}</td>
       </tr></table>
     </div>`;
 
-  if (problem) {
-    return wrap(
-      `<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18 5L33 30H3L18 5Z" fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M18 14V21" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round"/>
-        <circle cx="18" cy="25.5" r="1.5" fill="${stroke}"/>
-      </svg>`,
-      "Atención requerida",
-    );
-  }
+  if (problem) return wrap("⚠️", "Atención requerida");
 
   switch (key) {
     case "created":
-      return wrap(
-        `<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="5" y="8" width="26" height="22" rx="4" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
-          <path d="M5 14H31" stroke="${stroke}" stroke-width="2"/>
-          <path d="M18 19V25M15 22H21" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="11" cy="5" r="1.5" fill="${stroke}"/>
-          <circle cx="25" cy="5" r="1.5" fill="${stroke}"/>
-          <path d="M11 5V8M25 5V8" stroke="${stroke}" stroke-width="2"/>
-        </svg>`,
-        "Sala creada",
-      );
+      return wrap("📋", "Sala creada");
     case "invited":
-      return wrap(
-        `<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="13" cy="14" r="4.5" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
-          <circle cx="24" cy="16" r="3.5" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
-          <path d="M4 29C4 24.5 8 22 13 22C18 22 22 24.5 22 29" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>
-          <path d="M20 29C20 25.5 22.5 24 24 24C25.5 24 28 25.5 28 29" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>
-        </svg>`,
-        "Comprador unido",
-      );
+      return wrap("🤝", "Comprador unido");
     case "funds_secured":
-      return wrap(
-        `<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 4L31 9V18C31 25 25 30 18 32C11 30 5 25 5 18V9L18 4Z" fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M12 18L16.5 22.5L24 14.5" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>`,
-        "Pago en custodia",
-      );
+      return wrap("🛡️", "Pago en custodia");
     case "in_delivery":
-      return wrap(
-        `<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="11" width="17" height="13" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
-          <path d="M20 15H27L32 20V24H20V15Z" fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>
-          <circle cx="10" cy="27" r="3" fill="#fff" stroke="${stroke}" stroke-width="2"/>
-          <circle cx="25" cy="27" r="3" fill="#fff" stroke="${stroke}" stroke-width="2"/>
-        </svg>`,
-        "Entrega en camino",
-      );
+      return wrap("🚚", "Entrega en camino");
     case "awaiting_buyer_review":
-      return wrap(
-        `<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 18C3 18 9 9 18 9C27 9 33 18 33 18C33 18 27 27 18 27C9 27 3 18 3 18Z" fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>
-          <circle cx="18" cy="18" r="4" fill="#fff" stroke="${stroke}" stroke-width="2"/>
-        </svg>`,
-        "Esperando revisión",
-      );
+      return wrap("👀", "Esperando revisión");
     case "completed":
-      return wrap(
-        `<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="18" cy="18" r="14" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
-          <path d="M11 18.5L16 23.5L25 13" stroke="${stroke}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M30 6L32 4M4 32L6 30M32 30L30 32" stroke="${stroke}" stroke-width="2" stroke-linecap="round"/>
-        </svg>`,
+      return wrap("🎉", "Pago liberado");
+    default:
+      return "";
+  }
+}
+
+// Legacy unused block removed below
+function _unused_legacy_svg_block() {
+  const _ = `
+
         "Pago liberado",
       );
     default:
