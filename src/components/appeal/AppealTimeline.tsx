@@ -70,10 +70,13 @@ export function AppealTimeline({ appeal, transaction }: AppealTimelineProps) {
     },
     {
       id: "negotiation",
-      label: "Negociación entre partes",
+      label: appeal.status === "en_negociacion" ? "Negociando entre partes" : "Negociación entre partes",
       icon: MessageSquare,
+      // Mark as completed only if there was active negotiation (not just opened)
       completed: ["en_negociacion", "pendiente_intervencion_plataforma", "en_revision_plataforma", "resuelta_a_favor_comprador", "resuelta_a_favor_vendedor", "resuelta_parcial", "cerrada"].includes(appeal.status),
-      date: appeal.status === "en_negociacion" ? new Date().toISOString() : null,
+      date: appeal.escalated_at && ["pendiente_intervencion_plataforma", "en_revision_plataforma"].includes(appeal.status)
+        ? appeal.escalated_at
+        : appeal.status === "en_negociacion" ? new Date().toISOString() : null,
     },
     {
       id: "escalated",

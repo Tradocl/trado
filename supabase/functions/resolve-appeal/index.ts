@@ -162,6 +162,15 @@ serve(async (req) => {
 
     console.log("[resolve-appeal] Processing appeal resolution:", { appealId, resolution, buyerRefundAmount, sellerPaymentAmount, escrowAmount });
 
+    // Validate resolution type explicitly before proceeding
+    const validResolutions = ["reembolso_total", "reembolso_parcial", "liberar_fondos_vendedor"];
+    if (!validResolutions.includes(resolution)) {
+      return new Response(
+        JSON.stringify({ error: `Invalid resolution type: ${resolution}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Create decision record
     const { error: decisionError } = await supabaseAdmin
       .from("appeal_decisions")
@@ -172,6 +181,7 @@ serve(async (req) => {
         resolution_notes: resolutionNotes.trim(),
         buyer_refund_amount: buyerRefundAmount,
         seller_payment_amount: sellerPaymentAmount,
+        is_mutual_agreement: false,
       });
 
     if (decisionError) {

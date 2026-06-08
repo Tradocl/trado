@@ -80,24 +80,20 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin 
         }
       }
 
-      // Generate signed URLs for private bucket files
-      const evidenceWithSignedUrls = await Promise.all(
+      // Generate signed URLs for private bucket files — use allSettled so one failure doesn't hide all evidence
+      const settled = await Promise.allSettled(
         evidenceData.map(async (item) => {
-          // Extract the file path from the stored URL
           const urlParts = item.file_url.split('/appeal-evidence/');
           const filePath = urlParts.length > 1 ? urlParts[1] : null;
-          
+
           let signedUrl = item.file_url;
           if (filePath) {
             const { data: signedData } = await supabase.storage
               .from("appeal-evidence")
               .createSignedUrl(filePath, 86400); // 24 hour expiry
-            
-            if (signedData?.signedUrl) {
-              signedUrl = signedData.signedUrl;
-            }
+            if (signedData?.signedUrl) signedUrl = signedData.signedUrl;
           }
-          
+
           return {
             ...item,
             file_url: signedUrl,
@@ -106,6 +102,10 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin 
           };
         })
       );
+
+      const evidenceWithSignedUrls = settled
+        .filter((r): r is PromiseFulfilledResult<typeof evidenceData[0] & { file_url: string; original_file_url: string; user_name: string }> => r.status === "fulfilled")
+        .map(r => r.value);
 
       setEvidence(evidenceWithSignedUrls);
     } catch (error: any) {
@@ -181,7 +181,7 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin 
             file_url: publicUrl,
             file_type: file.type,
             file_name: file.name,
-            comment: successCount === 0 && comment.trim() ? comment.trim() : null,
+            comment: comment.trim() || null,
           });
 
         if (!insertError) {

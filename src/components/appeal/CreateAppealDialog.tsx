@@ -54,9 +54,8 @@ export function CreateAppealDialog({ transactionId, userId, saleType }: CreateAp
 
     setCreating(true);
     try {
-      // Create deadline 48 hours from now
-      const deadline = new Date();
-      deadline.setHours(deadline.getHours() + 48);
+      // Create deadline 48 hours from now — use UTC arithmetic to avoid timezone issues
+      const deadline = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
       const { data: appeal, error: appealError } = await supabase
         .from("appeals")

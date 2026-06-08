@@ -190,7 +190,7 @@ export function EscalationPanel({
             file_url: publicUrl,
             file_type: file.type,
             file_name: file.name,
-            comment: successCount === 0 && comment.trim() ? comment.trim() : null,
+            comment: comment.trim() || null,
           });
 
         if (!insertError) {
@@ -232,15 +232,27 @@ export function EscalationPanel({
         .eq("id", appealId)
         .single();
 
+      // Build update — never overwrite the original reason_description; append notes as separate field
+      const updatePayload: Record<string, unknown> = {
+        status: "pendiente_intervencion_plataforma",
+        escalated_at: new Date().toISOString(),
+      };
+      if (additionalNotes.trim()) {
+        // Append admin notes to existing description so original reason is preserved
+        const { data: current } = await supabase
+          .from("appeals")
+          .select("reason_description")
+          .eq("id", appealId)
+          .single();
+        const existing = current?.reason_description || "";
+        updatePayload.reason_description = existing
+          ? `${existing}\n\n[Notas adicionales]: ${additionalNotes.trim()}`
+          : additionalNotes.trim();
+      }
+
       const { error } = await supabase
         .from("appeals")
-        .update({
-          status: "pendiente_intervencion_plataforma",
-          escalated_at: new Date().toISOString(),
-          reason_description: additionalNotes.trim() 
-            ? `${additionalNotes.trim()}` 
-            : undefined,
-        })
+        .update(updatePayload)
         .eq("id", appealId);
 
       if (error) throw error;
