@@ -1,7 +1,15 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+import {
+  buildThreadHeaders,
+  escapeHtml,
+  formatCLP,
+  persistThreadAnchor,
+  renderTransactionalEmail,
+  sendEmail,
+  txUrl,
+  walletUrl,
+} from "../_shared/email-templates/notification.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -102,10 +110,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const baseUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
-    const transactionUrl = `${baseUrl}/transaction/${transactionId}`;
+    const transactionUrl = txUrl(transactionId);
 
-    const fmt = (n: number) => `$${n.toLocaleString("es-CL")}`;
 
     const saleTypeLabel =
       saleType === "service"
@@ -116,91 +122,58 @@ const handler = async (req: Request): Promise<Response> => {
         ? "el producto (envío)"
         : "la transacción";
 
-    const emailHtml = `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Te uniste a la sala de Trado</title>
-</head>
-<body style="margin:0;padding:0;background:#f5f6fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#0F1424;">
-  <div style="max-width:560px;margin:32px auto;background:#ffffff;border:1px solid #E5E7F0;border-radius:16px;overflow:hidden;">
-    <div style="padding:28px 32px 0;">
-      <div style="font-size:20px;font-weight:700;color:#2230C2;letter-spacing:-0.02em;">Trado</div>
-    </div>
-    <div style="padding:20px 32px 8px;">
-      <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0F1424;letter-spacing:-0.01em;">Te uniste a la sala #${referenceCode}</h1>
-      <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#5B6378;">
-        Hola <strong style="color:#0F1424;">${buyerName}</strong>, ya estás dentro de la sala de escrow con <strong style="color:#0F1424;">${sellerName}</strong> por ${saleTypeLabel}: <strong style="color:#0F1424;">${productName}</strong>.
-      </p>
+    const safeBuyerName = escapeHtml(buyerName);
+    const safeSellerName = escapeHtml(sellerName);
+    const safeProduct = escapeHtml(productName);
+    const itemWord = saleType === "service" ? "el servicio" : "el producto";
 
-      <div style="background:#F5F6FB;border:1px solid #E5E7F0;border-radius:12px;padding:18px 20px;margin:0 0 20px;">
-        <div style="font-size:13px;color:#5B6378;margin-bottom:4px;">Monto total a pagar</div>
-        <div style="font-size:28px;font-weight:700;color:#0F1424;letter-spacing:-0.01em;">${fmt(totalAmount)}</div>
-        ${commission > 0 ? `<div style="font-size:12px;color:#5B6378;margin-top:6px;">Incluye comisión Trado de ${fmt(commission)}</div>` : ""}
-      </div>
+    const intro = `ya estás dentro de la sala de escrow con <strong>${safeSellerName}</strong> por ${saleTypeLabel}: <strong>${safeProduct}</strong>.`;
 
-      <h2 style="margin:24px 0 10px;font-size:16px;font-weight:700;color:#0F1424;">¿Cómo sigue el proceso?</h2>
-      <ol style="margin:0 0 20px;padding-left:20px;font-size:14px;line-height:1.7;color:#0F1424;">
-        <li><strong>Revisa tu saldo en Mi Billetera.</strong> Si ya tienes saldo suficiente, puedes pagar directo desde la sala sin recargar.</li>
-        <li><strong>Si te falta saldo, recárgalo desde Mi Billetera</strong> con nuestra pasarela de pagos segura (tarjeta, débito y otros medios). El dinero queda disponible en tu cuenta Trado.</li>
-        <li><strong>Vuelve a la sala y confirma el pago.</strong> Ese monto se bloquea en custodia de Trado: ${sellerName} no recibe nada hasta que tú confirmes.</li>
-        <li><strong>Recibes ${saleType === "service" ? "el servicio" : "el producto"}</strong> y revisas que esté todo bien.</li>
-        <li><strong>Confirmas la entrega</strong> desde la sala y recién ahí se libera el pago al vendedor.</li>
-      </ol>
+    const summaryRows = [
+      { label: "Transacción", value: safeProduct },
+      { label: "Vendedor", value: safeSellerName },
+      { label: "Monto total a pagar", value: formatCLP(totalAmount), emphasis: true },
+    ];
+    if (commission > 0) {
+      summaryRows.push({ label: "Incluye comisión Trado", value: formatCLP(commission) });
+    }
 
-      <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#5B6378;">
-        Si algo no llega como acordaron, puedes abrir una disputa desde la misma sala y nuestro equipo media para resolverlo.
-      </p>
+    const nextStep = `
+      <ol style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.7;color:#0F1424;">
+        <li><strong>Revisa tu saldo en Mi Billetera.</strong> Si ya tienes saldo suficiente, puedes pagar directo desde la sala.</li>
+        <li><strong>Si te falta saldo, recárgalo</strong> con nuestra pasarela segura (tarjeta, débito y otros medios).</li>
+        <li><strong>Vuelve a la sala y confirma el pago.</strong> Ese monto queda en custodia: ${safeSellerName} no recibe nada hasta que tú confirmes.</li>
+        <li><strong>Recibes ${itemWord}</strong> y revisas que esté todo bien.</li>
+        <li><strong>Confirmas la entrega</strong> y recién ahí se libera el pago al vendedor.</li>
+      </ol>`;
 
-      <div style="text-align:center;margin:28px 0 8px;">
-        <a href="${transactionUrl}" style="display:inline-block;background:#2230C2;color:#ffffff;font-size:15px;font-weight:600;border-radius:10px;padding:14px 28px;text-decoration:none;">Ir a la sala</a>
-        <div style="margin-top:12px;">
-          <a href="${baseUrl}/wallet" style="display:inline-block;color:#2230C2;font-size:14px;font-weight:600;text-decoration:none;">Recargar saldo en Mi Billetera →</a>
-        </div>
-      </div>
-
-      <p style="margin:20px 0 0;font-size:13px;color:#5B6378;text-align:center;">
-        O abre la sala aquí: <a href="${transactionUrl}" style="color:#2230C2;word-break:break-all;">${transactionUrl}</a>
-      </p>
-
-      <div style="border-top:1px solid #E5E7F0;margin:28px 0 18px;"></div>
-      <p style="margin:0;font-size:12px;color:#5B6378;line-height:1.5;text-align:center;">
-        Este es un correo automático de Trado. Si no reconoces esta sala, ignora este mensaje o contáctanos en <a href="mailto:contacto@trado.cl" style="color:#2230C2;">contacto@trado.cl</a>.
-      </p>
-    </div>
-    <div style="padding:0 32px 28px;"></div>
-  </div>
-</body>
-</html>`;
-
-    // Thread under the same transaction (Gmail/Apple Mail grouping)
-    const { buildThreadHeaders, persistThreadAnchor } = await import(
-      "../_shared/email-templates/notification.ts"
-    );
     const thread = await buildThreadHeaders(supabase, transactionId, referenceCode);
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Trado <notificaciones@trado.cl>",
-        to: [buyerEmail],
-        subject: `${thread.subjectPrefix} Te uniste a la sala — revisa tu saldo y paga seguro`,
-        html: emailHtml,
-        headers: thread.headers,
-      }),
+    const html = renderTransactionalEmail({
+      recipientName: safeBuyerName,
+      eyebrow: "Te uniste a una sala Trado",
+      headline: `¡Listo ${safeBuyerName}! Ya estás dentro de la sala`,
+      statusLine: "Comprador unido",
+      intro,
+      summaryTitle: "Detalle de la transacción",
+      summaryRows,
+      nextStep,
+      timelineActive: "invited",
+      ctaText: "Ir a la sala",
+      ctaUrl: txUrl(transactionId),
+      secondaryCtaText: "Recargar saldo en Mi Billetera",
+      secondaryCtaUrl: walletUrl(),
+      referenceCode,
+      footerNote: "Si algo no llega como acordaron, puedes abrir una disputa desde la misma sala y nuestro equipo media para resolverlo.",
+      tone: "info",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Error from Resend API:", data);
-      throw new Error(data.message || "Failed to send email");
-    }
+    const data = await sendEmail({
+      to: buyerEmail,
+      subject: `${thread.subjectPrefix} Te uniste a la sala — revisa tu saldo y paga seguro`,
+      html,
+      headers: thread.headers,
+    });
 
     if (thread.isNewThread && thread.anchorId) {
       await persistThreadAnchor(supabase, transactionId, thread.anchorId);
