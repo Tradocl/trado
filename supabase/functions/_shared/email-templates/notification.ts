@@ -344,18 +344,6 @@ export async function buildThreadHeaders(
     anchorId,
   };
 }
-  } catch (e) {
-    console.error("[buildThreadHeaders] lookup failed", e);
-  }
-  // Generate a stable Message-ID anchor we will reuse.
-  const anchorId = `<tx-${transactionId}@trado.cl>`;
-  return {
-    subjectPrefix,
-    headers: { "Message-ID": anchorId },
-    isNewThread: true,
-    anchorId,
-  };
-}
 
 /** Persists the thread anchor on the transaction once the first email is sent. */
 export async function persistThreadAnchor(
