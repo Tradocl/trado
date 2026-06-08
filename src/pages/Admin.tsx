@@ -103,6 +103,7 @@ export default function Admin() {
   const [confirmWithdrawalId, setConfirmWithdrawalId] = useState<string | null>(null);
   const [depositSearch, setDepositSearch] = useState("");
   const [withdrawalSearch, setWithdrawalSearch] = useState("");
+  const [sendingTestEmails, setSendingTestEmails] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     pendingVerifications: 0,
@@ -787,6 +788,33 @@ export default function Admin() {
             <div className="text-2xl font-bold">{stats.totalTransactions}</div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* QA: enviar todos los correos a contacto@trado.cl */}
+      <div className="mb-6 flex items-center justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={sendingTestEmails}
+          onClick={async () => {
+            if (sendingTestEmails) return;
+            setSendingTestEmails(true);
+            const toastId = toast.loading("Enviando todos los correos de prueba a contacto@trado.cl...");
+            try {
+              const { data, error } = await supabase.functions.invoke("send-test-emails");
+              if (error) throw error;
+              const sent = (data as { sent?: number; total?: number })?.sent ?? 0;
+              const total = (data as { sent?: number; total?: number })?.total ?? 0;
+              toast.success(`Enviados ${sent}/${total} correos a contacto@trado.cl`, { id: toastId });
+            } catch (e) {
+              toast.error(`Error: ${(e as Error).message}`, { id: toastId });
+            } finally {
+              setSendingTestEmails(false);
+            }
+          }}
+        >
+          {sendingTestEmails ? "Enviando..." : "Enviar todos los correos de prueba"}
+        </Button>
       </div>
 
       <Tabs defaultValue="deposits" className="space-y-4">
