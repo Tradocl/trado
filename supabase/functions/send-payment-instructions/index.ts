@@ -98,7 +98,7 @@ const handler = async (req: Request): Promise<Response> => {
     const buyerEmail = buyerProfile?.email;
     const buyerName = buyerProfile?.full_name || "Comprador";
     const sellerName = sellerProfile?.full_name || "la otra parte";
-    const referenceCode = transaction.invite_code || transaction.id.substring(0, 8).toUpperCase();
+    const referenceCode = transaction.id.substring(0, 8).toUpperCase();
     const totalAmount = transaction.amount;
     const commission = transaction.commission || 0;
     const productName = transaction.product_name;
