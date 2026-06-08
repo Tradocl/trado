@@ -1,17 +1,23 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+import { requireServiceRole } from "../_shared/auth.ts";
+import {
+  buildThreadHeaders,
+  escapeHtml,
+  formatCLP,
+  persistThreadAnchor,
+  renderTransactionalEmail,
+  sendEmail,
+  txUrl,
+} from "../_shared/email-templates/notification.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-interface NotifyAppealResolvedRequest {
+interface ReqBody {
   appealId: string;
   resolution: string;
   resolutionNotes: string;
@@ -20,190 +26,131 @@ interface NotifyAppealResolvedRequest {
   isMutualAgreement: boolean;
 }
 
-import { requireServiceRole, sanitizeHtml } from "../_shared/auth.ts";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-
   const authFail = await requireServiceRole(req);
-  if (authFail) return new Response(authFail.body, { status: authFail.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
+  if (authFail) {
+    return new Response(authFail.body, {
+      status: authFail.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   try {
-    const body: NotifyAppealResolvedRequest = await req.json();
-    const { 
-      appealId, 
-      resolution, 
-      resolutionNotes, 
-      buyerRefundAmount, 
-      sellerPaymentAmount,
-      isMutualAgreement
-    } = body;
+    const body: ReqBody = await req.json();
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    console.log("[notify-appeal-resolved] Processing notification for appeal:", appealId);
-
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
-
-    // Get appeal with transaction and participant info
-    const { data: appeal, error: appealError } = await supabaseAdmin
+    const { data: appeal, error } = await supabase
       .from("appeals")
-      .select("*, transactions!inner(id, product_name, amount, seller_id, buyer_id)")
-      .eq("id", appealId)
+      .select(
+        "*, transactions!inner(id, product_name, amount, seller_id, buyer_id)",
+      )
+      .eq("id", body.appealId)
       .single();
+    if (error || !appeal) {
+      return new Response(JSON.stringify({ error: "Appeal not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const tx = appeal.transactions;
 
-    if (appealError || !appeal) {
-      console.error("[notify-appeal-resolved] Appeal not found:", appealError);
-      return new Response(
-        JSON.stringify({ error: "Appeal not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const [{ data: buyer }, { data: seller }] = await Promise.all([
+      supabase.from("profiles").select("full_name, email").eq("id", tx.buyer_id).single(),
+      supabase.from("profiles").select("full_name, email").eq("id", tx.seller_id).single(),
+    ]);
+    if (!buyer || !seller) {
+      return new Response(JSON.stringify({ error: "Profiles not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const transaction = appeal.transactions;
+    let label = "Caso cerrado";
+    if (body.resolution === "reembolso_total") label = "Reembolso total al comprador";
+    else if (body.resolution === "liberar_fondos_vendedor") label = "Fondos liberados al vendedor";
+    else if (body.resolution === "reembolso_parcial") label = "Resolución parcial";
 
-    // Get buyer and seller profiles
-    const { data: buyerProfile } = await supabaseAdmin
-      .from("profiles")
-      .select("full_name, email")
-      .eq("id", transaction.buyer_id)
-      .single();
+    const productName = escapeHtml(tx.product_name);
+    const refCode = tx.id.substring(0, 8).toUpperCase();
+    const thread = await buildThreadHeaders(supabase, tx.id, refCode);
 
-    const { data: sellerProfile } = await supabaseAdmin
-      .from("profiles")
-      .select("full_name, email")
-      .eq("id", transaction.seller_id)
-      .single();
-
-    if (!buyerProfile || !sellerProfile) {
-      console.error("[notify-appeal-resolved] Profiles not found");
-      return new Response(
-        JSON.stringify({ error: "Profiles not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Determine resolution label
-    let resolutionLabel = "Caso Cerrado";
-    if (resolution === "reembolso_total") resolutionLabel = "Reembolso Total al Comprador";
-    else if (resolution === "liberar_fondos_vendedor") resolutionLabel = "Fondos Liberados al Vendedor";
-    else if (resolution === "reembolso_parcial") resolutionLabel = "Resolución Parcial";
-
-    const formatCLP = (amount: number) => {
-      return new Intl.NumberFormat("es-CL").format(Math.round(amount));
+    const buildHtml = (recipientName: string, role: "buyer" | "seller") => {
+      const yourAmount = role === "buyer" ? body.buyerRefundAmount : body.sellerPaymentAmount;
+      const yourLabel = role === "buyer" ? "Reembolso a tu billetera" : "Pago a tu billetera";
+      const summary = [
+        { label: "Producto / servicio", value: productName },
+        { label: "Monto original", value: formatCLP(tx.amount) },
+        { label: "Decisión", value: label },
+      ];
+      if (body.buyerRefundAmount && body.buyerRefundAmount > 0) {
+        summary.push({ label: "Reembolso comprador", value: formatCLP(body.buyerRefundAmount) });
+      }
+      if (body.sellerPaymentAmount && body.sellerPaymentAmount > 0) {
+        summary.push({ label: "Pago vendedor", value: formatCLP(body.sellerPaymentAmount) });
+      }
+      if (yourAmount && yourAmount > 0) {
+        summary.push({ label: yourLabel, value: formatCLP(yourAmount), emphasis: true });
+      }
+      return renderTransactionalEmail({
+        recipientName,
+        headline: body.isMutualAgreement
+          ? "Acuerdo mutuo confirmado"
+          : "Apelación resuelta",
+        statusLine: body.isMutualAgreement
+          ? "Ambas partes llegaron a un acuerdo"
+          : "Resolución del administrador",
+        intro: body.isMutualAgreement
+          ? "ambas partes acordaron una distribución de fondos. Ya quedó aplicada en tu billetera."
+          : "un administrador resolvió la apelación de tu transacción y los fondos fueron distribuidos.",
+        summaryTitle: "Detalles de la resolución",
+        summaryRows: summary,
+        nextStep: body.resolutionNotes
+          ? `<em>"${escapeHtml(body.resolutionNotes)}"</em>`
+          : "Los fondos fueron actualizados en tu billetera Trado.",
+        ctaText: "Ver mi billetera",
+        ctaUrl: `${Deno.env.get("SITE_URL") || "https://trado.cl"}/wallet`,
+        secondaryCtaText: "Ver transacción",
+        secondaryCtaUrl: txUrl(tx.id),
+        timelineActive: "completed",
+        referenceCode: refCode,
+      });
     };
 
-    // Build distribution info
-    let distributionHtml = "";
-    if (buyerRefundAmount && buyerRefundAmount > 0) {
-      distributionHtml += `<p style="margin: 0 0 8px 0;"><strong>Reembolso al Comprador:</strong> $${formatCLP(buyerRefundAmount)} CLP</p>`;
-    }
-    if (sellerPaymentAmount && sellerPaymentAmount > 0) {
-      distributionHtml += `<p style="margin: 0 0 8px 0;"><strong>Pago al Vendedor:</strong> $${formatCLP(sellerPaymentAmount)} CLP</p>`;
-    }
+    const subject = `${thread.subjectPrefix} Apelación resuelta · ${productName}`;
 
-    // Email template
-    const createEmailHtml = (recipientName: string, role: "buyer" | "seller") => {
-      const roleLabel = role === "buyer" ? "comprador" : "vendedor";
-      const yourAmount = role === "buyer" ? buyerRefundAmount : sellerPaymentAmount;
-      const yourLabel = role === "buyer" ? "reembolsado" : "recibido";
-      
-      return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 32px; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 24px;">✅ Apelación Resuelta</h1>
-            </div>
-            
-            <div style="padding: 32px;">
-              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
-                Hola <strong>${sanitizeHtml(recipientName)}</strong>,
-              </p>
-              
-              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
-                ${isMutualAgreement 
-                  ? "¡Las partes han llegado a un acuerdo mutuo!" 
-                  : "La apelación de tu transacción ha sido resuelta por un administrador."
-                }
-              </p>
-              
-              <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 20px 0;">
-                <h3 style="color: #166534; margin: 0 0 12px 0; font-size: 16px;">Detalles de la Resolución</h3>
-                <p style="margin: 0 0 8px 0;"><strong>Transacción:</strong> ${sanitizeHtml(transaction.product_name)}</p>
-                <p style="margin: 0 0 8px 0;"><strong>Monto original:</strong> $${formatCLP(transaction.amount)} CLP</p>
-                <p style="margin: 0 0 12px 0;"><strong>Decisión:</strong> ${resolutionLabel}</p>
-                ${distributionHtml}
-                ${yourAmount && yourAmount > 0 
-                  ? `<p style="margin: 16px 0 0 0; padding-top: 12px; border-top: 1px solid #bbf7d0;"><strong>Monto ${yourLabel} a tu billetera:</strong> <span style="color: #059669; font-size: 18px; font-weight: bold;">$${formatCLP(yourAmount)} CLP</span></p>` 
-                  : ""
-                }
-              </div>
-              
-              <div style="background-color: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0;">
-                <p style="color: #6b7280; font-size: 14px; margin: 0 0 8px 0; font-weight: 600;">
-                  ${isMutualAgreement ? "Detalle del acuerdo:" : "Notas del administrador:"}
-                </p>
-                <p style="color: #374151; font-size: 14px; margin: 0; font-style: italic;">
-                  "${sanitizeHtml(resolutionNotes)}"
-                </p>
-              </div>
-              
-              <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
-                Los fondos ya han sido distribuidos según la resolución. Puedes ver el detalle completo en tu panel de transacciones.
-              </p>
-            </div>
-            
-            <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
-              <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                Trado - Transacciones Seguras entre Personas
-              </p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
-    };
-
-    // Send email to buyer
-    const buyerEmailResponse = await resend.emails.send({
-      from: "Trado <notificaciones@trado.cl>",
-      to: [buyerProfile.email],
-      subject: `✅ Apelación resuelta: ${transaction.product_name}`,
-      html: createEmailHtml(buyerProfile.full_name ?? "", "buyer"),
-    });
-
-    console.log("[notify-appeal-resolved] Buyer email sent:", buyerEmailResponse);
-
-    // Send email to seller
-    const sellerEmailResponse = await resend.emails.send({
-      from: "Trado <notificaciones@trado.cl>",
-      to: [sellerProfile.email],
-      subject: `✅ Apelación resuelta: ${transaction.product_name}`,
-      html: createEmailHtml(sellerProfile.full_name, "seller"),
-    });
-
-    console.log("[notify-appeal-resolved] Seller email sent:", sellerEmailResponse);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Notification emails sent successfully",
-        buyerEmail: buyerEmailResponse,
-        sellerEmail: sellerEmailResponse
+    await Promise.all([
+      sendEmail({
+        to: buyer.email,
+        subject,
+        html: buildHtml(escapeHtml(buyer.full_name || "Comprador"), "buyer"),
+        headers: thread.headers,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error: any) {
-    console.error("[notify-appeal-resolved] Error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+      sendEmail({
+        to: seller.email,
+        subject,
+        html: buildHtml(escapeHtml(seller.full_name || "Vendedor"), "seller"),
+        headers: thread.headers,
+      }),
+    ]);
+
+    if (thread.isNewThread && thread.anchorId) {
+      await persistThreadAnchor(supabase, tx.id, thread.anchorId);
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("[notify-appeal-resolved]", err);
+    return new Response(JSON.stringify({ error: (err as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
