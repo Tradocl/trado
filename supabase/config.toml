@@ -49,3 +49,5 @@ project_id = "uohlyccjugbqsxiwerrv"
     verify_jwt = false
   [functions.refund-mercadopago-deposit]
     verify_jwt = true
+  [functions.invite-buyer]
+    verify_jwt = true

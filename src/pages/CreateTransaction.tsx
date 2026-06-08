@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, ArrowRight, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link, ShieldAlert, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link, ShieldAlert, Shield, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
@@ -46,8 +46,10 @@ const CreateTransaction = () => {
     amount: number;
     saleType: SaleType;
     initiatorRole: InitiatorRole;
+    buyerEmail: string;
   } | null>(null);
   const [pendingFormEvent, setPendingFormEvent] = useState<React.FormEvent<HTMLFormElement> | null>(null);
+  const [buyerEmail, setBuyerEmail] = useState("");
 
   // Load user verification status
 
@@ -125,6 +127,7 @@ const CreateTransaction = () => {
         amount: parsedAmount,
         saleType,
         initiatorRole,
+        buyerEmail,
       });
       setShowConfirmModal(true);
     });
@@ -163,15 +166,24 @@ const CreateTransaction = () => {
 
       if (error) throw error;
 
-      // Send notification email
+      // Send notification email to seller
       try {
         await supabase.functions.invoke("notify-transaction-created", {
-          body: {
-            transactionId: transaction.id,
-          },
+          body: { transactionId: transaction.id },
         });
       } catch (emailError) {
         console.error("Error sending notification email:", emailError);
+      }
+
+      // Send direct invite to buyer if email was provided
+      if (formData.buyerEmail.trim()) {
+        try {
+          await supabase.functions.invoke("invite-buyer", {
+            body: { transactionId: transaction.id, email: formData.buyerEmail.trim() },
+          });
+        } catch (inviteError) {
+          console.error("Error sending buyer invite:", inviteError);
+        }
       }
 
       setShowConfirmModal(false);
@@ -569,6 +581,27 @@ const CreateTransaction = () => {
                   </div>
                 </>
               )}
+
+              {/* Optional direct buyer invite */}
+              <div className="space-y-2">
+                <Label htmlFor="buyerEmail" className="text-sm sm:text-base font-semibold">
+                  Invitar al comprador por correo <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="buyerEmail"
+                    type="email"
+                    placeholder="correo@ejemplo.com"
+                    value={buyerEmail}
+                    onChange={(e) => setBuyerEmail(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Si lo rellenas, le enviaremos un correo con el enlace de invitación. También podrás compartir el link manualmente.
+                </p>
+              </div>
 
               {/* How it works info */}
               <div className="p-4 bg-info/10 rounded-lg border border-info/20">
