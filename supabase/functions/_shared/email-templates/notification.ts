@@ -339,7 +339,7 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>${o.headline}</title>
 </head>
-<body style="margin:0;padding:0;background:${TRADO.bg};font-family:${TRADO.font};color:${TRADO.text};">
+<body style="margin:0;padding:16px 12px;background:${TRADO.bg};font-family:${TRADO.font};color:${TRADO.text};">
   <div style="max-width:580px;width:100%;margin:0 auto;background:${TRADO.card};border-radius:20px;overflow:hidden;box-shadow:0 4px 24px -8px rgba(15,20,36,0.12);box-sizing:border-box;">
     <!-- Colorful gradient header -->
     <div style="background:${theme.gradient};padding:28px 32px 24px;position:relative;">
