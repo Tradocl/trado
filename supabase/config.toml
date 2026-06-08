@@ -13,8 +13,6 @@ project_id = "uohlyccjugbqsxiwerrv"
     verify_jwt = true
   [functions.notify-appeal-resolved]
     verify_jwt = true
-  [functions.notify-meeting-proposal]
-    verify_jwt = true
   [functions.notify-transaction-action]
     verify_jwt = true
   [functions.notify-transaction-completed]
