@@ -173,6 +173,12 @@ const PublicProfile = () => {
           {profile.nickname && (
             <p className="text-sm text-muted-foreground mt-0.5">@{profile.nickname}</p>
           )}
+          {profile.created_at && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1.5">
+              <Calendar className="h-3.5 w-3.5" />
+              <span>{formatMemberSince(profile.created_at)}</span>
+            </div>
+          )}
         </div>
 
         {/* Stars inline */}
