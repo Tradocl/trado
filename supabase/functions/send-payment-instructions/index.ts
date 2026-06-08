@@ -142,8 +142,9 @@ const handler = async (req: Request): Promise<Response> => {
 
       <h2 style="margin:24px 0 10px;font-size:16px;font-weight:700;color:#0F1424;">¿Cómo sigue el proceso?</h2>
       <ol style="margin:0 0 20px;padding-left:20px;font-size:14px;line-height:1.7;color:#0F1424;">
-        <li><strong>Paga desde la sala</strong> con tarjeta, débito o los medios disponibles en nuestra pasarela de pagos segura. No necesitas hacer transferencias manuales.</li>
-        <li><strong>Tu dinero queda en custodia</strong> de Trado. ${sellerName} no recibe nada hasta que tú confirmes.</li>
+        <li><strong>Revisa tu saldo en Mi Billetera.</strong> Si ya tienes saldo suficiente, puedes pagar directo desde la sala sin recargar.</li>
+        <li><strong>Si te falta saldo, recárgalo desde Mi Billetera</strong> con nuestra pasarela de pagos segura (tarjeta, débito y otros medios). El dinero queda disponible en tu cuenta Trado.</li>
+        <li><strong>Vuelve a la sala y confirma el pago.</strong> Ese monto se bloquea en custodia de Trado: ${sellerName} no recibe nada hasta que tú confirmes.</li>
         <li><strong>Recibes ${saleType === "service" ? "el servicio" : "el producto"}</strong> y revisas que esté todo bien.</li>
         <li><strong>Confirmas la entrega</strong> desde la sala y recién ahí se libera el pago al vendedor.</li>
       </ol>
@@ -153,11 +154,14 @@ const handler = async (req: Request): Promise<Response> => {
       </p>
 
       <div style="text-align:center;margin:28px 0 8px;">
-        <a href="${transactionUrl}" style="display:inline-block;background:#2230C2;color:#ffffff;font-size:15px;font-weight:600;border-radius:10px;padding:14px 28px;text-decoration:none;">Ir a la sala y pagar</a>
+        <a href="${transactionUrl}" style="display:inline-block;background:#2230C2;color:#ffffff;font-size:15px;font-weight:600;border-radius:10px;padding:14px 28px;text-decoration:none;">Ir a la sala</a>
+        <div style="margin-top:12px;">
+          <a href="${baseUrl}/wallet" style="display:inline-block;color:#2230C2;font-size:14px;font-weight:600;text-decoration:none;">Recargar saldo en Mi Billetera →</a>
+        </div>
       </div>
 
       <p style="margin:20px 0 0;font-size:13px;color:#5B6378;text-align:center;">
-        O abre este enlace: <a href="${transactionUrl}" style="color:#2230C2;word-break:break-all;">${transactionUrl}</a>
+        O abre la sala aquí: <a href="${transactionUrl}" style="color:#2230C2;word-break:break-all;">${transactionUrl}</a>
       </p>
 
       <div style="border-top:1px solid #E5E7F0;margin:28px 0 18px;"></div>
