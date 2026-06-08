@@ -375,8 +375,7 @@ const handler = async (req: Request): Promise<Response> => {
     const headline = cfg.headline(actorName, productName);
     const nextStep = cfg.next(actorName, productName, data);
     const ctaUrl = cfg.ctaUrlFor(transactionId, data);
-    const referenceCode = transaction.invite_code ||
-      transaction.id.substring(0, 8).toUpperCase();
+    const referenceCode = transaction.id.substring(0, 8).toUpperCase();
 
     const summaryRows = [
       { label: "Producto", value: productName },
