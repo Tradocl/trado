@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut } from "lucide-react";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { PushNotificationCard } from "@/components/PushNotificationCard";
 import { supabase } from "@/lib/supabase";
@@ -1389,15 +1389,26 @@ const Profile = () => {
           </CardContent>
         </Card>
 
+        {/* Cerrar sesión */}
+        <Card className="border shadow-sm">
+          <CardContent className="pt-4 pb-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={async () => { await supabase.auth.signOut(); navigate("/"); }}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Cerrar sesión
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Danger Zone */}
-        <Card className="border border-destructive/30 shadow-md bg-destructive/5">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              <div>
-                <CardTitle className="text-base text-destructive">Zona de peligro</CardTitle>
-                <CardDescription className="text-xs">Acciones irreversibles</CardDescription>
-              </div>
+        <Card className="border border-destructive/20 shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-destructive/60" />
+              <CardTitle className="text-sm text-destructive/70">Zona de peligro</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
@@ -1406,8 +1417,9 @@ const Profile = () => {
               Necesitas tener saldo $0 y sin transacciones activas.
             </p>
             <Button
-              variant="destructive"
+              variant="outline"
               size="sm"
+              className="text-destructive/70 border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
               onClick={() => { setDeleteConfirmText(""); setShowDeleteDialog(true); }}
             >
               <Trash2 className="mr-2 h-4 w-4" />
