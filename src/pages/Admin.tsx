@@ -1480,7 +1480,7 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-destructive">${formatCLP(tokenStats.totalMpFees)}</div>
-                <p className="text-xs text-muted-foreground">~3,8% retenido por MP en depósitos</p>
+                <p className="text-xs text-muted-foreground">~3,8% retenido por MP en depósitos (3,19% + IVA)</p>
               </CardContent>
             </Card>
           </div>
