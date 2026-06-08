@@ -132,18 +132,27 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // Update return request status
-    const { error: updateReturnError } = await supabaseClient
+    // RACE CONDITION FIX: Use return_request status update as atomic lock.
+    // Only one concurrent request can succeed in changing status from "shipped" to "completed".
+    const { data: locked, error: lockError } = await supabaseClient
       .from("return_requests")
-      .update({
-        status: "completed",
-        received_at: new Date().toISOString(),
-      })
-      .eq("id", returnRequestId);
+      .update({ status: "completed", received_at: new Date().toISOString() })
+      .eq("id", returnRequestId)
+      .eq("status", "shipped")
+      .select("id")
+      .maybeSingle();
 
-    if (updateReturnError) {
-      console.error("[process-return-refund] Error updating return request", updateReturnError);
-      throw new Error("No se pudo actualizar la solicitud de devolución");
+    if (lockError) {
+      console.error("[process-return-refund] Error acquiring return request lock", lockError);
+      throw new Error("Error al procesar la devolución");
+    }
+
+    if (!locked) {
+      console.log(`[process-return-refund] Return request ${returnRequestId} already processed by concurrent request`);
+      return new Response(JSON.stringify({ success: true, message: "El reembolso ya fue procesado" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Get buyer's wallet and process refund
@@ -234,6 +243,7 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Create commission movement to track platform revenue
+    // balance_after for this record = newBalance - commission (reflects the actual deduction)
     if (commission > 0) {
       const { error: commissionError } = await supabaseClient
         .from("wallet_movements")
@@ -242,7 +252,7 @@ serve(async (req: Request): Promise<Response> => {
           transaction_id: transactionId,
           type: "commission",
           amount: -commission,
-          balance_after: newBalance,
+          balance_after: newBalance - commission,
           description: `Comisión "${tx.product_name}"`,
           status: "approved",
         });
@@ -257,11 +267,9 @@ serve(async (req: Request): Promise<Response> => {
     // Update transaction state to completed
     const { error: txUpdateError } = await supabaseClient
       .from("transactions")
-      .update({
-        state: "completed",
-        completed_at: new Date().toISOString()
-      })
-      .eq("id", transactionId);
+      .update({ state: "completed", completed_at: new Date().toISOString() })
+      .eq("id", transactionId)
+      .eq("state", "return_in_progress"); // idempotency guard
 
     if (txUpdateError) {
       console.error("[process-return-refund] Error updating transaction", txUpdateError);

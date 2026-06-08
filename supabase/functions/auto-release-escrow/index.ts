@@ -83,7 +83,11 @@ serve(async (_req) => {
       const escrowAmount = initiatorRole === "buyer" ? amount + commission : amount;
 
       const newSellerBalance = Number(sellerWallet.balance ?? 0) + amountToSeller;
-      const newBuyerBlocked = Math.max(0, Number(buyerWallet.blocked_balance ?? 0) - escrowAmount);
+      const currentBuyerBlocked = Number(buyerWallet.blocked_balance ?? 0);
+      if (currentBuyerBlocked < escrowAmount) {
+        console.error(`[auto-release-escrow] DATA INCONSISTENCY: blocked_balance (${currentBuyerBlocked}) < escrowAmount (${escrowAmount}) for tx ${tx.id}`);
+      }
+      const newBuyerBlocked = Math.max(0, currentBuyerBlocked - escrowAmount);
 
       // Release buyer blocked funds
       await supabase.from("wallets").update({ blocked_balance: newBuyerBlocked }).eq("id", buyerWallet.id);

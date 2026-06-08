@@ -95,23 +95,26 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("La transacción no está lista para completarse");
     }
 
-    // CRITICAL: Check if escrow_release already exists for this transaction to prevent double payments
-    const { data: existingRelease, error: releaseCheckError } = await supabaseClient
-      .from("wallet_movements")
+    // RACE CONDITION FIX: Use the transaction state update as an atomic lock.
+    // Only ONE concurrent request can succeed in changing the state from an allowed state
+    // to "completed". Postgres guarantees this update is atomic, preventing double payments.
+    const { data: locked, error: lockError } = await supabaseClient
+      .from("transactions")
+      .update({ state: "completed", completed_at: new Date().toISOString(), commission: Number(tx.commission) || 0 })
+      .eq("id", transactionId)
+      .in("state", allowedStates)
       .select("id")
-      .eq("transaction_id", transactionId)
-      .eq("type", "escrow_release")
-      .eq("status", "approved")
       .maybeSingle();
 
-    if (releaseCheckError) {
-      console.error("[confirm-delivery] Error checking existing release", releaseCheckError);
-      throw new Error("Error al verificar el estado del pago");
+    if (lockError) {
+      console.error("[confirm-delivery] Error acquiring transaction lock", lockError);
+      throw new Error("Error al procesar la transacción");
     }
 
-    if (existingRelease) {
-      console.log(`[confirm-delivery] Escrow release already exists for transaction ${transactionId}, skipping duplicate`);
-      return new Response(JSON.stringify({ success: true, message: "La transacción ya fue completada anteriormente" }), {
+    if (!locked) {
+      // Another concurrent request already completed this transaction
+      console.log(`[confirm-delivery] Transaction ${transactionId} already completed by concurrent request`);
+      return new Response(JSON.stringify({ success: true, message: "La transacción ya fue completada" }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -169,6 +172,9 @@ serve(async (req: Request): Promise<Response> => {
 
     // Release buyer's blocked funds
     const currentBuyerBlocked = Number(buyerWallet.blocked_balance ?? 0);
+    if (currentBuyerBlocked < escrowAmount) {
+      console.error(`[confirm-delivery] DATA INCONSISTENCY: blocked_balance (${currentBuyerBlocked}) < escrowAmount (${escrowAmount}) for tx ${transactionId}`);
+    }
     const newBuyerBlocked = Math.max(0, currentBuyerBlocked - escrowAmount);
 
     // Determine sale type label for description
@@ -228,21 +234,7 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("No se pudo registrar el movimiento de la billetera");
     }
 
-    // Update transaction state
-    const { error: txUpdateError } = await supabaseClient
-      .from("transactions")
-      .update({ 
-        state: "completed", 
-        completed_at: new Date().toISOString(),
-        commission: calculatedCommission
-      })
-      .eq("id", tx.id);
-
-    if (txUpdateError) {
-      console.error("[confirm-delivery] Error updating transaction", txUpdateError);
-      throw new Error("No se pudo actualizar la transacción");
-    }
-
+    // Transaction state was already set to "completed" in the lock step above.
     // Update seller profile stats
     const { data: sellerProfile, error: sellerProfileError } = await supabaseClient
       .from("profiles")
