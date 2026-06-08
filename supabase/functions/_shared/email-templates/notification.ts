@@ -323,7 +323,7 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
     : "";
 
   const ref = o.referenceCode
-    ? `<div style="font-size:11px;color:rgba(255,255,255,0.85);margin:0;letter-spacing:0.04em;">REFERENCIA <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#fff;font-weight:700;">#${o.referenceCode}</span></div>`
+    ? `<div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#fff;font-weight:700;background:rgba(255,255,255,0.18);border-radius:999px;padding:5px 10px;display:inline-block;white-space:nowrap;">#${o.referenceCode}</div>`
     : "";
 
   const eyebrow = o.eyebrow
@@ -339,8 +339,8 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>${o.headline}</title>
 </head>
-<body style="margin:0;padding:0;background:${TRADO.bg};font-family:${TRADO.font};color:${TRADO.text};">
-  <div style="max-width:580px;margin:32px auto;background:${TRADO.card};border-radius:20px;overflow:hidden;box-shadow:0 4px 24px -8px rgba(15,20,36,0.12);">
+<body style="margin:0;padding:16px 12px;background:${TRADO.bg};font-family:${TRADO.font};color:${TRADO.text};">
+  <div style="max-width:580px;width:100%;margin:0 auto;background:${TRADO.card};border-radius:20px;overflow:hidden;box-shadow:0 4px 24px -8px rgba(15,20,36,0.12);box-sizing:border-box;">
     <!-- Colorful gradient header -->
     <div style="background:${theme.gradient};padding:28px 32px 24px;position:relative;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
