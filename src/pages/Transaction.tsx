@@ -504,10 +504,11 @@ const Transaction = () => {
 
     setMarkingReceived(true);
     try {
-      await supabase
+      const { error: updateError } = await supabase
         .from("transactions")
         .update({ state: "awaiting_buyer_review", received_at: new Date().toISOString() })
         .eq("id", transaction.id);
+      if (updateError) throw updateError;
 
       // Notify the seller that buyer received the product
       try {
