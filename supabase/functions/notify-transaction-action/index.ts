@@ -4,6 +4,7 @@ import { sendPushToUsers } from "../_shared/push.ts";
 import {
   appealUrl,
   buildThreadHeaders,
+  buildThreadSubject,
   escapeHtml,
   formatCLP,
   persistThreadAnchor,
