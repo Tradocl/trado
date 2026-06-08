@@ -2515,10 +2515,12 @@ const Transaction = () => {
                       {creatorProfile ? (
                         <button
                           type="button"
-                          className="font-medium text-primary hover:underline text-left"
+                          className="font-medium text-primary hover:underline underline-offset-2 decoration-dotted text-left inline-flex items-center gap-1"
                           onClick={() => navigate(`/u/${creatorProfile.id}`)}
+                          title="Ver perfil público"
                         >
                           {creatorProfile.full_name}
+                          <User className="h-3 w-3 opacity-60" />
                         </button>
                       ) : (
                         <p className="font-medium">Cargando...</p>
