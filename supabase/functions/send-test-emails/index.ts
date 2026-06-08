@@ -1,5 +1,6 @@
 // Sends one sample of every email template/variant to contacto@trado.cl
 // for visual QA. Admin-only.
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import * as React from "npm:react@18.3.1";
 import { render } from "npm:@react-email/render@0.0.17";
 import { requireServiceRole } from "../_shared/auth.ts";
