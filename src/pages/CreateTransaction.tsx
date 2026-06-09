@@ -35,7 +35,7 @@ const CreateTransaction = () => {
   const [createdTransactionId, setCreatedTransactionId] = useState<string | null>(null);
   const [createdInviteCode, setCreatedInviteCode] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [saleType, setSaleType] = useState<SaleType>("producto_envio");
+  const [saleType, setSaleType] = useState<SaleType>("producto_persona");
   const [mainType, setMainType] = useState<MainType>("producto");
   const [initiatorRole, setInitiatorRole] = useState<InitiatorRole>("seller");
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
