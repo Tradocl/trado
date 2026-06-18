@@ -20,6 +20,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import GuestPreview from "./pages/GuestPreview";
 
 // Lazy: protected/secondary routes, loaded on demand
 const Wallet = lazy(() => import("./pages/Wallet"));
@@ -97,6 +98,7 @@ const App = () => (
                 {/* Public routes */}
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/guest" element={<GuestPreview />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/reset-password" element={<ResetPassword />} />

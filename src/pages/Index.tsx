@@ -139,23 +139,101 @@ const TransactionCard = () => (
 
 const AppLanding = () => {
   const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info px-8">
-      <div className="flex flex-col items-center gap-8 w-full max-w-sm">
-        <Logo height={56} />
-        <div className="text-center text-white space-y-3">
-          <h1 className="text-4xl font-bold tracking-tight">Trado</h1>
-          <p className="text-white/80 text-lg">Opera con total seguridad</p>
+    <div className="min-h-screen flex flex-col bg-[#0f1035] overflow-hidden relative">
+      {/* Background glow blobs */}
+      <div className="absolute top-[-80px] left-[-60px] w-72 h-72 bg-[#1F25C1]/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-[30%] right-[-80px] w-64 h-64 bg-[#6366f1]/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[20%] left-[-40px] w-56 h-56 bg-[#16A34A]/20 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Top section — logo + tagline */}
+      <div className="flex flex-col items-center pt-20 px-8 gap-4">
+        <Logo height={52} />
+        <div className="text-center space-y-2 mt-2">
+          <h1 className="text-4xl font-black text-white tracking-tight">
+            Compra y vende<br />
+            <span className="text-[#818cf8]">sin riesgo</span>
+          </h1>
+          <p className="text-white/60 text-base">Tu dinero protegido hasta confirmar la entrega</p>
         </div>
-        <div className="flex flex-col gap-3 w-full">
-          <Button size="lg" onClick={() => navigate("/auth")} className="bg-white text-primary hover:bg-white/90 shadow-xl text-base font-semibold h-14 w-full">
-            Iniciar Sesión
-          </Button>
-          <Button size="lg" variant="outline" onClick={() => navigate("/auth?tab=register")} className="border-white/50 text-white hover:bg-white/10 h-14 w-full bg-transparent text-base font-semibold">
-            Crear Cuenta Gratis
-          </Button>
+      </div>
+
+      {/* Phone mockup — floating card preview */}
+      <div className="flex-1 flex items-center justify-center px-10 py-6">
+        <div className="w-full max-w-xs bg-white/5 border border-white/10 rounded-3xl p-4 backdrop-blur-sm shadow-2xl space-y-3">
+          {/* Mock transaction card */}
+          <div className="bg-[#1F25C1]/80 rounded-2xl p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-white/70 text-xs font-medium">MacBook Air M1</span>
+              <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                <Lock size={9} /> Protegido
+              </span>
+            </div>
+            <p className="text-white font-black text-2xl">$620.000</p>
+            <div className="flex gap-1.5 pt-1">
+              {["Pago", "Envío", "Confirmar"].map((s, i) => (
+                <div key={s} className="flex items-center gap-1">
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${i === 0 ? "bg-white text-[#1F25C1]" : i === 1 ? "bg-white/30 text-white border border-white/50" : "bg-white/10 text-white/40"}`}>
+                    {i === 0 ? "✓" : i + 1}
+                  </div>
+                  <span className={`text-[9px] font-medium ${i === 0 ? "text-white" : "text-white/40"}`}>{s}</span>
+                  {i < 2 && <div className={`h-px w-4 ${i === 0 ? "bg-white/50" : "bg-white/15"}`} />}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Trust pills */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { icon: Shield, label: "Escrow", sub: "100% seguro" },
+              { icon: Star, label: "Reputación", sub: "Verificada" },
+              { icon: CheckCircle, label: "Disputas", sub: "Mediadas" },
+            ].map(({ icon: Icon, label, sub }) => (
+              <div key={label} className="bg-white/5 border border-white/8 rounded-xl p-2 text-center">
+                <Icon size={16} className="text-[#818cf8] mx-auto mb-1" />
+                <p className="text-white text-[10px] font-semibold">{label}</p>
+                <p className="text-white/40 text-[9px]">{sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Social proof */}
+          <div className="flex items-center justify-center gap-1.5 py-1">
+            <div className="flex -space-x-1.5">
+              {["#6366f1","#16A34A","#f59e0b","#ec4899"].map((c, i) => (
+                <div key={i} className="w-6 h-6 rounded-full border-2 border-[#0f1035]" style={{ background: c }} />
+              ))}
+            </div>
+            <p className="text-white/50 text-[11px]">+1.200 usuarios activos en Chile</p>
+          </div>
         </div>
-        <p className="text-white/50 text-xs text-center">Al continuar aceptas nuestros Términos y Condiciones</p>
+      </div>
+
+      {/* CTA buttons */}
+      <div className="px-6 pb-10 flex flex-col gap-3">
+        <Button
+          size="lg"
+          onClick={() => navigate("/auth")}
+          className="bg-white text-[#1F25C1] hover:bg-white/90 shadow-2xl text-base font-bold h-14 w-full rounded-2xl"
+        >
+          Iniciar Sesión
+        </Button>
+        <Button
+          size="lg"
+          onClick={() => navigate("/auth?tab=register")}
+          className="bg-[#1F25C1] text-white hover:bg-[#1F25C1]/80 border border-white/20 h-14 w-full rounded-2xl text-base font-bold"
+        >
+          Crear Cuenta Gratis
+        </Button>
+        <button
+          onClick={() => navigate("/guest")}
+          className="text-white/40 text-sm font-medium py-2 text-center hover:text-white/70 transition-colors"
+        >
+          Explorar sin cuenta →
+        </button>
+        <p className="text-white/25 text-xs text-center -mt-1">Al continuar aceptas nuestros Términos y Condiciones</p>
       </div>
     </div>
   );
