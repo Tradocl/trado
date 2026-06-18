@@ -35,7 +35,7 @@ const Privacy = () => {
             </h1>
           </div>
           <p className="text-white/80 text-lg">
-            Última actualización: Mayo 2026
+            Última actualización: Junio 2026
           </p>
         </div>
       </div>
@@ -64,8 +64,9 @@ const Privacy = () => {
               </p>
               <p>
                 <strong className="text-foreground">Base legal:</strong> El tratamiento de tus datos
-                personales se rige por la <strong className="text-foreground">Ley N° 19.628</strong> sobre
-                Protección de la Vida Privada de Chile y las normas de la Ley N° 21.521 (Ley Fintech)
+                personales se rige por la <strong className="text-foreground">Ley N° 21.719</strong> sobre
+                Protección de Datos Personales de Chile (vigente desde diciembre 2026), la Ley N° 19.628
+                sobre Protección de la Vida Privada, y las normas de la Ley N° 21.521 (Ley Fintech)
                 en lo relativo al tratamiento de datos en servicios financieros digitales.
               </p>
             </div>
@@ -209,27 +210,50 @@ const Privacy = () => {
             </div>
           </section>
 
-          {/* User Rights */}
+          {/* User Rights — ARCO */}
           <section className="bg-card rounded-2xl p-8 border border-border shadow-lg">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-info/10 rounded-lg">
                 <UserCheck className="h-6 w-6 text-info" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">6. Tus Derechos</h2>
+              <h2 className="text-2xl font-bold text-foreground">6. Tus Derechos (ARCO+)</h2>
             </div>
             <div className="text-muted-foreground space-y-4">
-              <p>Como usuario de Trado, tienes derecho a:</p>
+              <p>Conforme a la <strong className="text-foreground">Ley N° 21.719</strong>, tienes los siguientes derechos:</p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Acceso:</strong> Solicitar una copia de los datos personales que tenemos sobre ti.</li>
-                <li><strong>Rectificación:</strong> Corregir datos inexactos o desactualizados.</li>
-                <li><strong>Eliminación:</strong> Solicitar la eliminación de tus datos personales (sujeto a obligaciones legales de retención).</li>
-                <li><strong>Portabilidad:</strong> Recibir tus datos en un formato estructurado y legible.</li>
-                <li><strong>Oposición:</strong> Oponerte al procesamiento de tus datos para ciertos fines.</li>
-                <li><strong>Retiro de consentimiento:</strong> Retirar tu consentimiento en cualquier momento para comunicaciones promocionales.</li>
+                <li><strong className="text-foreground">Acceso:</strong> Solicitar y recibir una copia de los datos personales que tenemos sobre ti, incluyendo el origen, finalidad y a quiénes han sido comunicados.</li>
+                <li><strong className="text-foreground">Rectificación:</strong> Corregir datos inexactos, incompletos o desactualizados.</li>
+                <li><strong className="text-foreground">Cancelación/Supresión:</strong> Solicitar la eliminación de tus datos personales cuando ya no sean necesarios para la finalidad que motivó su tratamiento (sujeto a obligaciones legales de retención).</li>
+                <li><strong className="text-foreground">Oposición:</strong> Oponerte al tratamiento de tus datos para fines específicos, como comunicaciones promocionales o elaboración de perfiles.</li>
+                <li><strong className="text-foreground">Portabilidad:</strong> Recibir tus datos en formato estructurado, de uso común y lectura mecánica, y transmitirlos a otro responsable. Puedes exportar tus datos directamente desde tu perfil en la plataforma.</li>
+                <li><strong className="text-foreground">Bloqueo:</strong> Solicitar la suspensión temporal del tratamiento de tus datos mientras se resuelve una rectificación u oposición.</li>
+                <li><strong className="text-foreground">Retiro de consentimiento:</strong> Retirar tu consentimiento en cualquier momento, sin afectar la licitud del tratamiento previo.</li>
               </ul>
-              <p>
-                Para ejercer estos derechos, contáctanos en <a href="mailto:contacto@trado.cl" className="text-primary underline hover:text-primary/80 font-semibold">contacto@trado.cl</a>
+              <p className="bg-primary/5 rounded-lg p-3 text-sm">
+                <strong className="text-foreground">Cómo ejercer tus derechos:</strong> Escríbenos a{" "}
+                <a href="mailto:contacto@trado.cl?subject=Solicitud%20de%20Derechos%20ARCO%20-%20Ley%2021.719" className="text-primary underline hover:text-primary/80 font-semibold">contacto@trado.cl</a>{" "}
+                indicando tu nombre completo, RUT y el derecho que deseas ejercer. Respondemos dentro de <strong className="text-foreground">15 días hábiles</strong> conforme a la ley.
               </p>
+            </div>
+          </section>
+
+          {/* Breach Notification */}
+          <section className="bg-card rounded-2xl p-8 border border-border shadow-lg">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-destructive/10 rounded-lg">
+                <Bell className="h-6 w-6 text-destructive" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">6b. Notificación de Brechas de Seguridad</h2>
+            </div>
+            <div className="text-muted-foreground space-y-4">
+              <p>
+                Conforme al artículo 51 de la <strong className="text-foreground">Ley N° 21.719</strong>, en caso de detectar una brecha de seguridad que afecte tus datos personales:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Notificaremos a la <strong className="text-foreground">Agencia de Protección de Datos Personales</strong> dentro de las <strong className="text-foreground">72 horas</strong> de haber tomado conocimiento.</li>
+                <li>Te notificaremos a ti directamente si la brecha representa un riesgo elevado para tus derechos, sin dilación indebida.</li>
+                <li>La notificación incluirá la naturaleza de la brecha, datos afectados, consecuencias posibles y medidas adoptadas.</li>
+              </ul>
             </div>
           </section>
 

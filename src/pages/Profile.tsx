@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut } from "lucide-react";
+import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut, Download, FileText } from "lucide-react";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { PushNotificationCard } from "@/components/PushNotificationCard";
 import { supabase } from "@/lib/supabase";
@@ -161,6 +161,7 @@ const Profile = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
 
   const isProfileComplete = profileData?.rut && profileData?.phone && profileData?.address &&
     profileData.rut.trim() !== '' && profileData.phone.trim() !== '' && profileData.address.trim() !== '';
@@ -537,6 +538,43 @@ const Profile = () => {
 
   const removeBackground = () => {
     setBackgroundUrl("");
+  };
+
+  const handleDataExport = async () => {
+    if (!user) return;
+    setExportingData(true);
+    try {
+      const [profileResult, transactionsResult, walletResult, movementsResult] = await Promise.all([
+        supabase.from('profiles').select('full_name, email, phone, rut, address, created_at, is_verified, reputation_score, total_transactions').eq('id', user.id).single(),
+        supabase.from('transactions').select('id, title, amount, status, role, created_at, completed_at').or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).order('created_at', { ascending: false }),
+        supabase.from('wallets').select('balance, total_deposited, total_withdrawn').eq('user_id', user.id).single(),
+        supabase.from('wallet_movements').select('type, amount, description, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(200),
+      ]);
+
+      const exportData = {
+        exported_at: new Date().toISOString(),
+        ley_21719_portabilidad: true,
+        profile: profileResult.data,
+        wallet: walletResult.data,
+        transactions: transactionsResult.data || [],
+        wallet_movements: movementsResult.data || [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trado-mis-datos-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Datos exportados correctamente');
+    } catch (error: any) {
+      toast.error('Error al exportar datos: ' + error.message);
+    } finally {
+      setExportingData(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -1386,6 +1424,43 @@ const Profile = () => {
                 Son opcionales y solo tú puedes verlos.
               </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Privacidad y Mis Datos — Ley 21.719 */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle className="text-base">Privacidad y Mis Datos</CardTitle>
+                <CardDescription className="text-xs">Derechos ARCO — Ley N° 21.719</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Tienes derecho a acceder, rectificar, suprimir, oponerte y portar tus datos personales conforme a la Ley 21.719.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={handleDataExport}
+              disabled={exportingData}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {exportingData ? "Exportando..." : "Exportar mis datos (JSON)"}
+            </Button>
+            <a
+              href={`mailto:contacto@trado.cl?subject=Solicitud%20Derechos%20ARCO%20-%20Ley%2021.719&body=Hola%2C%0A%0ASolicito%20ejercer%20el%20siguiente%20derecho%20sobre%20mis%20datos%20personales%3A%0A%0A[Indicar%3A%20Acceso%20%2F%20Rectificaci%C3%B3n%20%2F%20Cancelaci%C3%B3n%20%2F%20Oposici%C3%B3n%20%2F%20Bloqueo%20%2F%20Portabilidad]%0A%0ANombre%3A%20${encodeURIComponent(profileData?.full_name || '')}%0ARUT%3A%20${encodeURIComponent(profileData?.rut || '')}%0AEmail%3A%20${encodeURIComponent(profileData?.email || '')}`}
+              className="block"
+            >
+              <Button variant="outline" size="sm" className="w-full">
+                <Mail className="mr-2 h-4 w-4" />
+                Solicitar rectificación / oposición / bloqueo
+              </Button>
+            </a>
           </CardContent>
         </Card>
 

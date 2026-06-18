@@ -12,7 +12,12 @@ export const CookieBanner = () => {
     if (!localStorage.getItem(COOKIE_KEY)) setVisible(true);
   }, []);
 
-  const accept = () => {
+  const acceptEssential = () => {
+    localStorage.setItem(COOKIE_KEY, "essential");
+    setVisible(false);
+  };
+
+  const acceptAll = () => {
     localStorage.setItem(COOKIE_KEY, "accepted");
     setVisible(false);
   };
@@ -31,10 +36,10 @@ export const CookieBanner = () => {
           </Link>
         </p>
         <div className="flex gap-2 shrink-0">
-          <Button size="sm" variant="outline" onClick={accept}>
+          <Button size="sm" variant="outline" onClick={acceptEssential}>
             Solo esenciales
           </Button>
-          <Button size="sm" onClick={accept}>
+          <Button size="sm" onClick={acceptAll}>
             Aceptar todo
           </Button>
         </div>
