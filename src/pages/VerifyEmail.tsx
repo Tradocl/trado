@@ -13,6 +13,7 @@ const VerifyEmail = () => {
   const email = (location.state as any)?.email || "";
   const [resending, setResending] = useState(false);
   const [verified, setVerified] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const checkProfileAndRedirect = async (userId: string) => {
@@ -33,18 +34,20 @@ const VerifyEmail = () => {
       return false;
     };
 
-    // Detect verification: either via session created by email link, or auth state change
+    // Check session immediately — don't show "verify email" if already verified
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user?.email_confirmed_at) {
         const redirected = await checkProfileAndRedirect(session.user.id);
         if (!redirected) setVerified(true);
       }
+      setChecking(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user?.email_confirmed_at) {
         const redirected = await checkProfileAndRedirect(session.user.id);
         if (!redirected) setVerified(true);
+        setChecking(false);
       }
     });
 
@@ -85,6 +88,14 @@ const VerifyEmail = () => {
       navigate("/auth");
     }
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info p-4">
+        <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info p-4">
