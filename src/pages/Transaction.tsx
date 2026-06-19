@@ -291,12 +291,7 @@ const Transaction = () => {
       const origin = window.location.origin;
       let appUrl = origin;
       if (origin.includes('id-preview--') || origin.includes('localhost')) {
-        const match = origin.match(/id-preview--([^.]+)/);
-        if (match) {
-          appUrl = `https://${match[1]}.lovable.app`;
-        } else {
-          appUrl = 'https://wpczgwxsriezaubncuom.lovable.app';
-        }
+        appUrl = 'https://trado.cl';
       }
       const link = `${appUrl}/invite/${transaction.id}`;
       navigator.clipboard.writeText(link);

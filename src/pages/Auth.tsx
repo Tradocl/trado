@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
-import { lovable } from "@/integrations/lovable";
 
 interface PasswordRequirement {
   label: string;
@@ -148,18 +147,14 @@ const Auth = () => {
   };
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
     });
-    
-    if (result.error) {
-      toast.error("Error al iniciar sesión con Google: " + result.error.message);
-      setLoading(false);
-      return;
-    }
 
-    if (!result.redirected) {
-      navigate("/dashboard");
+    if (error) {
+      toast.error("Error al iniciar sesión con Google: " + error.message);
+      setLoading(false);
     }
   };
 
