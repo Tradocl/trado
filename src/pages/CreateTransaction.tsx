@@ -219,15 +219,8 @@ const CreateTransaction = () => {
   // Get the correct app URL (production or staging, not preview)
   const getAppUrl = () => {
     const origin = window.location.origin;
-    // If we're in the Lovable preview, use the staging URL
-    if (origin.includes('id-preview--') || origin.includes('localhost')) {
-      // Extract project ID from preview URL or use known staging domain
-      const match = origin.match(/id-preview--([^.]+)/);
-      if (match) {
-        return `https://${match[1]}.lovable.app`;
-      }
-      // Fallback for localhost - use a known staging URL
-      return 'https://wpczgwxsriezaubncuom.lovable.app';
+    if (origin.includes('localhost') || origin.includes('id-preview--')) {
+      return 'https://trado.cl';
     }
     return origin;
   };

@@ -28,11 +28,7 @@ function isInIframe(): boolean {
 function isPreviewHost(): boolean {
   if (typeof window === "undefined") return false;
   const h = window.location.hostname;
-  return (
-    h.includes("id-preview--") ||
-    h.includes("lovableproject.com") ||
-    h.includes("lovable.dev")
-  );
+  return h.includes("id-preview--") || h === "localhost" || h === "127.0.0.1";
 }
 
 export type PushPermissionState =
