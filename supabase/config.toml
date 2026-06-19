@@ -51,3 +51,5 @@ project_id = "aekzrackrijuxvopqfbp"
     verify_jwt = true
   [functions.auto-escalate-appeals]
     verify_jwt = false
+  [functions.send-test-emails]
+    verify_jwt = false
