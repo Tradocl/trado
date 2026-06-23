@@ -949,13 +949,14 @@ export default function Admin() {
                                 const path = stored.includes('/verification-documents/')
                                   ? stored.split('/verification-documents/')[1]
                                   : stored;
-                                const { data } = await supabase.storage
+                                const { data, error } = await supabase.storage
                                   .from('verification-documents')
                                   .createSignedUrl(path, 3600);
                                 if (data?.signedUrl) {
                                   window.open(data.signedUrl, "_blank");
                                 } else {
-                                  toast.error("Error al abrir el documento");
+                                  console.error("Error carnet:", error, "path:", path);
+                                  toast.error("Error al abrir el documento: " + (error?.message ?? "sin URL"));
                                 }
                               }}
                             >
@@ -971,13 +972,14 @@ export default function Admin() {
                                 const path = stored.includes('/verification-documents/')
                                   ? stored.split('/verification-documents/')[1]
                                   : stored;
-                                const { data } = await supabase.storage
+                                const { data, error } = await supabase.storage
                                   .from('verification-documents')
                                   .createSignedUrl(path, 3600);
                                 if (data?.signedUrl) {
                                   window.open(data.signedUrl, "_blank");
                                 } else {
-                                  toast.error("Error al abrir la selfie");
+                                  console.error("Error selfie:", error, "path:", path);
+                                  toast.error("Error al abrir la selfie: " + (error?.message ?? "sin URL"));
                                 }
                               }}
                             >
