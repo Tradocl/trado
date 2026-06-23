@@ -139,6 +139,12 @@ const TransactionCard = () => (
 
 const AppLanding = () => {
   const navigate = useNavigate();
+  const [mockStep, setMockStep] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setMockStep((s) => (s + 1) % 3), 1800);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0f1035] overflow-hidden relative">
@@ -174,11 +180,15 @@ const AppLanding = () => {
             <div className="flex gap-1.5 pt-1">
               {["Pago", "Envío", "Confirmar"].map((s, i) => (
                 <div key={s} className="flex items-center gap-1">
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${i === 0 ? "bg-white text-[#1F25C1]" : i === 1 ? "bg-white/30 text-white border border-white/50" : "bg-white/10 text-white/40"}`}>
-                    {i === 0 ? "✓" : i + 1}
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold transition-all duration-500 ${
+                    i < mockStep ? "bg-white text-[#1F25C1]" :
+                    i === mockStep ? "bg-white text-[#1F25C1] ring-2 ring-white/50 scale-110" :
+                    "bg-white/10 text-white/40"
+                  }`}>
+                    {i < mockStep ? "✓" : i + 1}
                   </div>
-                  <span className={`text-[9px] font-medium ${i === 0 ? "text-white" : "text-white/40"}`}>{s}</span>
-                  {i < 2 && <div className={`h-px w-4 ${i === 0 ? "bg-white/50" : "bg-white/15"}`} />}
+                  <span className={`text-[9px] font-medium transition-all duration-500 ${i <= mockStep ? "text-white" : "text-white/40"}`}>{s}</span>
+                  {i < 2 && <div className={`h-px w-4 transition-all duration-500 ${i < mockStep ? "bg-white/70" : "bg-white/15"}`} />}
                 </div>
               ))}
             </div>
