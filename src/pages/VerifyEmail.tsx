@@ -14,26 +14,27 @@ const VerifyEmail = () => {
   const [resending, setResending] = useState(false);
   const [verified, setVerified] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const checkProfileAndRedirect = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("rut, phone, address, profile_completed")
+      .eq("id", userId)
+      .maybeSingle();
+    const complete = !!(
+      data &&
+      (data.profile_completed ||
+        (data.rut?.trim() && data.phone?.trim() && data.address?.trim()))
+    );
+    if (complete) {
+      navigate("/dashboard", { replace: true });
+      return true;
+    }
+    return false;
+  };
 
   useEffect(() => {
-    const checkProfileAndRedirect = async (userId: string) => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("rut, phone, address, profile_completed")
-        .eq("id", userId)
-        .maybeSingle();
-      const complete = !!(
-        data &&
-        (data.profile_completed ||
-          (data.rut?.trim() && data.phone?.trim() && data.address?.trim()))
-      );
-      if (complete) {
-        navigate("/dashboard", { replace: true });
-        return true;
-      }
-      return false;
-    };
-
     // Check session immediately — don't show "verify email" if already verified
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user?.email_confirmed_at) {
@@ -53,6 +54,25 @@ const VerifyEmail = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handleCheckVerified = async () => {
+    setRefreshing(true);
+    try {
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      if (error || !session) {
+        toast.error("No se pudo verificar. Intenta de nuevo.");
+        return;
+      }
+      if (session.user?.email_confirmed_at) {
+        const redirected = await checkProfileAndRedirect(session.user.id);
+        if (!redirected) setVerified(true);
+      } else {
+        toast.error("Aún no verificado. Revisa tu correo y haz clic en el enlace.");
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleResend = async () => {
     if (!email) {
@@ -142,6 +162,11 @@ const VerifyEmail = () => {
                 <p>📁 Si no lo encuentras, revisa la carpeta de <strong>spam</strong> o <strong>correo no deseado</strong>.</p>
                 <p>⏱️ El enlace puede tardar unos minutos en llegar.</p>
               </div>
+
+              <Button onClick={handleCheckVerified} disabled={refreshing} className="w-full">
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+                {refreshing ? "Verificando..." : "Ya verifiqué mi correo"}
+              </Button>
 
               <Button onClick={handleResend} variant="outline" disabled={resending} className="w-full">
                 <RefreshCw className={`h-4 w-4 mr-2 ${resending ? "animate-spin" : ""}`} />
