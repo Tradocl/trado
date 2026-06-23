@@ -1,13 +1,16 @@
 import { supabase } from "@/integrations/supabase/client";
+import { Capacitor } from "@capacitor/core";
 
 export { supabase };
 
 export const signUp = async (
-  email: string, 
-  password: string, 
+  email: string,
+  password: string,
   fullName: string
 ) => {
-  const redirectUrl = `${window.location.origin}/verificar-email`;
+  const redirectUrl = Capacitor.isNativePlatform()
+    ? "trado://verificar-email"
+    : `${window.location.origin}/verificar-email`;
   
   const { data, error } = await supabase.auth.signUp({
     email,

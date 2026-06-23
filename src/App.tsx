@@ -10,6 +10,7 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { supabase } from "@/integrations/supabase/client";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { SupportFab } from "./components/SupportFab";
@@ -71,10 +72,29 @@ const MobileBootstrap = () => {
       }
     } catch {}
 
-    const listenerPromise = CapApp.addListener('appUrlOpen', ({ url }) => {
+    const listenerPromise = CapApp.addListener('appUrlOpen', async ({ url }) => {
       try {
-        const path = new URL(url).pathname;
-        if (path) navigate(path);
+        const parsed = new URL(url);
+        const hashParams = new URLSearchParams(parsed.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
+
+        if (accessToken && refreshToken) {
+          // Auth callback (email verify / password reset) — exchange tokens then navigate
+          await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+          navigate(type === 'recovery' ? '/reset-password' : '/verificar-email');
+          return;
+        }
+
+        // Regular deep link — extract path
+        if (parsed.protocol === 'https:') {
+          navigate(parsed.pathname);
+        } else {
+          // trado://host → /host  e.g. trado://transaction/abc → /transaction/abc
+          const path = parsed.host ? `/${parsed.host}${parsed.pathname === '/' ? '' : parsed.pathname}` : parsed.pathname;
+          if (path && path !== '/') navigate(path);
+        }
       } catch {}
     });
 
