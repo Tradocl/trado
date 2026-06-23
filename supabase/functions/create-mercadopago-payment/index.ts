@@ -95,6 +95,7 @@ serve(async (req: Request) => {
       .single();
 
     if (walletError || !wallet) {
+      console.error("[create-mercadopago-payment] Wallet not found:", { user_id: user.id, walletError });
       return new Response(JSON.stringify({ error: "Billetera no encontrada" }), { status: 404, headers: corsHeaders });
     }
 
