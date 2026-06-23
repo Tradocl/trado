@@ -224,9 +224,11 @@ const Auth = () => {
           description: "Si no recuerdas tu contraseña, usa 'Recuperar contraseña' en Iniciar Sesión.",
           duration: 6000
         });
-      } else if (errorMsg.includes("email") || (errorMsg.includes("invalid") && errorMsg.includes("email"))) {
+      } else if (errorMsg.includes("invalid") && errorMsg.includes("email") && !errorMsg.includes("rate")) {
         setEmailError("Correo electrónico inválido");
         toast.error("El formato del correo electrónico no es válido");
+      } else if (errorMsg.includes("rate") || errorMsg.includes("limit") || errorMsg.includes("too many")) {
+        toast.error("Demasiados intentos. Espera unos minutos e intenta de nuevo.", { duration: 6000 });
       } else if (errorMsg.includes("password")) {
         setPasswordError("Error con la contraseña");
         toast.error(error.message);
