@@ -35,7 +35,7 @@ const Terms = () => {
             </h1>
           </div>
           <p className="text-white/80 text-lg">
-            Última actualización: Mayo 2026
+            Última actualización: Junio 2026
           </p>
         </div>
       </div>
@@ -124,22 +124,30 @@ const Terms = () => {
               <p>
                 <strong className="text-foreground">3.1. Comisión por transacción:</strong> Trado
                 cobra una comisión del <strong className="text-foreground">5%</strong> sobre el
-                valor total de cada transacción completada exitosamente. Esta comisión incluye los
-                costos de procesamiento de pago a través de Mercado Pago.
+                valor total de cada transacción completada exitosamente. La comisión de Trado es
+                independiente de los costos de procesamiento de pagos que aplica Mercado Pago sobre
+                los depósitos realizados a la billetera.
               </p>
               <p>
                 <strong className="text-foreground">3.2. Momento del cobro:</strong> La comisión
-                se descuenta automáticamente al momento de liberar los fondos al vendedor.
+                se descuenta automáticamente al momento de liberar los fondos al vendedor, o al
+                momento de procesar un reembolso en caso de cancelación o devolución.
               </p>
               <p>
-                <strong className="text-foreground">3.3. Transacciones canceladas:</strong> No se
-                cobra comisión en transacciones canceladas antes de que el comprador confirme la
-                recepción. Los fondos se devuelven íntegramente a la billetera del comprador dentro
-                de la plataforma. El costo de retiro bancario posterior puede aplicar según la
-                sección 3.4.
+                <strong className="text-foreground">3.3. Cancelaciones y devoluciones:</strong> La
+                comisión de Trado se aplica a toda transacción que haya alcanzado la etapa de fondos
+                asegurados, independientemente de si el resultado final es una entrega o una devolución.
+                En caso de devolución, el comprador recibirá el monto depositado menos la comisión
+                correspondiente de vuelta a su billetera Trado.
               </p>
               <p>
-                <strong className="text-foreground">3.4. Retiros bancarios:</strong> Los retiros
+                <strong className="text-foreground">3.4. Transacciones de alto monto:</strong> Para
+                transacciones superiores a <strong className="text-foreground">$2.000.000 CLP</strong>,
+                las condiciones deben coordinarse directamente con el equipo de Trado a través de
+                soporte antes de iniciar la operación.
+              </p>
+              <p>
+                <strong className="text-foreground">3.5. Retiros bancarios:</strong> Los retiros
                 desde la billetera Trado hacia cuenta bancaria son gratuitos. Trado se reserva el
                 derecho de aplicar tarifas en el futuro, notificando con al menos 15 días de anticipación.
               </p>
@@ -221,9 +229,18 @@ const Terms = () => {
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
-                <strong className="text-foreground">6.1. Confirmación de recepción:</strong> El 
-                comprador debe confirmar o disputar dentro de las 72 horas siguientes a la 
-                entrega marcada por el vendedor.
+                <strong className="text-foreground">6.1. Confirmación de recepción:</strong> El
+                comprador debe confirmar o disputar la recepción dentro del plazo siguiente a la
+                entrega marcada por el vendedor, según el tipo de transacción:
+              </p>
+              <ul className="list-disc pl-6 space-y-1">
+                <li><strong>Producto con envío:</strong> 72 horas.</li>
+                <li><strong>Producto entrega en persona:</strong> 24 horas.</li>
+                <li><strong>Servicio:</strong> 24 horas.</li>
+              </ul>
+              <p>
+                Transcurrido el plazo sin confirmación ni disputa, los fondos se liberan
+                automáticamente al vendedor.
               </p>
               <p>
                 <strong className="text-foreground">6.2. Retiros:</strong> Las solicitudes de 

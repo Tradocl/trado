@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireServiceRole } from "../_shared/auth.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -8,7 +9,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const EXPIRY_HOURS = 72;
 
-serve(async (_req) => {
+serve(async (req) => {
+  // Cron/server-to-server only.
+  const authFail = await requireServiceRole(req);
+  if (authFail) return authFail;
+
   console.log("[expire-stale-transactions] Starting run");
 
   try {

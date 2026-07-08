@@ -402,7 +402,13 @@ export default function Admin() {
         .single();
 
       if (fetchError || !movement) throw fetchError || new Error("Movimiento no encontrado");
-      
+
+      // Guard against double-approval: only a still-pending movement may be processed.
+      // Prevents a second click/tab from deducting the balance twice.
+      if (movement.status !== "pending") {
+        throw new Error("Este movimiento ya fue procesado");
+      }
+
       if (!movement.wallets) throw new Error("Wallet no encontrado");
 
       // Get current wallet balance directly to ensure we have the latest value
@@ -455,7 +461,8 @@ export default function Admin() {
           balance_after: newBalance,
           description: updatedDescription,
         })
-        .eq("id", movementId);
+        .eq("id", movementId)
+        .eq("status", "pending");
 
       if (movementError) throw movementError;
 

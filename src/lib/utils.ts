@@ -19,18 +19,6 @@ export function generateReferenceCode(): string {
 }
 
 /**
- * Calcula los detalles de una orden con comisión dinámica
- * 
- * Lógica de Negocio:
- * 1. Tasa Base: 5% del valor de la transacción
- * 2. Redondeo: Al múltiplo de 10 más cercano (sin decimales)
- * 3. Suelo: Comisión mínima de $1.000 CLP
- * 4. Techo: Comisión máxima de $20.000 CLP
- * 
- * @param transactionAmount - Precio del producto en CLP (sin decimales)
- * @returns Objeto con desglose financiero y código de referencia
- */
-/**
  * Formatea un monto en CLP con separadores de miles y sin decimales
  * 
  * @param amount - Monto en CLP
@@ -65,33 +53,37 @@ export function parseFormattedAmount(value: string): number {
   return parseInt(numericValue, 10) || 0;
 }
 
+// Max transaction amount. Above this, user must contact support for custom pricing.
+export const MAX_TRANSACTION_AMOUNT = 2_000_000;
+
 export function calculateOrderDetails(transactionAmount: number): {
   buyerPays: number;
   appFee: number;
   sellerReceives: number;
   referenceCode: string;
 } {
-  // Validación básica
   if (transactionAmount <= 0) {
     throw new Error("El monto de la transacción debe ser mayor a 0");
   }
 
-  // 1. Calcular 5% base
-  const baseFee = transactionAmount * 0.05;
+  // Tiered commission:
+  // - Up to $400k: 5%, min $1.000, max $20.000
+  // - Above $400k: $20.000 + 4% of amount over $400k (covers MP's 3.19% processing fee)
+  let appFee: number;
+  const TIER_THRESHOLD = 400_000;
+  const BASE_CAP = 20_000;
 
-  // 2. Redondear al múltiplo de 10 más cercano
-  const roundedFee = Math.round(baseFee / 10) * 10;
+  if (transactionAmount <= TIER_THRESHOLD) {
+    const baseFee = transactionAmount * 0.05;
+    const roundedFee = Math.round(baseFee / 10) * 10;
+    appFee = Math.min(Math.max(roundedFee, 1000), BASE_CAP);
+  } else {
+    const excess = transactionAmount - TIER_THRESHOLD;
+    const rawFee = BASE_CAP + excess * 0.04;
+    appFee = Math.round(rawFee / 10) * 10;
+  }
 
-  // 3. Aplicar suelo (mínimo $1.000 CLP)
-  const feeWithFloor = Math.max(roundedFee, 1000);
-
-  // 4. Aplicar techo (máximo $20.000 CLP)
-  const appFee = Math.min(feeWithFloor, 20000);
-
-  // 5. Calcular lo que recibe el vendedor
   const sellerReceives = transactionAmount - appFee;
-
-  // 6. Generar código de referencia único
   const referenceCode = generateReferenceCode();
 
   return {

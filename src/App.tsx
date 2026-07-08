@@ -39,7 +39,6 @@ const Appeal = lazy(() => import("./pages/Appeal"));
 const AdminAppeal = lazy(() => import("./pages/AdminAppeal"));
 const ReturnRoom = lazy(() => import("./pages/ReturnRoom"));
 const AdminReturnRoom = lazy(() => import("./pages/AdminReturnRoom"));
-const Support = lazy(() => import("./pages/Support"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -147,9 +146,6 @@ const App = () => (
                 <Route path="/admin/appeal/:appealId" element={<ProtectedRoute><AdminAppeal /></ProtectedRoute>} />
                 <Route path="/return/:returnId" element={<ProtectedRoute><ReturnRoom /></ProtectedRoute>} />
                 <Route path="/admin/return/:returnId" element={<ProtectedRoute><AdminReturnRoom /></ProtectedRoute>} />
-                <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
-                <Route path="/support/:threadId" element={<ProtectedRoute><Support /></ProtectedRoute>} />
-
                 {/* Catch-all */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

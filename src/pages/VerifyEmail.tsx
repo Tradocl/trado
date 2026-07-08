@@ -58,16 +58,20 @@ const VerifyEmail = () => {
   const handleCheckVerified = async () => {
     setRefreshing(true);
     try {
-      const { data: { session }, error } = await supabase.auth.refreshSession();
-      if (error || !session) {
-        toast.error("No se pudo verificar. Intenta de nuevo.");
-        return;
+      // Try existing session first, then attempt a refresh. When email confirmation
+      // is pending there is no session yet, so refreshSession() errors — that is not
+      // a failure, it just means the user hasn't clicked the link yet.
+      let { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        const refreshed = await supabase.auth.refreshSession();
+        session = refreshed.data.session;
       }
-      if (session.user?.email_confirmed_at) {
+
+      if (session?.user?.email_confirmed_at) {
         const redirected = await checkProfileAndRedirect(session.user.id);
         if (!redirected) setVerified(true);
       } else {
-        toast.error("Aún no verificado. Revisa tu correo y haz clic en el enlace.");
+        toast.error("Aún no detectamos la verificación. Revisa tu correo y haz clic en el enlace del mensaje.", { duration: 6000 });
       }
     } finally {
       setRefreshing(false);

@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ArrowLeft, ArrowRight, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link, ShieldAlert, Shield, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
+import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount, MAX_TRANSACTION_AMOUNT } from "@/lib/utils";
 import { UNVERIFIED_LIMITS, checkTransactionLimits, getUserVerificationStatus } from "@/lib/transaction-limits";
 import { nativeShare } from "@/lib/native/share";
 import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
@@ -112,6 +112,14 @@ const CreateTransaction = () => {
 
     if (!productName || !parsedAmount || parsedAmount <= 0) {
       toast.error("Por favor completa todos los campos correctamente");
+      return;
+    }
+
+    if (parsedAmount > MAX_TRANSACTION_AMOUNT) {
+      toast.error(
+        "Para transacciones sobre $2.000.000 CLP, contáctanos en soporte para coordinar condiciones especiales.",
+        { duration: 8000 }
+      );
       return;
     }
 
@@ -492,7 +500,7 @@ const CreateTransaction = () => {
                 />
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <Info className="h-3 w-3" />
-                  Comisión Trado: 5% (mín $1.000, máx $20.000)
+                  Comisión Trado: 5%
                 </p>
               </div>
 

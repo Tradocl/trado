@@ -97,6 +97,9 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("La transacción no está en un estado válido para depositar");
     }
 
+    // Original state, used to roll back the lock if any later step fails.
+    const originalState = tx.state as string;
+
     // RACE CONDITION FIX: Use atomic transaction state update as a lock.
     // Only one concurrent request can succeed in changing state from a valid deposit state.
     const { data: locked, error: lockError } = await supabaseClient
@@ -120,6 +123,21 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
+    // Revert the state lock back to the deposit state. MUST be called on every
+    // failure path after the lock, otherwise the transaction is left in
+    // "funds_secured" with no funds actually blocked — which lets a later
+    // confirm-delivery/auto-release credit the seller out of thin air.
+    const revertLock = async () => {
+      const { error: revertError } = await supabaseClient
+        .from("transactions")
+        .update({ state: originalState, deposited_at: null })
+        .eq("id", transactionId)
+        .eq("state", "funds_secured");
+      if (revertError) {
+        console.error(`[process-escrow-deposit] CRITICAL: failed to revert lock for tx ${transactionId}`, revertError);
+      }
+    };
+
     // Get buyer wallet
     const { data: wallet, error: walletError } = await supabaseClient
       .from("wallets")
@@ -129,6 +147,7 @@ serve(async (req: Request): Promise<Response> => {
 
     if (walletError || !wallet) {
       console.error("[process-escrow-deposit] Error fetching wallet", walletError);
+      await revertLock();
       throw new Error("Billetera no encontrada");
     }
 
@@ -143,9 +162,10 @@ serve(async (req: Request): Promise<Response> => {
     // Check sufficient balance
     if (Number(wallet.balance) < depositAmount) {
       console.log(`[process-escrow-deposit] Insufficient balance: ${wallet.balance} < ${depositAmount}`);
-      return new Response(JSON.stringify({ 
-        error: "Saldo insuficiente", 
-        insufficientFunds: true 
+      await revertLock();
+      return new Response(JSON.stringify({
+        error: "Saldo insuficiente",
+        insufficientFunds: true
       }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -160,18 +180,36 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`[process-escrow-deposit] Updating wallet: balance ${wallet.balance} -> ${newAvailableBalance}, blocked ${currentBlocked} -> ${newBlockedBalance}`);
 
-    // Update wallet: reduce available balance, increase blocked balance
-    const { error: updateWalletError } = await supabaseClient
+    // Atomic conditional debit: only succeeds if balance is still >= depositAmount.
+    // Guards against a concurrent operation (another escrow lock / withdrawal)
+    // draining the wallet between the read above and this write.
+    const { data: debited, error: updateWalletError } = await supabaseClient
       .from("wallets")
       .update({
         balance: newAvailableBalance,
         blocked_balance: newBlockedBalance
       })
-      .eq("id", wallet.id);
+      .eq("id", wallet.id)
+      .gte("balance", depositAmount)
+      .select("id")
+      .maybeSingle();
 
     if (updateWalletError) {
       console.error("[process-escrow-deposit] Error updating wallet", updateWalletError);
+      await revertLock();
       throw new Error("No se pudo actualizar la billetera");
+    }
+
+    if (!debited) {
+      console.log(`[process-escrow-deposit] Balance changed concurrently, debit rejected for tx ${transactionId}`);
+      await revertLock();
+      return new Response(JSON.stringify({
+        error: "Saldo insuficiente",
+        insufficientFunds: true
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Insert escrow_lock movement
@@ -189,6 +227,12 @@ serve(async (req: Request): Promise<Response> => {
 
     if (movementError) {
       console.error("[process-escrow-deposit] Error inserting movement", movementError);
+      // Roll back the wallet debit, then the state lock.
+      await supabaseClient
+        .from("wallets")
+        .update({ balance: Number(wallet.balance), blocked_balance: currentBlocked })
+        .eq("id", wallet.id);
+      await revertLock();
       throw new Error("No se pudo registrar el movimiento");
     }
 

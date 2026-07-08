@@ -177,7 +177,12 @@ const Privacy = () => {
                   donde se almacena tu información de cuenta y transacciones, bajo acuerdos de tratamiento
                   de datos conforme al estándar SOC 2.
                 </li>
-                <li><strong>Servicios de email:</strong> Para el envío de notificaciones y comunicaciones transaccionales.</li>
+                <li>
+                  <strong>Resend:</strong> Proveedor de envío de correos transaccionales (verificación de cuenta, notificaciones de transacción). Resend procesa únicamente la dirección de correo electrónico necesaria para el envío.
+                </li>
+                <li>
+                  <strong>Vercel:</strong> Proveedor de infraestructura de hosting donde se aloja la aplicación web de Trado. Procesa solicitudes de red con estándar SOC 2.
+                </li>
                 <li>
                   <strong>Autoridades:</strong> Cuando sea requerido por ley, incluyendo la Unidad de
                   Análisis Financiero (UAF), el Ministerio Público u otras autoridades competentes.
@@ -243,7 +248,7 @@ const Privacy = () => {
               <div className="p-2 bg-destructive/10 rounded-lg">
                 <Bell className="h-6 w-6 text-destructive" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">6b. Notificación de Brechas de Seguridad</h2>
+              <h2 className="text-2xl font-bold text-foreground">7. Notificación de Brechas de Seguridad</h2>
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
@@ -263,7 +268,7 @@ const Privacy = () => {
               <div className="p-2 bg-warning/10 rounded-lg">
                 <Trash2 className="h-6 w-6 text-warning" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">7. Retención de Datos</h2>
+              <h2 className="text-2xl font-bold text-foreground">8. Retención de Datos</h2>
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
@@ -291,7 +296,7 @@ const Privacy = () => {
               <div className="p-2 bg-success/10 rounded-lg">
                 <Bell className="h-6 w-6 text-success" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">8. Cookies y Tecnologías Similares</h2>
+              <h2 className="text-2xl font-bold text-foreground">9. Cookies y Tecnologías Similares</h2>
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>Utilizamos cookies y tecnologías similares para:</p>
@@ -313,7 +318,7 @@ const Privacy = () => {
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Mail className="h-6 w-6 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">9. Cambios a esta Política</h2>
+              <h2 className="text-2xl font-bold text-foreground">10. Cambios a esta Política</h2>
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
@@ -335,7 +340,7 @@ const Privacy = () => {
               <div className="p-2 bg-info/10 rounded-lg">
                 <Share2 className="h-6 w-6 text-info" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">10. Transferencia Internacional de Datos</h2>
+              <h2 className="text-2xl font-bold text-foreground">11. Transferencia Internacional de Datos</h2>
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>

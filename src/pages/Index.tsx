@@ -519,7 +519,7 @@ const WebLanding = () => {
                   <span className="text-6xl font-extrabold bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">5%</span>
                   <span className="text-xl text-muted-foreground">por transacción</span>
                 </div>
-                <p className="text-muted-foreground mb-2">Mínimo $1.000 · Máximo $20.000 CLP</p>
+                <p className="text-muted-foreground mb-2">Solo pagas si cierras el trato</p>
                 <p className="text-sm text-muted-foreground mb-8">Solo pagas cuando se cierra el trato. Sin suscripciones, sin costos ocultos.</p>
                 <div className="grid grid-cols-2 gap-4 mb-8 text-left">
                   {[
