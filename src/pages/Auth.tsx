@@ -430,7 +430,7 @@ const Auth = () => {
         <meta property="og:url" content="https://trado.cl/auth" />
       </Helmet>
       <h1 className="sr-only">Iniciar sesión o registrarse en Trado</h1>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info p-4 pb-28 sm:pb-24">
         <Card className="w-full max-w-md shadow-2xl border-0 relative">
           <CardHeader className="space-y-3 pt-4">
             <div className="flex items-center justify-start">
