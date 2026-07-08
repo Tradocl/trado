@@ -411,39 +411,21 @@ export default function Admin() {
 
       if (!movement.wallets) throw new Error("Wallet no encontrado");
 
-      // Get current wallet balance directly to ensure we have the latest value
-      const { data: currentWallet, error: walletFetchError } = await supabase
-        .from("wallets")
-        .select("balance")
-        .eq("id", movement.wallet_id)
-        .single();
+      // Approve atomically server-side: claim (idempotency lock), credit/debit the
+      // wallet under a row lock, and stamp the movement — all in one transaction,
+      // guarded by an admin-role check inside the RPC.
+      const { error: approveError } = await supabase.rpc("admin_approve_movement", {
+        p_movement_id: movementId,
+      });
 
-      if (walletFetchError || !currentWallet) throw walletFetchError || new Error("No se pudo obtener el wallet");
+      if (approveError) throw approveError;
 
-      // Calculate new balance
-      const currentBalance = currentWallet.balance || 0;
-      const newBalance = movement.type === "deposit" 
-        ? currentBalance + movement.amount 
-        : currentBalance - movement.amount;
-
-      console.log(`Aprobando movimiento: ${movement.type}, cantidad: ${movement.amount}, balance actual: ${currentBalance}, nuevo balance: ${newBalance}`);
-
-      // Update wallet balance
-      const { error: walletError } = await supabase
-        .from("wallets")
-        .update({ 
-          balance: newBalance,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", movement.wallet_id);
-
-      if (walletError) throw walletError;
-
-      // Build improved description
+      // Cosmetic follow-up: improve the movement description (non-critical; the
+      // money-affecting work already committed atomically above).
       const formattedAmount = movement.amount.toLocaleString('es-CL');
       const approvedDate = new Date().toLocaleDateString('es-CL');
       let updatedDescription = movement.description;
-      
+
       if (movement.type === "deposit") {
         updatedDescription = `Depósito de $${formattedAmount} - Aprobado ${approvedDate}`;
       } else if (movement.type === "withdrawal") {
@@ -451,20 +433,10 @@ export default function Admin() {
         updatedDescription = `Retiro de $${formattedAmount}${bankInfo} - Aprobado ${approvedDate}`;
       }
 
-      // Update movement status with improved description
-      const { error: movementError } = await supabase
+      await supabase
         .from("wallet_movements")
-        .update({
-          status: "approved",
-          reviewed_by: user?.id,
-          reviewed_at: new Date().toISOString(),
-          balance_after: newBalance,
-          description: updatedDescription,
-        })
-        .eq("id", movementId)
-        .eq("status", "pending");
-
-      if (movementError) throw movementError;
+        .update({ description: updatedDescription })
+        .eq("id", movementId);
 
       // Send email notification
       try {
