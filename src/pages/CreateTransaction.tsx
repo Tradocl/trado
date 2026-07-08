@@ -39,6 +39,7 @@ const CreateTransaction = () => {
   const [mainType, setMainType] = useState<MainType>("producto");
   const [initiatorRole, setInitiatorRole] = useState<InitiatorRole>("seller");
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [amountTooHigh, setAmountTooHigh] = useState(false);
   const { showCompleteProfileModal, requireCompleteProfile, onProfileCompleted, closeModal } = useRequireCompleteProfile();
   const [formData, setFormData] = useState<{
     productName: string;
@@ -86,18 +87,28 @@ const CreateTransaction = () => {
     const rawValue = e.target.value;
     const formatted = formatAmountInput(rawValue);
     setAmountDisplay(formatted);
-    
+
     const value = parseFormattedAmount(rawValue);
-    if (value > 0) {
-      setAmount(value);
-      const details = calculateOrderDetails(value);
-      setOrderDetails(details);
-      setTermsAccepted(false);
-    } else {
+    setTermsAccepted(false);
+
+    if (value <= 0) {
       setAmount(0);
       setOrderDetails(null);
-      setTermsAccepted(false);
+      setAmountTooHigh(false);
+      return;
     }
+
+    setAmount(value);
+    // Above the cap we don't show a commission breakdown — it would display a
+    // meaningless huge fee. Show the "contact support" notice instead.
+    if (value > MAX_TRANSACTION_AMOUNT) {
+      setOrderDetails(null);
+      setAmountTooHigh(true);
+      return;
+    }
+
+    setAmountTooHigh(false);
+    setOrderDetails(calculateOrderDetails(value));
   };
 
   const handleCreateTransaction = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -503,6 +514,21 @@ const CreateTransaction = () => {
                   Comisión Trado: 5%
                 </p>
               </div>
+
+              {/* Over-limit notice — shown instead of the commission breakdown */}
+              {amountTooHigh && (
+                <div className="p-5 bg-info/10 rounded-lg border-2 border-info/30 space-y-2">
+                  <h4 className="font-semibold text-info flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5" />
+                    Monto sobre el máximo
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Para transacciones sobre <strong>$2.000.000 CLP</strong> coordina las condiciones
+                    directamente con nuestro equipo escribiendo a{" "}
+                    <a href="mailto:contacto@trado.cl" className="text-primary underline">contacto@trado.cl</a>.
+                  </p>
+                </div>
+              )}
 
               {/* Commission Breakdown */}
               {orderDetails && (
