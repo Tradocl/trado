@@ -50,6 +50,7 @@ const Wallet = () => {
   const [amountDisplay, setAmountDisplay] = useState("");
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [transferReference, setTransferReference] = useState<string | null>(null);
   
   // Withdrawal form fields
   const [bankHolderName, setBankHolderName] = useState("");
@@ -89,13 +90,22 @@ const Wallet = () => {
     return match ? match[1] : description.split('-')[0]?.trim() || '';
   };
 
+  // Deposit-method thresholds (on the deposit amount). Above OFFER, MP's 3.19%
+  // fee starts eating Trado's commission, so we offer a fee-free bank transfer;
+  // above FORCE the transfer is the only option.
+  const OFFER_TRANSFER_AT = 400_000;
+  const FORCE_TRANSFER_AT = 1_150_000;
+  const depositAmountNum = parseFormattedAmount(amountDisplay);
+  const transferOffered = depositAmountNum >= OFFER_TRANSFER_AT;
+  const transferForced = depositAmountNum >= FORCE_TRANSFER_AT;
+
   // Company bank details for deposits
   const companyBankDetails = {
     name: "Sociedad Comercial Trado Limitada",
     rut: "78.236.214-3",
     bank: "Mercado Pago",
     accountType: "Cuenta Vista",
-    accountNumber: "1020783447",
+    accountNumber: "1038152132",
     email: "contacto@trado.cl",
   };
 
@@ -318,6 +328,32 @@ ${companyBankDetails.email}`;
 
       // Redirect to Mercado Pago Checkout Pro
       window.location.href = checkoutUrl;
+    } catch (error: any) {
+      toast.error(translateError(error));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleTransferDeposit = async () => {
+    if (!user || submitting) return;
+    const depositAmount = parseFormattedAmount(amountDisplay);
+    if (depositAmount < OFFER_TRANSFER_AT) {
+      toast.error(`El depósito por transferencia es para montos desde $${OFFER_TRANSFER_AT.toLocaleString("es-CL")} CLP`);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("request-transfer-deposit", {
+        body: { amount: depositAmount },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (!data?.reference) throw new Error("No se recibió el código de referencia");
+
+      setTransferReference(data.reference);
+      toast.success("Solicitud registrada. Realiza la transferencia con el código indicado.");
     } catch (error: any) {
       toast.error(translateError(error));
     } finally {
@@ -775,54 +811,120 @@ ${companyBankDetails.email}`;
       </main>
 
       {/* Deposit Dialog */}
-      <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
-        <DialogContent className="max-w-sm">
+      <Dialog
+        open={depositOpen}
+        onOpenChange={(open) => {
+          setDepositOpen(open);
+          if (!open) {
+            setTransferReference(null);
+            setAmount("");
+            setAmountDisplay("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Depositar fondos</DialogTitle>
             <DialogDescription>
-              Paga directamente desde tu banco. El saldo se acredita en segundos.
+              {transferReference
+                ? "Realiza la transferencia con el código de referencia."
+                : "Carga saldo en tu billetera Trado."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="deposit-amount">Monto a depositar</Label>
-              <Input
-                id="deposit-amount"
-                type="text"
-                inputMode="numeric"
-                placeholder="10.000"
-                value={amountDisplay}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                className="mt-1.5"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Mínimo $1.000 CLP</p>
-            </div>
 
-            <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm space-y-1 text-muted-foreground">
-              <p className="font-medium text-foreground">¿Cómo funciona?</p>
-              <p>1. Haz clic en "Pagar con Mercado Pago"</p>
-              <p>2. Elige tu medio de pago (tarjeta, transferencia, saldo MP)</p>
-              <p>3. Tu saldo se actualiza automáticamente</p>
-            </div>
+          {transferReference ? (
+            /* Transfer requested — show instructions + bank details */
+            <div className="space-y-4">
+              <div className="p-3 bg-success/10 border border-success/30 rounded-lg text-sm space-y-1">
+                <p className="font-medium text-foreground">Solicitud registrada</p>
+                <p className="text-muted-foreground">
+                  Transfiere <strong>${formatCLP(parseFormattedAmount(amountDisplay))}</strong> a la cuenta de
+                  abajo e incluye el código de referencia en el mensaje. Acreditamos tu saldo al verificar la
+                  transferencia (normalmente el mismo día hábil).
+                </p>
+              </div>
 
-            <div className="p-3 bg-info/10 border border-info/30 rounded-lg text-xs text-muted-foreground flex gap-2">
-              <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
-              <p>
-                <span className="font-medium text-foreground">Mercado Pago</span> es nuestra pasarela de pago
-                segura, regulada y autorizada en Chile. Al hacer clic te llevaremos a su checkout oficial donde
-                puedes pagar con tarjeta de crédito/débito, transferencia o saldo de tu cuenta Mercado Pago.
-                Tu plata queda en custodia de Trado hasta confirmar la entrega.
-              </p>
-            </div>
+              <div className="p-3 bg-muted/50 border border-border rounded-lg text-sm space-y-1">
+                <div className="flex justify-between"><span className="text-muted-foreground">Referencia</span><span className="font-mono font-semibold">{transferReference}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Titular</span><span className="font-medium text-right">{companyBankDetails.name}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">RUT</span><span>{companyBankDetails.rut}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Banco</span><span>{companyBankDetails.bank}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Tipo</span><span>{companyBankDetails.accountType}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">N° cuenta</span><span className="font-mono">{companyBankDetails.accountNumber}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span>{companyBankDetails.email}</span></div>
+              </div>
 
-            <Button
-              onClick={handleDeposit}
-              className="w-full bg-[#009ee3] hover:bg-[#0089c4] text-white"
-              disabled={submitting || !amount}
-            >
-              {submitting ? "Redirigiendo..." : "Pagar con Mercado Pago →"}
-            </Button>
-          </div>
+              <Button variant="outline" className="w-full" onClick={copyAllBankDetails}>
+                Copiar datos bancarios
+              </Button>
+              <Button className="w-full" onClick={() => { setDepositOpen(false); setTransferReference(null); setAmount(""); setAmountDisplay(""); }}>
+                Ya realicé la transferencia
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="deposit-amount">Monto a depositar</Label>
+                <Input
+                  id="deposit-amount"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="10.000"
+                  value={amountDisplay}
+                  onChange={(e) => handleAmountChange(e.target.value)}
+                  className="mt-1.5"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Mínimo $1.000 CLP</p>
+              </div>
+
+              {transferForced ? (
+                /* Large amount — transfer only (avoids MP's 3.19% fee) */
+                <>
+                  <div className="p-3 bg-info/10 border border-info/30 rounded-lg text-xs text-muted-foreground flex gap-2">
+                    <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                    <p>
+                      Para montos sobre <span className="font-medium text-foreground">$1.150.000</span> el depósito
+                      es por <span className="font-medium text-foreground">transferencia bancaria</span>. Al generar
+                      la solicitud te mostramos la cuenta de Trado y un código de referencia. Verificamos la
+                      transferencia y acreditamos tu saldo el mismo día hábil.
+                    </p>
+                  </div>
+                  <Button onClick={handleTransferDeposit} className="w-full" disabled={submitting || !depositAmountNum}>
+                    {submitting ? "Generando..." : "Depositar por transferencia →"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="p-3 bg-info/10 border border-info/30 rounded-lg text-xs text-muted-foreground flex gap-2">
+                    <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                    <p>
+                      <span className="font-medium text-foreground">Mercado Pago</span> es nuestra pasarela segura.
+                      Paga con tarjeta, transferencia o saldo MP; tu saldo se acredita automáticamente.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleDeposit}
+                    className="w-full bg-[#009ee3] hover:bg-[#0089c4] text-white"
+                    disabled={submitting || !amount}
+                  >
+                    {submitting ? "Redirigiendo..." : "Pagar con Mercado Pago →"}
+                  </Button>
+
+                  {transferOffered && (
+                    <>
+                      <div className="relative py-1">
+                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+                        <div className="relative flex justify-center text-xs"><span className="bg-background px-2 text-muted-foreground">o sin comisión</span></div>
+                      </div>
+                      <Button onClick={handleTransferDeposit} variant="outline" className="w-full" disabled={submitting || !depositAmountNum}>
+                        {submitting ? "Generando..." : "Depositar por transferencia (sin comisión)"}
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
