@@ -207,7 +207,14 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
 
     let buyerAmount: number | null = null;
     let sellerAmount: number | null = null;
-    const escrowAmount = transaction?.amount || 0;
+    // Escrow held = what the buyer actually deposited. If the buyer initiated the
+    // transaction they paid amount + commission, so a full refund must return both;
+    // otherwise the buyer would silently lose the commission. Mirrors resolve-appeal.
+    const txAmount = Number(transaction?.amount) || 0;
+    const txCommission = Number(transaction?.commission) || 0;
+    const escrowAmount = (transaction?.initiator_role || "seller") === "buyer"
+      ? txAmount + txCommission
+      : txAmount;
 
     // Para distribución parcial, validar que se ingresen los montos
     if (resolution === "reembolso_parcial") {

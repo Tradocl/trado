@@ -184,24 +184,24 @@ serve(async (req: Request): Promise<Response> => {
     // IMPORTANT: Commission is ALWAYS charged on returns
     // Refund amount = what they paid MINUS commission
     const refundAmount = escrowAmount - commission;
-    const currentBalance = Number(wallet.balance);
-    const newBalance = currentBalance + refundAmount;
-    
-    // Release the blocked amount (full escrow)
-    const currentBlocked = Number(wallet.blocked_balance ?? 0);
-    const newBlocked = Math.max(0, currentBlocked - escrowAmount);
 
     console.log(`[process-return-refund] Processing refund: initiatorRole=${initiatorRole}, escrowAmount=${escrowAmount}, commission=${commission}, refundAmount=${refundAmount}`);
-    console.log(`[process-return-refund] Balance: ${currentBalance} -> ${newBalance}, Blocked: ${currentBlocked} -> ${newBlocked}`);
 
-    // Update buyer wallet (balance + blocked_balance)
-    const { error: updateWalletError } = await supabaseClient
-      .from("wallets")
-      .update({ 
-        balance: newBalance,
-        blocked_balance: newBlocked
-      })
-      .eq("id", wallet.id);
+    // Release the full escrow from blocked, then credit the refund — both atomic
+    // (row-locked) so a concurrent settlement on this wallet can't clobber them.
+    const { error: releaseError } = await supabaseClient.rpc("release_blocked_balance", {
+      p_wallet_id: wallet.id,
+      p_amount: escrowAmount,
+    });
+    if (releaseError) {
+      console.error("[process-return-refund] Error releasing blocked balance", releaseError);
+      throw new Error("No se pudo actualizar la billetera");
+    }
+
+    const { data: newBalance, error: updateWalletError } = await supabaseClient.rpc("credit_wallet_balance", {
+      p_wallet_id: wallet.id,
+      p_delta: refundAmount,
+    });
 
     if (updateWalletError) {
       console.error("[process-return-refund] Error updating wallet", updateWalletError);

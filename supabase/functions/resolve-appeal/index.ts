@@ -171,7 +171,40 @@ serve(async (req) => {
       );
     }
 
-    // Create decision record
+    // Determine new appeal status
+    let newStatus = "cerrada";
+    if (resolution === "reembolso_total") newStatus = "resuelta_a_favor_comprador";
+    else if (resolution === "liberar_fondos_vendedor") newStatus = "resuelta_a_favor_vendedor";
+    else if (resolution === "reembolso_parcial") newStatus = "resuelta_parcial";
+
+    // ATOMIC CLAIM: flip the appeal status only if it is still resolvable. This is
+    // the idempotency lock — if a concurrent request already resolved it, no row
+    // comes back and we bail BEFORE paying out, preventing a double payout.
+    const { data: claimedAppeal, error: claimError } = await supabaseAdmin
+      .from("appeals")
+      .update({ status: newStatus })
+      .eq("id", appealId)
+      .in("status", ["pendiente_intervencion_plataforma", "en_revision_plataforma"])
+      .select("id")
+      .maybeSingle();
+
+    if (claimError) {
+      console.error("Error claiming appeal:", claimError);
+      return new Response(
+        JSON.stringify({ error: "Failed to update appeal status" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!claimedAppeal) {
+      console.log("[resolve-appeal] Appeal already resolved by a concurrent request:", appealId);
+      return new Response(
+        JSON.stringify({ success: true, message: "La apelación ya fue resuelta" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // We own this resolution now — record the decision.
     const { error: decisionError } = await supabaseAdmin
       .from("appeal_decisions")
       .insert({
@@ -192,26 +225,6 @@ serve(async (req) => {
       );
     }
 
-    // Determine new appeal status
-    let newStatus = "cerrada";
-    if (resolution === "reembolso_total") newStatus = "resuelta_a_favor_comprador";
-    else if (resolution === "liberar_fondos_vendedor") newStatus = "resuelta_a_favor_vendedor";
-    else if (resolution === "reembolso_parcial") newStatus = "resuelta_parcial";
-
-    // Update appeal status
-    const { error: updateAppealError } = await supabaseAdmin
-      .from("appeals")
-      .update({ status: newStatus })
-      .eq("id", appealId);
-
-    if (updateAppealError) {
-      console.error("Error updating appeal status:", updateAppealError);
-      return new Response(
-        JSON.stringify({ error: "Failed to update appeal status" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     // Get buyer wallet to clear blocked balance
     const { data: buyerWallet, error: buyerWalletError } = await supabaseAdmin
       .from("wallets")
@@ -227,28 +240,25 @@ serve(async (req) => {
       );
     }
 
-    // Calculate the new blocked balance after releasing escrow
-    const currentBuyerBlocked = Number(buyerWallet.blocked_balance) || 0;
-    const newBuyerBlockedBalance = Math.max(0, currentBuyerBlocked - escrowAmount);
-
-    console.log("[resolve-appeal] Clearing blocked balance:", { 
-      currentBlocked: currentBuyerBlocked, 
-      escrowAmount, 
-      newBuyerBlockedBalance 
+    // Release the buyer's blocked escrow atomically (row-locked, floored at 0).
+    const { error: releaseError } = await supabaseAdmin.rpc("release_blocked_balance", {
+      p_wallet_id: buyerWallet.id,
+      p_amount: escrowAmount,
     });
+    if (releaseError) {
+      console.error("Error releasing buyer blocked balance:", releaseError);
+      return new Response(
+        JSON.stringify({ error: "Failed to update buyer wallet" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Process buyer refund if applicable
+    // Process buyer refund if applicable — atomic credit.
     if (buyerRefundAmount && buyerRefundAmount > 0) {
-      const currentBuyerBalance = Number(buyerWallet.balance) || 0;
-      const newBuyerBalance = currentBuyerBalance + buyerRefundAmount;
-
-      const { error: updateBuyerError } = await supabaseAdmin
-        .from("wallets")
-        .update({ 
-          balance: newBuyerBalance,
-          blocked_balance: newBuyerBlockedBalance
-        })
-        .eq("id", buyerWallet.id);
+      const { data: newBuyerBalance, error: updateBuyerError } = await supabaseAdmin.rpc("credit_wallet_balance", {
+        p_wallet_id: buyerWallet.id,
+        p_delta: buyerRefundAmount,
+      });
 
       if (updateBuyerError) {
         console.error("Error updating buyer wallet:", updateBuyerError);
@@ -258,7 +268,6 @@ serve(async (req) => {
         );
       }
 
-      // Create buyer escrow_release movement
       const { error: buyerMovementError } = await supabaseAdmin
         .from("wallet_movements")
         .insert({
@@ -274,28 +283,16 @@ serve(async (req) => {
       if (buyerMovementError) {
         console.error("Error creating buyer wallet movement:", buyerMovementError);
         // Log but don't fail - wallet balance is already updated
-      } else {
-        console.log("[resolve-appeal] Buyer escrow_release movement created successfully");
       }
 
-      console.log("[resolve-appeal] Buyer refund processed:", { buyerRefundAmount, newBuyerBalance, newBuyerBlockedBalance });
-    } else {
-      // Still need to clear blocked balance even if no refund
-      const { error: updateBuyerBlockedError } = await supabaseAdmin
-        .from("wallets")
-        .update({ blocked_balance: newBuyerBlockedBalance })
-        .eq("id", buyerWallet.id);
-
-      if (updateBuyerBlockedError) {
-        console.error("Error clearing buyer blocked balance:", updateBuyerBlockedError);
-      }
+      console.log("[resolve-appeal] Buyer refund processed:", { buyerRefundAmount, newBuyerBalance });
     }
 
-    // Process seller payment if applicable
+    // Process seller payment if applicable — atomic credit.
     if (sellerPaymentAmount && sellerPaymentAmount > 0) {
       const { data: sellerWallet, error: sellerWalletError } = await supabaseAdmin
         .from("wallets")
-        .select("*")
+        .select("id")
         .eq("user_id", transaction.seller_id)
         .single();
 
@@ -307,13 +304,10 @@ serve(async (req) => {
         );
       }
 
-      const currentSellerBalance = Number(sellerWallet.balance) || 0;
-      const newSellerBalance = currentSellerBalance + sellerPaymentAmount;
-
-      const { error: updateSellerError } = await supabaseAdmin
-        .from("wallets")
-        .update({ balance: newSellerBalance })
-        .eq("id", sellerWallet.id);
+      const { data: newSellerBalance, error: updateSellerError } = await supabaseAdmin.rpc("credit_wallet_balance", {
+        p_wallet_id: sellerWallet.id,
+        p_delta: sellerPaymentAmount,
+      });
 
       if (updateSellerError) {
         console.error("Error updating seller wallet:", updateSellerError);
@@ -323,7 +317,6 @@ serve(async (req) => {
         );
       }
 
-      // Create seller escrow_release movement
       const { error: sellerMovementError } = await supabaseAdmin
         .from("wallet_movements")
         .insert({
@@ -339,8 +332,6 @@ serve(async (req) => {
       if (sellerMovementError) {
         console.error("Error creating seller wallet movement:", sellerMovementError);
         // Log but don't fail - wallet balance is already updated
-      } else {
-        console.log("[resolve-appeal] Seller escrow_release movement created successfully");
       }
 
       console.log("[resolve-appeal] Seller payment processed:", { sellerPaymentAmount, newSellerBalance });

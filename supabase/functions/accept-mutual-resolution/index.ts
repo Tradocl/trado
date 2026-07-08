@@ -201,8 +201,36 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`[accept-mutual-resolution] Wallets found: buyer=${buyerWallet.id} (blocked: ${buyerWallet.blocked_balance}), seller=${sellerWallet.id}`);
 
+    // ATOMIC CLAIM: accept the proposal only if it is still pending. If a concurrent
+    // request already accepted it, no row comes back and we bail BEFORE paying out —
+    // this is the idempotency lock that prevents a double payout.
+    const { data: claimedProposal, error: claimError } = await supabaseClient
+      .from("appeal_mutual_proposals")
+      .update({ status: "accepted", responded_at: new Date().toISOString() })
+      .eq("id", proposalId)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
+
+    if (claimError) {
+      console.error("[accept-mutual-resolution] Error claiming proposal", claimError);
+      return new Response(JSON.stringify({ error: "No se pudo actualizar la propuesta" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (!claimedProposal) {
+      console.log("[accept-mutual-resolution] Proposal already accepted by a concurrent request:", proposalId);
+      return new Response(JSON.stringify({ success: true, message: "La propuesta ya fue aceptada" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // === ATOMIC OPERATION STARTS HERE ===
-    let proposalUpdated = false;
+    // We own this acceptance now. proposalUpdated=true so the rollback reverts it on failure.
+    let proposalUpdated = true;
     let buyerWalletUpdated = false;
     let sellerWalletUpdated = false;
     const originalBuyerBalance = Number(buyerWallet.balance);
@@ -210,21 +238,6 @@ serve(async (req: Request): Promise<Response> => {
     const originalSellerBalance = Number(sellerWallet.balance);
 
     try {
-      // 8. Update proposal status to accepted
-      const { error: updateProposalError } = await supabaseClient
-        .from("appeal_mutual_proposals")
-        .update({
-          status: "accepted",
-          responded_at: new Date().toISOString()
-        })
-        .eq("id", proposalId);
-
-      if (updateProposalError) {
-        console.error("[accept-mutual-resolution] Error updating proposal", updateProposalError);
-        throw new Error("No se pudo actualizar la propuesta");
-      }
-      proposalUpdated = true;
-      console.log("[accept-mutual-resolution] Proposal updated to accepted");
 
       // 8.5. Update the original escrow_lock movement to approved
       const { error: updateEscrowMovementError } = await supabaseClient
@@ -241,24 +254,30 @@ serve(async (req: Request): Promise<Response> => {
         console.log("[accept-mutual-resolution] Original escrow_lock movement updated to approved");
       }
 
-      // 9. Update buyer wallet - release blocked_balance and add their refund if any
-      const newBuyerBlockedBalance = Math.max(0, originalBuyerBlockedBalance - escrowAmount);
-      const newBuyerBalance = originalBuyerBalance + buyerFinalAmount;
-      
-      const { error: updateBuyerError } = await supabaseClient
-        .from("wallets")
-        .update({ 
-          balance: newBuyerBalance,
-          blocked_balance: newBuyerBlockedBalance
-        })
-        .eq("id", buyerWallet.id);
-
-      if (updateBuyerError) {
-        console.error("[accept-mutual-resolution] Error updating buyer wallet", updateBuyerError);
+      // 9. Release the buyer's blocked escrow and credit their refund — both atomic.
+      const { error: releaseBuyerError } = await supabaseClient.rpc("release_blocked_balance", {
+        p_wallet_id: buyerWallet.id,
+        p_amount: escrowAmount,
+      });
+      if (releaseBuyerError) {
+        console.error("[accept-mutual-resolution] Error releasing buyer blocked balance", releaseBuyerError);
         throw new Error("No se pudo actualizar la billetera del comprador");
       }
       buyerWalletUpdated = true;
-      console.log(`[accept-mutual-resolution] Buyer wallet updated: balance ${originalBuyerBalance}->${newBuyerBalance}, blocked ${originalBuyerBlockedBalance}->${newBuyerBlockedBalance}`);
+
+      let newBuyerBalance = originalBuyerBalance;
+      if (buyerFinalAmount > 0) {
+        const { data: creditedBuyer, error: updateBuyerError } = await supabaseClient.rpc("credit_wallet_balance", {
+          p_wallet_id: buyerWallet.id,
+          p_delta: buyerFinalAmount,
+        });
+        if (updateBuyerError) {
+          console.error("[accept-mutual-resolution] Error updating buyer wallet", updateBuyerError);
+          throw new Error("No se pudo actualizar la billetera del comprador");
+        }
+        newBuyerBalance = Number(creditedBuyer);
+      }
+      console.log(`[accept-mutual-resolution] Buyer wallet updated: balance ${originalBuyerBalance}->${newBuyerBalance}, released ${escrowAmount}`);
 
       // Create buyer movement if they get money
       if (buyerFinalAmount > 0) {
@@ -282,20 +301,19 @@ serve(async (req: Request): Promise<Response> => {
         }
       }
 
-      // 10. Update seller wallet if they get money
+      // 10. Update seller wallet if they get money — atomic credit.
       if (sellerFinalAmount > 0) {
-        const newSellerBalance = originalSellerBalance + sellerFinalAmount;
-        
-        const { error: updateSellerError } = await supabaseClient
-          .from("wallets")
-          .update({ balance: newSellerBalance })
-          .eq("id", sellerWallet.id);
+        const { data: creditedSeller, error: updateSellerError } = await supabaseClient.rpc("credit_wallet_balance", {
+          p_wallet_id: sellerWallet.id,
+          p_delta: sellerFinalAmount,
+        });
 
         if (updateSellerError) {
           console.error("[accept-mutual-resolution] Error updating seller wallet", updateSellerError);
           throw new Error("No se pudo actualizar la billetera del vendedor");
         }
         sellerWalletUpdated = true;
+        const newSellerBalance = Number(creditedSeller);
         console.log(`[accept-mutual-resolution] Seller wallet updated: ${originalSellerBalance} -> ${newSellerBalance}`);
 
         // Create seller movement
