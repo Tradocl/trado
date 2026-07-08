@@ -56,28 +56,33 @@ serve(async (req) => {
 
       console.log(`[auto-release-escrow] Releasing tx ${tx.id} (${tx.sale_type}, ${reviewHours}h expired)`);
 
-      // Check no duplicate release
-      const { data: existing } = await supabase
-        .from("wallet_movements")
+      // ATOMIC CLAIM: flip state to completed only if it is still awaiting review.
+      // This is the idempotency lock — if another run (or confirm-delivery) already
+      // processed this tx, the update affects 0 rows and we skip. Prevents double release.
+      const { data: claimed } = await supabase
+        .from("transactions")
+        .update({ state: "completed", completed_at: new Date().toISOString() })
+        .eq("id", tx.id)
+        .eq("state", "awaiting_buyer_review")
         .select("id")
-        .eq("transaction_id", tx.id)
-        .eq("type", "escrow_release")
-        .eq("status", "approved")
         .maybeSingle();
 
-      if (existing) {
-        console.log(`[auto-release-escrow] Tx ${tx.id} already released, skipping`);
+      if (!claimed) {
+        console.log(`[auto-release-escrow] Tx ${tx.id} already processed, skipping`);
         continue;
       }
 
-      // Get wallets
+      // Get wallet IDs (balance math is done atomically via RPCs below).
       const { data: buyerWallet } = await supabase
         .from("wallets").select("id, blocked_balance").eq("user_id", tx.buyer_id).single();
       const { data: sellerWallet } = await supabase
-        .from("wallets").select("id, balance").eq("user_id", tx.seller_id).single();
+        .from("wallets").select("id").eq("user_id", tx.seller_id).single();
 
       if (!buyerWallet || !sellerWallet) {
-        console.error(`[auto-release-escrow] Wallets not found for tx ${tx.id}`);
+        console.error(`[auto-release-escrow] Wallets not found for tx ${tx.id} — reverting claim`);
+        await supabase.from("transactions")
+          .update({ state: "awaiting_buyer_review", completed_at: null })
+          .eq("id", tx.id).eq("state", "completed");
         continue;
       }
 
@@ -88,15 +93,13 @@ serve(async (req) => {
       const amountToSeller = initiatorRole === "buyer" ? amount : amount - commission;
       const escrowAmount = initiatorRole === "buyer" ? amount + commission : amount;
 
-      const newSellerBalance = Number(sellerWallet.balance ?? 0) + amountToSeller;
       const currentBuyerBlocked = Number(buyerWallet.blocked_balance ?? 0);
       if (currentBuyerBlocked < escrowAmount) {
         console.error(`[auto-release-escrow] DATA INCONSISTENCY: blocked_balance (${currentBuyerBlocked}) < escrowAmount (${escrowAmount}) for tx ${tx.id}`);
       }
-      const newBuyerBlocked = Math.max(0, currentBuyerBlocked - escrowAmount);
 
-      // Release buyer blocked funds
-      await supabase.from("wallets").update({ blocked_balance: newBuyerBlocked }).eq("id", buyerWallet.id);
+      // Release buyer blocked funds atomically
+      await supabase.rpc("release_blocked_balance", { p_wallet_id: buyerWallet.id, p_amount: escrowAmount });
 
       // Approve escrow_lock
       await supabase.from("wallet_movements")
@@ -105,8 +108,11 @@ serve(async (req) => {
         .eq("type", "escrow_lock")
         .eq("status", "pending");
 
-      // Credit seller
-      await supabase.from("wallets").update({ balance: newSellerBalance }).eq("id", sellerWallet.id);
+      // Credit seller atomically; RPC returns the new balance for the movement record.
+      const { data: newSellerBalance } = await supabase.rpc("credit_wallet_balance", {
+        p_wallet_id: sellerWallet.id,
+        p_delta: amountToSeller,
+      });
 
       // Record movement
       await supabase.from("wallet_movements").insert({
@@ -118,12 +124,6 @@ serve(async (req) => {
         description: `Auto-liberación: "${tx.product_name}"`,
         status: "approved",
       });
-
-      // Complete transaction
-      await supabase.from("transactions").update({
-        state: "completed",
-        completed_at: new Date().toISOString(),
-      }).eq("id", tx.id);
 
       // Update profile stats
       for (const userId of [tx.seller_id, tx.buyer_id]) {

@@ -150,10 +150,12 @@ serve(async (req: Request) => {
       return new Response("Already processed", { status: 200 });
     }
 
-    const { error: walletUpdateErr } = await supabase
-      .from("wallets")
-      .update({ balance: newBalance })
-      .eq("id", wallet_id);
+    // Atomic credit (row-locked increment) so a concurrent escrow release on the
+    // same wallet can't clobber this deposit via a stale read-modify-write.
+    const { error: walletUpdateErr } = await supabase.rpc("credit_wallet_balance", {
+      p_wallet_id: wallet_id,
+      p_delta: depositAmount,
+    });
 
     if (walletUpdateErr) {
       console.error("[mercadopago-webhook] Wallet update failed, rolling back movement:", walletUpdateErr);

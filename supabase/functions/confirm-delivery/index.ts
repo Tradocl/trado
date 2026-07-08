@@ -160,9 +160,6 @@ serve(async (req: Request): Promise<Response> => {
       ? transactionAmount  // Buyer paid commission, seller gets full price
       : transactionAmount - calculatedCommission;  // Seller pays commission
 
-    const currentSellerBalance = Number(sellerWallet.balance ?? 0);
-    const newSellerBalance = currentSellerBalance + amountToSeller;
-
     // Calculate how much was blocked in escrow
     // If buyer initiated, they blocked amount + commission
     // If seller initiated, buyer blocked just the amount
@@ -170,24 +167,21 @@ serve(async (req: Request): Promise<Response> => {
       ? transactionAmount + calculatedCommission
       : transactionAmount;
 
-    // Release buyer's blocked funds
     const currentBuyerBlocked = Number(buyerWallet.blocked_balance ?? 0);
     if (currentBuyerBlocked < escrowAmount) {
       console.error(`[confirm-delivery] DATA INCONSISTENCY: blocked_balance (${currentBuyerBlocked}) < escrowAmount (${escrowAmount}) for tx ${transactionId}`);
     }
-    const newBuyerBlocked = Math.max(0, currentBuyerBlocked - escrowAmount);
 
     // Determine sale type label for description
     const saleTypeLabel = tx.sale_type === "servicio" ? "Servicio" : "Venta";
 
     console.log(`[confirm-delivery] Processing payment: initiatorRole=${initiatorRole}, amount=${transactionAmount}, commission=${calculatedCommission}, sellerReceives=${amountToSeller}`);
-    console.log(`[confirm-delivery] Buyer blocked: ${currentBuyerBlocked} -> ${newBuyerBlocked} (releasing ${escrowAmount})`);
 
-    // Update buyer wallet: release blocked funds
-    const { error: updateBuyerWalletError } = await supabaseClient
-      .from("wallets")
-      .update({ blocked_balance: newBuyerBlocked })
-      .eq("id", buyerWallet.id);
+    // Release buyer's blocked funds atomically (row-locked increment, floored at 0).
+    const { error: updateBuyerWalletError } = await supabaseClient.rpc("release_blocked_balance", {
+      p_wallet_id: buyerWallet.id,
+      p_amount: escrowAmount,
+    });
 
     if (updateBuyerWalletError) {
       console.error("[confirm-delivery] Error updating buyer wallet", updateBuyerWalletError);
@@ -207,11 +201,11 @@ serve(async (req: Request): Promise<Response> => {
       // Continue anyway, it's not critical
     }
 
-    // Update seller wallet balance
-    const { error: updateWalletError } = await supabaseClient
-      .from("wallets")
-      .update({ balance: newSellerBalance })
-      .eq("id", sellerWallet.id);
+    // Credit seller wallet atomically (row-locked increment). Returns the new balance.
+    const { data: newSellerBalance, error: updateWalletError } = await supabaseClient.rpc("credit_wallet_balance", {
+      p_wallet_id: sellerWallet.id,
+      p_delta: amountToSeller,
+    });
 
     if (updateWalletError) {
       console.error("[confirm-delivery] Error updating seller wallet", updateWalletError);
