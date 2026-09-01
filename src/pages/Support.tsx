@@ -1,204 +1,107 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { ArrowLeft, LifeBuoy, Loader2, Mail, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Send, MessageCircle, ArrowLeft, Trash2, LifeBuoy, Sparkles, Mail, ChevronRight, HelpCircle, Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
-interface SupportThread {
-  id: string;
-  title: string;
-  status: string;
-  updated_at: string;
-}
+const MAX_SUBJECT = 120;
+const MAX_MESSAGE = 4000;
 
-const FAQ_SUGGESTIONS = [
-  { icon: HelpCircle, label: "¿Cómo funciona el escrow?", prompt: "¿Cómo funciona el sistema de escrow de Trado?" },
-  { icon: HelpCircle, label: "¿Cuánto cobra Trado?", prompt: "¿Cuál es la comisión de Trado y cómo se calcula?" },
-  { icon: HelpCircle, label: "¿Cómo retiro mi dinero?", prompt: "¿Cómo solicito un retiro de mi billetera?" },
-  { icon: HelpCircle, label: "¿Por qué debo verificarme?", prompt: "¿Cuáles son los beneficios de verificar mi identidad y cuáles son los límites si no lo hago?" },
-  { icon: HelpCircle, label: "¿Qué hago si hay problema?", prompt: "¿Qué hago si tengo un problema con una transacción y necesito apelar?" },
+const FAQ = [
+  {
+    q: "¿Cómo funciona el escrow de Trado?",
+    a: "El comprador transfiere el monto y queda retenido, no llega al vendedor todavía. El vendedor entrega el producto o servicio, y cuando el comprador confirma la recepción se libera el pago menos la comisión. Si el comprador no confirma, los fondos se liberan solos al terminar el plazo de revisión.",
+  },
+  {
+    q: "¿Cuánto cobra Trado?",
+    a: "La comisión es 5% del monto, con un mínimo de $1.000 y un máximo de $20.000 CLP, redondeada a la decena. Por el tope, mientras más grande la operación, menor es el porcentaje real: en una transacción de $2.000.000 la comisión es $20.000, es decir un 1%.",
+  },
+  {
+    q: "¿Cuánto tiempo tengo para revisar antes de que se libere el pago?",
+    a: "Depende del tipo de venta: 72 horas en productos con envío, y 24 horas en entregas en persona y servicios. El plazo empieza cuando se marca la entrega. Si dentro de ese tiempo no confirmas ni reportas un problema, el pago se libera automáticamente al vendedor.",
+  },
+  {
+    q: "¿Cómo retiro mi dinero?",
+    a: "Desde tu billetera solicitas el retiro y un administrador transfiere a tu cuenta bancaria. Los retiros se procesan de forma manual en horario hábil. Importante: el RUT de la cuenta bancaria tiene que coincidir con el RUT de tu perfil.",
+  },
+  {
+    q: "¿Por qué me conviene verificar mi identidad?",
+    a: "La verificación es opcional, pero sin ella tienes un límite de $100.000 CLP por transacción y $200.000 acumulado. Para verificarte subes tu cédula y una selfie en la sección de verificación, y un administrador la revisa. Además tu perfil muestra el sello de verificado, lo que da más confianza a la otra parte.",
+  },
+  {
+    q: "En mi billetera, ¿qué diferencia hay entre saldo disponible y bloqueado?",
+    a: "El saldo disponible es el que puedes retirar cuando quieras. El bloqueado es el que está en custodia respaldando una operación en curso: no se puede retirar hasta que esa transacción se cierre.",
+  },
+  {
+    q: "¿Qué hago si tengo un problema con una transacción?",
+    a: "Cualquiera de las dos partes puede abrir una apelación. Se abren 48 horas para que lleguen a un acuerdo directo y, si no lo hay, un administrador de Trado revisa la evidencia de ambos lados y resuelve. Ten en cuenta que la comisión no se devuelve, ni siquiera en apelaciones o acuerdos mutuos.",
+  },
+  {
+    q: "¿Puedo pedir una devolución?",
+    a: "Sí, en productos con envío y antes de confirmar la recepción. Al procesarla se determina de quién es la responsabilidad, y eso define quién paga el envío de vuelta.",
+  },
 ];
 
-const SUPPORT_FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/support-chat`;
-
 export default function Support() {
-  const { user } = useAuth();
-  const { threadId } = useParams<{ threadId: string }>();
   const navigate = useNavigate();
-  const [threads, setThreads] = useState<SupportThread[]>([]);
-  const [loadingThreads, setLoadingThreads] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [initialMessages, setInitialMessages] = useState<UIMessage[] | null>(null);
-  const [loadingMessages, setLoadingMessages] = useState(false);
-  const [input, setInput] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  // Load thread list
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      setLoadingThreads(true);
-      const { data, error } = await supabase
-        .from("support_threads")
-        .select("id,title,status,updated_at")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false });
-      if (!error) setThreads(data ?? []);
-      setLoadingThreads(false);
-    })();
-  }, [user]);
-
-  // Load messages for active thread
-  useEffect(() => {
-    if (!threadId) {
-      setInitialMessages(null);
-      return;
-    }
-    setLoadingMessages(true);
-    setInitialMessages(null);
-    (async () => {
-      const { data, error } = await supabase
-        .from("support_messages")
-        .select("id,role,parts,created_at")
-        .eq("thread_id", threadId)
-        .order("created_at", { ascending: true });
-      if (error) {
-        toast.error("No se pudo cargar la conversación");
-        setInitialMessages([]);
-      } else {
-        const msgs: UIMessage[] = (data ?? []).map((m: any) => ({
-          id: m.id,
-          role: m.role,
-          parts: Array.isArray(m.parts) ? m.parts : [],
-        }));
-        setInitialMessages(msgs);
-      }
-      setLoadingMessages(false);
-    })();
-  }, [threadId]);
-
-  const transport = useMemo(() => {
-    return new DefaultChatTransport({
-      api: SUPPORT_FN_URL,
-      prepareSendMessagesRequest: async ({ messages, id }) => {
-        const { data: sess } = await supabase.auth.getSession();
-        const token = sess.session?.access_token;
-        return {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            "Content-Type": "application/json",
-          },
-          body: { messages, threadId: id },
-        };
-      },
-    });
-  }, []);
-
-  const { messages, sendMessage, status, error } = useChat({
-    id: threadId,
-    messages: initialMessages ?? [],
-    transport,
-    onError: (e) => {
-      console.error(e);
-      toast.error("Error en el chat: " + e.message);
-    },
-    onFinish: () => {
-      // Refresh thread list to show updated title/status
-      refreshThreads();
-    },
-  });
-
-  const refreshThreads = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("support_threads")
-      .select("id,title,status,updated_at")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false });
-    if (data) setThreads(data);
-  };
-
-  // Focus input
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, [threadId, status]);
-
-  // Auto scroll
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, status]);
-
-  const createThread = async (firstPrompt?: string) => {
-    if (!user || creating) return;
-    setCreating(true);
-    try {
-      const { data, error } = await supabase
-        .from("support_threads")
-        .insert({ user_id: user.id, title: "Nueva conversación" })
-        .select("id,title,status,updated_at")
-        .single();
-      if (error) throw error;
-      setThreads((prev) => [data, ...prev]);
-      navigate(`/support/${data.id}`);
-      // If a first prompt was provided, send it after navigation/mount
-      if (firstPrompt) {
-        setTimeout(() => {
-          setInput("");
-          sendMessage({ text: firstPrompt });
-        }, 100);
-      }
-    } catch (e: any) {
-      toast.error("No se pudo crear la conversación: " + e.message);
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const deleteThread = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm("¿Eliminar esta conversación?")) return;
-    const { error } = await supabase.from("support_threads").delete().eq("id", id);
-    if (error) {
-      toast.error("No se pudo eliminar");
-      return;
-    }
-    setThreads((prev) => prev.filter((t) => t.id !== id));
-    if (threadId === id) navigate("/support");
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const text = input.trim();
-    if (!text) return;
-    if (!threadId) {
-      createThread(text);
-    } else {
-      sendMessage({ text });
-      setInput("");
+    const s = subject.trim();
+    const m = message.trim();
+    if (!s || !m) {
+      toast.error("Completa el asunto y el mensaje");
+      return;
+    }
+
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-support-message", {
+        body: { subject: s, message: m },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setSent(true);
+      setSubject("");
+      setMessage("");
+      toast.success("Mensaje enviado. Te respondemos a tu correo.");
+    } catch (err) {
+      console.error("Error enviando mensaje de soporte:", err);
+      toast.error("No pudimos enviar tu mensaje. Escríbenos a contacto@trado.cl.");
+    } finally {
+      setSending(false);
     }
   };
-
-  const isLoading = status === "submitted" || status === "streaming";
-  const activeThread = threads.find((t) => t.id === threadId);
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
-      <div className="container max-w-7xl mx-auto p-3 sm:p-6">
+      <Helmet>
+        <title>Centro de Ayuda · Trado</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
+
+      <div className="container max-w-3xl mx-auto p-3 sm:p-6">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4 sm:mb-6">
+        <div className="flex items-center gap-3 mb-6">
           <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -208,199 +111,130 @@ export default function Support() {
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-bold">Centro de Ayuda</h1>
-              <p className="text-xs text-muted-foreground">Asistente IA + soporte humano</p>
+              <p className="text-xs text-muted-foreground">
+                Preguntas frecuentes y contacto directo
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-4">
-          {/* Thread sidebar */}
-          <Card className={cn("p-3 h-fit md:sticky md:top-4", threadId && "hidden md:block")}>
-            <Button
-              onClick={() => createThread()}
-              disabled={creating}
-              className="w-full mb-3 bg-gradient-to-r from-primary to-accent"
-            >
-              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
-              Nueva conversación
-            </Button>
-            <div className="space-y-1 max-h-[60vh] overflow-y-auto">
-              {loadingThreads ? (
-                <p className="text-xs text-muted-foreground text-center py-4">Cargando…</p>
-              ) : threads.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-4">Sin conversaciones aún</p>
-              ) : (
-                threads.map((t) => (
-                  <div
-                    key={t.id}
-                    onClick={() => navigate(`/support/${t.id}`)}
-                    className={cn(
-                      "group flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-accent/50 transition-colors text-sm",
-                      threadId === t.id && "bg-accent"
-                    )}
-                  >
-                    <MessageCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      <p className="truncate font-medium">{t.title}</p>
-                      {t.status === "escalated" && (
-                        <Badge variant="secondary" className="text-[10px] mt-0.5">
-                          <Mail className="h-2.5 w-2.5 mr-1" />Escalado
-                        </Badge>
-                      )}
-                    </div>
-                    <button
-                      onClick={(e) => deleteThread(t.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 text-destructive transition-opacity"
-                      aria-label="Eliminar"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
+        {/* FAQ */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Preguntas frecuentes</CardTitle>
+            <CardDescription>
+              Lo que más nos consultan. Si no encuentras tu respuesta, escríbenos más abajo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              {FAQ.map((item, i) => (
+                <AccordionItem key={i} value={`faq-${i}`}>
+                  <AccordionTrigger className="text-left text-sm">{item.q}</AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                    {item.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
 
-          {/* Main chat area */}
-          <Card className={cn("flex flex-col h-[calc(100vh-12rem)] min-h-[500px]", !threadId && "hidden md:flex")}>
-            {!threadId ? (
-              // Welcome / FAQ
-              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
-                  <Sparkles className="h-8 w-8 text-primary" />
+        {/* Contacto */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Escríbenos</CardTitle>
+            <CardDescription>
+              Te respondemos por correo dentro de 24 horas hábiles.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {sent ? (
+              <div className="text-center py-6">
+                <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-3">
+                  <Mail className="h-6 w-6 text-success" />
                 </div>
-                <h2 className="text-xl font-bold mb-2">¿En qué te ayudo?</h2>
-                <p className="text-sm text-muted-foreground mb-6 max-w-md">
-                  Pregúntame sobre Trado: cómo funciona el escrow, comisiones, retiros, verificación, apelaciones. Si no puedo resolverlo, escalo tu caso al equipo de soporte.
+                <p className="font-medium mb-1">Mensaje enviado</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Te llegó una copia a tu correo. Respondemos dentro de 24 horas hábiles.
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
-                  {FAQ_SUGGESTIONS.map((s) => (
-                    <button
-                      key={s.label}
-                      onClick={() => createThread(s.prompt)}
-                      disabled={creating}
-                      className="text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-accent/30 transition-colors disabled:opacity-50"
-                    >
-                      <div className="flex items-center gap-2">
-                        <s.icon className="h-4 w-4 text-primary shrink-0" />
-                        <span className="text-sm font-medium">{s.label}</span>
-                        <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <Button variant="outline" onClick={() => setSent(false)}>
+                  Enviar otro mensaje
+                </Button>
               </div>
             ) : (
-              <>
-                {/* Thread header (mobile back) */}
-                <div className="md:hidden border-b p-3 flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => navigate("/support")}>
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                  <p className="text-sm font-medium truncate">{activeThread?.title ?? "Conversación"}</p>
-                  {activeThread?.status === "escalated" && (
-                    <Badge variant="secondary" className="ml-auto text-[10px]">
-                      <Mail className="h-2.5 w-2.5 mr-1" />Escalado
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Messages */}
-                <ScrollArea className="flex-1">
-                  <div ref={scrollRef} className="p-4 space-y-4 overflow-y-auto h-full">
-                    {loadingMessages ? (
-                      <div className="flex justify-center py-8">
-                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                      </div>
-                    ) : messages.length === 0 ? (
-                      <p className="text-center text-sm text-muted-foreground py-8">
-                        Escribe tu pregunta para empezar
-                      </p>
-                    ) : (
-                      messages.map((m) => <MessageBubble key={m.id} message={m} />)
-                    )}
-                    {status === "submitted" && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        <span>Pensando…</span>
-                      </div>
-                    )}
-                    {error && (
-                      <div className="text-sm text-destructive p-3 bg-destructive/10 rounded-md">
-                        Error: {error.message}
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-
-                {/* Composer */}
-                <form onSubmit={handleSubmit} className="border-t p-3 flex gap-2">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="support-subject">Asunto</Label>
                   <Input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Escribe tu pregunta…"
-                    disabled={isLoading}
-                    autoFocus
+                    id="support-subject"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    maxLength={MAX_SUBJECT}
+                    placeholder="Ej: No puedo retirar mi saldo"
+                    disabled={sending}
+                    required
                   />
-                  <Button
-                    type="submit"
-                    disabled={isLoading || !input.trim()}
-                    size="icon"
-                    className="bg-gradient-to-r from-primary to-accent shrink-0"
-                  >
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </Button>
-                </form>
-              </>
-            )}
-          </Card>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MessageBubble({ message }: { message: UIMessage }) {
-  const isUser = message.role === "user";
-  return (
-    <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
-      <div
-        className={cn(
-          "max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-2.5 text-sm",
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-foreground"
-        )}
-      >
-        {message.parts?.map((part: any, i: number) => {
-          if (part.type === "text") {
-            return (
-              <p key={i} className="whitespace-pre-wrap break-words">
-                {part.text}
-              </p>
-            );
-          }
-          if (typeof part.type === "string" && part.type.startsWith("tool-")) {
-            const toolName = part.type.replace("tool-", "");
-            const state = part.state;
-            if (toolName === "escalateToHuman") {
-              return (
-                <div key={i} className="mt-2 p-2.5 rounded-md bg-background/50 border border-border text-xs space-y-1">
-                  <div className="flex items-center gap-1.5 font-semibold">
-                    <Mail className="h-3.5 w-3.5" />
-                    {state === "output-available" ? "Ticket enviado a soporte" : "Escalando a soporte humano…"}
-                  </div>
-                  {state === "output-available" && part.output?.message && (
-                    <p className="text-muted-foreground">{part.output.message}</p>
-                  )}
                 </div>
-              );
-            }
-            return null;
-          }
-          return null;
-        })}
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="support-message">Mensaje</Label>
+                    <span className="text-xs text-muted-foreground">
+                      {message.length}/{MAX_MESSAGE}
+                    </span>
+                  </div>
+                  <Textarea
+                    id="support-message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    maxLength={MAX_MESSAGE}
+                    rows={6}
+                    placeholder="Cuéntanos qué pasó. Si es sobre una transacción, incluye el código de referencia, el monto y la fecha."
+                    disabled={sending}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Nunca te pediremos contraseñas ni claves bancarias.
+                  </p>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={sending || !subject.trim() || !message.trim()}
+                  className="w-full bg-gradient-to-r from-primary to-accent"
+                >
+                  {sending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Enviando…
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Enviar mensaje
+                    </>
+                  )}
+                </Button>
+
+                {user?.email && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    Responderemos a {user.email}
+                  </p>
+                )}
+              </form>
+            )}
+
+            <div className="mt-6 pt-4 border-t text-center">
+              <p className="text-xs text-muted-foreground">
+                También puedes escribirnos directamente a{" "}
+                <a href="mailto:contacto@trado.cl" className="text-primary hover:underline">
+                  contacto@trado.cl
+                </a>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -53,3 +53,5 @@ project_id = "aekzrackrijuxvopqfbp"
     verify_jwt = false
   [functions.send-test-emails]
     verify_jwt = false
+  [functions.send-support-message]
+    verify_jwt = true
