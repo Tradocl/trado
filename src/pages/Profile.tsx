@@ -134,6 +134,33 @@ const chileanBanks = [
   "Otro",
 ];
 
+type MovementExportRow = {
+  type: string;
+  amount: number;
+  description: string | null;
+  created_at: string;
+};
+
+// wallet_movements se filtra por wallet_id (no tiene user_id), así que primero
+// hay que resolver la wallet del usuario.
+const fetchMovementsForExport = async (userId: string): Promise<MovementExportRow[]> => {
+  const { data: wallet } = await supabase
+    .from('wallets')
+    .select('id')
+    .eq('user_id', userId)
+    .single();
+
+  if (!wallet) return [];
+
+  const { data } = await supabase
+    .from('wallet_movements')
+    .select('type, amount, description, created_at')
+    .eq('wallet_id', wallet.id)
+    .order('created_at', { ascending: false })
+    .limit(200);
+  return (data ?? []) as MovementExportRow[];
+};
+
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -544,11 +571,11 @@ const Profile = () => {
     if (!user) return;
     setExportingData(true);
     try {
-      const [profileResult, transactionsResult, walletResult, movementsResult] = await Promise.all([
+      const [profileResult, transactionsResult, walletResult, movements] = await Promise.all([
         supabase.from('profiles').select('full_name, email, phone, rut, address, created_at, is_verified, reputation_score, total_transactions').eq('id', user.id).single(),
         supabase.from('transactions').select('id, title, amount, status, role, created_at, completed_at').or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).order('created_at', { ascending: false }),
         supabase.from('wallets').select('balance, total_deposited, total_withdrawn').eq('user_id', user.id).single(),
-        supabase.from('wallet_movements').select('type, amount, description, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(200),
+        fetchMovementsForExport(user.id),
       ]);
 
       const exportData = {
@@ -557,7 +584,7 @@ const Profile = () => {
         profile: profileResult.data,
         wallet: walletResult.data,
         transactions: transactionsResult.data || [],
-        wallet_movements: movementsResult.data || [],
+        wallet_movements: movements,
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
