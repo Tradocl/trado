@@ -9,7 +9,6 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Upload, CheckCircle, Clock, XCircle, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import heic2any from "heic2any";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 
 const Verification = () => {
@@ -60,10 +59,14 @@ const Verification = () => {
       setConverting(true);
       toast.info("Convirtiendo imagen HEIC a JPEG...");
       
+      // heic2any pesa ~1.2MB y sólo hace falta para fotos HEIC de iPhone,
+      // así que se carga on-demand en vez de en el bundle de la página.
+      const { default: heic2any } = await import("heic2any");
+
       // First, try to read as blob to ensure it's valid
       const arrayBuffer = await file.arrayBuffer();
       const blob = new Blob([arrayBuffer], { type: file.type || 'image/heic' });
-      
+
       const convertedBlob = await heic2any({
         blob: blob,
         toType: "image/jpeg",
