@@ -27,15 +27,19 @@ const FAQ = [
   },
   {
     q: "¿Cuánto cobra Trado?",
-    a: "La comisión tiene dos tramos. Hasta $400.000 es el 5% del monto, con un mínimo de $1.000 y un máximo de $20.000. Sobre $400.000 son $20.000 fijos más un 4% de lo que exceda ese monto, porque ahí entra el costo del procesador de pagos. Ejemplos: en $200.000 la comisión es $10.000, en $1.000.000 son $44.000 y en $2.000.000 son $84.000.",
+    a: "La comisión se calcula por tramos y cada tramo aplica sólo sobre la parte del monto que le corresponde, como el impuesto a la renta. El primer tramo, hasta $400.000, es 5%. De $400.000 a $1.150.000 el excedente paga 3,5%. Sobre $1.150.000 el excedente paga 2,5%. El mínimo por operación es $1.000. En la práctica: $200.000 paga $10.000 (5%), $1.000.000 paga $41.000 (4,1%) y $2.000.000 paga $67.500 (3,4%). Mientras más grande la operación, menor el porcentaje.",
+  },
+  {
+    q: "¿Por qué baja el porcentaje en montos grandes?",
+    a: "Porque el costo de procesar el pago no crece igual que el monto. En operaciones grandes trabajamos con transferencia bancaria, que no tiene costo de pasarela, y ese ahorro te lo traspasamos. Por eso la tasa efectiva baja de forma continua: nunca hay un salto donde pagar un peso más te cueste desproporcionadamente.",
   },
   {
     q: "¿Puedo pagar por transferencia bancaria en vez de tarjeta?",
-    a: "Sí, y en montos altos conviene. Desde $400.000 te ofrecemos la opción de transferencia, y sobre $1.150.000 es la única vía. Al transferir no se paga el costo del procesador de pagos, así que el monto se acredita completo. Confirmamos la transferencia y recién ahí los fondos quedan asegurados.",
+    a: "Sí. Desde $400.000 te ofrecemos la opción de transferencia, y sobre $1.150.000 es la única vía. Al transferir no se paga costo de pasarela, así que el monto se acredita completo. Confirmamos la transferencia y recién ahí los fondos quedan asegurados en custodia.",
   },
   {
-    q: "¿Cuál es el monto máximo por transacción?",
-    a: "El máximo que puedes crear por tu cuenta es $2.000.000. Si necesitas operar por sobre ese monto, escríbenos: manejamos precios a medida para operaciones grandes y para empresas con volumen recurrente.",
+    q: "Manejo montos grandes o volumen recurrente, ¿tienen precio especial?",
+    a: "Sí. Desde $1.000.000 puedes pedirnos una cotización a medida en vez de usar el precio automático, y sobre $2.000.000 es la vía normal porque ese es el máximo que se puede crear solo. Si tu empresa opera seguido, conversemos: el precio de volumen es distinto al de una transacción suelta.",
   },
   {
     q: "¿Cuánto tiempo tengo para revisar antes de que se libere el pago?",

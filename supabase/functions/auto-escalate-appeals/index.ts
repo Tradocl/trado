@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireServiceRole } from "../_shared/auth.ts";
 import {
   buildThreadHeaders,
   escapeHtml,
@@ -15,7 +16,12 @@ const SITE_URL = Deno.env.get("SITE_URL") || "https://trado.cl";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-serve(async (_req) => {
+serve(async (req) => {
+  // Cron/servidor-a-servidor únicamente. Sin esto, cualquiera que conozca la
+  // URL podía forzar el escalamiento de apelaciones a mediación de un admin.
+  const authFail = await requireServiceRole(req);
+  if (authFail) return authFail;
+
   console.log("[auto-escalate-appeals] Starting run");
 
   try {

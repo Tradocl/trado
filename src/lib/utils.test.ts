@@ -6,14 +6,18 @@ import {
   parseFormattedAmount,
   generateReferenceCode,
   MAX_TRANSACTION_AMOUNT,
+  CUSTOM_PRICING_FROM,
+  calculateFee,
+  effectiveFeeRate,
+  qualifiesForCustomPricing,
 } from "./utils";
 
 // La comisión es la única aritmética de dinero que corre en el cliente y
 // termina escrita en transactions.commission, así que un error acá se traduce
 // directo en plata mal cobrada o mal pagada al vendedor.
 describe("calculateOrderDetails - comisión", () => {
-  it("aplica 5% en el rango donde no topa ni el piso ni el techo", () => {
-    // 5% de 200.000 = 10.000, entre el piso (1.000) y el techo (20.000)
+  it("aplica 5% dentro del primer tramo", () => {
+    // 200.000 cae entero en el primer tramo: 5%
     const r = calculateOrderDetails(200_000);
     expect(r.appFee).toBe(10_000);
     expect(r.buyerPays).toBe(200_000);
@@ -26,42 +30,49 @@ describe("calculateOrderDetails - comisión", () => {
     expect(calculateOrderDetails(1_000).appFee).toBe(1_000);
   });
 
-  it("sobre $400.000 cobra $20.000 + 4% del excedente", () => {
-    // El segundo tramo existe para cubrir el ~3,19% que cobra MercadoPago.
-    // 20.000 + 4% de 1.600.000 = 84.000
-    expect(calculateOrderDetails(2_000_000).appFee).toBe(84_000);
-    // 20.000 + 4% de 600.000 = 44.000
-    expect(calculateOrderDetails(1_000_000).appFee).toBe(44_000);
+  it("cobra cada tramo sólo sobre la parte del monto que le corresponde", () => {
+    // 400.000 al 5% = 20.000
+    expect(calculateFee(400_000)).toBe(20_000);
+    // 20.000 + 3,5% de 750.000 = 46.250
+    expect(calculateFee(1_150_000)).toBe(46_250);
+    // 46.250 + 2,5% de 850.000 = 67.500
+    expect(calculateFee(2_000_000)).toBe(67_500);
   });
 
-  it("en el segundo tramo el porcentaje baja hacia 4% pero nunca por debajo", () => {
-    // La comisión del tramo alto es 0,04·monto + 4.000, así que el porcentaje
-    // efectivo decrece asintóticamente hacia 4% y jamás lo cruza. Importa para
-    // cotizar clientes grandes: 4% es el piso real, no un 1% como sugeriría
-    // el modelo viejo de techo fijo.
-    const pct = (m: number) => calculateOrderDetails(m).appFee / m;
-    expect(pct(500_000)).toBeGreaterThan(pct(1_000_000));
-    expect(pct(1_000_000)).toBeGreaterThan(pct(2_000_000));
-    expect(pct(2_000_000)).toBeCloseTo(0.042, 3);
-    for (const m of [500_000, 1_000_000, 2_000_000]) {
-      expect(pct(m)).toBeGreaterThan(0.04);
+  it("la tasa efectiva baja de forma monótona al subir el monto", () => {
+    // Es la propiedad que se le promete al cliente grande: mientras más
+    // grande la operación, menor el porcentaje.
+    const montos = [100_000, 400_000, 600_000, 1_000_000, 1_500_000, 2_000_000];
+    for (let i = 1; i < montos.length; i++) {
+      expect(effectiveFeeRate(montos[i])).toBeLessThanOrEqual(
+        effectiveFeeRate(montos[i - 1]),
+      );
+    }
+    expect(effectiveFeeRate(400_000)).toBeCloseTo(0.05, 4);
+    expect(effectiveFeeRate(2_000_000)).toBeCloseTo(0.03375, 4);
+  });
+
+  it("es continua: pagar un peso más nunca abarata la comisión", () => {
+    // Sin este invariante habría escalones donde conviene inflar el monto,
+    // que es justo lo que evitan los tramos marginales.
+    for (const borde of [400_000, 1_150_000]) {
+      expect(calculateFee(borde + 1)).toBeGreaterThanOrEqual(calculateFee(borde));
+      expect(calculateFee(borde + 1) - calculateFee(borde)).toBeLessThan(100);
     }
   });
 
-  it("marca los bordes exactos de los tramos", () => {
-    // 5% = 1.000 justo en 20.000 (donde el piso deja de mandar)
-    expect(calculateOrderDetails(20_000).appFee).toBe(1_000);
-    // 5% = 20.000 justo en 400.000 (fin del primer tramo)
-    expect(calculateOrderDetails(400_000).appFee).toBe(20_000);
-    // El cruce de tramo es continuo: un peso más no salta la comisión
-    expect(calculateOrderDetails(400_001).appFee).toBe(20_000);
+  it("nunca cobra menos que el mínimo de $1.000", () => {
+    expect(calculateFee(1_000)).toBe(1_000);
+    expect(calculateFee(20_000)).toBe(1_000);
+    expect(calculateFee(20_001)).toBe(1_000);
   });
 
-  it("el monto máximo operable es $2.000.000", () => {
-    // Sobre esto la UI manda a contactar soporte por precio a medida,
-    // así que $2M es el caso más caro que puede crearse solo.
-    expect(MAX_TRANSACTION_AMOUNT).toBe(2_000_000);
-    expect(calculateOrderDetails(MAX_TRANSACTION_AMOUNT).appFee).toBe(84_000);
+  it("ofrece precio a medida desde $1.000.000 sin bloquear la operación", () => {
+    expect(qualifiesForCustomPricing(999_999)).toBe(false);
+    expect(qualifiesForCustomPricing(CUSTOM_PRICING_FROM)).toBe(true);
+    // Ofrecer no es bloquear: hasta el máximo se sigue pudiendo operar solo.
+    expect(CUSTOM_PRICING_FROM).toBeLessThan(MAX_TRANSACTION_AMOUNT);
+    expect(() => calculateOrderDetails(MAX_TRANSACTION_AMOUNT)).not.toThrow();
   });
 
   it("redondea al múltiplo de 10 más cercano", () => {
@@ -69,6 +80,8 @@ describe("calculateOrderDetails - comisión", () => {
     expect(calculateOrderDetails(100_050).appFee % 10).toBe(0);
     // 5% de 33.333 = 1.666,65 -> 1.670
     expect(calculateOrderDetails(33_333).appFee).toBe(1_670);
+    // También en el tramo alto, donde la aritmética deja decimales
+    expect(calculateFee(1_234_567) % 10).toBe(0);
   });
 
   it("nunca deja al vendedor recibiendo más de lo que paga el comprador", () => {
