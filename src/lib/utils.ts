@@ -143,6 +143,66 @@ export function transferSavings(transactionAmount: number): number {
     - calculateFee(transactionAmount, "transfer");
 }
 
+export interface BlendedFee {
+  /** Comisión final a cobrar por la sala. */
+  fee: number;
+  /** Pesos del saldo con marca de tarjeta que se consumen. */
+  fromGateway: number;
+  /** Pesos sin marca (transferencia, ventas, reembolsos). */
+  fromClean: number;
+  /** Proporción 0-1 del monto cubierta con plata de tarjeta. */
+  gatewayShare: number;
+  /** Referencias para mostrar la comparación en pantalla. */
+  ifAllGateway: number;
+  ifAllTransfer: number;
+}
+
+/**
+ * Comisión cuando el saldo mezcla orígenes.
+ *
+ * El saldo es fungible: una vez adentro, no se distingue qué peso entró por
+ * tarjeta. Por eso la billetera lleva `gateway_funded_balance`, cuánto del
+ * saldo llegó por pasarela y todavía no se ha gastado.
+ *
+ * Se consumen PRIMERO los pesos con marca de tarjeta, que pagan 5%. Esa plata
+ * ya le costó a Trado ~3,6% al entrar, así que cobrarle la tarifa barata sería
+ * perder dinero. El resto paga la escala de transferencia. La comisión final es
+ * la mezcla proporcional de ambas tarifas.
+ *
+ * La marca se agota: cuando esos pesos se gastan, lo que queda es limpio. Y la
+ * plata que entra por una venta o un reembolso nunca la lleva, porque nunca
+ * pasó por la pasarela.
+ */
+export function calculateBlendedFee(
+  transactionAmount: number,
+  gatewayFundedBalance: number,
+): BlendedFee {
+  const ifAllGateway = calculateFee(transactionAmount, "gateway");
+  const ifAllTransfer = calculateFee(transactionAmount, "transfer");
+
+  if (transactionAmount <= 0) {
+    return {
+      fee: 0, fromGateway: 0, fromClean: 0, gatewayShare: 0,
+      ifAllGateway, ifAllTransfer,
+    };
+  }
+
+  const fromGateway = Math.max(0, Math.min(gatewayFundedBalance, transactionAmount));
+  const fromClean = transactionAmount - fromGateway;
+  const gatewayShare = fromGateway / transactionAmount;
+
+  const raw = gatewayShare * ifAllGateway + (1 - gatewayShare) * ifAllTransfer;
+
+  return {
+    fee: Math.max(Math.round(raw / 10) * 10, MIN_FEE),
+    fromGateway,
+    fromClean,
+    gatewayShare,
+    ifAllGateway,
+    ifAllTransfer,
+  };
+}
+
 /** Si conviene ofrecerle cotización a medida en vez del precio automático. */
 export function qualifiesForCustomPricing(transactionAmount: number): boolean {
   return transactionAmount >= CUSTOM_PRICING_FROM;

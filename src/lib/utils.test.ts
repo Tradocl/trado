@@ -12,6 +12,7 @@ import {
   effectiveFeeRate,
   netMargin,
   transferSavings,
+  calculateBlendedFee,
   qualifiesForCustomPricing,
 } from "./utils";
 
@@ -111,6 +112,78 @@ describe("transferencia vs pasarela", () => {
     expect(transferSavings(2_000_000)).toBeGreaterThan(transferSavings(1_000_000));
     expect(transferSavings(1_000_000)).toBeGreaterThan(transferSavings(200_000));
     expect(transferSavings(2_000_000)).toBe(42_250);
+  });
+});
+
+describe("comisión con saldo de origen mezclado", () => {
+  it("cobra tarifa de tarjeta cuando todo el saldo entró por tarjeta", () => {
+    const r = calculateBlendedFee(300_000, 1_000_000);
+    expect(r.gatewayShare).toBe(1);
+    expect(r.fee).toBe(calculateFee(300_000, "gateway"));
+  });
+
+  it("cobra tarifa de transferencia cuando no hay plata con marca", () => {
+    const r = calculateBlendedFee(2_000_000, 0);
+    expect(r.gatewayShare).toBe(0);
+    expect(r.fee).toBe(calculateFee(2_000_000, "transfer"));
+  });
+
+  it("mezcla proporcionalmente cuando el saldo viene de ambos lados", () => {
+    // El caso real: quedaron $685.000 de un depósito con tarjeta y el resto
+    // entró por transferencia. 34,25% tarjeta / 65,75% limpio.
+    const r = calculateBlendedFee(2_000_000, 685_000);
+    expect(r.fromGateway).toBe(685_000);
+    expect(r.fromClean).toBe(1_315_000);
+    expect(r.gatewayShare).toBeCloseTo(0.3425, 4);
+    expect(r.ifAllGateway).toBe(100_000);
+    expect(r.ifAllTransfer).toBe(57_750);
+    expect(r.fee).toBe(72_220);
+    // Siempre entre las dos tarifas puras, nunca fuera de rango
+    expect(r.fee).toBeGreaterThan(r.ifAllTransfer);
+    expect(r.fee).toBeLessThan(r.ifAllGateway);
+  });
+
+  it("no deja que la plata de tarjeta pague tarifa barata: el arbitraje no rinde", () => {
+    // Depositar con tarjeta y esperar pagar como transferencia era la fuga.
+    // Con marca, esa plata siempre paga 5%, que es lo que cubre el costo.
+    const monto = 1_000_000;
+    const conMarca = calculateBlendedFee(monto, monto).fee;
+    const sinMarca = calculateBlendedFee(monto, 0).fee;
+    expect(conMarca).toBeGreaterThan(sinMarca);
+    expect(conMarca).toBe(calculateFee(monto, "gateway"));
+  });
+
+  it("nunca cobra menos que la tarifa de transferencia ni más que la de tarjeta", () => {
+    for (const marca of [0, 100_000, 500_000, 999_999, 5_000_000]) {
+      for (const monto of [100_000, 500_000, 1_000_000, 2_000_000]) {
+        const r = calculateBlendedFee(monto, marca);
+        expect(r.fee).toBeGreaterThanOrEqual(r.ifAllTransfer);
+        expect(r.fee).toBeLessThanOrEqual(r.ifAllGateway);
+      }
+    }
+  });
+
+  it("la comisión crece de forma monótona con la plata marcada", () => {
+    // Mientras más saldo de tarjeta se use, más cara la sala. Sin saltos.
+    let anterior = calculateBlendedFee(1_000_000, 0).fee;
+    for (const marca of [200_000, 400_000, 600_000, 800_000, 1_000_000]) {
+      const actual = calculateBlendedFee(1_000_000, marca).fee;
+      expect(actual).toBeGreaterThanOrEqual(anterior);
+      anterior = actual;
+    }
+  });
+
+  it("ignora la marca que sobra del monto de la sala", () => {
+    // Tener $5M marcados y hacer una sala de $1M sólo consume $1M.
+    const r = calculateBlendedFee(1_000_000, 5_000_000);
+    expect(r.fromGateway).toBe(1_000_000);
+    expect(r.fromClean).toBe(0);
+    expect(r.fee).toBe(calculateFee(1_000_000, "gateway"));
+  });
+
+  it("tolera valores negativos o basura en el saldo marcado", () => {
+    expect(calculateBlendedFee(500_000, -100).fee).toBe(calculateFee(500_000, "transfer"));
+    expect(calculateBlendedFee(0, 100).fee).toBe(0);
   });
 });
 

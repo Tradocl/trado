@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { calculateBlendedFee } from "../_shared/pricing.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -151,17 +152,66 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("Billetera no encontrada");
     }
 
+    // La comisión definitiva se fija ACÁ, no al crear la sala, porque recién
+    // ahora se sabe con qué plata se está financiando. Se consumen primero los
+    // pesos con marca de pasarela (que pagan 5%, cubriendo el ~3,6% que ya nos
+    // costaron) y el resto paga la escala de transferencia.
+    const salaAmount = Number(tx.amount);
+    const { data: gatewayUsed, error: consumeErr } = await supabaseClient.rpc(
+      "consume_gateway_funded",
+      { p_wallet_id: wallet.id, p_amount: salaAmount },
+    );
+
+    if (consumeErr) {
+      console.error("[process-escrow-deposit] Error consuming gateway mark", consumeErr);
+      await revertLock();
+      throw new Error("No se pudo determinar la comisión");
+    }
+
+    const consumedMark = Number(gatewayUsed ?? 0);
+    /** Devuelve la marca si algo falla después de haberla consumido. */
+    const restoreMark = async () => {
+      if (consumedMark > 0) {
+        await supabaseClient.rpc("restore_gateway_funded", {
+          p_wallet_id: wallet.id,
+          p_amount: consumedMark,
+        });
+      }
+    };
+
+    const blended = calculateBlendedFee(salaAmount, consumedMark);
+    const commission = blended.fee;
+
+    const { error: feeErr } = await supabaseClient
+      .from("transactions")
+      .update({ commission, gateway_funded_used: consumedMark })
+      .eq("id", transactionId);
+
+    if (feeErr) {
+      console.error("[process-escrow-deposit] Error writing commission", feeErr);
+      await restoreMark();
+      await revertLock();
+      throw new Error("No se pudo fijar la comisión");
+    }
+
+    console.log(
+      `[process-escrow-deposit] Fee for tx ${transactionId}: ${commission} ` +
+      `(${(100 * blended.gatewayShare).toFixed(2)}% pasarela, ` +
+      `tarjeta pura ${blended.ifAllGateway}, transferencia pura ${blended.ifAllTransfer})`,
+    );
+
     // Calculate deposit amount based on initiator_role
     const initiatorRole = tx.initiator_role || "seller";
     const depositAmount = initiatorRole === "buyer"
-      ? Number(tx.amount) + Number(tx.commission)
-      : Number(tx.amount);
+      ? salaAmount + commission
+      : salaAmount;
 
     console.log(`[process-escrow-deposit] Deposit amount: ${depositAmount}, initiatorRole: ${initiatorRole}`);
 
     // Check sufficient balance
     if (Number(wallet.balance) < depositAmount) {
       console.log(`[process-escrow-deposit] Insufficient balance: ${wallet.balance} < ${depositAmount}`);
+      await restoreMark();
       await revertLock();
       return new Response(JSON.stringify({
         error: "Saldo insuficiente",
@@ -196,12 +246,14 @@ serve(async (req: Request): Promise<Response> => {
 
     if (updateWalletError) {
       console.error("[process-escrow-deposit] Error updating wallet", updateWalletError);
+      await restoreMark();
       await revertLock();
       throw new Error("No se pudo actualizar la billetera");
     }
 
     if (!debited) {
       console.log(`[process-escrow-deposit] Balance changed concurrently, debit rejected for tx ${transactionId}`);
+      await restoreMark();
       await revertLock();
       return new Response(JSON.stringify({
         error: "Saldo insuficiente",
@@ -232,6 +284,7 @@ serve(async (req: Request): Promise<Response> => {
         .from("wallets")
         .update({ balance: Number(wallet.balance), blocked_balance: currentBlocked })
         .eq("id", wallet.id);
+      await restoreMark();
       await revertLock();
       throw new Error("No se pudo registrar el movimiento");
     }

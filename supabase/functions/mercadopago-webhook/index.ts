@@ -152,9 +152,13 @@ serve(async (req: Request) => {
 
     // Atomic credit (row-locked increment) so a concurrent escrow release on the
     // same wallet can't clobber this deposit via a stale read-modify-write.
-    const { error: walletUpdateErr } = await supabase.rpc("credit_wallet_balance", {
+    // from_gateway: esta plata entró por MercadoPago y ya nos costó ~3,6%.
+    // Queda marcada para que, al financiar una sala, pague tarifa de tarjeta
+    // en vez de la escala barata de transferencia.
+    const { error: walletUpdateErr } = await supabase.rpc("credit_wallet_balance_with_origin", {
       p_wallet_id: wallet_id,
       p_delta: depositAmount,
+      p_from_gateway: true,
     });
 
     if (walletUpdateErr) {
