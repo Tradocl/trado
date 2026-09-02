@@ -27,15 +27,19 @@ const FAQ = [
   },
   {
     q: "¿Cuánto cobra Trado?",
-    a: "La comisión se calcula por tramos y cada tramo aplica sólo sobre la parte del monto que le corresponde, como el impuesto a la renta. El primer tramo, hasta $400.000, es 5%. De $400.000 a $1.150.000 el excedente paga 3,5%. Sobre $1.150.000 el excedente paga 2,5%. El mínimo por operación es $1.000. En la práctica: $200.000 paga $10.000 (5%), $1.000.000 paga $41.000 (4,1%) y $2.000.000 paga $67.500 (3,4%). Mientras más grande la operación, menor el porcentaje.",
+    a: "Depende de cómo pagues. Con tarjeta es 5% del monto, parejo, porque ahí el procesador de pagos se lleva la mayor parte. Con transferencia bancaria cobramos bastante menos y además baja según el monto: 3,5% hasta $400.000, luego 3% sobre el excedente hasta $1.150.000, y 2,5% sobre lo que pase de ahí. El mínimo por operación es $1.000.",
   },
   {
-    q: "¿Por qué baja el porcentaje en montos grandes?",
-    a: "Porque el costo de procesar el pago no crece igual que el monto. En operaciones grandes trabajamos con transferencia bancaria, que no tiene costo de pasarela, y ese ahorro te lo traspasamos. Por eso la tasa efectiva baja de forma continua: nunca hay un salto donde pagar un peso más te cueste desproporcionadamente.",
+    q: "¿Cuánto me ahorro pagando por transferencia?",
+    a: "Bastante, y más mientras mayor sea el monto. En $200.000 pagas $7.000 en vez de $10.000. En $1.000.000 pagas $32.000 en vez de $50.000. En $2.000.000 pagas $57.750 en vez de $100.000, o sea te ahorras $42.250. La diferencia es exactamente lo que nos cobraría el procesador de pagos: si tú lo evitas, te lo traspasamos.",
   },
   {
-    q: "¿Puedo pagar por transferencia bancaria en vez de tarjeta?",
-    a: "Sí. Desde $400.000 te ofrecemos la opción de transferencia, y sobre $1.150.000 es la única vía. Al transferir no se paga costo de pasarela, así que el monto se acredita completo. Confirmamos la transferencia y recién ahí los fondos quedan asegurados en custodia.",
+    q: "¿Cómo funciona el pago por transferencia?",
+    a: "Desde $400.000 te ofrecemos la opción, y sobre $1.150.000 es la única vía. Te damos los datos de la cuenta y un código de referencia que debes escribir en el comentario de la transferencia. Cuando la confirmamos, los fondos quedan asegurados en custodia.",
+  },
+  {
+    q: "¿Cuánto demora en confirmarse una transferencia?",
+    a: "No es inmediato como la tarjeta. Dependiendo de tu banco y del horario, puede tomar hasta 24 horas hábiles en que veamos el dinero acreditado, y recién ahí los fondos quedan asegurados y el vendedor puede despachar. Si tu operación es urgente, considéralo al coordinar los plazos con la otra parte: transfiere lo antes posible y avísale al vendedor que el pago está en camino.",
   },
   {
     q: "Manejo montos grandes o volumen recurrente, ¿tienen precio especial?",

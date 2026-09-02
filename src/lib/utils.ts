@@ -63,44 +63,84 @@ export const CUSTOM_PRICING_FROM = 1_000_000;
 // Comisión mínima por operación.
 const MIN_FEE = 1_000;
 
+/** Medio por el que entra la plata. Define qué tarifa se aplica. */
+export type PaymentMethod = "gateway" | "transfer";
+
+/** Lo que se lleva MercadoPago de cada depósito. Trado lo absorbe. */
+export const GATEWAY_COST_RATE = 0.036;
+
 /**
- * Tramos MARGINALES: cada uno cobra su tasa sólo sobre la parte del monto que
- * cae dentro de él, igual que el impuesto a la renta. Eso hace la comisión
- * continua (nunca conviene declarar menos para pagar menos) y decreciente: la
- * tasa efectiva baja a medida que sube el monto.
- *
- * Las tasas están calzadas con el medio de pago, que hoy correlaciona con el
- * monto: bajo $400.000 se paga con tarjeta y Trado absorbe el 3,19% de
- * MercadoPago; sobre $1.150.000 la transferencia es obligatoria y no hay costo
- * de procesador, así que podemos cobrar bastante menos y aun así ganar más neto.
+ * Pasarela: 5% plano, sin tramos. La pasarela nos cobra ~3,6%, así que el neto
+ * es ~1,4% y no da para escalarlo hacia abajo. Simple de explicar y de cobrar.
  */
-const FEE_TIERS: { upTo: number; rate: number }[] = [
-  { upTo: 400_000, rate: 0.05 },   // tarjeta: 5% bruto -> ~1,8% neto
-  { upTo: 1_150_000, rate: 0.035 }, // zona mixta, transferencia ya ofrecida
-  { upTo: Infinity, rate: 0.025 },  // transferencia obligatoria: neto = bruto
+const GATEWAY_RATE = 0.05;
+
+/**
+ * Transferencia: tramos MARGINALES decrecientes. Cada tramo cobra su tasa sólo
+ * sobre la parte del monto que cae dentro de él, como el impuesto a la renta.
+ * Eso la hace continua (nunca hay un escalón donde pagar un peso más salga
+ * desproporcionado) y decreciente.
+ *
+ * Acá la pasarela no cobra nada, así que lo cobrado es lo ganado: incluso el
+ * tramo más barato (2,5%) deja mejor margen que el 5% con tarjeta.
+ */
+const TRANSFER_TIERS: { upTo: number; rate: number }[] = [
+  { upTo: 400_000, rate: 0.035 },
+  { upTo: 1_150_000, rate: 0.03 },
+  { upTo: Infinity, rate: 0.025 },
 ];
 
-/** Comisión de Trado para un monto, aplicando los tramos marginales. */
-export function calculateFee(transactionAmount: number): number {
+function applyTiers(amount: number, tiers: { upTo: number; rate: number }[]): number {
   let fee = 0;
-  let restante = transactionAmount;
+  let restante = amount;
   let desde = 0;
 
-  for (const { upTo, rate } of FEE_TIERS) {
+  for (const { upTo, rate } of tiers) {
     if (restante <= 0) break;
     const tramo = Math.min(restante, upTo - desde);
     fee += tramo * rate;
     restante -= tramo;
     desde = upTo;
   }
-
-  return Math.max(Math.round(fee / 10) * 10, MIN_FEE);
+  return fee;
 }
 
-/** Tasa efectiva (0-1) que termina pagando el usuario para ese monto. */
-export function effectiveFeeRate(transactionAmount: number): number {
+/** Comisión de Trado para un monto según el medio de pago. */
+export function calculateFee(
+  transactionAmount: number,
+  method: PaymentMethod = "gateway",
+): number {
+  const raw = method === "transfer"
+    ? applyTiers(transactionAmount, TRANSFER_TIERS)
+    : transactionAmount * GATEWAY_RATE;
+
+  return Math.max(Math.round(raw / 10) * 10, MIN_FEE);
+}
+
+/** Tasa efectiva (0-1) que termina pagando el usuario. */
+export function effectiveFeeRate(
+  transactionAmount: number,
+  method: PaymentMethod = "gateway",
+): number {
   if (transactionAmount <= 0) return 0;
-  return calculateFee(transactionAmount) / transactionAmount;
+  return calculateFee(transactionAmount, method) / transactionAmount;
+}
+
+/** Lo que Trado gana de verdad, ya descontado el costo de la pasarela. */
+export function netMargin(
+  transactionAmount: number,
+  method: PaymentMethod,
+): number {
+  const fee = calculateFee(transactionAmount, method);
+  return method === "transfer"
+    ? fee
+    : fee - transactionAmount * GATEWAY_COST_RATE;
+}
+
+/** Cuánto se ahorra el usuario pagando por transferencia en vez de tarjeta. */
+export function transferSavings(transactionAmount: number): number {
+  return calculateFee(transactionAmount, "gateway")
+    - calculateFee(transactionAmount, "transfer");
 }
 
 /** Si conviene ofrecerle cotización a medida en vez del precio automático. */
@@ -108,22 +148,32 @@ export function qualifiesForCustomPricing(transactionAmount: number): boolean {
   return transactionAmount >= CUSTOM_PRICING_FROM;
 }
 
-export function calculateOrderDetails(transactionAmount: number): {
+export function calculateOrderDetails(
+  transactionAmount: number,
+  method: PaymentMethod = "gateway",
+): {
   buyerPays: number;
   appFee: number;
   sellerReceives: number;
   referenceCode: string;
+  /** Comisión si pagara por el otro medio, para mostrar la comparación. */
+  transferFee: number;
+  gatewayFee: number;
+  savings: number;
 } {
   if (transactionAmount <= 0) {
     throw new Error("El monto de la transacción debe ser mayor a 0");
   }
 
-  const appFee = calculateFee(transactionAmount);
+  const appFee = calculateFee(transactionAmount, method);
 
   return {
     buyerPays: transactionAmount,
     appFee,
     sellerReceives: transactionAmount - appFee,
     referenceCode: generateReferenceCode(),
+    gatewayFee: calculateFee(transactionAmount, "gateway"),
+    transferFee: calculateFee(transactionAmount, "transfer"),
+    savings: transferSavings(transactionAmount),
   };
 }

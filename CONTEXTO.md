@@ -50,55 +50,68 @@ y no un problema de permisos.
 
 ## 3. Modelo de negocio
 
-### Comisión (tramos marginales)
+### Comisión — dos tarifas según el medio de pago
 
-Definida en [`src/lib/utils.ts`](src/lib/utils.ts) → `calculateFee`. Cada tramo
-cobra su tasa **sólo sobre la parte del monto que cae dentro de él**, igual que
-el impuesto a la renta. Eso la hace continua (nunca hay un escalón donde
-convenga declarar menos) y decreciente.
+Definida en [`src/lib/utils.ts`](src/lib/utils.ts) → `calculateFee(monto, medio)`.
+**Trado absorbe el costo de la pasarela (~3,6%)**: el usuario deposita y se le
+acredita el monto completo, el `mpFee` se registra en
+`wallet_movements.external_fee` pero no se le descuenta. Por eso hay dos tarifas.
+
+**Pasarela (tarjeta): 5% plano.** Sin tramos ni tope. No se escala hacia abajo
+porque el procesador ya se lleva 3,6% y sólo queda ~1,4% neto: no hay de dónde
+recortar.
+
+**Transferencia: tramos marginales decrecientes.** Cada tramo cobra su tasa sólo
+sobre la parte del monto que cae dentro de él, como el impuesto a la renta. Eso
+la hace continua (nunca hay un escalón donde pagar un peso más salga
+desproporcionado) y decreciente. Acá la pasarela no cobra nada, así que **lo
+cobrado es lo ganado**.
 
 | Tramo | Tasa marginal |
 |---|---|
-| hasta $400.000 | 5% |
-| $400.000 – $1.150.000 | 3,5% |
+| hasta $400.000 | 3,5% |
+| $400.000 – $1.150.000 | 3% |
 | sobre $1.150.000 | 2,5% |
 
-Mínimo $1.000 por operación. Redondeo a la decena.
+Mínimo $1.000 por operación, redondeo a la decena, en ambas tarifas.
 
-| Monto | Comisión | Tasa efectiva |
-|---|---|---|
-| $200.000 | $10.000 | 5,00% |
-| $400.000 | $20.000 | 5,00% |
-| $1.000.000 | $41.000 | 4,10% |
-| $2.000.000 | $67.500 | 3,38% |
+| Monto | Tarjeta | Transferencia | Ahorra el usuario | Neto tarjeta | Neto transf. |
+|---|---|---|---|---|---|
+| $200.000 | $10.000 (5%) | $7.000 (3,50%) | $3.000 | 1,40% | **3,50%** |
+| $400.000 | $20.000 (5%) | $14.000 (3,50%) | $6.000 | 1,40% | **3,50%** |
+| $1.000.000 | $50.000 (5%) | $32.000 (3,20%) | $18.000 | 1,40% | **3,20%** |
+| $2.000.000 | $100.000 (5%) | $57.750 (2,89%) | $42.250 | 1,40% | **2,89%** |
+
+**La clave del diseño:** el descuento por transferencia no se paga con margen
+propio. Es traspasar el costo de pasarela que se ahorra, así que el usuario paga
+menos *y* Trado gana más (2,89% vs 1,40% en $2M). Por eso conviene empujar la
+transferencia en montos altos, y por eso es obligatoria sobre $1.150.000.
 
 - **`MAX_TRANSACTION_AMOUNT` = $2.000.000.** Sobre eso no se puede crear una
   transacción solo; hay que cotizar.
 - **`CUSTOM_PRICING_FROM` = $1.000.000.** Desde ahí se *ofrece* precio a medida
   sin bloquear: el usuario puede seguir con el precio automático si prefiere.
 
-### Margen real — importante
+### Decisión pendiente: qué tarifa se cobra realmente
 
-**Trado absorbe la comisión de MercadoPago (~3,19%).** El usuario deposita y se
-le acredita el monto completo; el `mpFee` se registra en
-`wallet_movements.external_fee` pero no se le descuenta. Entonces:
+`transactions.commission` se **congela al crear la transacción**
+([CreateTransaction.tsx](src/pages/CreateTransaction.tsx)), pero el medio de pago
+se elige después, al depositar en la billetera. Y los depósitos entran a un saldo
+general, sin quedar atados a una transacción, así que en
+`process-escrow-deposit` **no hay forma confiable de saber si esa plata entró por
+tarjeta o por transferencia**.
 
-```
-neto Trado = comisión cobrada − 3,19% (sólo si pagó con tarjeta)
-```
+Hoy `calculateOrderDetails` usa `gateway` por defecto, o sea cobra la tarifa cara.
+Para cobrar de verdad la tarifa de transferencia hay que elegir una de estas:
 
-| Monto | Medio | Comisión | Neto |
-|---|---|---|---|
-| $200.000 | tarjeta | $10.000 | **1,81%** |
-| $600.000 | tarjeta | $27.000 | **1,31%** |
-| $1.000.000 | tarjeta | $41.000 | **0,91%** |
-| $1.500.000 | transferencia | $55.000 | **3,67%** |
-| $2.000.000 | transferencia | $67.500 | **3,38%** |
+1. **Pedir el medio al crear la transacción** y guardarlo en la fila. Requiere
+   migración y cambio de UI, pero es lo más simple de razonar.
+2. **Recalcular al asegurar el escrow**, atando el depósito a la transacción.
+   Más fiel a la realidad, más trabajo.
 
-**Hueco conocido:** entre $400.000 y $1.150.000 el usuario puede elegir tarjeta,
-y ahí MercadoPago se come casi todo el margen (0,9%–1,3% neto). La palanca para
-cerrarlo es bajar `FORCE_TRANSFER_AT` de $1.150.000 a ~$400.000, a costa de
-fricción para el usuario. **Decisión pendiente del dueño.**
+Mientras no se resuelva, `calculateOrderDetails` expone `gatewayFee`,
+`transferFee` y `savings` para **mostrar ambos precios en pantalla** y usar el
+ahorro como gancho comercial, aunque se cobre el de pasarela.
 
 ### Medios de pago
 
@@ -108,6 +121,12 @@ la comisión no puede depender del medio sin rediseñar cuándo se cobra.
 - `OFFER_TRANSFER_AT` = $400.000 → se ofrece transferencia
 - `FORCE_TRANSFER_AT` = $1.150.000 → transferencia obligatoria
 - Por transferencia no hay costo de pasarela: el monto se acredita completo.
+
+**La transferencia no es instantánea.** Puede tomar hasta 24 horas hábiles en
+acreditarse, y hasta entonces los fondos no están asegurados y el vendedor no
+debería despachar. Es fricción real justo en las operaciones grandes, que son
+las que obligan a transferencia. Está avisado en el FAQ, pero **debería
+avisarse también en el flujo de pago**, no sólo ahí.
 
 ### Otros parámetros
 
@@ -293,5 +312,9 @@ npx supabase gen types typescript --project-id aekzrackrijuxvopqfbp > src/integr
 
 **Producto**
 
+- [ ] Decidir cómo se cobra la tarifa de transferencia (ver *Decisión pendiente*)
+- [ ] Avisar la demora de hasta 24h de la transferencia dentro del flujo de pago,
+      no sólo en el FAQ
+- [ ] Mostrar ambos precios al crear la transacción, con el ahorro destacado
 - [ ] Pagos por hitos / abonos parciales (lo que pide tmuros)
 - [ ] Precio por volumen para empresas recurrentes

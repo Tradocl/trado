@@ -7,64 +7,149 @@ import {
   generateReferenceCode,
   MAX_TRANSACTION_AMOUNT,
   CUSTOM_PRICING_FROM,
+  GATEWAY_COST_RATE,
   calculateFee,
   effectiveFeeRate,
+  netMargin,
+  transferSavings,
   qualifiesForCustomPricing,
 } from "./utils";
 
 // La comisión es la única aritmética de dinero que corre en el cliente y
 // termina escrita en transactions.commission, así que un error acá se traduce
 // directo en plata mal cobrada o mal pagada al vendedor.
-describe("calculateOrderDetails - comisión", () => {
-  it("aplica 5% dentro del primer tramo", () => {
-    // 200.000 cae entero en el primer tramo: 5%
-    const r = calculateOrderDetails(200_000);
-    expect(r.appFee).toBe(10_000);
-    expect(r.buyerPays).toBe(200_000);
-    expect(r.sellerReceives).toBe(190_000);
+
+describe("comisión con pasarela", () => {
+  it("es 5% plano, sin tramos ni tope", () => {
+    expect(calculateFee(100_000, "gateway")).toBe(5_000);
+    expect(calculateFee(1_000_000, "gateway")).toBe(50_000);
+    expect(calculateFee(2_000_000, "gateway")).toBe(100_000);
   });
 
-  it("respeta el piso de $1.000 en montos chicos", () => {
-    // 5% de 5.000 = 250, por debajo del piso
-    expect(calculateOrderDetails(5_000).appFee).toBe(1_000);
-    expect(calculateOrderDetails(1_000).appFee).toBe(1_000);
+  it("mantiene la tasa efectiva constante en 5% sea cual sea el monto", () => {
+    for (const m of [50_000, 400_000, 1_150_000, 2_000_000]) {
+      expect(effectiveFeeRate(m, "gateway")).toBeCloseTo(0.05, 4);
+    }
   });
 
+  it("deja ~1,4% neto porque la pasarela se lleva 3,6%", () => {
+    // Es la razón por la que la pasarela NO se escala hacia abajo: no hay de
+    // dónde recortar. El margen sale de empujar la transferencia.
+    for (const m of [200_000, 1_000_000, 2_000_000]) {
+      expect(netMargin(m, "gateway") / m).toBeCloseTo(0.05 - GATEWAY_COST_RATE, 4);
+    }
+  });
+
+  it("respeta el mínimo de $1.000", () => {
+    expect(calculateFee(5_000, "gateway")).toBe(1_000);
+    expect(calculateFee(20_000, "gateway")).toBe(1_000);
+  });
+});
+
+describe("comisión con transferencia", () => {
   it("cobra cada tramo sólo sobre la parte del monto que le corresponde", () => {
-    // 400.000 al 5% = 20.000
-    expect(calculateFee(400_000)).toBe(20_000);
-    // 20.000 + 3,5% de 750.000 = 46.250
-    expect(calculateFee(1_150_000)).toBe(46_250);
-    // 46.250 + 2,5% de 850.000 = 67.500
-    expect(calculateFee(2_000_000)).toBe(67_500);
+    // 400.000 al 3,5% = 14.000
+    expect(calculateFee(400_000, "transfer")).toBe(14_000);
+    // 14.000 + 3% de 750.000 = 36.500
+    expect(calculateFee(1_150_000, "transfer")).toBe(36_500);
+    // 36.500 + 2,5% de 850.000 = 57.750
+    expect(calculateFee(2_000_000, "transfer")).toBe(57_750);
   });
 
   it("la tasa efectiva baja de forma monótona al subir el monto", () => {
-    // Es la propiedad que se le promete al cliente grande: mientras más
-    // grande la operación, menor el porcentaje.
     const montos = [100_000, 400_000, 600_000, 1_000_000, 1_500_000, 2_000_000];
     for (let i = 1; i < montos.length; i++) {
-      expect(effectiveFeeRate(montos[i])).toBeLessThanOrEqual(
-        effectiveFeeRate(montos[i - 1]),
+      expect(effectiveFeeRate(montos[i], "transfer")).toBeLessThanOrEqual(
+        effectiveFeeRate(montos[i - 1], "transfer"),
       );
     }
-    expect(effectiveFeeRate(400_000)).toBeCloseTo(0.05, 4);
-    expect(effectiveFeeRate(2_000_000)).toBeCloseTo(0.03375, 4);
+    expect(effectiveFeeRate(400_000, "transfer")).toBeCloseTo(0.035, 4);
+    expect(effectiveFeeRate(2_000_000, "transfer")).toBeCloseTo(0.0289, 3);
   });
 
   it("es continua: pagar un peso más nunca abarata la comisión", () => {
     // Sin este invariante habría escalones donde conviene inflar el monto,
     // que es justo lo que evitan los tramos marginales.
     for (const borde of [400_000, 1_150_000]) {
-      expect(calculateFee(borde + 1)).toBeGreaterThanOrEqual(calculateFee(borde));
-      expect(calculateFee(borde + 1) - calculateFee(borde)).toBeLessThan(100);
+      const antes = calculateFee(borde, "transfer");
+      const despues = calculateFee(borde + 1, "transfer");
+      expect(despues).toBeGreaterThanOrEqual(antes);
+      expect(despues - antes).toBeLessThan(100);
     }
   });
 
-  it("nunca cobra menos que el mínimo de $1.000", () => {
-    expect(calculateFee(1_000)).toBe(1_000);
-    expect(calculateFee(20_000)).toBe(1_000);
-    expect(calculateFee(20_001)).toBe(1_000);
+  it("todo lo cobrado es ganado: la pasarela no cobra nada", () => {
+    for (const m of [200_000, 1_000_000, 2_000_000]) {
+      expect(netMargin(m, "transfer")).toBe(calculateFee(m, "transfer"));
+    }
+  });
+
+  it("nunca baja del 2,5%, que es el piso de margen aceptable", () => {
+    for (const m of [100_000, 1_000_000, 2_000_000, 10_000_000]) {
+      expect(effectiveFeeRate(m, "transfer")).toBeGreaterThanOrEqual(0.025);
+    }
+  });
+});
+
+describe("transferencia vs pasarela", () => {
+  it("la transferencia siempre le sale más barata al usuario", () => {
+    for (const m of [100_000, 400_000, 1_000_000, 2_000_000]) {
+      expect(calculateFee(m, "transfer")).toBeLessThan(calculateFee(m, "gateway"));
+      expect(transferSavings(m)).toBeGreaterThan(0);
+    }
+  });
+
+  it("y al mismo tiempo le deja más margen a Trado", () => {
+    // El punto del diseño: no es un descuento que se paga con margen propio,
+    // es traspasar el costo de pasarela que se ahorra.
+    for (const m of [200_000, 1_000_000, 2_000_000]) {
+      expect(netMargin(m, "transfer")).toBeGreaterThan(netMargin(m, "gateway"));
+    }
+  });
+
+  it("el ahorro crece con el monto, que es el gancho para operaciones grandes", () => {
+    expect(transferSavings(2_000_000)).toBeGreaterThan(transferSavings(1_000_000));
+    expect(transferSavings(1_000_000)).toBeGreaterThan(transferSavings(200_000));
+    expect(transferSavings(2_000_000)).toBe(42_250);
+  });
+});
+
+describe("calculateOrderDetails", () => {
+  it("descompone la orden y expone ambas tarifas para comparar", () => {
+    const r = calculateOrderDetails(200_000, "gateway");
+    expect(r.buyerPays).toBe(200_000);
+    expect(r.appFee).toBe(10_000);
+    expect(r.sellerReceives).toBe(190_000);
+    expect(r.gatewayFee).toBe(10_000);
+    expect(r.transferFee).toBe(7_000);
+    expect(r.savings).toBe(3_000);
+  });
+
+  it("usa la tarifa del medio que se le indique", () => {
+    expect(calculateOrderDetails(1_000_000, "transfer").appFee).toBe(32_000);
+    expect(calculateOrderDetails(1_000_000, "gateway").appFee).toBe(50_000);
+  });
+
+  it("nunca deja al vendedor recibiendo más de lo que paga el comprador", () => {
+    for (const metodo of ["gateway", "transfer"] as const) {
+      for (const monto of [1_000, 33_333, 200_000, 400_000, 1_000_000, 2_000_000]) {
+        const r = calculateOrderDetails(monto, metodo);
+        expect(r.sellerReceives).toBe(r.buyerPays - r.appFee);
+        expect(r.sellerReceives).toBeLessThan(r.buyerPays);
+        expect(r.appFee).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("redondea siempre a la decena", () => {
+    expect(calculateOrderDetails(100_050).appFee % 10).toBe(0);
+    expect(calculateFee(1_234_567, "transfer") % 10).toBe(0);
+    expect(calculateFee(33_333, "gateway") % 10).toBe(0);
+  });
+
+  it("rechaza montos no positivos en vez de devolver una comisión inventada", () => {
+    expect(() => calculateOrderDetails(0)).toThrow();
+    expect(() => calculateOrderDetails(-1)).toThrow();
   });
 
   it("ofrece precio a medida desde $1.000.000 sin bloquear la operación", () => {
@@ -73,29 +158,6 @@ describe("calculateOrderDetails - comisión", () => {
     // Ofrecer no es bloquear: hasta el máximo se sigue pudiendo operar solo.
     expect(CUSTOM_PRICING_FROM).toBeLessThan(MAX_TRANSACTION_AMOUNT);
     expect(() => calculateOrderDetails(MAX_TRANSACTION_AMOUNT)).not.toThrow();
-  });
-
-  it("redondea al múltiplo de 10 más cercano", () => {
-    // 5% de 100.050 = 5.002,5 -> 5.000
-    expect(calculateOrderDetails(100_050).appFee % 10).toBe(0);
-    // 5% de 33.333 = 1.666,65 -> 1.670
-    expect(calculateOrderDetails(33_333).appFee).toBe(1_670);
-    // También en el tramo alto, donde la aritmética deja decimales
-    expect(calculateFee(1_234_567) % 10).toBe(0);
-  });
-
-  it("nunca deja al vendedor recibiendo más de lo que paga el comprador", () => {
-    for (const monto of [1_000, 33_333, 200_000, 400_000, 1_000_000, 2_000_000]) {
-      const r = calculateOrderDetails(monto);
-      expect(r.sellerReceives).toBe(r.buyerPays - r.appFee);
-      expect(r.sellerReceives).toBeLessThan(r.buyerPays);
-      expect(r.appFee).toBeGreaterThan(0);
-    }
-  });
-
-  it("rechaza montos no positivos en vez de devolver una comisión inventada", () => {
-    expect(() => calculateOrderDetails(0)).toThrow();
-    expect(() => calculateOrderDetails(-1)).toThrow();
   });
 
   it("entrega un código de referencia con el formato esperado", () => {
