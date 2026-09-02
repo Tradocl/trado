@@ -101,17 +101,29 @@ general, sin quedar atados a una transacción, así que en
 `process-escrow-deposit` **no hay forma confiable de saber si esa plata entró por
 tarjeta o por transferencia**.
 
-Hoy `calculateOrderDetails` usa `gateway` por defecto, o sea cobra la tarifa cara.
-Para cobrar de verdad la tarifa de transferencia hay que elegir una de estas:
+**Resuelto (2026-09-02).** La comisión ya no se congela al crear la sala: se
+fija en `process-escrow-deposit`, cuando se sabe con qué plata se está
+financiando.
 
-1. **Pedir el medio al crear la transacción** y guardarlo en la fila. Requiere
-   migración y cambio de UI, pero es lo más simple de razonar.
-2. **Recalcular al asegurar el escrow**, atando el depósito a la transacción.
-   Más fiel a la realidad, más trabajo.
+El saldo es fungible, así que `wallets.gateway_funded_balance` lleva cuánto
+llegó por pasarela y no se ha gastado. Al financiar se consumen PRIMERO esos
+pesos, que pagan 5% (cubriendo el ~3,6% que ya costaron), y el resto paga la
+escala de transferencia. La comisión final es la mezcla proporcional
+(`calculateBlendedFee`). La marca se agota al gastarse, y la plata que entra por
+una venta o un reembolso nunca la lleva porque nunca pasó por la pasarela.
 
-Mientras no se resuelva, `calculateOrderDetails` expone `gatewayFee`,
-`transferFee` y `savings` para **mostrar ambos precios en pantalla** y usar el
-ahorro como gancho comercial, aunque se cobre el de pasarela.
+Sin esto había una fuga real: depositar $1.000.000 con tarjeta (Trado paga
+$36.000) y pagar la sala a tarifa de transferencia ($32.000) dejaba −$4.000.
+
+Ejemplo, cubierto por tests: quedan $685.000 marcados y el resto entró limpio.
+Sala de $2.000.000 → 34,25% pasarela → comisión **$72.220**, entre los $57.750
+de transferencia pura y los $100.000 de tarjeta pura.
+
+**Fuga conocida que queda:** los caminos de reembolso (`process-return-refund`,
+`resolve-appeal`, `accept-mutual-resolution`) devuelven la plata al saldo sin
+restituir la marca, así que queda "limpia" y una sala futura pagaría tarifa
+barata sobre dinero que vino por tarjeta. Acotado al diferencial y sólo en
+transacciones reembolsadas.
 
 ### Medios de pago
 
@@ -211,7 +223,9 @@ Si agregas una RPC en una migración y no regeneras, `tsc` falla. Ya pasó con
   `user_roles` ni `profiles`
 - 31 Edge Functions desplegadas
 - Los 3 crons, arreglados el 2026-09-02 tras **75 días caídos**
-  (1.963 corridas, 0 exitosas)
+  (1.963 corridas, 0 exitosas). Verificado: corridas programadas consecutivas
+  en `succeeded`.
+- Comisión por origen del dinero, desplegada y verificada el 2026-09-02
 - Secrets presentes: `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `RESEND_API_KEY`,
   `SITE_URL`, `SERVICE_ROLE_JWT`
 
@@ -220,8 +234,6 @@ Si agregas una RPC en una migración y no regeneras, `tsc` falla. Ya pasó con
 - **Push notifications nunca funcionaron.** Faltan `VAPID_PRIVATE_KEY`,
   `VAPID_PUBLIC_KEY`, `VAPID_SUBJECT` y `FIREBASE_SERVICE_ACCOUNT`. La función
   está desplegada pero no puede enviar nada. Hay UI que promete algo que no ocurre.
-- **`support-chat`** sigue desplegada pero su código ya no está en el repo, y
-  nunca tuvo `LOVABLE_API_KEY`, así que estaba muerta. Borrar del panel.
 - **Sin monitoreo de errores** (Sentry o equivalente). Los bugs se descubren
   cuando alguien reclama.
 - **Nunca se probó un flujo real de punta a punta** con dinero: registro →
@@ -305,14 +317,13 @@ npx supabase gen types typescript --project-id aekzrackrijuxvopqfbp > src/integr
 
 **Higiene**
 
-- [ ] Borrar `support-chat` del panel de Supabase
 - [ ] Configurar `VAPID_*` y `FIREBASE_SERVICE_ACCOUNT`, o quitar la UI de push
 - [ ] `verify_jwt` de `send-test-emails`: el repo dice `false`, producción `true`
 - [ ] Limpiar los `no-explicit-any` de las Edge Functions
 
 **Producto**
 
-- [ ] Decidir cómo se cobra la tarifa de transferencia (ver *Decisión pendiente*)
+- [ ] Restituir la marca de origen en los caminos de reembolso
 - [ ] Avisar la demora de hasta 24h de la transferencia dentro del flujo de pago,
       no sólo en el FAQ
 - [ ] Mostrar ambos precios al crear la transacción, con el ahorro destacado
