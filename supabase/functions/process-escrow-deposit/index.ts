@@ -162,13 +162,19 @@ serve(async (req: Request): Promise<Response> => {
       { p_wallet_id: wallet.id, p_amount: salaAmount },
     );
 
+    // Si la migración 20260902000000 todavía no corrió, la RPC no existe. En ese
+    // caso NO se rompe el financiamiento: se sigue con la comisión que la sala
+    // ya traía, que es el comportamiento anterior. Desplegar esta función antes
+    // que la migración degrada el precio, no el servicio.
+    const pricingReady = !consumeErr;
     if (consumeErr) {
-      console.error("[process-escrow-deposit] Error consuming gateway mark", consumeErr);
-      await revertLock();
-      throw new Error("No se pudo determinar la comisión");
+      console.warn(
+        "[process-escrow-deposit] consume_gateway_funded no disponible, " +
+        "usando la comisión previa de la sala:", consumeErr.message,
+      );
     }
 
-    const consumedMark = Number(gatewayUsed ?? 0);
+    const consumedMark = pricingReady ? Number(gatewayUsed ?? 0) : 0;
     /** Devuelve la marca si algo falla después de haberla consumido. */
     const restoreMark = async () => {
       if (consumedMark > 0) {
@@ -179,26 +185,30 @@ serve(async (req: Request): Promise<Response> => {
       }
     };
 
-    const blended = calculateBlendedFee(salaAmount, consumedMark);
-    const commission = blended.fee;
+    let commission = Number(tx.commission);
 
-    const { error: feeErr } = await supabaseClient
-      .from("transactions")
-      .update({ commission, gateway_funded_used: consumedMark })
-      .eq("id", transactionId);
+    if (pricingReady) {
+      const blended = calculateBlendedFee(salaAmount, consumedMark);
+      commission = blended.fee;
 
-    if (feeErr) {
-      console.error("[process-escrow-deposit] Error writing commission", feeErr);
-      await restoreMark();
-      await revertLock();
-      throw new Error("No se pudo fijar la comisión");
+      const { error: feeErr } = await supabaseClient
+        .from("transactions")
+        .update({ commission, gateway_funded_used: consumedMark })
+        .eq("id", transactionId);
+
+      if (feeErr) {
+        console.error("[process-escrow-deposit] Error writing commission", feeErr);
+        await restoreMark();
+        await revertLock();
+        throw new Error("No se pudo fijar la comisión");
+      }
+
+      console.log(
+        `[process-escrow-deposit] Fee for tx ${transactionId}: ${commission} ` +
+        `(${(100 * blended.gatewayShare).toFixed(2)}% pasarela, ` +
+        `tarjeta pura ${blended.ifAllGateway}, transferencia pura ${blended.ifAllTransfer})`,
+      );
     }
-
-    console.log(
-      `[process-escrow-deposit] Fee for tx ${transactionId}: ${commission} ` +
-      `(${(100 * blended.gatewayShare).toFixed(2)}% pasarela, ` +
-      `tarjeta pura ${blended.ifAllGateway}, transferencia pura ${blended.ifAllTransfer})`,
-    );
 
     // Calculate deposit amount based on initiator_role
     const initiatorRole = tx.initiator_role || "seller";
