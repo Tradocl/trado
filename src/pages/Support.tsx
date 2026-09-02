@@ -27,7 +27,15 @@ const FAQ = [
   },
   {
     q: "¿Cuánto cobra Trado?",
-    a: "La comisión es 5% del monto, con un mínimo de $1.000 y un máximo de $20.000 CLP, redondeada a la decena. Por el tope, mientras más grande la operación, menor es el porcentaje real: en una transacción de $2.000.000 la comisión es $20.000, es decir un 1%.",
+    a: "La comisión tiene dos tramos. Hasta $400.000 es el 5% del monto, con un mínimo de $1.000 y un máximo de $20.000. Sobre $400.000 son $20.000 fijos más un 4% de lo que exceda ese monto, porque ahí entra el costo del procesador de pagos. Ejemplos: en $200.000 la comisión es $10.000, en $1.000.000 son $44.000 y en $2.000.000 son $84.000.",
+  },
+  {
+    q: "¿Puedo pagar por transferencia bancaria en vez de tarjeta?",
+    a: "Sí, y en montos altos conviene. Desde $400.000 te ofrecemos la opción de transferencia, y sobre $1.150.000 es la única vía. Al transferir no se paga el costo del procesador de pagos, así que el monto se acredita completo. Confirmamos la transferencia y recién ahí los fondos quedan asegurados.",
+  },
+  {
+    q: "¿Cuál es el monto máximo por transacción?",
+    a: "El máximo que puedes crear por tu cuenta es $2.000.000. Si necesitas operar por sobre ese monto, escríbenos: manejamos precios a medida para operaciones grandes y para empresas con volumen recurrente.",
   },
   {
     q: "¿Cuánto tiempo tengo para revisar antes de que se libere el pago?",

@@ -5,6 +5,7 @@ import {
   formatAmountInput,
   parseFormattedAmount,
   generateReferenceCode,
+  MAX_TRANSACTION_AMOUNT,
 } from "./utils";
 
 // La comisión es la única aritmética de dinero que corre en el cliente y
@@ -25,21 +26,42 @@ describe("calculateOrderDetails - comisión", () => {
     expect(calculateOrderDetails(1_000).appFee).toBe(1_000);
   });
 
-  it("respeta el techo de $20.000 en montos grandes", () => {
-    // 5% de 2.000.000 sería 100.000; el techo lo deja en 20.000 (1% efectivo)
-    expect(calculateOrderDetails(2_000_000).appFee).toBe(20_000);
-    // A mayor monto, menor porcentaje efectivo. Es el argumento comercial
-    // para clientes grandes, así que conviene que quede fijado en un test.
-    expect(calculateOrderDetails(10_000_000).appFee).toBe(20_000);
+  it("sobre $400.000 cobra $20.000 + 4% del excedente", () => {
+    // El segundo tramo existe para cubrir el ~3,19% que cobra MercadoPago.
+    // 20.000 + 4% de 1.600.000 = 84.000
+    expect(calculateOrderDetails(2_000_000).appFee).toBe(84_000);
+    // 20.000 + 4% de 600.000 = 44.000
+    expect(calculateOrderDetails(1_000_000).appFee).toBe(44_000);
   });
 
-  it("marca los bordes exactos donde el piso y el techo toman el control", () => {
-    // 5% = 1.000 justo en 20.000
+  it("en el segundo tramo el porcentaje baja hacia 4% pero nunca por debajo", () => {
+    // La comisión del tramo alto es 0,04·monto + 4.000, así que el porcentaje
+    // efectivo decrece asintóticamente hacia 4% y jamás lo cruza. Importa para
+    // cotizar clientes grandes: 4% es el piso real, no un 1% como sugeriría
+    // el modelo viejo de techo fijo.
+    const pct = (m: number) => calculateOrderDetails(m).appFee / m;
+    expect(pct(500_000)).toBeGreaterThan(pct(1_000_000));
+    expect(pct(1_000_000)).toBeGreaterThan(pct(2_000_000));
+    expect(pct(2_000_000)).toBeCloseTo(0.042, 3);
+    for (const m of [500_000, 1_000_000, 2_000_000]) {
+      expect(pct(m)).toBeGreaterThan(0.04);
+    }
+  });
+
+  it("marca los bordes exactos de los tramos", () => {
+    // 5% = 1.000 justo en 20.000 (donde el piso deja de mandar)
     expect(calculateOrderDetails(20_000).appFee).toBe(1_000);
-    // 5% = 20.000 justo en 400.000
+    // 5% = 20.000 justo en 400.000 (fin del primer tramo)
     expect(calculateOrderDetails(400_000).appFee).toBe(20_000);
-    // Un peso más y sigue topado
+    // El cruce de tramo es continuo: un peso más no salta la comisión
     expect(calculateOrderDetails(400_001).appFee).toBe(20_000);
+  });
+
+  it("el monto máximo operable es $2.000.000", () => {
+    // Sobre esto la UI manda a contactar soporte por precio a medida,
+    // así que $2M es el caso más caro que puede crearse solo.
+    expect(MAX_TRANSACTION_AMOUNT).toBe(2_000_000);
+    expect(calculateOrderDetails(MAX_TRANSACTION_AMOUNT).appFee).toBe(84_000);
   });
 
   it("redondea al múltiplo de 10 más cercano", () => {
@@ -50,7 +72,7 @@ describe("calculateOrderDetails - comisión", () => {
   });
 
   it("nunca deja al vendedor recibiendo más de lo que paga el comprador", () => {
-    for (const monto of [1_000, 33_333, 200_000, 400_000, 2_000_000, 10_000_000]) {
+    for (const monto of [1_000, 33_333, 200_000, 400_000, 1_000_000, 2_000_000]) {
       const r = calculateOrderDetails(monto);
       expect(r.sellerReceives).toBe(r.buyerPays - r.appFee);
       expect(r.sellerReceives).toBeLessThan(r.buyerPays);
