@@ -9,6 +9,14 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
+// Supabase inyecta SUPABASE_SERVICE_ROLE_KEY en el formato nuevo (sb_secret_...),
+// pero el gateway de Edge Functions sólo acepta el JWT legacy en el header
+// Authorization: manda "Invalid API key" para el otro formato. Resultado: en una
+// llamada servidor-a-servidor el token que llega NUNCA puede ser igual al de la
+// variable de entorno, y requireServiceRole rechazaba a sus propios cron jobs.
+// SERVICE_ROLE_JWT guarda el JWT legacy para poder reconocerlos.
+const SERVICE_ROLE_JWT = Deno.env.get("SERVICE_ROLE_JWT");
+
 function bearerToken(req: Request): string | null {
   const h = req.headers.get("Authorization") || req.headers.get("authorization");
   if (!h) return null;
@@ -29,6 +37,7 @@ export async function requireServiceRole(req: Request): Promise<Response | null>
     });
   }
   if (token === SERVICE_ROLE_KEY) return null;
+  if (SERVICE_ROLE_JWT && token === SERVICE_ROLE_JWT) return null;
 
   // Allow admin JWT as well
   try {
