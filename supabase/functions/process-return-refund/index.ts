@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { gatewayMarkToRestore } from "../_shared/pricing.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -68,7 +69,7 @@ serve(async (req: Request): Promise<Response> => {
     // Get transaction - IMPORTANT: include initiator_role and commission
     const { data: tx, error: txError } = await supabaseClient
       .from("transactions")
-      .select("id, buyer_id, seller_id, amount, commission, initiator_role, state, product_name")
+      .select("id, buyer_id, seller_id, amount, commission, initiator_role, state, product_name, gateway_funded_used")
       .eq("id", transactionId)
       .single();
 
@@ -206,6 +207,26 @@ serve(async (req: Request): Promise<Response> => {
     if (updateWalletError) {
       console.error("[process-return-refund] Error updating wallet", updateWalletError);
       throw new Error("No se pudo actualizar la billetera");
+    }
+
+    // La plata que vuelve conserva su origen: si al financiar la sala se
+    // consumieron pesos con marca de pasarela, se restituyen en proporción al
+    // reembolso. Sin esto la devolución "lava" la marca y la próxima sala
+    // pagaría tarifa de transferencia sobre dinero que entró por tarjeta.
+    const markBack = gatewayMarkToRestore(
+      Number(tx.amount),
+      Number(tx.gateway_funded_used ?? 0),
+      refundAmount,
+    );
+    if (markBack > 0) {
+      const { error: markErr } = await supabaseClient.rpc("restore_gateway_funded", {
+        p_wallet_id: wallet.id,
+        p_amount: markBack,
+      });
+      if (markErr) {
+        // No es motivo de fallo: el reembolso ya se hizo y es lo que importa.
+        console.error("[process-return-refund] No se pudo restituir la marca", markErr);
+      }
     }
 
     // Mark escrow_lock movement as approved (resolved)
