@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { gatewayMarkToRestore } from "../_shared/pricing.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -107,7 +108,7 @@ serve(async (req: Request): Promise<Response> => {
     // 4. Get transaction to verify parties and get commission info
     const { data: tx, error: txError } = await supabaseClient
       .from("transactions")
-      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name")
+      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name, gateway_funded_used")
       .eq("id", transactionId)
       .single();
 
@@ -276,6 +277,26 @@ serve(async (req: Request): Promise<Response> => {
           throw new Error("No se pudo actualizar la billetera del comprador");
         }
         newBuyerBalance = Number(creditedBuyer);
+
+        // La plata que vuelve conserva su origen. En un acuerdo mutuo se
+        // devuelve sólo una parte, así que la marca se restituye en esa misma
+        // proporción; si no, el reembolso la "lava" y la próxima sala pagaría
+        // tarifa de transferencia sobre dinero que entró por tarjeta.
+        const markBack = gatewayMarkToRestore(
+          Number(tx.amount),
+          Number(tx.gateway_funded_used ?? 0),
+          buyerFinalAmount,
+        );
+        if (markBack > 0) {
+          const { error: markErr } = await supabaseClient.rpc("restore_gateway_funded", {
+            p_wallet_id: buyerWallet.id,
+            p_amount: markBack,
+          });
+          if (markErr) {
+            // No es motivo de fallo: el reembolso ya se hizo.
+            console.error("[accept-mutual-resolution] No se pudo restituir la marca", markErr);
+          }
+        }
       }
       console.log(`[accept-mutual-resolution] Buyer wallet updated: balance ${originalBuyerBalance}->${newBuyerBalance}, released ${escrowAmount}`);
 

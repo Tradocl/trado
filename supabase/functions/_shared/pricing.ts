@@ -52,6 +52,33 @@ export function calculateFee(amount: number, method: PaymentMethod = "gateway"):
   return Math.max(Math.round(raw / 10) * 10, MIN_FEE);
 }
 
+/**
+ * Cuánta marca de pasarela devolver a la billetera cuando se reembolsa plata.
+ *
+ * Al financiar la sala se consumieron `gatewayFundedUsed` pesos marcados. Si
+ * después se devuelve dinero al comprador, hay que restituir la marca en la
+ * misma proporción: si no, esa plata vuelve como "limpia" y la próxima sala
+ * pagaría tarifa de transferencia sobre dinero que en realidad entró por
+ * tarjeta y ya nos costó ~3,6%.
+ *
+ * Proporcional al reembolso, no al total: en una resolución que devuelve sólo
+ * una parte, sólo esa parte recupera la marca.
+ */
+export function gatewayMarkToRestore(
+  salaAmount: number,
+  gatewayFundedUsed: number,
+  refundedAmount: number,
+): number {
+  const used = Math.max(0, Number(gatewayFundedUsed) || 0);
+  const amount = Math.max(0, Number(salaAmount) || 0);
+  const refunded = Math.max(0, Number(refundedAmount) || 0);
+
+  if (used === 0 || amount === 0 || refunded === 0) return 0;
+
+  const proporcion = Math.min(refunded / amount, 1);
+  return Math.round(used * proporcion * 100) / 100;
+}
+
 export interface BlendedFee {
   fee: number;
   fromGateway: number;

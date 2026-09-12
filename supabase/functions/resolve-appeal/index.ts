@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { gatewayMarkToRestore } from "../_shared/pricing.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -125,7 +126,7 @@ serve(async (req) => {
     // Fetch transaction data - IMPORTANT: include initiator_role and commission
     const { data: transaction, error: transactionError } = await supabaseAdmin
       .from("transactions")
-      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name")
+      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name, gateway_funded_used")
       .eq("id", appeal.transaction_id)
       .single();
 
@@ -285,7 +286,27 @@ serve(async (req) => {
         // Log but don't fail - wallet balance is already updated
       }
 
-      console.log("[resolve-appeal] Buyer refund processed:", { buyerRefundAmount, newBuyerBalance });
+      // La plata que vuelve conserva su origen: si al financiar la sala se
+      // consumieron pesos con marca de pasarela, se restituyen en proporción.
+      // Sin esto el reembolso "lava" la marca y la próxima sala pagaría tarifa
+      // de transferencia sobre dinero que entró por tarjeta.
+      const markBack = gatewayMarkToRestore(
+        Number(transaction.amount),
+        Number(transaction.gateway_funded_used ?? 0),
+        buyerRefundAmount,
+      );
+      if (markBack > 0) {
+        const { error: markErr } = await supabaseAdmin.rpc("restore_gateway_funded", {
+          p_wallet_id: buyerWallet.id,
+          p_amount: markBack,
+        });
+        if (markErr) {
+          // No es motivo de fallo: el reembolso ya se hizo y es lo que importa.
+          console.error("[resolve-appeal] No se pudo restituir la marca de origen", markErr);
+        }
+      }
+
+      console.log("[resolve-appeal] Buyer refund processed:", { buyerRefundAmount, newBuyerBalance, markBack });
     }
 
     // Process seller payment if applicable — atomic credit.
