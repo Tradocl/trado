@@ -10,7 +10,7 @@
 > desactualizado es peor que no tener mapa: hace tomar decisiones con datos
 > falsos, y en este proyecto eso ya pasó (ver *Errores caros*).
 >
-> Última actualización: 2026-09-12
+> Última actualización: 2026-09-13
 
 ---
 
@@ -22,10 +22,14 @@ comprador confirma y recién ahí se libera el pago menos la comisión. Si hay
 conflicto, hay apelaciones con mediación.
 
 - **Producción:** https://trado.cl (redirige a www)
-- **Estado real (2026-09-12): ya hay plata de terceros adentro.** 10 usuarios,
-  4 salas, **$200.000 en custodia** y **2 disputas abiertas**. Dejó de ser
-  pre-lanzamiento: cualquier cambio en el camino del dinero ahora puede afectar
-  a personas reales. Ver *Revisión pendiente* y [REVISION.md](REVISION.md).
+- **Estado real (2026-09-13):** 11 usuarios, 4 salas todas cerradas, **$0 en
+  custodia**, sin disputas abiertas. Ya pasó por su primer ciclo completo con
+  plata real: dos compras, dos disputas, acuerdo mutuo y reembolso total.
+- **Esa primera operación real destapó tres bugs graves**, todos corregidos el
+  2026-09-13 y documentados en [REVISION.md](REVISION.md): acuñación de dinero
+  abierta a cualquiera, el sistema de comisiones neutralizado por un trigger, y
+  el reembolso que movía plata antes de poder registrarla. Vale la pena leer esa
+  sección antes de tocar el camino del dinero.
 - **No está regulada por la CMF.** Los fondos quedan en una cuenta bancaria a
   nombre de Trado. No es custodia segregada ni supervisada. Esto **hay que
   decirlo de frente** a clientes empresariales; ver *Clientes y comercial*.

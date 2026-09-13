@@ -39,12 +39,13 @@ Antes de tocar una línea. Si algo acá falla, se arregla eso primero.
 `accept-mutual-resolution` ni `process-escrow-deposit`. Son las seis que mueven
 plata. Todo lo demás se puede tocar.
 
-## Fase 0.5 — HALLAZGOS CRÍTICOS (encontrados 2026-09-12, sin corregir)
+## Fase 0.5 — HALLAZGOS CRÍTICOS ✅ RESUELTOS (2026-09-13)
 
-Aparecieron auditando, no estaban en el plan original. Los dos primeros son
-graves y no deberían esperar a una "sesión de revisión".
+Aparecieron auditando. **Todos corregidos y verificados el 2026-09-13**, con la
+app vacía (cero escrow, cero usuarios operando). Se dejan documentados porque
+explican por qué el código quedó como quedó.
 
-### 🔴 C1 — Cualquiera puede acuñar dinero
+### ✅ C1 — Cualquiera podía acuñar dinero · CERRADO
 
 `credit_wallet_balance(p_wallet_id, p_delta)` es `SECURITY DEFINER`, **no tiene
 ninguna guarda interna** (ni `auth.uid()` ni chequeo de rol) y **el rol `anon`
@@ -84,7 +85,7 @@ Mismo problema, mismas condiciones:
 - [ ] Auditar si alguien ya lo explotó: cruzar `wallet_movements` contra
       `wallets.balance` y buscar saldo sin movimiento que lo respalde.
 
-### 🔴 C2 — El sistema de comisiones nuevo está neutralizado
+### ✅ C2 — El sistema de comisiones estaba neutralizado · CERRADO
 
 El trigger `trg_enforce_transaction_commission` corre
 `BEFORE INSERT OR UPDATE OF amount, commission` en `transactions` y hace:
@@ -119,7 +120,7 @@ cuál corrió. Donde divergen:
       contra un cliente que mande una comisión inventada. Conviene conservarlo
       con ese rol, no como autoridad.
 
-### 🔴 C4 — refund-mercadopago-deposit llama al tercero antes de poder registrar
+### ✅ C4 — El reembolso llamaba al tercero antes de registrar · CERRADO
 
 Ocurrió de verdad el 2026-09-13 y costó una cuadratura manual.
 
@@ -151,14 +152,14 @@ libros se cuadraron registrando los dos reembolsos que Mercado Pago sí hizo.
       riesgo es idéntico en cualquier lado donde la plata se mueva afuera antes
       de asentarse adentro.
 
-### 🟡 C3 — Hallazgos menores
+### ✅ C3 — Hallazgos menores · CERRADOS (salvo uno)
 
-- [ ] `lock_escrow_balance` permite a un anónimo bloquear saldo ajeno. No roba
-      plata, pero deja hacer daño.
-- [ ] 3 funciones con `search_path` mutable: `compute_trado_commission`,
-      `enforce_transaction_commission`, `update_push_subscription_timestamp`.
-- [ ] Protección de contraseñas filtradas (HaveIBeenPwned) desactivada en Auth.
-      Se activa desde el panel, sin código.
+- [x] `lock_escrow_balance` ya no es ejecutable por anónimos.
+- [x] `search_path` fijado en las tres funciones. Verificado: no queda ninguna
+      `SECURITY DEFINER` con `search_path` mutable.
+- [x] Largo mínimo de contraseña subido de 6 a 8, que es lo que el frontend ya
+      exigía. El backend estaba más suelto que la UI.
+- [ ] **HaveIBeenPwned requiere plan Pro.** Único pendiente de esta sección.
 
 ### ✅ Lo que sí está bien
 
