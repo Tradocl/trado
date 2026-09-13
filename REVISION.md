@@ -276,6 +276,35 @@ y el sistema de comisiones respondió correcto. Falta el resto.
 
 ---
 
+## Fase 6.5 — Confianza en la pantalla de Google
+
+Al entrar con Google, el usuario ve la pantalla de consentimiento pidiendo
+permiso para **`aekzrackrijuxvopqfbp.supabase.co`**, no para Trado. Un código
+largo e ilegible justo en el momento en que se le pide confianza a alguien que
+va a mover dinero.
+
+No es cosmético: es el punto exacto donde un usuario nuevo decide si esto se ve
+serio. Y para clientes empresariales que hacen due diligence —como tmuros— pesa
+todavía más.
+
+Verificado el 2026-09-13: el proyecto **no tiene dominio personalizado**, y la
+API responde que `custom_domain` requiere el add-on de Custom Domain, disponible
+desde el plan Pro.
+
+Hay dos formas de arreglarlo, y conviene entender que resuelven cosas distintas:
+
+- [ ] **Dominio personalizado en Supabase** (ej. `auth.trado.cl`). Es el arreglo
+      de raíz: cambia lo que Google muestra y además saca el ref del proyecto de
+      todas las URLs públicas. Requiere plan Pro más el add-on.
+- [ ] **Revisar la pantalla de consentimiento en Google Cloud.** El nombre de la
+      app, el logo y el dominio autorizado se configuran en el proyecto de
+      Google, no en Supabase. Aunque la URL técnica siga siendo la de Supabase,
+      que aparezca "Trado" con su logo ya cambia bastante la percepción. **Esto
+      es gratis y se puede hacer hoy.**
+
+Empezar por lo segundo: cuesta nada y se lleva la mayor parte de la mejora
+percibida. El dominio propio queda para cuando se justifique pagar el plan.
+
 ## Cómo ejecutar esto
 
 Una fase por sesión, empezando siempre por la 0. No mezclar fases: la gracia
