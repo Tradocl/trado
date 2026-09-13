@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendPushToUsers } from "../_shared/push.ts";
 import {
+  OPS_ALERT_EMAIL,
   appealUrl,
   buildThreadHeaders,
   buildThreadSubject,
@@ -465,7 +466,7 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         await sendEmail({
-          to: Deno.env.get("ADMIN_ALERT_EMAIL") || "contacto@trado.cl",
+          to: OPS_ALERT_EMAIL(),
           subject: `[Disputa] ${transaction.product_name ?? "Transacción"} · ${formatCLP(Number(transaction.amount ?? 0))}`,
           html: adminHtml,
         });

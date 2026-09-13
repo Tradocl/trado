@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireServiceRole } from "../_shared/auth.ts";
 import {
+  ADMIN_ALERT_EMAIL,
   buildThreadHeaders,
   escapeHtml,
   formatCLP,
@@ -179,7 +180,7 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
         });
         emailTasks.push(
           sendEmail({
-            to: "admin@trado.cl",
+            to: ADMIN_ALERT_EMAIL(),
             subject: `[Admin] Apelación auto-escalada · #${refCode}`,
             html: adminHtml,
           }),

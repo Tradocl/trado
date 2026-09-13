@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {
+  ADMIN_ALERT_EMAIL,
   escapeHtml,
   formatCLP,
   renderTransactionalEmail,
@@ -112,7 +113,7 @@ serve(async (req) => {
       ? `[Admin] Nuevo depósito · ${formatCLP(amount)}`
       : `[Admin] Nuevo retiro · ${formatCLP(amount)}`;
 
-    const result = await sendEmail({ to: "admin@trado.cl", subject, html });
+    const result = await sendEmail({ to: ADMIN_ALERT_EMAIL(), subject, html });
     return new Response(JSON.stringify({ success: true, result }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

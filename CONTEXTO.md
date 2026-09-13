@@ -152,6 +152,26 @@ avisarse también en el flujo de pago**, no sólo ahí.
 - **Retiros:** siempre manuales, los aprueba un admin. El RUT de la cuenta
   bancaria debe coincidir con el del perfil.
 
+### Casillas internas
+
+Sólo existen **`contacto@trado.cl`** y **`transacciones@trado.cl`**. `admin@trado.cl`
+**no existe**, y durante meses cuatro funciones le escribieron ahí: esos avisos
+rebotaron sin que nadie lo notara. Corregido el 2026-09-12.
+
+El reparto es por si hace falta que alguien **haga** algo:
+
+| Casilla | Qué recibe | Constante |
+|---|---|---|
+| `contacto@trado.cl` | Requiere acción: escalamientos de disputas, verificaciones por revisar, depósitos por transferencia y retiros por aprobar. Es la cuenta principal de admin. | `ADMIN_ALERT_EMAIL()` |
+| `transacciones@trado.cl` | Flujo operativo, sólo seguimiento: salas que se abren, disputas que se abren. Volumen alto, no exige respuesta. | `OPS_ALERT_EMAIL()` |
+
+Ambas se sobreescriben con los secrets `ADMIN_ALERT_EMAIL` y `OPS_ALERT_EMAIL`
+sin tocar código. Están definidas en `_shared/email-templates/notification.ts`.
+
+**Regla al agregar avisos internos:** nunca escribir la dirección a mano, usar la
+constante. Y el aviso interno va **después** del correo al usuario y envuelto en
+try/catch, para que un problema interno no le rompa la notificación a nadie.
+
 ## 4. Trampas del sistema (leer antes de tocar)
 
 ### Llaves de Supabase: dos formatos incompatibles

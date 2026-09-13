@@ -469,3 +469,21 @@ export const SITE_URL = () =>
 export const txUrl = (id: string) => `${SITE_URL()}/transaction/${id}`;
 export const appealUrl = (id: string) => `${SITE_URL()}/appeal/${id}`;
 export const walletUrl = () => `${SITE_URL()}/wallet`;
+
+// Casillas internas de Trado. Sólo existen estas dos: admin@trado.cl NO existe,
+// y durante meses cuatro funciones le escribieron ahí, así que esos avisos
+// rebotaron sin que nadie lo notara.
+//
+// El criterio del reparto es si hace falta que alguien HAGA algo:
+//
+//   ADMIN_ALERT  -> requiere acción del equipo. Escalamientos de disputas,
+//                   verificaciones de identidad por revisar, depósitos por
+//                   transferencia y retiros por aprobar. Es la casilla principal.
+//
+//   OPS_ALERT    -> flujo operativo, para seguimiento. Salas que se abren,
+//                   disputas que se abren. Volumen alto, no exige respuesta.
+export const ADMIN_ALERT_EMAIL = () =>
+  Deno.env.get("ADMIN_ALERT_EMAIL") || "contacto@trado.cl";
+
+export const OPS_ALERT_EMAIL = () =>
+  Deno.env.get("OPS_ALERT_EMAIL") || "transacciones@trado.cl";

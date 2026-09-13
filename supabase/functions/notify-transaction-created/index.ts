@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {
+  OPS_ALERT_EMAIL,
   buildThreadHeaders,
   buildThreadSubject,
   escapeHtml,
@@ -126,6 +127,34 @@ serve(async (req) => {
 
     if (thread.isNewThread && thread.anchorId) {
       await persistThreadAnchor(supabase, transactionId, thread.anchorId);
+    }
+
+    // Copia operativa al equipo: hasta ahora nadie adentro se enteraba de que se
+    // abría una sala. Va al final y envuelto: si falla, el correo al vendedor ya
+    // salió y eso es lo que importa.
+    try {
+      await sendEmail({
+        to: OPS_ALERT_EMAIL(),
+        subject: `[Sala nueva] ${tx.product_name} · ${formatCLP(Number(tx.amount))}`,
+        html: renderTransactionalEmail({
+          recipientName: "equipo Trado",
+          headline: "Se abrió una sala",
+          eyebrow: "Seguimiento operativo",
+          statusLine: "Esperando que el comprador se una",
+          tone: "info",
+          summaryTitle: "Detalles",
+          summaryRows: [
+            { label: "Producto", value: escapeHtml(tx.product_name) },
+            { label: "Monto", value: formatCLP(Number(tx.amount)), emphasis: true },
+            { label: "Creada por", value: escapeHtml(seller.full_name || seller.email || "—") },
+            { label: "Tipo", value: escapeHtml(String(tx.sale_type ?? "—")) },
+          ],
+          ctaText: "Ver la sala",
+          ctaUrl: txUrl(transactionId),
+        }),
+      });
+    } catch (opsErr) {
+      console.error("[notify-transaction-created] ops alert failed (non-blocking):", opsErr);
     }
 
     return new Response(JSON.stringify({ success: true, emailResponse }), {

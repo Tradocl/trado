@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {
+  ADMIN_ALERT_EMAIL,
   escapeHtml,
   renderTransactionalEmail,
   sendEmail,
@@ -74,7 +75,7 @@ serve(async (req) => {
     });
 
     const result = await sendEmail({
-      to: "admin@trado.cl",
+      to: ADMIN_ALERT_EMAIL(),
       subject: `[Admin] Verificación pendiente · ${userName}`,
       html,
     });
