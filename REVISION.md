@@ -39,6 +39,103 @@ Antes de tocar una línea. Si algo acá falla, se arregla eso primero.
 `accept-mutual-resolution` ni `process-escrow-deposit`. Son las seis que mueven
 plata. Todo lo demás se puede tocar.
 
+## Fase 0.5 — HALLAZGOS CRÍTICOS (encontrados 2026-09-12, sin corregir)
+
+Aparecieron auditando, no estaban en el plan original. Los dos primeros son
+graves y no deberían esperar a una "sesión de revisión".
+
+### 🔴 C1 — Cualquiera puede acuñar dinero
+
+`credit_wallet_balance(p_wallet_id, p_delta)` es `SECURITY DEFINER`, **no tiene
+ninguna guarda interna** (ni `auth.uid()` ni chequeo de rol) y **el rol `anon`
+puede ejecutarla** vía `/rest/v1/rpc/credit_wallet_balance`.
+
+La anon key es pública: está en el bundle del frontend. O sea que cualquiera
+puede acreditarse saldo arbitrario y después pedir un retiro.
+
+Verificado con `has_function_privilege('anon', oid, 'EXECUTE')` → `true`, y
+leyendo el cuerpo de la función.
+
+**Por qué el REVOKE de las migraciones no sirvió:** Postgres otorga `EXECUTE` a
+`PUBLIC` por defecto en toda función nueva. `REVOKE ... FROM anon, authenticated`
+no quita ese grant, así que ambos roles siguen heredándolo de `PUBLIC`. Hay que
+revocar **de PUBLIC**.
+
+Mismo problema, mismas condiciones:
+`credit_wallet_balance_with_origin`, `release_blocked_balance`,
+`lock_escrow_balance`, `consume_gateway_funded`, `restore_gateway_funded`.
+
+- [ ] Revocar de `PUBLIC` las seis. Son llamadas sólo por Edge Functions con
+      `service_role`, que no pasa por estos permisos, así que no rompe nada:
+  ```sql
+  REVOKE EXECUTE ON FUNCTION public.credit_wallet_balance(uuid, numeric) FROM PUBLIC;
+  REVOKE EXECUTE ON FUNCTION public.credit_wallet_balance_with_origin(uuid, numeric, boolean) FROM PUBLIC;
+  REVOKE EXECUTE ON FUNCTION public.release_blocked_balance(uuid, numeric) FROM PUBLIC;
+  REVOKE EXECUTE ON FUNCTION public.lock_escrow_balance(uuid, numeric) FROM PUBLIC;
+  REVOKE EXECUTE ON FUNCTION public.consume_gateway_funded(uuid, numeric) FROM PUBLIC;
+  REVOKE EXECUTE ON FUNCTION public.restore_gateway_funded(uuid, numeric) FROM PUBLIC;
+  ```
+- [ ] **NO revocar** las que sí llama el frontend con el JWT del usuario:
+      `admin_approve_movement` (se autochequea admin), `get_safe_profile`,
+      `get_transaction_preview`, `find_transaction_by_invite_code`,
+      `generate_invite_code`.
+- [ ] Revisar las 24 `SECURITY DEFINER` ejecutables por `anon` una por una y
+      dejar sólo las que de verdad lo necesitan.
+- [ ] Auditar si alguien ya lo explotó: cruzar `wallet_movements` contra
+      `wallets.balance` y buscar saldo sin movimiento que lo respalde.
+
+### 🔴 C2 — El sistema de comisiones nuevo está neutralizado
+
+El trigger `trg_enforce_transaction_commission` corre
+`BEFORE INSERT OR UPDATE OF amount, commission` en `transactions` y hace:
+
+```sql
+NEW.commission := public.compute_trado_commission(NEW.amount);
+```
+
+Sobrescribe **siempre**, y `compute_trado_commission` usa el **modelo viejo**
+(5% con tope $20.000 hasta $400.000, después $20.000 + 4% del excedente). No
+tiene exención para `service_role`, así que también pisa lo que escribe
+`process-escrow-deposit`.
+
+Resultado: las dos tarifas, la marca de origen y la mezcla proporcional **no se
+están aplicando**. La columna `gateway_funded_used` sí se guarda (el trigger no
+la toca), pero la comisión se reemplaza.
+
+**Corrección a lo que se dijo antes:** se afirmó que el sistema nuevo "funcionó
+con plata real" en las salas de WWE. **Era falso.** Los $5.000 coinciden porque
+en $100.000 ambas fórmulas dan lo mismo. Con esos datos no se puede distinguir
+cuál corrió. Donde divergen:
+
+| Monto | Trigger (viejo) | Tarjeta (nuevo) | Transferencia (nuevo) |
+|---|---|---|---|
+| $1.000.000 | $44.000 | $50.000 | $32.000 |
+| $2.000.000 | $84.000 | $100.000 | $57.750 |
+
+- [ ] Decidir dónde vive la verdad del precio. O el trigger se actualiza para
+      reflejar el modelo nuevo, o se exime a `service_role` y manda la Edge
+      Function. **Tener las dos es peor que cualquiera de las dos.**
+- [ ] Si manda la Edge Function, el trigger igual sirve como piso de seguridad
+      contra un cliente que mande una comisión inventada. Conviene conservarlo
+      con ese rol, no como autoridad.
+
+### 🟡 C3 — Hallazgos menores
+
+- [ ] `lock_escrow_balance` permite a un anónimo bloquear saldo ajeno. No roba
+      plata, pero deja hacer daño.
+- [ ] 3 funciones con `search_path` mutable: `compute_trado_commission`,
+      `enforce_transaction_commission`, `update_push_subscription_timestamp`.
+- [ ] Protección de contraseñas filtradas (HaveIBeenPwned) desactivada en Auth.
+      Se activa desde el panel, sin código.
+
+### ✅ Lo que sí está bien
+
+- **RLS activa en todas las tablas** de `public`, sin excepciones.
+- `get_own_bank_details` está correctamente guardada con `_user_id = auth.uid()`:
+  no filtra datos bancarios ajenos.
+- `prevent_transaction_financial_tampering` cubre bien la manipulación de montos,
+  estados y partes por parte de los usuarios.
+
 ## Fase 1 — Lo que ya sabemos que está roto
 
 Nada de esto hay que investigarlo: está diagnosticado y esperando.
