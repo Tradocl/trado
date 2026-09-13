@@ -178,10 +178,15 @@ Nada de esto hay que investigarlo: está diagnosticado y esperando.
       reembolso "lava" el origen y la siguiente sala cobra tarifa barata sobre
       plata que entró por tarjeta. Es pérdida de margen, no riesgo para el
       usuario. **Requiere que no haya escrow vivo.**
-- [ ] **Push notifications nunca funcionaron.** Faltan `VAPID_PRIVATE_KEY`,
-      `VAPID_PUBLIC_KEY`, `VAPID_SUBJECT` y `FIREBASE_SERVICE_ACCOUNT`. Hoy hay
-      UI que promete algo que no ocurre: o se configuran, o se quita la UI.
-- [ ] **`GATEWAY_COST_RATE` está mal.** Dice 3,6% y MercadoPago cobró **3,08%**
+- [x] **Push web funcionando (2026-09-13).** La pública estaba en el frontend
+      pero la privada nunca se guardó, así que jamás se envió nada. Par nuevo
+      generado y cargado; probado de punta a punta con `{"success":true}`.
+- [ ] **Push Android sigue sin funcionar.** FCM necesita
+      `FIREBASE_SERVICE_ACCOUNT`, que requiere crear un proyecto en Google y no
+      se puede generar localmente. Es lo único que falta para cerrar push.
+- [x] **`GATEWAY_COST_RATE` corregido** de 3,6% a 3,08% medido. El neto con
+      tarjeta no era 1,4% sino 1,92%.
+- [ ] ~~`GATEWAY_COST_RATE`~~ Dice 3,6% y MercadoPago cobró **3,08%**
       real ($3.080 sobre $100.000, medido el 2026-09-12). Estás subestimando tu
       propio margen. Corregir en `src/lib/utils.ts` y en
       `supabase/functions/_shared/pricing.ts` (son espejo, cambiar los dos).
@@ -246,12 +251,18 @@ y el sistema de comisiones respondió correcto. Falta el resto.
 
 ## Fase 5 — Calidad e infraestructura
 
-- [ ] **Monitoreo de errores** (Sentry o equivalente). Hoy los bugs se descubren
-      cuando alguien reclama, y eso ya no es aceptable con plata real adentro.
-- [ ] **Tests de las transiciones de escrow.** Sólo está cubierta la aritmética
-      de comisión. La máquina de estados, que es donde se pierde plata, no.
-- [ ] **Los ~177 errores de lint**, casi todos `no-explicit-any` en catch de
-      Edge Functions. Cosmético, al final de la fila.
+- [x] **Alertas en los caminos de dinero (2026-09-13).** `_shared/alertas.ts`
+      manda correo cuando la plata se mueve y los libros no se enteran.
+      Conectado a los puntos del reembolso y del bloqueo de escrow. No reemplaza
+      a un Sentry, pero cubre lo que de verdad duele.
+- [ ] **Sentry o equivalente** para el resto de los errores, no sólo dinero.
+- [x] **Reglas del escrow fijadas y probadas (2026-09-13).** `src/lib/escrow.ts`
+      es ahora la fuente de los plazos que muestran el FAQ y los Términos, que
+      antes estaban escritos a mano en tres lugares y podían contradecir al
+      código. 14 tests cubren los invariantes.
+- [ ] **173 errores de lint**, casi todos `no-explicit-any` en catch. Mecánicos
+      pero tocan 20+ archivos: hacerlos en masa es como se cuelan bugs sutiles.
+      Ya no se lintan los artefactos de build de Capacitor, que eran ruido.
 - [ ] **Chunks pesados** en el bundle.
 
 ## Fase 6 — Producto pendiente
