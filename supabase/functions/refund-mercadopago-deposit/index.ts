@@ -116,7 +116,18 @@ serve(async (req: Request) => {
     const mpBody = await mpResp.json().catch(() => ({}));
     if (!mpResp.ok) {
       console.error("[refund-mercadopago-deposit] MP refund failed:", mpResp.status, mpBody);
-      return json({ error: "Mercado Pago rechazó el reembolso", details: mpBody }, 502);
+      // El motivo de Mercado Pago viaja al panel: sin esto el admin sólo ve
+      // "non-2xx" y no tiene cómo saber si es saldo insuficiente, un pago
+      // demasiado antiguo o un medio que no admite devolución.
+      const motivo = mpBody?.message
+        ?? mpBody?.error
+        ?? (Array.isArray(mpBody?.cause) ? mpBody.cause[0]?.description : null)
+        ?? `HTTP ${mpResp.status}`;
+      return json({
+        error: `Mercado Pago rechazó el reembolso: ${motivo}`,
+        mp: mpBody,
+        mp_status: mpResp.status,
+      }, 502);
     }
 
     // Debit wallet and record refund movement

@@ -532,7 +532,23 @@ export default function Admin() {
       const { data, error } = await supabase.functions.invoke("refund-mercadopago-deposit", {
         body: { movement_id: movementId },
       });
-      if (error) throw error;
+
+      // En un no-2xx, supabase-js deja el mensaje real en el cuerpo de la
+      // respuesta y sólo expone "Edge Function returned a non-2xx status code",
+      // que no sirve para diagnosticar nada. Acá se lee el cuerpo para mostrar
+      // lo que de verdad falló (Mercado Pago rechazó, retiro pendiente, etc).
+      if (error) {
+        const ctx = (error as { context?: Response }).context;
+        let detalle: string | null = null;
+        if (ctx && typeof ctx.json === "function") {
+          const body = await ctx.json().catch(() => null);
+          detalle = body?.error ?? null;
+          if (body?.mp) {
+            console.error("Respuesta de Mercado Pago:", body.mp);
+          }
+        }
+        throw new Error(detalle ?? error.message);
+      }
       if (data?.error) throw new Error(data.error);
 
       toast.success("Reembolso enviado a Mercado Pago. El dinero vuelve al medio de pago original del usuario.");
