@@ -119,6 +119,38 @@ cuál corrió. Donde divergen:
       contra un cliente que mande una comisión inventada. Conviene conservarlo
       con ese rol, no como autoridad.
 
+### 🔴 C4 — refund-mercadopago-deposit llama al tercero antes de poder registrar
+
+Ocurrió de verdad el 2026-09-13 y costó una cuadratura manual.
+
+`wallet_movements` no aceptaba `type='refund'`: la restricción sólo permitía
+deposit, withdrawal, escrow_lock, escrow_release y commission. La función
+**nunca funcionó** desde que existe; no se había notado porque hasta ese día
+jamás se había reembolsado un depósito.
+
+Lo grave no es la restricción sino **el orden**:
+
+```
+1. Llamar a la API de reembolsos de Mercado Pago   <- la plata SALE acá
+2. Registrar el movimiento en la base              <- acá reventaba
+3. Descontar el saldo de la billetera              <- nunca se llegaba
+```
+
+Mercado Pago devolvió $200.000 a la tarjeta de la usuaria y la billetera de
+Trado siguió mostrando $200.000. Si se le aprobaba un retiro, se le pagaba dos
+veces.
+
+Ya corregido: la restricción acepta `refund` (migración 20260913030000) y los
+libros se cuadraron registrando los dos reembolsos que Mercado Pago sí hizo.
+
+- [ ] **Invertir el orden.** Registrar el movimiento como `pending` ANTES de
+      llamar a Mercado Pago y marcarlo `approved` al confirmar. Así un fallo de
+      base de datos nunca deja plata fuera sin registro. Es el mismo patrón de
+      claim atómico que ya usa `process-escrow-deposit`.
+- [ ] **Revisar toda función que llame a un tercero antes de escribir.** El
+      riesgo es idéntico en cualquier lado donde la plata se mueva afuera antes
+      de asentarse adentro.
+
 ### 🟡 C3 — Hallazgos menores
 
 - [ ] `lock_escrow_balance` permite a un anónimo bloquear saldo ajeno. No roba
