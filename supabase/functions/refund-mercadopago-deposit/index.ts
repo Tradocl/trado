@@ -102,6 +102,46 @@ serve(async (req: Request) => {
       }
     }
 
+    // RESERVA PREVIA. El movimiento se registra como 'pending' ANTES de llamar a
+    // Mercado Pago, y recién se confirma cuando la devolución se concreta.
+    //
+    // Al revés —que era como estaba— la plata salía de Mercado Pago y si el
+    // registro fallaba después, el dinero se iba de verdad y los libros no se
+    // enteraban. Pasó el 2026-09-13: se devolvieron $200.000 y la billetera
+    // siguió mostrando $200.000, a un clic de pagarle dos veces a la usuaria.
+    //
+    // Con la reserva, un fallo de base de datos ocurre antes de mover plata, y
+    // si Mercado Pago rechaza sólo queda un movimiento pending que se borra.
+    const newBalance = Number(wallet.balance) - amount;
+
+    const { data: reserva, error: reservaErr } = await supabase
+      .from("wallet_movements")
+      .insert({
+        wallet_id: mov.wallet_id,
+        type: "refund",
+        amount: -amount,
+        balance_after: newBalance,
+        description: `Reembolso Mercado Pago [${paymentId}]`,
+        status: "pending",
+        external_session_id: `mp_refund_${paymentId}`,
+      })
+      .select("id")
+      .maybeSingle();
+
+    if (reservaErr || !reserva) {
+      console.error("[refund-mercadopago-deposit] No se pudo reservar el movimiento:", reservaErr);
+      // Nada salió de Mercado Pago todavía: se aborta sin consecuencias.
+      return json({
+        error: "No se pudo registrar el reembolso, no se devolvió nada. " +
+          (reservaErr?.message ?? ""),
+      }, 500);
+    }
+
+    /** Borra la reserva cuando la devolución no llegó a concretarse. */
+    const soltarReserva = async () => {
+      await supabase.from("wallet_movements").delete().eq("id", reserva.id);
+    };
+
     // Call Mercado Pago refunds API
     const mpResp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}/refunds`, {
       method: "POST",
@@ -123,6 +163,7 @@ serve(async (req: Request) => {
         ?? mpBody?.error
         ?? (Array.isArray(mpBody?.cause) ? mpBody.cause[0]?.description : null)
         ?? `HTTP ${mpResp.status}`;
+      await soltarReserva();
       return json({
         error: `Mercado Pago rechazó el reembolso: ${motivo}`,
         mp: mpBody,
@@ -130,27 +171,23 @@ serve(async (req: Request) => {
       }, 502);
     }
 
-    // Debit wallet and record refund movement
-    const newBalance = Number(wallet.balance) - amount;
-
-    const { data: refundMov, error: insErr } = await supabase
+    // La devolución se concretó: la reserva pasa a aprobada.
+    const { error: confirmErr } = await supabase
       .from("wallet_movements")
-      .insert({
-        wallet_id: mov.wallet_id,
-        type: "refund",
-        amount: -amount,
-        balance_after: newBalance,
-        description: `Reembolso Mercado Pago [${paymentId}]`,
-        status: "approved",
-        external_session_id: `mp_refund_${paymentId}`,
-      })
-      .select("id")
-      .maybeSingle();
+      .update({ status: "approved" })
+      .eq("id", reserva.id);
 
-    if (insErr) {
-      console.error("[refund-mercadopago-deposit] Insert refund movement failed:", insErr);
-      return json({ error: "Error registrando movimiento de reembolso" }, 500);
+    if (confirmErr) {
+      // La plata YA salió de Mercado Pago. No se aborta ni se borra nada: el
+      // movimiento queda pending y visible, que es infinitamente mejor que
+      // perder el rastro. Queda en el log para cuadrarlo a mano.
+      console.error(
+        "[refund-mercadopago-deposit] CRITICO: Mercado Pago devolvió pero no se " +
+        `pudo confirmar el movimiento ${reserva.id}. Cuadrar a mano.`,
+        confirmErr,
+      );
     }
+    const refundMov = reserva;
 
     const { error: updWalletErr } = await supabase
       .from("wallets")
@@ -158,9 +195,21 @@ serve(async (req: Request) => {
       .eq("id", mov.wallet_id);
 
     if (updWalletErr) {
-      console.error("[refund-mercadopago-deposit] Wallet update failed:", updWalletErr);
-      if (refundMov) await supabase.from("wallet_movements").delete().eq("id", refundMov.id);
-      return json({ error: "Error actualizando wallet" }, 500);
+      // Mercado Pago YA devolvió la plata. Antes acá se borraba el movimiento,
+      // que es justo el error que causó el descuadre del 2026-09-13: se pierde
+      // el rastro de dinero que sí salió. El movimiento se conserva; lo único
+      // que queda desalineado es el saldo, y eso se ve y se corrige.
+      console.error(
+        "[refund-mercadopago-deposit] CRITICO: Mercado Pago devolvió pero no se " +
+        `pudo descontar el saldo de la billetera ${mov.wallet_id}. ` +
+        `El movimiento ${refundMov.id} queda registrado. Cuadrar el saldo a mano.`,
+        updWalletErr,
+      );
+      return json({
+        error: "El reembolso se envió a Mercado Pago pero no se pudo actualizar " +
+          "el saldo. El movimiento quedó registrado; revisa la billetera.",
+        refund_movement_id: refundMov.id,
+      }, 500);
     }
 
     const { error: markErr } = await supabase
