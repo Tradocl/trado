@@ -5,7 +5,15 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  {
+    // Sólo artefactos de build: código generado por Vite y por Capacitor, que
+    // no escribió nadie y cuyos avisos esconden los problemas reales.
+    //
+    // supabase/functions NO se excluye a propósito: corre en Deno pero es
+    // código propio que mueve dinero, y sacarlo de aquí sería bajar el número
+    // de errores sin arreglar ninguno.
+    ignores: ["dist", "android/**"],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
