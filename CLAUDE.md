@@ -8,6 +8,11 @@ cometidos y decisiones pendientes. Está escrito justamente para que no tengas
 que redescubrir todo eso, y varias de esas trampas cuestan horas si las
 encuentras por las malas.
 
+**Hay plata real en custodia.** No despliegues `confirm-delivery`,
+`auto-release-escrow`, `process-return-refund`, `resolve-appeal`,
+`accept-mutual-resolution` ni `process-escrow-deposit` mientras haya escrow
+vivo. Verifícalo con la Fase 0 de [REVISION.md](REVISION.md).
+
 **Corre `git fetch` antes de analizar o concluir cualquier cosa.** El clon local
 ya estuvo 13 commits atrasado sin que se notara, y todo el análisis hecho sobre
 esa base fue inválido.

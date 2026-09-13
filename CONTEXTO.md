@@ -10,7 +10,7 @@
 > desactualizado es peor que no tener mapa: hace tomar decisiones con datos
 > falsos, y en este proyecto eso ya pasó (ver *Errores caros*).
 >
-> Última actualización: 2026-09-02
+> Última actualización: 2026-09-12
 
 ---
 
@@ -22,8 +22,10 @@ comprador confirma y recién ahí se libera el pago menos la comisión. Si hay
 conflicto, hay apelaciones con mediación.
 
 - **Producción:** https://trado.cl (redirige a www)
-- **Estado real:** pre-lanzamiento. 7 usuarios, 1 transacción (cancelada),
-  $1.000 CLP de saldo total, 0 apelaciones. Nada de esto es volumen real todavía.
+- **Estado real (2026-09-12): ya hay plata de terceros adentro.** 10 usuarios,
+  4 salas, **$200.000 en custodia** y **2 disputas abiertas**. Dejó de ser
+  pre-lanzamiento: cualquier cambio en el camino del dinero ahora puede afectar
+  a personas reales. Ver *Revisión pendiente* y [REVISION.md](REVISION.md).
 - **No está regulada por la CMF.** Los fondos quedan en una cuenta bancaria a
   nombre de Trado. No es custodia segregada ni supervisada. Esto **hay que
   decirlo de frente** a clientes empresariales; ver *Clientes y comercial*.
@@ -41,6 +43,9 @@ conflicto, hay apelaciones con mediación.
 | Repo | https://github.com/Tradocl/trado |
 
 **Proyecto Supabase:** `aekzrackrijuxvopqfbp`, cuenta **contacto@trado.cl**.
+Hay un token personal de larga duración llamado "Claude" en la cuenta; si
+aparecen 403 en cadena, exportar `SUPABASE_ACCESS_TOKEN` con él evita depender
+de la sesión de la CLI, que se cae sola cada pocos minutos.
 Ojo: no es la cuenta personal `josepabloacevedoolivares@gmail.com`, que ve otros
 proyectos distintos. Para trabajar contra producción hay que
 `npx supabase login` con la cuenta correcta, y **hay que hacerlo desde una
