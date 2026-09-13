@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import {
+  escapeHtml,
+  formatCLP,
+  renderTransactionalEmail,
+  sendEmail,
+  SITE_URL,
+} from "../_shared/email-templates/notification.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -68,6 +75,33 @@ serve(async (req: Request) => {
       return json({ error: "Saldo insuficiente para reembolsar" }, 400);
     }
 
+    // Un retiro pendiente reserva ese saldo aunque todavía no lo descuente.
+    // Sin esta guarda se podía reembolsar el depósito Y aprobar el retiro
+    // después, pagando dos veces el mismo dinero.
+    const { data: retirosPendientes } = await supabase
+      .from("wallet_movements")
+      .select("id, amount")
+      .eq("wallet_id", mov.wallet_id)
+      .eq("type", "withdrawal")
+      .eq("status", "pending");
+
+    if (retirosPendientes && retirosPendientes.length > 0) {
+      const reservado = retirosPendientes.reduce(
+        (acc, r) => acc + Math.abs(Number(r.amount)),
+        0,
+      );
+      if (Number(wallet.balance) - reservado < amount) {
+        return json({
+          error:
+            "El usuario tiene un retiro pendiente sobre este saldo. " +
+            "Rechaza primero el retiro para poder reembolsar el depósito, " +
+            "o le estarías pagando dos veces.",
+          pendingWithdrawals: retirosPendientes.length,
+          reservado,
+        }, 409);
+      }
+    }
+
     // Call Mercado Pago refunds API
     const mpResp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}/refunds`, {
       method: "POST",
@@ -125,6 +159,51 @@ serve(async (req: Request) => {
 
     if (markErr) {
       console.error("[refund-mercadopago-deposit] Mark refunded_at failed:", markErr);
+    }
+
+    // Avisarle al usuario. Sin esto ve su saldo caer a cero sin explicación
+    // alguna, que después de una disputa se lee como que le desapareció la
+    // plata. Va al final y envuelto: el reembolso ya se hizo y es lo que importa.
+    try {
+      const { data: perfil } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", wallet.user_id)
+        .maybeSingle();
+
+      if (perfil?.email) {
+        const nombre = (perfil.full_name || "").trim().split(/\s+/)[0] || "Hola";
+        await sendEmail({
+          to: perfil.email,
+          subject: `Te devolvimos ${formatCLP(amount)} · Trado`,
+          html: renderTransactionalEmail({
+            recipientName: escapeHtml(nombre),
+            headline: "Te devolvimos tu dinero",
+            eyebrow: "Reembolso procesado",
+            statusLine: "De vuelta a tu medio de pago original",
+            tone: "success",
+            intro:
+              `procesamos la devolución de <strong>${formatCLP(amount)}</strong>. ` +
+              "El dinero vuelve al mismo medio con el que pagaste, no a tu billetera Trado.",
+            summaryTitle: "Detalle",
+            summaryRows: [
+              { label: "Monto devuelto", value: formatCLP(amount), emphasis: true },
+              { label: "Vuelve a", value: "El medio de pago que usaste" },
+              { label: "Saldo en tu billetera Trado", value: formatCLP(newBalance) },
+            ],
+            nextStep:
+              "Según tu banco puede tardar algunos días hábiles en aparecer. " +
+              "Por eso vas a ver tu saldo en Trado bajar antes de que el dinero " +
+              "llegue: no es un error, está en camino de vuelta a ti.",
+            ctaText: "Ver mis movimientos",
+            ctaUrl: `${SITE_URL()}/movements`,
+            footerNote:
+              "Si en una semana no lo ves reflejado, escríbenos a contacto@trado.cl.",
+          }),
+        });
+      }
+    } catch (mailErr) {
+      console.error("[refund-mercadopago-deposit] aviso al usuario falló (no bloqueante):", mailErr);
     }
 
     return json({
