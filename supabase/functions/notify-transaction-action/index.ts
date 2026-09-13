@@ -427,6 +427,54 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`[notify-transaction-action] sent ${actionType}`, emailResponse);
 
+    // Aviso al equipo cuando se abre una disputa.
+    //
+    // Antes el admin no se enteraba hasta que la apelación escalaba, o sea 48
+    // horas después: notify-appeal-escalation era el único que le escribía. Para
+    // entonces el caso ya lleva dos días sin que nadie lo mire, que es justo
+    // cuando conviene intervenir.
+    //
+    // Va envuelto y después del envío al usuario: si esto falla, el correo a la
+    // parte ya salió y no se rompe nada.
+    if (actionType === "appeal_created") {
+      try {
+        const appealId = additionalData.appealId ? String(additionalData.appealId) : null;
+        const adminHtml = renderTransactionalEmail({
+          recipientName: "equipo Trado",
+          headline: "Se abrió una disputa",
+          eyebrow: "Requiere seguimiento",
+          statusLine: "48h de negociación entre las partes",
+          tone: "warning",
+          intro:
+            "se abrió una disputa en una transacción. Las partes tienen 48 horas para acordar; " +
+            "si no lo logran, escala a mediación de un administrador.",
+          summaryTitle: "Detalles del caso",
+          summaryRows: [
+            { label: "Producto", value: escapeHtml(transaction.product_name ?? "") },
+            { label: "Monto", value: formatCLP(Number(transaction.amount ?? 0)), emphasis: true },
+            { label: "Abrió la disputa", value: escapeHtml(actorProfile.full_name || actorProfile.email || "—") },
+            { label: "Motivo", value: escapeHtml(String(additionalData.reason ?? "no indicado")) },
+            // actor y recipient son las dos partes: quien abrió y la contraparte.
+            { label: "Contraparte", value: escapeHtml(recipientProfile.email ?? "—") },
+          ],
+          nextStep:
+            "Entra a la sala y acompaña la negociación. Intervenir temprano suele evitar que escale.",
+          ctaText: "Abrir la disputa",
+          ctaUrl: appealId ? appealUrl(appealId) : txUrl(transactionId),
+          referenceCode,
+        });
+
+        await sendEmail({
+          to: Deno.env.get("ADMIN_ALERT_EMAIL") || "contacto@trado.cl",
+          subject: `[Disputa] ${transaction.product_name ?? "Transacción"} · ${formatCLP(Number(transaction.amount ?? 0))}`,
+          html: adminHtml,
+        });
+        console.log("[notify-transaction-action] admin alerted about new appeal");
+      } catch (adminErr) {
+        console.error("[notify-transaction-action] admin alert failed (non-blocking):", adminErr);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
