@@ -10,10 +10,13 @@
 
 const MIN_FEE = 1_000;
 
-/** Lo que se lleva la pasarela de cada depósito. Trado lo absorbe. */
-export const GATEWAY_COST_RATE = 0.036;
+/**
+ * Lo que se lleva la pasarela de cada depósito. Trado lo absorbe.
+ * 3,08% medido sobre cobros reales de MercadoPago el 2026-09-12.
+ */
+export const GATEWAY_COST_RATE = 0.0308;
 
-/** Pasarela: 5% plano. No se escala porque la pasarela ya se lleva ~3,6%. */
+/** Pasarela: 5% plano. No se escala porque la pasarela ya se lleva ~3,08%. */
 const GATEWAY_RATE = 0.05;
 
 /**
@@ -65,7 +68,7 @@ export interface BlendedFee {
  * Comisión cuando el saldo mezcla orígenes.
  *
  * Se consumen primero los pesos con marca de pasarela, que pagan 5%: esa plata
- * ya le costó ~3,6% a Trado al entrar, así que cobrarle la tarifa barata sería
+ * ya le costó ~3,08% a Trado al entrar, así que cobrarle la tarifa barata sería
  * perder. El resto paga la escala de transferencia, y la comisión final es la
  * mezcla proporcional.
  */

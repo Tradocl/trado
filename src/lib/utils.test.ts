@@ -33,7 +33,7 @@ describe("comisión con pasarela", () => {
     }
   });
 
-  it("deja ~1,4% neto porque la pasarela se lleva 3,6%", () => {
+  it("el neto con tarjeta es 5% menos lo que cobra la pasarela", () => {
     // Es la razón por la que la pasarela NO se escala hacia abajo: no hay de
     // dónde recortar. El margen sale de empujar la transferencia.
     for (const m of [200_000, 1_000_000, 2_000_000]) {

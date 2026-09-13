@@ -154,7 +154,7 @@ serve(async (req: Request): Promise<Response> => {
 
     // La comisión definitiva se fija ACÁ, no al crear la sala, porque recién
     // ahora se sabe con qué plata se está financiando. Se consumen primero los
-    // pesos con marca de pasarela (que pagan 5%, cubriendo el ~3,6% que ya nos
+    // pesos con marca de pasarela (que pagan 5%, cubriendo el ~3,08% que ya nos
     // costaron) y el resto paga la escala de transferencia.
     const salaAmount = Number(tx.amount);
     const { data: gatewayUsed, error: consumeErr } = await supabaseClient.rpc(

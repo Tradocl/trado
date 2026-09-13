@@ -66,12 +66,19 @@ const MIN_FEE = 1_000;
 /** Medio por el que entra la plata. Define qué tarifa se aplica. */
 export type PaymentMethod = "gateway" | "transfer";
 
-/** Lo que se lleva MercadoPago de cada depósito. Trado lo absorbe. */
-export const GATEWAY_COST_RATE = 0.036;
+/**
+ * Lo que se lleva la pasarela de cada depósito. Trado lo absorbe: el usuario
+ * deposita y se le acredita el monto completo.
+ *
+ * 3,08% medido sobre cobros reales de MercadoPago el 2026-09-12 ($3.080 sobre
+ * $100.000, dos veces). Antes estaba en 3,6% de estimación, lo que subestimaba
+ * el margen propio en todos los cálculos.
+ */
+export const GATEWAY_COST_RATE = 0.0308;
 
 /**
- * Pasarela: 5% plano, sin tramos. La pasarela nos cobra ~3,6%, así que el neto
- * es ~1,4% y no da para escalarlo hacia abajo. Simple de explicar y de cobrar.
+ * Pasarela: 5% plano, sin tramos. La pasarela se lleva ~3,08%, así que el neto
+ * es ~1,9% y no da para escalarlo hacia abajo. Simple de explicar y de cobrar.
  */
 const GATEWAY_RATE = 0.05;
 
@@ -165,7 +172,7 @@ export interface BlendedFee {
  * saldo llegó por pasarela y todavía no se ha gastado.
  *
  * Se consumen PRIMERO los pesos con marca de tarjeta, que pagan 5%. Esa plata
- * ya le costó a Trado ~3,6% al entrar, así que cobrarle la tarifa barata sería
+ * ya le costó a Trado ~3,08% al entrar, así que cobrarle la tarifa barata sería
  * perder dinero. El resto paga la escala de transferencia. La comisión final es
  * la mezcla proporcional de ambas tarifas.
  *
