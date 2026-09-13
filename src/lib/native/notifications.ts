@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/lib/supabase';
+import { VAPID_PUBLIC_KEY } from "@/lib/push-keys";
 
 // ─── Web Push ────────────────────────────────────────────────────────────────
 
@@ -13,8 +14,9 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 async function subscribeWebPush(userId: string): Promise<void> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
-  const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-  if (!vapidKey) return;
+  // Misma llave que el flujo web. Antes leía VITE_VAPID_PUBLIC_KEY, que no
+  // estaba definida en Vercel, así que esta rama se salía en silencio.
+  const vapidKey = VAPID_PUBLIC_KEY;
 
   try {
     const registration = await navigator.serviceWorker.ready;
