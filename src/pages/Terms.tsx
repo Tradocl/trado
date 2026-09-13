@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield, Scale, FileText, AlertTriangle, Clock, CreditCard, Users, Lock } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { reviewPeriodLabel } from "@/lib/escrow";
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -234,9 +235,12 @@ const Terms = () => {
                 entrega marcada por el vendedor, según el tipo de transacción:
               </p>
               <ul className="list-disc pl-6 space-y-1">
-                <li><strong>Producto con envío:</strong> 72 horas.</li>
-                <li><strong>Producto entrega en persona:</strong> 24 horas.</li>
-                <li><strong>Servicio:</strong> 24 horas.</li>
+                {/* Los plazos salen de src/lib/escrow.ts, que espeja la Edge Function.
+                    Escritos a mano acá podían quedar mintiendo si el código cambiaba,
+                    y esto es un documento legal. */}
+                <li><strong>Producto con envío:</strong> {reviewPeriodLabel("producto_envio")}.</li>
+                <li><strong>Producto entrega en persona:</strong> {reviewPeriodLabel("producto_persona")}.</li>
+                <li><strong>Servicio:</strong> {reviewPeriodLabel("servicio")}.</li>
               </ul>
               <p>
                 Transcurrido el plazo sin confirmación ni disputa, los fondos se liberan

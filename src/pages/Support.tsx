@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { reviewPeriodLabel } from "@/lib/escrow";
 
 const MAX_SUBJECT = 120;
 const MAX_MESSAGE = 4000;
@@ -47,7 +48,7 @@ const FAQ = [
   },
   {
     q: "¿Cuánto tiempo tengo para revisar antes de que se libere el pago?",
-    a: "Depende del tipo de venta: 72 horas en productos con envío, y 24 horas en entregas en persona y servicios. El plazo empieza cuando se marca la entrega. Si dentro de ese tiempo no confirmas ni reportas un problema, el pago se libera automáticamente al vendedor.",
+    a: `Depende del tipo de venta: ${reviewPeriodLabel("producto_envio")} en productos con envío, y ${reviewPeriodLabel("producto_persona")} en entregas en persona y servicios. El plazo empieza cuando se marca la entrega. Si dentro de ese tiempo no confirmas ni reportas un problema, el pago se libera automáticamente al vendedor.`,
   },
   {
     q: "¿Cómo retiro mi dinero?",
