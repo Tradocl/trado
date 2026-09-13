@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { alertarCritico } from "../_shared/alertas.ts";
 import {
   escapeHtml,
   formatCLP,
@@ -181,11 +182,20 @@ serve(async (req: Request) => {
       // La plata YA salió de Mercado Pago. No se aborta ni se borra nada: el
       // movimiento queda pending y visible, que es infinitamente mejor que
       // perder el rastro. Queda en el log para cuadrarlo a mano.
-      console.error(
-        "[refund-mercadopago-deposit] CRITICO: Mercado Pago devolvió pero no se " +
-        `pudo confirmar el movimiento ${reserva.id}. Cuadrar a mano.`,
-        confirmErr,
-      );
+      await alertarCritico({
+        resumen: "Reembolso enviado pero el movimiento quedó en pending",
+        accion:
+          `Mercado Pago YA devolvió ${amount}. El movimiento ${reserva.id} quedó ` +
+          "en pending y el saldo sin descontar. Marca el movimiento como approved " +
+          "y descuenta el saldo de la billetera antes de aprobarle cualquier retiro.",
+        contexto: {
+          movimiento: reserva.id,
+          billetera: mov.wallet_id,
+          monto: amount,
+          pago_mercadopago: paymentId,
+        },
+        error: confirmErr,
+      });
     }
     const refundMov = reserva;
 
@@ -199,12 +209,20 @@ serve(async (req: Request) => {
       // que es justo el error que causó el descuadre del 2026-09-13: se pierde
       // el rastro de dinero que sí salió. El movimiento se conserva; lo único
       // que queda desalineado es el saldo, y eso se ve y se corrige.
-      console.error(
-        "[refund-mercadopago-deposit] CRITICO: Mercado Pago devolvió pero no se " +
-        `pudo descontar el saldo de la billetera ${mov.wallet_id}. ` +
-        `El movimiento ${refundMov.id} queda registrado. Cuadrar el saldo a mano.`,
-        updWalletErr,
-      );
+      await alertarCritico({
+        resumen: "Reembolso enviado pero el saldo no se descontó",
+        accion:
+          `Mercado Pago YA devolvió ${amount}. El movimiento ${refundMov.id} quedó ` +
+          `registrado pero la billetera ${mov.wallet_id} sigue con el saldo viejo. ` +
+          "Descuéntalo antes de aprobarle cualquier retiro o le pagarías dos veces.",
+        contexto: {
+          movimiento: refundMov.id,
+          billetera: mov.wallet_id,
+          monto: amount,
+          pago_mercadopago: paymentId,
+        },
+        error: updWalletErr,
+      });
       return json({
         error: "El reembolso se envió a Mercado Pago pero no se pudo actualizar " +
           "el saldo. El movimiento quedó registrado; revisa la billetera.",

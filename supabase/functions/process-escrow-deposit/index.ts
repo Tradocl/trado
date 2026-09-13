@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { calculateBlendedFee } from "../_shared/pricing.ts";
+import { alertarCritico } from "../_shared/alertas.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -135,7 +136,20 @@ serve(async (req: Request): Promise<Response> => {
         .eq("id", transactionId)
         .eq("state", "funds_secured");
       if (revertError) {
-        console.error(`[process-escrow-deposit] CRITICAL: failed to revert lock for tx ${transactionId}`, revertError);
+        // La sala quedó en funds_secured sin fondos bloqueados de verdad. Si
+        // nadie lo corrige, un confirm-delivery o el auto-release posterior le
+        // acreditarían al vendedor plata que nunca entró.
+        await alertarCritico({
+          resumen: "Sala en funds_secured sin fondos bloqueados",
+          accion:
+            `La transacción ${transactionId} quedó marcada como financiada pero ` +
+            "el bloqueo de saldo falló y no se pudo revertir el estado. " +
+            "Devuélvela a su estado anterior a mano ANTES de que el comprador " +
+            "confirme o venza el plazo de revisión, o se le pagará al vendedor " +
+            "dinero que nunca se depositó.",
+          contexto: { transaccion: transactionId, estado_previo: originalState },
+          error: revertError,
+        });
       }
     };
 
