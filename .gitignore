@@ -41,3 +41,6 @@ android/.gradle/
 android/local.properties
 android/app/release/
 android/app/build/
+
+# Local-only assets not tracked in the repo
+Logos Trado.zip
