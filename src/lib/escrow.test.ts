@@ -21,6 +21,7 @@ describe("plazos de revisión", () => {
   it("fija los plazos por tipo de venta que declaran los Términos", () => {
     expect(REVIEW_HOURS.producto_envio).toBe(72);
     expect(REVIEW_HOURS.producto_persona).toBe(24);
+    expect(REVIEW_HOURS.producto_digital).toBe(24);
     expect(REVIEW_HOURS.servicio).toBe(24);
   });
 

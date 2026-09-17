@@ -18,7 +18,7 @@ import { nativeShare } from "@/lib/native/share";
 import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 
-type SaleType = "servicio" | "producto_persona" | "producto_envio";
+type SaleType = "servicio" | "producto_persona" | "producto_envio" | "producto_digital";
 type MainType = "servicio" | "producto";
 type InitiatorRole = "seller" | "buyer";
 
@@ -370,6 +370,9 @@ const CreateTransaction = () => {
               {/* Step 1: Transaction Type */}
               <div className="space-y-3 sm:space-y-4">
                 <Label className="text-sm sm:text-base font-semibold">1. ¿Qué tipo de transacción es?</Label>
+                <p className="text-xs sm:text-sm text-muted-foreground -mt-1">
+                  Regla simple: si <strong>entregas una cosa</strong> (objeto, entrada, archivo digital) es <strong>Producto</strong>. Si <strong>haces un trabajo</strong> (reparación, diseño, clases) es <strong>Servicio</strong>.
+                </p>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   <button
                     type="button"
@@ -385,7 +388,7 @@ const CreateTransaction = () => {
                   >
                     <Package className={`h-6 w-6 sm:h-8 sm:w-8 mb-1 sm:mb-2 ${mainType === "producto" ? "text-primary" : "text-muted-foreground"}`} />
                     <p className="font-semibold text-sm sm:text-base">Producto</p>
-                    <p className="text-xs text-muted-foreground hidden sm:block">Artículo físico</p>
+                    <p className="text-xs text-muted-foreground">Objeto, entrada o digital</p>
                   </button>
                   <button
                     type="button"
@@ -401,7 +404,7 @@ const CreateTransaction = () => {
                   >
                     <Wrench className={`h-6 w-6 sm:h-8 sm:w-8 mb-1 sm:mb-2 ${mainType === "servicio" ? "text-primary" : "text-muted-foreground"}`} />
                     <p className="font-semibold text-sm sm:text-base">Servicio</p>
-                    <p className="text-xs text-muted-foreground hidden sm:block">Reparación, diseño, etc.</p>
+                    <p className="text-xs text-muted-foreground">Un trabajo que haces</p>
                   </button>
                 </div>
               </div>
@@ -465,7 +468,7 @@ const CreateTransaction = () => {
               {mainType === "producto" && (
                 <div className="space-y-2 animate-fade-in">
                   <Label className="text-base font-semibold">5. ¿Cómo se entregará el producto?</Label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
                     <button
                       type="button"
                       onClick={() => setSaleType("producto_persona")}
@@ -491,6 +494,19 @@ const CreateTransaction = () => {
                       <Truck className={`h-6 w-6 mb-1 ${saleType === "producto_envio" ? "text-info" : "text-muted-foreground"}`} />
                       <p className="font-medium text-sm">Por Envío</p>
                       <p className="text-xs text-muted-foreground">Courier o despacho</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSaleType("producto_digital")}
+                      className={`p-3 rounded-lg border-2 transition-all text-left ${
+                        saleType === "producto_digital"
+                          ? "border-info bg-info/10"
+                          : "border-border hover:border-info/50"
+                      }`}
+                    >
+                      <Link className={`h-6 w-6 mb-1 ${saleType === "producto_digital" ? "text-info" : "text-muted-foreground"}`} />
+                      <p className="font-medium text-sm">Digital</p>
+                      <p className="text-xs text-muted-foreground">Entrada, link o archivo</p>
                     </button>
                   </div>
                 </div>

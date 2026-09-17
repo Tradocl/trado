@@ -152,8 +152,16 @@ avisarse también en el flujo de pago**, no sólo ahí.
 ### Otros parámetros
 
 - **Plazos de revisión** ([`auto-release-escrow`](supabase/functions/auto-release-escrow/index.ts)):
-  72h producto con envío, 24h producto en persona, 24h servicio. Vencido el
-  plazo sin confirmar, se libera solo al vendedor.
+  72h producto con envío, 24h producto en persona, 24h producto digital, 24h
+  servicio. Vencido el plazo sin confirmar, se libera solo al vendedor.
+- **Tipos de venta** (`sale_type`, columna `text` sin CHECK):
+  `producto_envio`, `producto_persona`, `producto_digital`, `servicio`. El
+  digital (entrada / link / archivo) se agregó porque entradas y bienes
+  digitales no calzaban en las opciones físicas y la gente elegía mal. Opera
+  **igual que servicio**: sin tracking, el vendedor marca entregado y el
+  comprador confirma. Las funciones de dinero no ramifican por este valor
+  (usan `?? DEFAULT_REVIEW_HOURS` = 24h y etiquetas genéricas), así que
+  **no hubo que redesplegar ninguna de las 6 ni migrar la BD**.
 - **Apelaciones:** 48h de negociación directa, después media un admin. La
   comisión **nunca** se devuelve, ni en apelaciones ni en acuerdos mutuos.
 - **Límites sin verificar** ([`src/lib/transaction-limits.ts`](src/lib/transaction-limits.ts)):

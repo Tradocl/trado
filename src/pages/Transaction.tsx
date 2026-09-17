@@ -677,6 +677,10 @@ const Transaction = () => {
   
   // Labels based on sale type
   const isService = transaction.sale_type === 'servicio';
+  // Digital: se entrega como un producto (entrada, link, archivo) pero opera igual
+  // que un servicio — sin tracking, el vendedor marca entregado y el comprador
+  // confirma la recepción. Conserva las etiquetas de producto (Vendedor/Comprador).
+  const isDigital = transaction.sale_type === 'producto_digital';
   const sellerLabel = isService ? 'Proveedor' : 'Vendedor';
   const buyerLabel = isService ? 'Cliente' : 'Comprador';
   const creatorRoleLabel = initiatorRole === 'seller' ? sellerLabel : buyerLabel;
@@ -934,14 +938,38 @@ const Transaction = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 ¿Has completado el servicio? Márcalo como realizado para que el cliente pueda confirmar.
               </p>
-              <Button 
+              <Button
                 size="lg"
-                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale" 
+                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
                 onClick={handleMarkAsShipped}
                 disabled={markingShipped || !!activeAppeal}
               >
                 <Check className="mr-2 h-6 w-6" />
                 {markingShipped ? "Procesando..." : "Marcar Servicio como Realizado"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Digital delivery: seller marks as delivered */}
+        {isSeller && transaction.state === "funds_secured" && isDigital && (
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Check className="h-6 w-6 text-info" />
+                <h4 className="font-bold text-lg">Acción Requerida</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                ¿Ya le entregaste el producto digital al comprador (entrada, link o archivo)? Márcalo como entregado para que pueda confirmar.
+              </p>
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
+                onClick={handleMarkAsShipped}
+                disabled={markingShipped || !!activeAppeal}
+              >
+                <Check className="mr-2 h-6 w-6" />
+                {markingShipped ? "Procesando..." : "Marcar como Entregado"}
               </Button>
             </CardContent>
           </Card>
@@ -995,14 +1023,38 @@ const Transaction = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 Si estás satisfecho con el servicio, confirma para liberar el pago al proveedor.
               </p>
-              <Button 
+              <Button
                 size="lg"
-                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale"
                 onClick={handleConfirmDelivery}
                 disabled={confirmingDelivery || !!activeAppeal}
               >
                 <Check className="mr-2 h-6 w-6" />
                 {confirmingDelivery ? "Procesando..." : "Confirmar y Liberar Pago"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Digital delivery: buyer confirms receipt */}
+        {isBuyer && transaction.state === "in_delivery" && isDigital && (
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Check className="h-6 w-6 text-success" />
+                <h4 className="font-bold text-lg">¿Recibiste el producto digital?</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Si ya tienes la entrada, el link o el archivo y todo está correcto, confirma para liberar el pago al vendedor.
+              </p>
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale"
+                onClick={handleConfirmDelivery}
+                disabled={confirmingDelivery || !!activeAppeal}
+              >
+                <Check className="mr-2 h-6 w-6" />
+                {confirmingDelivery ? "Procesando..." : "Confirmar Recepción y Liberar Pago"}
               </Button>
             </CardContent>
           </Card>
@@ -1489,6 +1541,7 @@ const Transaction = () => {
                     {transaction.sale_type === "servicio" && "🛠️ Servicio"}
                     {transaction.sale_type === "producto_persona" && "🤝 En Persona"}
                     {transaction.sale_type === "producto_envio" && "📦 Envío"}
+                    {transaction.sale_type === "producto_digital" && "💾 Digital"}
                   </Badge>
                 )}
                 {(() => {
@@ -1566,7 +1619,7 @@ const Transaction = () => {
                         <p className="font-semibold text-success">
                           {transaction.state === 'invited' && `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}`}
                           {transaction.state === 'funds_secured' && '✅ Fondos asegurados en escrow'}
-                          {transaction.state === 'in_delivery' && `📦 ${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : 'Producto en camino'}`}
+                          {transaction.state === 'in_delivery' && `📦 ${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : isDigital ? 'Producto digital entregado' : 'Producto en camino'}`}
                           {transaction.state === 'awaiting_buyer_review' && '👁️ Período de revisión activo'}
                           {transaction.state === 'return_requested' && '📦 Devolución solicitada'}
                           {transaction.state === 'return_in_progress' && '📦 Devolución en progreso'}
@@ -1579,6 +1632,8 @@ const Transaction = () => {
                               ? `El proveedor debe confirmar que realizó el servicio`
                               : transaction.sale_type === 'producto_persona'
                               ? `Coordinen punto de encuentro para la entrega`
+                              : isDigital
+                              ? `El vendedor debe entregar el producto digital`
                               : `El vendedor debe marcar el producto como enviado`
                           )}
                           {transaction.state === 'in_delivery' && `${buyerLabel} debe confirmar la recepción`}
@@ -1610,8 +1665,8 @@ const Transaction = () => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="mt-3 p-4 bg-muted/30 rounded-xl border border-border/60">
-            {/* Service timeline */}
-            {transaction.sale_type === 'servicio' && (
+            {/* Service timeline — también sirve para producto digital (mismo flujo) */}
+            {(transaction.sale_type === 'servicio' || isDigital) && (
               <div className="space-y-3 sm:space-y-4">
                 {/* Step 1: Room Created */}
                 <div className="flex items-center gap-3 sm:gap-4 group">
@@ -1676,10 +1731,10 @@ const Transaction = () => {
                     <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm sm:text-base">Servicio Realizado</p>
+                    <p className="font-semibold text-sm sm:text-base">{isDigital ? 'Producto Entregado' : 'Servicio Realizado'}</p>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       {passedDelivery
-                        ? `✅ ${sellerLabel} completó el servicio`
+                        ? `✅ ${sellerLabel} ${isDigital ? 'entregó el producto' : 'completó el servicio'}`
                         : transaction.state === 'funds_secured'
                         ? `⏳ Esperando...`
                         : '⚪ Pendiente'}
@@ -1699,10 +1754,10 @@ const Transaction = () => {
                     <Star className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm sm:text-base">Cliente Confirma</p>
+                    <p className="font-semibold text-sm sm:text-base">{buyerLabel} Confirma</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted
-                        ? '✅ Servicio confirmado'
+                        ? isDigital ? '✅ Recepción confirmada' : '✅ Servicio confirmado'
                         : passedDelivery
                         ? `⏳ Esperando confirmación...`
                         : '⚪ Pendiente'}

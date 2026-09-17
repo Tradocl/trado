@@ -13,7 +13,7 @@
  * Los tests de escrow.test.ts fijan estos valores.
  */
 
-export type SaleType = "producto_envio" | "producto_persona" | "servicio";
+export type SaleType = "producto_envio" | "producto_persona" | "producto_digital" | "servicio";
 
 export type TransactionState =
   | "created"
@@ -35,6 +35,7 @@ export type TransactionState =
 export const REVIEW_HOURS: Record<SaleType, number> = {
   producto_envio: 72,
   producto_persona: 24,
+  producto_digital: 24,
   servicio: 24,
 };
 
