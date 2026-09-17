@@ -7,13 +7,37 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-// Review period by sale type (in hours)
+// Review period by sale type (in hours). ESPEJO de src/lib/escrow.ts.
 const REVIEW_HOURS: Record<string, number> = {
   producto_envio: 72,
   producto_persona: 24,
+  producto_digital: 24,
   servicio: 24,
 };
 const DEFAULT_REVIEW_HOURS = 24;
+
+// Tipos sin paso de "marcar recibido" donde shipped_at SÍ marca la entrega real:
+// el vendedor marca realizado/entregado y la tx queda en in_delivery hasta que el
+// comprador confirma. Para estos el reloj corre desde shipped_at estando en
+// in_delivery.
+//   - producto_envio NO va aquí: su in_delivery es "en tránsito" y el reloj recién
+//     parte cuando el comprador marca recibido (eso lo pasa a awaiting_buyer_review).
+//   - producto_persona TAMPOCO: ahí shipped_at es cuándo se ACEPTÓ la reunión, no la
+//     entrega, y el encuentro puede ser días después. Auto-liberar por ese reloj
+//     pagaría antes del encuentro. Queda como confirmación manual + apelación.
+const IN_DELIVERY_AUTORELEASE_TYPES = ["servicio", "producto_digital"];
+
+// Apelaciones vivas: mientras una de estas esté puesta, la plata está en disputa y
+// NO se libera sola — la resuelve resolve-appeal, no este cron.
+const ACTIVE_APPEAL_STATUSES = new Set([
+  "apelacion_abierta",
+  "en_negociacion",
+  "pendiente_intervencion_plataforma",
+  "en_revision_plataforma",
+]);
+
+const SELECT_COLS =
+  "id, seller_id, buyer_id, amount, commission, product_name, sale_type, initiator_role, received_at, shipped_at, updated_at, appeal_status";
 
 serve(async (req) => {
   // Cron/server-to-server only. Reject public callers so nobody can force
@@ -24,29 +48,60 @@ serve(async (req) => {
   console.log("[auto-release-escrow] Starting run");
 
   try {
-    // Find all transactions in awaiting_buyer_review
-    const { data: transactions, error: txError } = await supabase
+    // 1) Envío tras "marcar recibido": ventana de revisión de 72h (comportamiento
+    //    original). El reloj corre desde received_at.
+    const { data: reviewTxs, error: reviewErr } = await supabase
       .from("transactions")
-      .select("id, seller_id, buyer_id, amount, commission, product_name, sale_type, initiator_role, received_at, shipped_at, updated_at")
+      .select(SELECT_COLS)
       .eq("state", "awaiting_buyer_review");
+    if (reviewErr) throw reviewErr;
 
-    if (txError) throw txError;
-    if (!transactions || transactions.length === 0) {
+    // 2) Servicio / en persona / digital: no tienen paso de "recibido", así que
+    //    viven en in_delivery hasta que el comprador confirma. Si nunca confirma,
+    //    se liberan al vencer su ventana (24h desde shipped_at). Antes esto no
+    //    ocurría y la plata del vendedor quedaba atrapada indefinidamente.
+    const { data: deliveryTxs, error: deliveryErr } = await supabase
+      .from("transactions")
+      .select(SELECT_COLS)
+      .eq("state", "in_delivery")
+      .in("sale_type", IN_DELIVERY_AUTORELEASE_TYPES);
+    if (deliveryErr) throw deliveryErr;
+
+    type Row = NonNullable<typeof reviewTxs>[number];
+    const candidates: { tx: Row; claimState: string; startAt: string }[] = [
+      ...(reviewTxs ?? []).map((tx) => ({
+        tx,
+        claimState: "awaiting_buyer_review",
+        startAt: tx.received_at ?? tx.updated_at,
+      })),
+      ...(deliveryTxs ?? []).map((tx) => ({
+        tx,
+        claimState: "in_delivery",
+        startAt: tx.shipped_at ?? tx.updated_at,
+      })),
+    ];
+
+    if (candidates.length === 0) {
       console.log("[auto-release-escrow] No transactions in review period");
-      return new Response(JSON.stringify({ processed: 0 }), { status: 200 });
+      return new Response(JSON.stringify({ processed: 0, released: 0 }), { status: 200 });
     }
 
-    console.log(`[auto-release-escrow] Found ${transactions.length} transactions in review`);
+    console.log(`[auto-release-escrow] Found ${candidates.length} candidates`);
 
     const now = new Date();
     let released = 0;
 
-    for (const tx of transactions) {
+    for (const { tx, claimState, startAt } of candidates) {
+      // Disputa viva: no la toca este cron.
+      if (tx.appeal_status && ACTIVE_APPEAL_STATUSES.has(tx.appeal_status)) {
+        console.log(`[auto-release-escrow] Tx ${tx.id} has active appeal (${tx.appeal_status}), skipping`);
+        continue;
+      }
+
       const reviewHours = REVIEW_HOURS[tx.sale_type] ?? DEFAULT_REVIEW_HOURS;
       const reviewDeadline = reviewHours * 60 * 60 * 1000;
 
-      // Use received_at if available, otherwise updated_at as fallback
-      const reviewStarted = new Date(tx.received_at ?? tx.updated_at);
+      const reviewStarted = new Date(startAt);
       const elapsed = now.getTime() - reviewStarted.getTime();
 
       if (elapsed < reviewDeadline) {
@@ -54,16 +109,17 @@ serve(async (req) => {
         continue;
       }
 
-      console.log(`[auto-release-escrow] Releasing tx ${tx.id} (${tx.sale_type}, ${reviewHours}h expired)`);
+      console.log(`[auto-release-escrow] Releasing tx ${tx.id} (${tx.sale_type}, from ${claimState}, ${reviewHours}h expired)`);
 
-      // ATOMIC CLAIM: flip state to completed only if it is still awaiting review.
-      // This is the idempotency lock — if another run (or confirm-delivery) already
-      // processed this tx, the update affects 0 rows and we skip. Prevents double release.
+      // ATOMIC CLAIM: flip state to completed only if it is still in the state we
+      // found it in. This is the idempotency lock — if another run, confirm-delivery,
+      // or a return/appeal transition already moved it, the update affects 0 rows and
+      // we skip. Prevents double release and releasing after a state change.
       const { data: claimed } = await supabase
         .from("transactions")
         .update({ state: "completed", completed_at: new Date().toISOString() })
         .eq("id", tx.id)
-        .eq("state", "awaiting_buyer_review")
+        .eq("state", claimState)
         .select("id")
         .maybeSingle();
 
@@ -81,7 +137,7 @@ serve(async (req) => {
       if (!buyerWallet || !sellerWallet) {
         console.error(`[auto-release-escrow] Wallets not found for tx ${tx.id} — reverting claim`);
         await supabase.from("transactions")
-          .update({ state: "awaiting_buyer_review", completed_at: null })
+          .update({ state: claimState, completed_at: null })
           .eq("id", tx.id).eq("state", "completed");
         continue;
       }
@@ -150,8 +206,8 @@ serve(async (req) => {
       console.log(`[auto-release-escrow] Released tx ${tx.id} successfully`);
     }
 
-    console.log(`[auto-release-escrow] Done. Released ${released}/${transactions.length}`);
-    return new Response(JSON.stringify({ processed: transactions.length, released }), { status: 200 });
+    console.log(`[auto-release-escrow] Done. Released ${released}/${candidates.length}`);
+    return new Response(JSON.stringify({ processed: candidates.length, released }), { status: 200 });
 
   } catch (error: any) {
     console.error("[auto-release-escrow] Error:", error);
