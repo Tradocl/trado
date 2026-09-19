@@ -10,7 +10,7 @@
 > desactualizado es peor que no tener mapa: hace tomar decisiones con datos
 > falsos, y en este proyecto eso ya pasó (ver *Errores caros*).
 >
-> Última actualización: 2026-09-13
+> Última actualización: 2026-09-19
 
 ---
 
@@ -176,8 +176,17 @@ avisarse también en el flujo de pago**, no sólo ahí.
   sin escrow vivo + revalidar Fase 0** de [REVISION.md](REVISION.md).
 - **Apelaciones:** 48h de negociación directa, después media un admin. La
   comisión **nunca** se devuelve, ni en apelaciones ni en acuerdos mutuos.
-- **Límites sin verificar** ([`src/lib/transaction-limits.ts`](src/lib/transaction-limits.ts)):
-  $100.000 por transacción, $200.000 acumulado.
+- **Límites sin verificar** ([`src/lib/escrow.ts`](src/lib/escrow.ts) →
+  `UNVERIFIED_LIMITS`): **$250.000 por transacción, $500.000 acumulado**.
+  Subidos el 2026-09-19 desde $100.000/$200.000, porque los tickets reales
+  resultaron más grandes y dos compras de $100.000 ya topaban el acumulado,
+  obligando a verificar en mitad de la operación.
+  **Hasta esa fecha eran decorativos:** vivían sólo en el frontend y cualquiera
+  que llamara la API directo los saltaba. Ahora los exige el trigger
+  `enforce_unverified_limits()` en la base, que es la autoridad; el módulo de
+  TypeScript es su espejo. El acumulado cuenta todo lo que no esté `cancelled`,
+  no sólo lo completado: si contara sólo lo cerrado, se podrían abrir varias
+  salas a la vez y superar el tope entre todas.
 - **Retiros:** siempre manuales, los aprueba un admin. El RUT de la cuenta
   bancaria debe coincidir con el del perfil.
 

@@ -3,7 +3,8 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Shield, Scale, FileText, AlertTriangle, Clock, CreditCard, Users, Lock } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { reviewPeriodLabel } from "@/lib/escrow";
+import { reviewPeriodLabel, UNVERIFIED_LIMITS } from "@/lib/escrow";
+import { formatCLP } from "@/lib/utils";
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -173,8 +174,8 @@ const Terms = () => {
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>
-                  <strong>Usuarios sin verificar:</strong> Límite máximo de $100.000 CLP por 
-                  transacción y $200.000 CLP acumulados.
+                  <strong>Usuarios sin verificar:</strong> Límite máximo de ${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)} CLP por 
+                  transacción y ${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)} CLP acumulados.
                 </li>
                 <li>
                   <strong>Usuarios verificados:</strong> Sin límites de monto. Requiere envío 

@@ -91,3 +91,23 @@ export const ESTADOS_FINALES: TransactionState[] = ["completed", "cancelled"];
 export function esEstadoFinal(state: string): boolean {
   return ESTADOS_FINALES.includes(state as TransactionState);
 }
+
+/**
+ * Cuánto puede mover alguien sin verificar identidad.
+ *
+ * Subidos el 2026-09-19: los tickets reales resultaron más grandes de lo que
+ * suponía el límite viejo ($100.000 / $200.000). Con esos números, dos compras
+ * de $100.000 ya topaban el acumulado y obligaban a verificar en mitad de la
+ * operación, que es el peor momento para pedirle papeles a alguien.
+ *
+ * ⚠️ ESPEJO de enforce_unverified_limits() en la base, que es quien manda de
+ * verdad. Si cambias uno, cambia el otro en el mismo commit.
+ *
+ * Viven acá y no en transaction-limits.ts porque ese módulo importa el cliente
+ * de Supabase, y una constante de negocio no debería arrastrar una conexión a
+ * la base sólo para poder leerse o probarse.
+ */
+export const UNVERIFIED_LIMITS = {
+  PER_TRANSACTION: 250_000,
+  TOTAL_ACCUMULATED: 500_000,
+} as const;

@@ -1,20 +1,23 @@
 import { supabase } from "@/lib/supabase";
 import { formatCLP } from "@/lib/utils";
 
-export const UNVERIFIED_LIMITS = {
-  PER_TRANSACTION: 100000,  // $100.000 CLP
-  TOTAL_ACCUMULATED: 200000  // $200.000 CLP
-};
+export { UNVERIFIED_LIMITS } from "@/lib/escrow";
+import { UNVERIFIED_LIMITS } from "@/lib/escrow";
+
+// El comentario que explica estos topes vive en escrow.ts, junto al valor.
 
 /**
  * Calcula el total acumulado de transacciones completadas de un usuario
  */
 export async function calculateUserTotalTransactions(userId: string): Promise<number> {
+  // Cuenta todo lo que no esté cancelado, no sólo lo completado: si contara
+  // sólo lo cerrado, alguien podría abrir varias salas a la vez y superar el
+  // tope entre todas sin que ninguna lo supere por sí sola.
   const { data, error } = await supabase
     .from("transactions")
     .select("amount")
     .or(`seller_id.eq.${userId},buyer_id.eq.${userId}`)
-    .eq("state", "completed");
+    .neq("state", "cancelled");
 
   if (error) {
     console.error("Error calculating total transactions:", error);

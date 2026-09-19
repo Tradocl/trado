@@ -390,7 +390,7 @@ const Dashboard = () => {
                   />
                 </div>
                 <p className="text-xs opacity-70 mt-1">
-                  Disponible: <strong>${formatCLP(Math.max(0, UNVERIFIED_LIMITS.TOTAL_ACCUMULATED - accumulatedTotal))}</strong> • Máximo por transacción: $100.000
+                  Disponible: <strong>${formatCLP(Math.max(0, UNVERIFIED_LIMITS.TOTAL_ACCUMULATED - accumulatedTotal))}</strong> • Máximo por transacción: ${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)}
                 </p>
               </div>
             )}
@@ -589,7 +589,7 @@ const Dashboard = () => {
                     <>
                       <h4 className="font-semibold text-sm sm:text-base mb-1">¿Necesitas transaccionar montos mayores?</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-                        Ya puedes usar Trado para transacciones hasta <strong>$100.000</strong> ($200.000 acumulado).
+                        Ya puedes usar Trado para transacciones hasta <strong>${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)}</strong> (${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)} acumulado).
                         Verifica tu identidad cuando quieras desbloquear montos sin límite.
                       </p>
                       <Button

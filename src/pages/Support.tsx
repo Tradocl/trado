@@ -16,7 +16,8 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { reviewPeriodLabel } from "@/lib/escrow";
+import { reviewPeriodLabel, UNVERIFIED_LIMITS } from "@/lib/escrow";
+import { formatCLP } from "@/lib/utils";
 
 const MAX_SUBJECT = 120;
 const MAX_MESSAGE = 4000;
@@ -56,7 +57,7 @@ const FAQ = [
   },
   {
     q: "¿Por qué me conviene verificar mi identidad?",
-    a: "La verificación es opcional, pero sin ella tienes un límite de $100.000 CLP por transacción y $200.000 acumulado. Para verificarte subes tu cédula y una selfie en la sección de verificación, y un administrador la revisa. Además tu perfil muestra el sello de verificado, lo que da más confianza a la otra parte.",
+    a: `La verificación es opcional, pero sin ella tienes un límite de $${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)} CLP por transacción y $${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)} acumulado. Para verificarte subes tu cédula y una selfie en la sección de verificación, y un administrador la revisa. Además tu perfil muestra el sello de verificado, lo que da más confianza a la otra parte.`,
   },
   {
     q: "En mi billetera, ¿qué diferencia hay entre saldo disponible y bloqueado?",
