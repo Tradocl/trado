@@ -44,3 +44,6 @@ android/app/build/
 
 # Local-only assets not tracked in the repo
 Logos Trado.zip
+
+# Marketing assets live in Google Drive; the repo is public
+[Ii]nstagram/
