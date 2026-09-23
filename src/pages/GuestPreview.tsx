@@ -122,7 +122,7 @@ export default function GuestPreview() {
       </div>
 
       {/* CTA sticky */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4 space-y-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-2">
         <Button
           onClick={() => navigate("/auth?tab=register")}
           className="w-full bg-[#1F25C1] text-white h-13 rounded-2xl text-base font-bold shadow-lg"
