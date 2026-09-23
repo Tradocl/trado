@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useNavigationType } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Capacitor } from "@capacitor/core";
@@ -104,6 +104,21 @@ const MobileBootstrap = () => {
   return null;
 };
 
+// Sin esto cada página se abría a la altura de scroll de la anterior: al tocar
+// "Crear Transacción" desde abajo del dashboard, el formulario partía a la mitad.
+// Volver atrás (POP) se deja al navegador para no perder la posición del listado.
+const ScrollToTop = () => {
+  const { pathname, hash } = useLocation();
+  const navigationType = useNavigationType();
+
+  useEffect(() => {
+    if (navigationType === "POP" || hash) return;
+    window.scrollTo(0, 0);
+  }, [pathname, hash, navigationType]);
+
+  return null;
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -112,6 +127,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <MobileBootstrap />
+          <ScrollToTop />
           <AuthProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
