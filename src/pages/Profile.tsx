@@ -10,9 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Save, Building2, User, Camera, ChevronDown, ChevronUp, Calendar, Mail, Phone, MapPin, CreditCard, Clock, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut, Download, FileText } from "lucide-react";
+import { ArrowLeft, Save, Building2, Camera, ChevronDown, ChevronUp, Mail, Phone, MapPin, CreditCard, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut, Download, FileText } from "lucide-react";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { PushNotificationCard } from "@/components/PushNotificationCard";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -626,26 +627,9 @@ const Profile = () => {
     }
   };
 
-  const getTimeSinceRegistration = () => {
-    if (!profileData?.created_at) return "Desconocido";
-    
-    const created = new Date(profileData.created_at);
-    const now = new Date();
-    const diffMs = now.getTime() - created.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 1) return "Hoy";
-    if (diffDays === 1) return "1 día";
-    if (diffDays < 30) return `${diffDays} días`;
-    
-    const diffMonths = Math.floor(diffDays / 30);
-    if (diffMonths === 1) return "1 mes";
-    if (diffMonths < 12) return `${diffMonths} meses`;
-    
-    const diffYears = Math.floor(diffMonths / 12);
-    if (diffYears === 1) return "1 año";
-    return `${diffYears} años`;
-  };
+  const miembroDesde = profileData?.created_at
+    ? new Date(profileData.created_at).toLocaleDateString("es-CL", { month: "long", year: "numeric" })
+    : "";
 
   const getInitials = (name: string) => {
     return name
@@ -683,12 +667,12 @@ const Profile = () => {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-2xl space-y-4 sm:space-y-6">
-        {/* Profile Card */}
+        {/* Encabezado: quién eres y en qué estado está tu cuenta */}
         <Card className="border-0 shadow-xl overflow-hidden">
-          <div className="h-24 bg-gradient-to-r from-primary to-primary-light" />
-          <CardContent className="relative pt-0">
+          <div className="h-20 bg-gradient-to-r from-primary to-primary-light" />
+          <CardContent className="relative pt-0 pb-5">
             {/* Avatar */}
-            <div className="flex flex-col items-center -mt-12 mb-4">
+            <div className="flex flex-col items-center -mt-12 mb-3">
               <div className="relative">
                 <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
                   <AvatarImage src={profileData?.avatar_url || undefined} />
@@ -717,87 +701,108 @@ const Profile = () => {
               )}
             </div>
 
-            {/* Profile Info */}
-            {!editingProfile ? (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold">{profileData?.full_name}</h2>
-                  <div className="flex items-center justify-center gap-2 mt-1 text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span className="text-sm">Miembro hace {getTimeSinceRegistration()}</span>
-                  </div>
-                  {user?.id && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-3"
-                      onClick={() => navigate(`/u/${user.id}`)}
-                    >
-                      <User className="mr-2 h-4 w-4" />
-                      Ver mi perfil público
-                    </Button>
-                  )}
-                </div>
-
-                <div className="grid gap-4">
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <Mail className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Email</p>
-                      <p className="font-medium">{profileData?.email}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <Phone className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Teléfono</p>
-                      <p className="font-medium">{profileData?.phone || "No registrado"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <CreditCard className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">RUT</p>
-                      <p className="font-medium">{profileData?.rut || "No registrado"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Dirección</p>
-                      <p className="font-medium">{profileData?.address || "No registrada"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <Calendar className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Fecha de registro</p>
-                      <p className="font-medium">
-                        {profileData?.created_at 
-                          ? new Date(profileData.created_at).toLocaleDateString("es-CL", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric"
-                            })
-                          : "Desconocida"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <Button 
-                  className="w-full mt-4" 
-                  variant="outline"
-                  onClick={() => setEditingProfile(true)}
-                >
-                  <Edit2 className="mr-2 h-4 w-4" />
-                  Editar Perfil
-                </Button>
+            <div className="text-center">
+              <h2 className="text-xl sm:text-2xl font-bold">{profileData?.full_name}</h2>
+              {miembroDesde && (
+                <p className="text-sm text-muted-foreground mt-0.5">Miembro desde {miembroDesde}</p>
+              )}
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+                {profileData?.is_verified ? (
+                  <Badge className="bg-success/10 text-success hover:bg-success/10 border-0">
+                    <Shield className="mr-1 h-3 w-3" /> Verificado
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">
+                    <Shield className="mr-1 h-3 w-3" /> Sin verificar
+                  </Badge>
+                )}
+                {isProfileComplete ? (
+                  <Badge className="bg-success/10 text-success hover:bg-success/10 border-0">
+                    <CheckCircle2 className="mr-1 h-3 w-3" /> Perfil completo
+                  </Badge>
+                ) : (
+                  <Badge className="bg-warning/10 text-warning hover:bg-warning/10 border-0">
+                    <AlertCircle className="mr-1 h-3 w-3" /> Perfil incompleto
+                  </Badge>
+                )}
               </div>
+              {user?.id && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="mt-2 h-auto p-0 text-xs"
+                  onClick={() => navigate(`/u/${user.id}`)}
+                >
+                  Ver mi perfil público
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Avisos: sólo aparecen si falta algo */}
+        {!isProfileComplete && (
+          <Card className="border border-warning/30 bg-warning/5 shadow-sm">
+            <CardContent className="p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="h-5 w-5 text-warning shrink-0" />
+                <div>
+                  <p className="font-semibold text-sm">Completa tu perfil</p>
+                  <p className="text-xs text-muted-foreground">Necesitas RUT, teléfono y dirección para operar</p>
+                </div>
+              </div>
+              <Button size="sm" onClick={() => setShowCompleteProfileModal(true)} className="shrink-0">
+                Completar
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+        {!profileData?.is_verified && (
+          <Card className="border shadow-sm">
+            <CardContent className="p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-primary shrink-0" />
+                <div>
+                  <p className="font-semibold text-sm">Verifica tu identidad</p>
+                  <p className="text-xs text-muted-foreground">Sube tus límites y genera más confianza</p>
+                </div>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => navigate('/verification')} className="shrink-0">
+                Verificar
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Datos personales */}
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-base">Datos personales</CardTitle>
+            {!editingProfile && (
+              <Button variant="ghost" size="sm" className="h-8" onClick={() => setEditingProfile(true)}>
+                <Edit2 className="mr-1.5 h-3.5 w-3.5" />
+                Editar
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent>
+            {!editingProfile ? (
+              <dl className="divide-y">
+                {[
+                  { icon: Mail, label: "Email", value: profileData?.email },
+                  { icon: Phone, label: "Teléfono", value: profileData?.phone },
+                  { icon: CreditCard, label: "RUT", value: profileData?.rut },
+                  { icon: MapPin, label: "Dirección", value: profileData?.address },
+                ].map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="flex items-center gap-3 py-2.5">
+                    <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <dt className="text-sm text-muted-foreground w-20 shrink-0">{label}</dt>
+                    <dd className={`text-sm min-w-0 break-words ${value ? "font-medium" : "text-muted-foreground"}`}>
+                      {value || "Sin registrar"}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             ) : (
               <Form {...profileForm}>
                 <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
@@ -856,86 +861,11 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Complete Profile Card */}
-        <Card className={`border-0 shadow-lg ${isProfileComplete ? 'bg-success/5 border-success/20' : 'bg-warning/5 border-warning/20'}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {isProfileComplete ? (
-                  <div className="p-2 rounded-full bg-success/10">
-                    <CheckCircle2 className="h-5 w-5 text-success" />
-                  </div>
-                ) : (
-                  <div className="p-2 rounded-full bg-warning/10">
-                    <AlertCircle className="h-5 w-5 text-warning" />
-                  </div>
-                )}
-                <div>
-                  <h3 className="font-semibold text-sm">
-                    {isProfileComplete ? 'Perfil completo' : 'Perfil incompleto'}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {isProfileComplete 
-                      ? 'Tu RUT, teléfono y dirección están registrados' 
-                      : 'Completa tu RUT, teléfono y dirección para operar'}
-                  </p>
-                </div>
-              </div>
-              {!isProfileComplete && (
-                <Button 
-                  size="sm" 
-                  onClick={() => setShowCompleteProfileModal(true)}
-                  className="shrink-0"
-                >
-                  Completar
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Verification Card */}
-        <Card className={`border-0 shadow-lg ${profileData?.is_verified ? 'bg-success/5 border-success/20' : 'bg-muted/50'}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {profileData?.is_verified ? (
-                  <div className="p-2 rounded-full bg-success/10">
-                    <Shield className="h-5 w-5 text-success" />
-                  </div>
-                ) : (
-                  <div className="p-2 rounded-full bg-muted">
-                    <Shield className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                )}
-                <div>
-                  <h3 className="font-semibold text-sm">
-                    {profileData?.is_verified ? 'Identidad verificada' : 'Verificar identidad'}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {profileData?.is_verified 
-                      ? 'Tu identidad ha sido verificada exitosamente' 
-                      : 'Verifica tu identidad para aumentar tus límites'}
-                  </p>
-                </div>
-              </div>
-              {!profileData?.is_verified && (
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => navigate('/verification')}
-                  className="shrink-0"
-                >
-                  Verificar
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <h3 className="px-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pagos</h3>
 
         {/* Bank Details Collapsible */}
         <Collapsible open={bankSectionOpen} onOpenChange={setBankSectionOpen}>
-          <Card className="border-0 shadow-lg">
+          <Card className="border shadow-sm">
             <CollapsibleTrigger asChild>
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
@@ -958,6 +888,9 @@ const Profile = () => {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="pt-0">
+                <p className="text-xs text-muted-foreground mb-4">
+                  Se usan para autocompletar tus retiros. Son opcionales y sólo tú puedes verlos.
+                </p>
                 <Form {...bankForm}>
                   <form onSubmit={bankForm.handleSubmit(onBankSubmit)} className="space-y-4">
                     <FormField
@@ -1071,9 +1004,187 @@ const Profile = () => {
           </Card>
         </Collapsible>
 
+        <h3 className="px-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Seguridad</h3>
+
+        {/* Password Change Collapsible */}
+        <Collapsible open={passwordSectionOpen} onOpenChange={setPasswordSectionOpen}>
+          <Card className="border shadow-sm">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-5 w-5 text-primary" />
+                    <div>
+                      <CardTitle className="text-base">Cambiar Contraseña</CardTitle>
+                      <CardDescription className="text-xs">
+                        Actualiza tu contraseña de acceso
+                      </CardDescription>
+                    </div>
+                  </div>
+                  {passwordSectionOpen ? (
+                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <Form {...passwordForm}>
+                  <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                    <FormField
+                      control={passwordForm.control}
+                      name="currentPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Contraseña actual</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input 
+                                type={showCurrentPassword ? "text" : "password"} 
+                                placeholder="••••••••" 
+                                {...field} 
+                                className="h-9 pr-10" 
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-9 w-9 px-2"
+                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              >
+                                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={passwordForm.control}
+                      name="newPassword"
+                      render={({ field }) => {
+                        const newPasswordValue = field.value || "";
+                        const strength = getPasswordStrength(newPasswordValue);
+                        return (
+                          <FormItem>
+                            <FormLabel className="text-sm">Nueva contraseña</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input 
+                                  type={showNewPassword ? "text" : "password"} 
+                                  placeholder="••••••••" 
+                                  {...field} 
+                                  className="h-9 pr-10" 
+                                />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="absolute right-0 top-0 h-9 w-9 px-2"
+                                  onClick={() => setShowNewPassword(!showNewPassword)}
+                                >
+                                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            </FormControl>
+                            {newPasswordValue && (
+                              <div className="space-y-2 mt-2">
+                                {/* Password Strength Bar */}
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs text-muted-foreground">Fortaleza:</span>
+                                    <span className={`text-xs font-medium ${
+                                      strength.score <= 25 ? "text-destructive" :
+                                      strength.score <= 50 ? "text-warning" :
+                                      strength.score <= 75 ? "text-info" : "text-success"
+                                    }`}>
+                                      {strength.label}
+                                    </span>
+                                  </div>
+                                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full transition-all duration-300 ${strength.color}`}
+                                      style={{ width: `${strength.score}%` }}
+                                    />
+                                  </div>
+                                </div>
+                                
+                                {/* Requirements List */}
+                                <div className="space-y-1">
+                                  {passwordRequirements.map((req, index) => {
+                                    const passed = req.test(newPasswordValue);
+                                    return (
+                                      <div key={index} className="flex items-center gap-2 text-xs">
+                                        {passed ? (
+                                          <Check className="h-3 w-3 text-success" />
+                                        ) : (
+                                          <X className="h-3 w-3 text-destructive" />
+                                        )}
+                                        <span className={passed ? "text-success" : "text-muted-foreground"}>
+                                          {req.label}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+
+                    <FormField
+                      control={passwordForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Confirmar nueva contraseña</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input 
+                                type={showConfirmPassword ? "text" : "password"} 
+                                placeholder="••••••••" 
+                                {...field} 
+                                className="h-9 pr-10" 
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-9 w-9 px-2"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              >
+                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button type="submit" disabled={savingPassword} className="w-full" size="sm">
+                      <Lock className="mr-2 h-4 w-4" />
+                      {savingPassword ? "Actualizando..." : "Cambiar Contraseña"}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        <h3 className="px-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Preferencias</h3>
+
         {/* Dashboard Customization Collapsible */}
         <Collapsible open={dashboardSectionOpen} onOpenChange={setDashboardSectionOpen}>
-          <Card className="border-0 shadow-lg">
+          <Card className="border shadow-sm">
             <CollapsibleTrigger asChild>
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
@@ -1268,192 +1379,7 @@ const Profile = () => {
         {/* Push Notifications Card */}
         <PushNotificationCard />
 
-        {/* Password Change Collapsible */}
-        <Collapsible open={passwordSectionOpen} onOpenChange={setPasswordSectionOpen}>
-          <Card className="border-0 shadow-lg">
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Lock className="h-5 w-5 text-primary" />
-                    <div>
-                      <CardTitle className="text-base">Cambiar Contraseña</CardTitle>
-                      <CardDescription className="text-xs">
-                        Actualiza tu contraseña de acceso
-                      </CardDescription>
-                    </div>
-                  </div>
-                  {passwordSectionOpen ? (
-                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="pt-0">
-                <Form {...passwordForm}>
-                  <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                    <FormField
-                      control={passwordForm.control}
-                      name="currentPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Contraseña actual</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input 
-                                type={showCurrentPassword ? "text" : "password"} 
-                                placeholder="••••••••" 
-                                {...field} 
-                                className="h-9 pr-10" 
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="absolute right-0 top-0 h-9 w-9 px-2"
-                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                              >
-                                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                              </Button>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={passwordForm.control}
-                      name="newPassword"
-                      render={({ field }) => {
-                        const newPasswordValue = field.value || "";
-                        const strength = getPasswordStrength(newPasswordValue);
-                        return (
-                          <FormItem>
-                            <FormLabel className="text-sm">Nueva contraseña</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Input 
-                                  type={showNewPassword ? "text" : "password"} 
-                                  placeholder="••••••••" 
-                                  {...field} 
-                                  className="h-9 pr-10" 
-                                />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute right-0 top-0 h-9 w-9 px-2"
-                                  onClick={() => setShowNewPassword(!showNewPassword)}
-                                >
-                                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                              </div>
-                            </FormControl>
-                            {newPasswordValue && (
-                              <div className="space-y-2 mt-2">
-                                {/* Password Strength Bar */}
-                                <div className="space-y-1">
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-xs text-muted-foreground">Fortaleza:</span>
-                                    <span className={`text-xs font-medium ${
-                                      strength.score <= 25 ? "text-destructive" :
-                                      strength.score <= 50 ? "text-warning" :
-                                      strength.score <= 75 ? "text-info" : "text-success"
-                                    }`}>
-                                      {strength.label}
-                                    </span>
-                                  </div>
-                                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                                    <div 
-                                      className={`h-full transition-all duration-300 ${strength.color}`}
-                                      style={{ width: `${strength.score}%` }}
-                                    />
-                                  </div>
-                                </div>
-                                
-                                {/* Requirements List */}
-                                <div className="space-y-1">
-                                  {passwordRequirements.map((req, index) => {
-                                    const passed = req.test(newPasswordValue);
-                                    return (
-                                      <div key={index} className="flex items-center gap-2 text-xs">
-                                        {passed ? (
-                                          <Check className="h-3 w-3 text-success" />
-                                        ) : (
-                                          <X className="h-3 w-3 text-destructive" />
-                                        )}
-                                        <span className={passed ? "text-success" : "text-muted-foreground"}>
-                                          {req.label}
-                                        </span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                            <FormMessage />
-                          </FormItem>
-                        );
-                      }}
-                    />
-
-                    <FormField
-                      control={passwordForm.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Confirmar nueva contraseña</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input 
-                                type={showConfirmPassword ? "text" : "password"} 
-                                placeholder="••••••••" 
-                                {...field} 
-                                className="h-9 pr-10" 
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="absolute right-0 top-0 h-9 w-9 px-2"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                              >
-                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                              </Button>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button type="submit" disabled={savingPassword} className="w-full" size="sm">
-                      <Lock className="mr-2 h-4 w-4" />
-                      {savingPassword ? "Actualizando..." : "Cambiar Contraseña"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Info Card */}
-        <Card className="border-0 shadow-md bg-info/5">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-start gap-3">
-              <Building2 className="h-4 w-4 text-info mt-0.5" />
-              <p className="text-xs text-muted-foreground">
-                Los datos bancarios se usarán para autocompletar tus solicitudes de retiro. 
-                Son opcionales y solo tú puedes verlos.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <h3 className="px-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tus datos</h3>
 
         {/* Privacidad y Mis Datos — Ley 21.719.
             Discreto y cerrado por defecto: la ley exige que los derechos estén
@@ -1508,44 +1434,31 @@ const Profile = () => {
           </Card>
         </Collapsible>
 
-        {/* Cerrar sesión */}
-        <Card className="border shadow-sm">
-          <CardContent className="pt-4 pb-4">
+        {/* Pie: salir y eliminar cuenta, discretos */}
+        <div className="pt-2 space-y-3">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={async () => { await supabase.auth.signOut(); navigate("/"); }}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Cerrar sesión
+          </Button>
+          <div className="text-center">
             <Button
-              variant="outline"
-              className="w-full"
-              onClick={async () => { await supabase.auth.signOut(); navigate("/"); }}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Cerrar sesión
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Danger Zone */}
-        <Card className="border border-destructive/20 shadow-sm">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-destructive/60" />
-              <CardTitle className="text-sm text-destructive/70">Zona de peligro</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-xs text-muted-foreground mb-3">
-              Al eliminar tu cuenta se borrarán todos tus datos personales permanentemente.
-              Necesitas tener saldo $0 y sin transacciones activas.
-            </p>
-            <Button
-              variant="outline"
+              variant="link"
               size="sm"
-              className="text-destructive/70 border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+              className="h-auto p-0 text-xs text-muted-foreground hover:text-destructive"
               onClick={() => { setDeleteConfirmText(""); setShowDeleteDialog(true); }}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="mr-1 h-3 w-3" />
               Eliminar mi cuenta
             </Button>
-          </CardContent>
-        </Card>
+            <p className="text-[11px] text-muted-foreground/70 mt-1">
+              Requiere saldo $0 y ninguna transacción activa. Borra tus datos de forma permanente.
+            </p>
+          </div>
+        </div>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
