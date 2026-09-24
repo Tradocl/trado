@@ -173,6 +173,7 @@ const Profile = () => {
   const [bankSectionOpen, setBankSectionOpen] = useState(false);
   const [passwordSectionOpen, setPasswordSectionOpen] = useState(false);
   const [dashboardSectionOpen, setDashboardSectionOpen] = useState(false);
+  const [privacySectionOpen, setPrivacySectionOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingDashboard, setSavingDashboard] = useState(false);
@@ -1454,42 +1455,58 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Privacidad y Mis Datos — Ley 21.719 */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-3">
-              <FileText className="h-5 w-5 text-primary" />
-              <div>
-                <CardTitle className="text-base">Privacidad y Mis Datos</CardTitle>
-                <CardDescription className="text-xs">Derechos ARCO — Ley N° 21.719</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0 space-y-3">
-            <p className="text-xs text-muted-foreground">
-              Tienes derecho a acceder, rectificar, suprimir, oponerte y portar tus datos personales conforme a la Ley 21.719.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={handleDataExport}
-              disabled={exportingData}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              {exportingData ? "Exportando..." : "Exportar mis datos (JSON)"}
-            </Button>
-            <a
-              href={`mailto:contacto@trado.cl?subject=Solicitud%20Derechos%20ARCO%20-%20Ley%2021.719&body=Hola%2C%0A%0ASolicito%20ejercer%20el%20siguiente%20derecho%20sobre%20mis%20datos%20personales%3A%0A%0A[Indicar%3A%20Acceso%20%2F%20Rectificaci%C3%B3n%20%2F%20Cancelaci%C3%B3n%20%2F%20Oposici%C3%B3n%20%2F%20Bloqueo%20%2F%20Portabilidad]%0A%0ANombre%3A%20${encodeURIComponent(profileData?.full_name || '')}%0ARUT%3A%20${encodeURIComponent(profileData?.rut || '')}%0AEmail%3A%20${encodeURIComponent(profileData?.email || '')}`}
-              className="block"
-            >
-              <Button variant="outline" size="sm" className="w-full">
-                <Mail className="mr-2 h-4 w-4" />
-                Solicitar rectificación / oposición / bloqueo
-              </Button>
-            </a>
-          </CardContent>
-        </Card>
+        {/* Privacidad y Mis Datos — Ley 21.719.
+            Discreto y cerrado por defecto: la ley exige que los derechos estén
+            disponibles, no que ocupen la pantalla. Queda a un toque. */}
+        <Collapsible open={privacySectionOpen} onOpenChange={setPrivacySectionOpen}>
+          <Card className="border shadow-sm">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="py-3 cursor-pointer hover:bg-muted/50 transition-colors rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Privacidad y mis datos</CardTitle>
+                  </div>
+                  {privacySectionOpen ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Puedes descargar una copia de tus datos o pedirnos que los corrijamos, bloqueemos o dejemos de usarlos.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start sm:flex-1"
+                    onClick={handleDataExport}
+                    disabled={exportingData}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    {exportingData ? "Descargando..." : "Descargar mis datos"}
+                  </Button>
+                  <Button variant="ghost" size="sm" className="justify-start sm:flex-1" asChild>
+                    <a
+                      href={`mailto:contacto@trado.cl?subject=Solicitud%20Derechos%20ARCO%20-%20Ley%2021.719&body=Hola%2C%0A%0ASolicito%20ejercer%20el%20siguiente%20derecho%20sobre%20mis%20datos%20personales%3A%0A%0A[Indicar%3A%20Acceso%20%2F%20Rectificaci%C3%B3n%20%2F%20Cancelaci%C3%B3n%20%2F%20Oposici%C3%B3n%20%2F%20Bloqueo%20%2F%20Portabilidad]%0A%0ANombre%3A%20${encodeURIComponent(profileData?.full_name || '')}%0ARUT%3A%20${encodeURIComponent(profileData?.rut || '')}%0AEmail%3A%20${encodeURIComponent(profileData?.email || '')}`}
+                    >
+                      <Mail className="mr-2 h-4 w-4" />
+                      Hacer una solicitud sobre mis datos
+                    </a>
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground/70">
+                  Derechos de acceso, rectificación, supresión, oposición y portabilidad, según la Ley N° 21.719.
+                </p>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Cerrar sesión */}
         <Card className="border shadow-sm">
