@@ -177,6 +177,17 @@ avisarse también en el flujo de pago**, no sólo ahí.
   sin escrow vivo + revalidar Fase 0** de [REVISION.md](REVISION.md).
 - **Apelaciones:** 48h de negociación directa, después media un admin. La
   comisión **nunca** se devuelve, ni en apelaciones ni en acuerdos mutuos.
+  `auto-escalate-appeals` (cron horario) escala al vencer las 48h y, **una vez al
+  día a las 12:00 UTC**, manda a `ADMIN_ALERT_EMAIL` un resumen de las disputas que
+  llevan más de 48h esperando decisión: mientras esperan, la plata sigue retenida.
+  **No hay plazo comprometido para que el admin resuelva** (pendiente de negocio).
+- **Devoluciones** (sólo antes de confirmar la recepción): el comprador la pide;
+  si asume la culpa parte aceptada y él paga el envío de vuelta, si no el vendedor
+  acepta (paga él) o rechaza (va a mediación del admin, que decide quién paga).
+  Luego el comprador despacha, y al recibir el vendedor `process-return-refund`
+  reembolsa. Estuvo roto hasta el 2026-09-24: el trigger prohibía todos los pasos
+  y el admin no tenía permiso de escritura; lo repara
+  `20260924010000_repara_devoluciones.sql`.
 - **Límites sin verificar** ([`src/lib/escrow.ts`](src/lib/escrow.ts) →
   `UNVERIFIED_LIMITS`): **$250.000 por transacción, $500.000 acumulado**.
   Subidos el 2026-09-19 desde $100.000/$200.000, porque los tickets reales
@@ -426,10 +437,6 @@ npx supabase gen types typescript --project-id aekzrackrijuxvopqfbp > src/integr
 **Seguridad**
 
 - [ ] Los 3 admins deben enrolar su 2FA (se les pide al entrar a `/admin`)
-- [ ] **Flujo de devoluciones roto desde antes:** `ReturnSellerResponsePanel` y
-      `ReturnStatusPanel` cambian `return_requests.status` desde el navegador, y el
-      trigger `prevent_return_request_tampering` lo prohíbe. Aceptar/rechazar una
-      devolución o marcar el envío de vuelta falla. Hay que moverlo a una Edge Function.
 - [ ] Captcha en el registro (requiere cuenta de hCaptcha o Turnstile)
 - [ ] Protección de contraseñas filtradas (HIBP): requiere plan Pro
 - [ ] Monitoreo de errores (Sentry o equivalente)

@@ -17,6 +17,60 @@ const SITE_URL = Deno.env.get("SITE_URL") || "https://trado.cl";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
+// Disputas que ya pasaron a un admin y siguen sin resolverse. Mientras esperan,
+// la plata de la sala queda retenida y ninguna de las partes puede hacer nada:
+// si nadie abre el correo del escalamiento, podían quedar así indefinidamente.
+const HORAS_SIN_RESOLVER_PARA_RECORDAR = 48;
+// Una vez al día, 12:00 UTC = 9:00 en Chile en horario de verano (8:00 en invierno).
+// El cron corre cada hora, así que basta con mirar la hora: no hace falta guardar
+// cuándo se mandó el último recordatorio.
+const HORA_UTC_DEL_RECORDATORIO = 12;
+
+async function recordarDisputasEstancadas() {
+  if (new Date().getUTCHours() !== HORA_UTC_DEL_RECORDATORIO) return;
+
+  const limite = new Date(Date.now() - HORAS_SIN_RESOLVER_PARA_RECORDAR * 3600_000).toISOString();
+  const { data: estancadas, error } = await supabase
+    .from("appeals")
+    .select("id, escalated_at, transaction:transactions!appeals_transaction_id_fkey(amount, product_name)")
+    .in("status", ["pendiente_intervencion_plataforma", "en_revision_plataforma"])
+    .lt("escalated_at", limite)
+    .order("escalated_at", { ascending: true });
+
+  if (error) {
+    console.error("[auto-escalate-appeals] recordatorio: no se pudo consultar", error.message);
+    return;
+  }
+  if (!estancadas || estancadas.length === 0) return;
+
+  const filas = estancadas.map((a: any) => {
+    const dias = Math.floor((Date.now() - new Date(a.escalated_at).getTime()) / 86_400_000);
+    const tx = Array.isArray(a.transaction) ? a.transaction[0] : a.transaction;
+    return {
+      label: `#${String(a.id).slice(0, 8).toUpperCase()} · ${escapeHtml(tx?.product_name || "Sala")}`,
+      value: `${formatCLP(Number(tx?.amount ?? 0))} · ${dias} ${dias === 1 ? "día" : "días"} esperando`,
+    };
+  });
+
+  await sendEmail({
+    to: ADMIN_ALERT_EMAIL(),
+    subject: `[Admin] ${estancadas.length} ${estancadas.length === 1 ? "disputa espera" : "disputas esperan"} tu decisión`,
+    html: renderTransactionalEmail({
+      recipientName: "equipo Trado",
+      headline: "Hay disputas sin resolver",
+      statusLine: "La plata sigue retenida hasta que decidas",
+      intro:
+        `estas disputas llevan más de ${HORAS_SIN_RESOLVER_PARA_RECORDAR} horas en manos de la plataforma. ` +
+        "Mientras no se resuelvan, ni el comprador ni el vendedor pueden disponer de su dinero.",
+      summaryTitle: "Pendientes, de la más antigua a la más nueva",
+      summaryRows: filas,
+      ctaText: "Ir al panel",
+      ctaUrl: `${SITE_URL}/admin`,
+    }),
+  });
+  console.log(`[auto-escalate-appeals] Recordatorio enviado: ${estancadas.length} disputas estancadas`);
+}
+
 serve(async (req) => {
   // Cron/servidor-a-servidor únicamente. Sin esto, cualquiera que conozca la
   // URL podía forzar el escalamiento de apelaciones a mediación de un admin.
@@ -24,6 +78,13 @@ serve(async (req) => {
   if (authFail) return authFail;
 
   console.log("[auto-escalate-appeals] Starting run");
+
+  // Va primero y aislado: si falla, el escalamiento de abajo corre igual.
+  try {
+    await recordarDisputasEstancadas();
+  } catch (e) {
+    console.error("[auto-escalate-appeals] recordatorio falló (no bloqueante):", (e as Error).message);
+  }
 
   try {
     const now = new Date().toISOString();
