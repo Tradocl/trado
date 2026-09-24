@@ -10,7 +10,7 @@
 > desactualizado es peor que no tener mapa: hace tomar decisiones con datos
 > falsos, y en este proyecto eso ya pasó (ver *Errores caros*).
 >
-> Última actualización: 2026-09-19
+> Última actualización: 2026-09-24
 
 ---
 
@@ -129,11 +129,14 @@ Ejemplo, cubierto por tests: quedan $685.000 marcados y el resto entró limpio.
 Sala de $2.000.000 → 34,25% pasarela → comisión **$72.220**, entre los $57.750
 de transferencia pura y los $100.000 de tarjeta pura.
 
-**Fuga conocida que queda:** los caminos de reembolso (`process-return-refund`,
-`resolve-appeal`, `accept-mutual-resolution`) devuelven la plata al saldo sin
-restituir la marca, así que queda "limpia" y una sala futura pagaría tarifa
-barata sobre dinero que vino por tarjeta. Acotado al diferencial y sólo en
-transacciones reembolsadas.
+**Los reembolsos restituyen la marca** (verificado en el código el 2026-09-24):
+`process-return-refund`, `resolve-appeal` y `accept-mutual-resolution` llaman a
+`restore_gateway_funded` en proporción a lo devuelto (`gatewayMarkToRestore` en
+`_shared/pricing.ts`). Importa doble desde que la plata de tarjeta no se puede
+retirar al banco: si un camino de reembolso no la restituyera, esa plata volvería
+"limpia" y saldría al banco. **Todo camino nuevo que devuelva escrow al
+comprador tiene que restituir la marca.** Las cancelaciones automáticas
+(`expire-stale-transactions`) sólo tocan salas sin plata (`created`/`invited`).
 
 ### Medios de pago
 
@@ -449,7 +452,6 @@ npx supabase gen types typescript --project-id aekzrackrijuxvopqfbp > src/integr
 
 **Producto**
 
-- [ ] Restituir la marca de origen en los caminos de reembolso
 - [ ] Avisar la demora de hasta 24h de la transferencia dentro del flujo de pago,
       no sólo en el FAQ
 - [ ] Mostrar ambos precios al crear la transacción, con el ahorro destacado
