@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css"><link rel="stylesheet" href="../historia.css">
+<!-- Tasas verificadas con calculateFee (src/lib/utils.ts) el 2026-09-24:
+     tarjeta 5% plano; transferencia marginal 3,5% hasta $400.000, 3% hasta $1.150.000, 2,5% sobre eso.
+     Mínimo $1.000. Transferencia ofrecida desde $400.000 (Wallet.tsx OFFER_TRANSFER_AT). -->
+<style>
+  .bloque .rotulo { font-size: 24px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; }
+  .tasa { font-size: 120px; font-weight: 800; letter-spacing: -5px; line-height: 1; margin-top: 12px; }
+  .tramo { display: flex; justify-content: space-between; align-items: baseline; font-size: 32px; margin-top: 22px; color: #3B4150; }
+  .tramo b { font-size: 44px; font-weight: 800; color: var(--indigo); letter-spacing: -1px; }
+</style></head>
+<body><div class="slide historia fondo-gris">
+  <div class="cabecera"><span class="logo">trado</span><span class="etiqueta">Comisión</span></div>
+
+  <div class="titulo" style="margin-top:72px">La paga <span class="marca">quien crea</span> la sala</div>
+
+  <div class="relleno"></div>
+  <div class="tarjeta bloque">
+    <div class="rotulo">Con tarjeta</div>
+    <div class="tasa">5%</div>
+    <p class="cuerpo" style="margin-top:14px">Parejo, cualquier monto. La mayor parte se la lleva el procesador de pagos.</p>
+  </div>
+
+  <div class="tarjeta bloque" style="margin-top:32px">
+    <div class="rotulo">Con transferencia · desde $400.000</div>
+    <div class="tramo"><span>Hasta $400.000</span><b>3,5%</b></div>
+    <div class="tramo"><span>De ahí a $1.150.000</span><b>3%</b></div>
+    <div class="tramo"><span>Sobre $1.150.000</span><b>2,5%</b></div>
+    <p class="chico" style="margin-top:24px;color:var(--gris)">Cada tasa se aplica solo a la parte del monto que cae en su tramo.</p>
+  </div>
+
+  <div class="relleno"></div>
+  <div class="pie"><span>Mínimo $1.000 por operación</span><span class="toca">Ejemplos →</span></div>
+</div></body></html>

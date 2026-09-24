@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css"><link rel="stylesheet" href="../historia.css">
+<!-- Cifras calculadas con calculateFee (src/lib/utils.ts) el 2026-09-24:
+     $100.000 → tarjeta $5.000 (transferencia no se ofrece bajo $400.000)
+     $400.000 → tarjeta $20.000 · transferencia $14.000
+     $1.000.000 → tarjeta $50.000 · transferencia $32.000
+     Sobre $1.150.000 solo hay transferencia (Support.tsx), por eso no hay ejemplo más grande con tarjeta. -->
+<style>
+  .tabla { font-variant-numeric: tabular-nums; }
+  .t-fila { display: grid; grid-template-columns: 1.2fr 1fr 1fr; align-items: baseline; padding: 30px 0; border-top: 2px solid #E6E7F0; }
+  .t-fila:first-child { border-top: 0; padding-top: 0; }
+  .t-cab span { font-size: 22px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gris); }
+  .t-fila .m { font-size: 40px; font-weight: 800; letter-spacing: -1px; }
+  .t-fila .v { font-size: 38px; font-weight: 600; text-align: right; }
+  .t-fila .v.trans { color: var(--indigo); font-weight: 800; }
+  .t-fila .na { color: #B5B7C6; font-size: 26px; }
+</style></head>
+<body><div class="slide historia fondo-gris">
+  <div class="cabecera"><span class="logo">trado</span><span class="etiqueta">Ejemplos</span></div>
+
+  <div class="titulo" style="margin-top:72px">¿Cuánto pagarías <span class="marca">tú?</span></div>
+  <p class="sub" style="margin-top:28px">Comisión total por operación, según cómo pagues.</p>
+
+  <div class="relleno"></div>
+  <div class="tarjeta tabla">
+    <div class="t-fila t-cab"><span>Monto</span><span style="text-align:right">Tarjeta</span><span style="text-align:right">Transf.</span></div>
+    <div class="t-fila"><span class="m">$100.000</span><span class="v">$5.000</span><span class="v na">—</span></div>
+    <div class="t-fila"><span class="m">$400.000</span><span class="v">$20.000</span><span class="v trans">$14.000</span></div>
+    <div class="t-fila"><span class="m">$1.000.000</span><span class="v">$50.000</span><span class="v trans">$32.000</span></div>
+  </div>
+  <p class="chico" style="margin-top:28px;color:var(--gris)">Transferencia desde $400.000. Sobre $1.150.000 es la única vía. La comisión no se devuelve.</p>
+
+  <div class="relleno"></div>
+  <div class="cta" style="background:var(--indigo);color:#fff;padding:34px 44px">
+    <div><div class="antes" style="color:rgba(255,255,255,.75)">Ves la comisión exacta antes de crear la sala</div><div class="url" style="color:#fff;font-size:60px">trado.cl</div></div>
+    <div class="boton" style="background:#fff;color:var(--indigo)">→</div>
+  </div>
+</div></body></html>

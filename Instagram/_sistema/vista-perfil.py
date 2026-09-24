@@ -15,8 +15,8 @@ Compras, ventas y servicios en Chile
 👇 Crea tu cuenta gratis"""
 ENLACE = "trado.cl"
 FOTO = AQUI.parent / "4 Logos" / "2 Icono t" / "Cuadrado (foto de perfil)" / "01 icono degradado.png"
-DESTACADAS = [("custodia", "Cómo va"), ("precios", "Precios"), ("senales", "Señales"), ("nosotros", "Nosotros"), ("dudas", "Dudas")]
-PORTADAS = AQUI.parent / "3 Historias destacadas" / "Portadas"
+DESTACADAS = [("1 Como va", "Cómo va"), ("2 Precios", "Precios"), ("3 Senales", "Señales"), ("4 Nosotros", "Nosotros"), ("5 Dudas", "Dudas")]
+PORTADAS = AQUI.parent / "3 Historias destacadas"
 assert len(BIO) <= 150, f"La bio tiene {len(BIO)} caracteres; Instagram acepta 150."
 
 posts = sorted(d for d in os.listdir(FEED) if d[:2].isdigit() and not d.startswith("10-reel"))
@@ -35,8 +35,8 @@ for nombre, img, tipo in items:
     celdas += f"<div class=c><img src='{img.as_uri()}'>{ic}<span>{nombre[:2]}</span></div>"
 
 destacadas = "".join(
-    f"<div class=d><div class=dc><img src='{(PORTADAS / f'0{n}-{clave}.png').as_uri()}'></div>{titulo}</div>"
-    for n, (clave, titulo) in enumerate(DESTACADAS, 1))
+    f"<div class=d><div class=dc><img src='{(PORTADAS / carpeta / '00 portada.png').as_uri()}'></div>{titulo}</div>"
+    for carpeta, titulo in DESTACADAS)
 bio_html = BIO.replace(chr(10), "<br>")
 
 html = f"""<html><head><style>
