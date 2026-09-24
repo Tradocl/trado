@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import { fetchProfileNames } from "@/lib/profile-names";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -59,15 +60,16 @@ export function AppealChat({ appealId, currentUserId }: AppealChatProps) {
     try {
       const { data, error } = await supabase
         .from("appeal_messages")
-        .select(`
-          *,
-          user:profiles(full_name)
-        `)
+        .select("*")
         .eq("appeal_id", appealId)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      setMessages((data as any) || []);
+      const nombres = await fetchProfileNames((data || []).map((m) => m.user_id));
+      setMessages(((data || []).map((m) => ({
+        ...m,
+        user: { full_name: nombres.get(m.user_id)?.full_name ?? "" },
+      })) as any) || []);
       setTimeout(scrollToBottom, 100);
     } catch (error: any) {
       console.error("Error loading messages:", error);

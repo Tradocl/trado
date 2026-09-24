@@ -84,6 +84,35 @@ export async function requireUser(
   return { user: { id: data.user.id, email: data.user.email ?? undefined } };
 }
 
+/**
+ * Nivel de verificación de la sesión ("aal1" sólo contraseña, "aal2" con
+ * segundo factor). Lee el claim `aal` del JWT sin validarlo: llamar SÓLO
+ * después de que auth.getUser(token) aceptó ese mismo token.
+ */
+export function tokenAal(authHeaderOrToken: string | null | undefined): string | null {
+  if (!authHeaderOrToken) return null;
+  const token = authHeaderOrToken.replace(/^Bearer\s+/i, "").trim();
+  const payload = token.split(".")[1];
+  if (!payload) return null;
+  try {
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(json)?.aal ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Respuesta estándar cuando un admin opera sin segundo factor. */
+export function adminMfaRequired(headers: Record<string, string> = {}): Response {
+  return new Response(
+    JSON.stringify({
+      error: "Esta acción requiere verificación en dos pasos. Vuelve a entrar al panel de administración y confirma tu código.",
+      code: "mfa_required",
+    }),
+    { status: 403, headers: { ...headers, "Content-Type": "application/json" } },
+  );
+}
+
 export function sanitizeHtml(s: string | undefined | null): string {
   if (!s) return "";
   return String(s)

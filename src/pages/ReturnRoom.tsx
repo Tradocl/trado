@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { fetchProfileNames } from "@/lib/profile-names";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,11 +75,7 @@ export default function ReturnRoom() {
 
       const { data: transactionData, error: transactionError } = await supabase
         .from("transactions")
-        .select(`
-          *,
-          seller:profiles!transactions_seller_id_fkey(full_name, email),
-          buyer:profiles!transactions_buyer_id_fkey(full_name, email)
-        `)
+        .select("*")
         .eq("id", returnData.transaction_id)
         .single();
 
@@ -92,8 +89,13 @@ export default function ReturnRoom() {
         .ilike("reason_description", "[MEDIACIÓN DEVOLUCIÓN]%")
         .maybeSingle();
 
+      const nombres = await fetchProfileNames([transactionData.seller_id, transactionData.buyer_id]);
       setReturnRequest(returnData);
-      setTransaction(transactionData);
+      setTransaction({
+        ...transactionData,
+        seller: { full_name: nombres.get(transactionData.seller_id)?.full_name ?? null },
+        buyer: { full_name: transactionData.buyer_id ? nombres.get(transactionData.buyer_id)?.full_name ?? null : null },
+      });
       setAppeal(appealData);
     } catch (error: any) {
       console.error("Error fetching return:", error);

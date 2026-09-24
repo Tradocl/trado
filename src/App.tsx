@@ -12,6 +12,7 @@ import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { supabase } from "@/integrations/supabase/client";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { AdminMfaGate } from "./components/admin/AdminMfaGate";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { SupportFab } from "./components/SupportFab";
 import { CookieBanner } from "./components/CookieBanner";
@@ -144,7 +145,7 @@ const App = () => (
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/categoria/:categorySlug" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
-                <Route path="/admin/blog" element={<ProtectedRoute><AdminBlog /></ProtectedRoute>} />
+                <Route path="/admin/blog" element={<ProtectedRoute><AdminMfaGate><AdminBlog /></AdminMfaGate></ProtectedRoute>} />
 
                 {/* Protected routes */}
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -155,14 +156,14 @@ const App = () => (
                 <Route path="/join-transaction" element={<ProtectedRoute><JoinTransaction /></ProtectedRoute>} />
                 <Route path="/transaction/:id" element={<ProtectedRoute><Transaction /></ProtectedRoute>} />
                 <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><AdminMfaGate><Admin /></AdminMfaGate></ProtectedRoute>} />
                 <Route path="/movement-history" element={<ProtectedRoute><MovementHistory /></ProtectedRoute>} />
                 <Route path="/transaction-history" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/appeal/:appealId" element={<ProtectedRoute><Appeal /></ProtectedRoute>} />
-                <Route path="/admin/appeal/:appealId" element={<ProtectedRoute><AdminAppeal /></ProtectedRoute>} />
+                <Route path="/admin/appeal/:appealId" element={<ProtectedRoute><AdminMfaGate><AdminAppeal /></AdminMfaGate></ProtectedRoute>} />
                 <Route path="/return/:returnId" element={<ProtectedRoute><ReturnRoom /></ProtectedRoute>} />
-                <Route path="/admin/return/:returnId" element={<ProtectedRoute><AdminReturnRoom /></ProtectedRoute>} />
+                <Route path="/admin/return/:returnId" element={<ProtectedRoute><AdminMfaGate><AdminReturnRoom /></AdminMfaGate></ProtectedRoute>} />
                 <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
                 {/* Los hilos del antiguo chat con IA ya no existen; los enlaces
                     guardados caen en el centro de ayuda. */}

@@ -955,6 +955,7 @@ export type Database = {
           deposited_at: string | null
           dispute_opened_at: string | null
           dispute_reason: string | null
+          gateway_funded_used: number
           id: string
           initiator_role: string | null
           invite_code: string | null
@@ -980,6 +981,7 @@ export type Database = {
           deposited_at?: string | null
           dispute_opened_at?: string | null
           dispute_reason?: string | null
+          gateway_funded_used?: number
           id?: string
           initiator_role?: string | null
           invite_code?: string | null
@@ -1005,6 +1007,7 @@ export type Database = {
           deposited_at?: string | null
           dispute_opened_at?: string | null
           dispute_reason?: string | null
+          gateway_funded_used?: number
           id?: string
           initiator_role?: string | null
           invite_code?: string | null
@@ -1143,6 +1146,7 @@ export type Database = {
           blocked_balance: number | null
           created_at: string | null
           currency: string | null
+          gateway_funded_balance: number
           id: string
           updated_at: string | null
           user_id: string
@@ -1152,6 +1156,7 @@ export type Database = {
           blocked_balance?: number | null
           created_at?: string | null
           currency?: string | null
+          gateway_funded_balance?: number
           id?: string
           updated_at?: string | null
           user_id: string
@@ -1161,6 +1166,7 @@ export type Database = {
           blocked_balance?: number | null
           created_at?: string | null
           currency?: string | null
+          gateway_funded_balance?: number
           id?: string
           updated_at?: string | null
           user_id?: string
@@ -1257,8 +1263,16 @@ export type Database = {
         Returns: boolean
       }
       compute_trado_commission: { Args: { p_amount: number }; Returns: number }
+      consume_gateway_funded: {
+        Args: { p_amount: number; p_wallet_id: string }
+        Returns: number
+      }
       credit_wallet_balance: {
         Args: { p_delta: number; p_wallet_id: string }
+        Returns: number
+      }
+      credit_wallet_balance_with_origin: {
+        Args: { p_delta: number; p_from_gateway: boolean; p_wallet_id: string }
         Returns: number
       }
       delete_email: {
@@ -1279,6 +1293,7 @@ export type Database = {
           state: string
         }[]
       }
+      formato_clp: { Args: { p_monto: number }; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
       get_own_bank_details: {
         Args: { _user_id: string }
@@ -1288,6 +1303,17 @@ export type Database = {
           bank_holder_name: string
           bank_holder_rut: string
           bank_name: string
+        }[]
+      }
+      get_profile_names: {
+        Args: { p_ids: string[] }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          id: string
+          is_verified: boolean
+          nickname: string
+          reputation_score: number
         }[]
       }
       get_safe_profile: {
@@ -1322,6 +1348,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_mfa: { Args: never; Returns: boolean }
       is_admin_or_service: { Args: never; Returns: boolean }
       lock_escrow_balance: {
         Args: { p_amount: number; p_wallet_id: string }
@@ -1347,6 +1374,16 @@ export type Database = {
       }
       release_blocked_balance: {
         Args: { p_amount: number; p_wallet_id: string }
+        Returns: number
+      }
+      restore_gateway_funded: {
+        Args: { p_amount: number; p_wallet_id: string }
+        Returns: undefined
+      }
+      unverified_limit_accumulated: { Args: never; Returns: number }
+      unverified_limit_per_transaction: { Args: never; Returns: number }
+      withdrawable_balance: {
+        Args: { p_exclude_movement?: string; p_wallet_id: string }
         Returns: number
       }
     }

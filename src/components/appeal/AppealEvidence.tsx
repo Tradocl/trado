@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { fetchProfileNames } from "@/lib/profile-names";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -70,14 +71,8 @@ export function AppealEvidence({ appealId, currentUserId, appealStatus, isAdmin 
 
       let profilesMap = new Map<string, string>();
       if (userIds.length > 0) {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", userIds as string[]);
-
-        if (!profilesError && profilesData) {
-          profilesMap = new Map(profilesData.map((p: any) => [p.id, p.full_name]));
-        }
+        const nombres = await fetchProfileNames(userIds as string[]);
+        profilesMap = new Map([...nombres.values()].map((p) => [p.id, p.full_name ?? ""]));
       }
 
       // Generate signed URLs for private bucket files — use allSettled so one failure doesn't hide all evidence

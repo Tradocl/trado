@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, MessageCircle, Image as ImageIcon, X, Paperclip, FileText, Video } from "lucide-react";
 import { toast } from "sonner";
+import { chatPathFromUrl } from "@/lib/chat-files";
 
 interface Message {
   id: string;
@@ -33,6 +34,37 @@ interface TransactionChatProps {
 export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName, isAdmin = false, adminName, hideHeader = false }: TransactionChatProps) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
+  // URL guardada -> URL firmada temporal (el bucket del chat es privado).
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const pendientes = messages
+      .map((m) => m.file_url)
+      .filter((u): u is string => !!u && !signedUrls[u] && !!chatPathFromUrl(u));
+    if (pendientes.length === 0) return;
+    const unicas = [...new Set(pendientes)];
+    supabase.storage
+      .from("chat-images")
+      .createSignedUrls(unicas.map((u) => chatPathFromUrl(u)!), 3600)
+      .then(({ data, error }) => {
+        if (error || !data) {
+          console.error("[TransactionChat] No se pudieron firmar los adjuntos:", error);
+          return;
+        }
+        setSignedUrls((prev) => {
+          const next = { ...prev };
+          data.forEach((d, i) => {
+            if (d.signedUrl) next[unicas[i]] = d.signedUrl;
+          });
+          return next;
+        });
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
+  /** URL para mostrar un adjunto: firmada si es del chat, la original si no. */
+  const fileSrc = (url: string | null | undefined) =>
+    url ? (chatPathFromUrl(url) ? signedUrls[url] : url) : undefined;
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -310,16 +342,20 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
                       {msg.file_url && (
                         <>
                           {msg.file_type === 'image' && (
-                            <img 
-                              src={msg.file_url} 
-                              alt="Imagen compartida"
-                              className="rounded-lg max-w-full max-h-64 object-cover mb-2 cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => window.open(msg.file_url!, '_blank')}
-                            />
+                            fileSrc(msg.file_url) ? (
+                              <img
+                                src={fileSrc(msg.file_url)}
+                                alt="Imagen compartida"
+                                className="rounded-lg max-w-full max-h-64 object-cover mb-2 cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => window.open(fileSrc(msg.file_url), '_blank')}
+                              />
+                            ) : (
+                              <div className="rounded-lg h-32 w-48 mb-2 bg-background/40 animate-pulse" />
+                            )
                           )}
                           {msg.file_type === 'video' && (
-                            <video 
-                              src={msg.file_url}
+                            <video
+                              src={fileSrc(msg.file_url)}
                               controls
                               className="rounded-lg max-w-full max-h-64 mb-2"
                             >
@@ -328,7 +364,7 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
                           )}
                           {msg.file_type && !['image', 'video'].includes(msg.file_type) && (
                             <a
-                              href={msg.file_url}
+                              href={fileSrc(msg.file_url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className={`flex items-center gap-2 p-3 rounded-lg mb-2 ${

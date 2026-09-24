@@ -13,6 +13,7 @@ import { translateError } from "@/lib/error-messages";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
+import { reembolsableATarjeta, retirableAlBanco } from "@/lib/wallet-rules";
 import { Badge } from "@/components/ui/badge";
 import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
@@ -38,9 +39,19 @@ const Wallet = () => {
   const [searchParams] = useSearchParams();
   const [balance, setBalance] = useState(0);
   const [blockedBalance, setBlockedBalance] = useState(0);
+  // Parte del saldo que entró por tarjeta y no se gastó: sólo vuelve a la tarjeta.
+  const [gatewayFunded, setGatewayFunded] = useState(0);
+  const [refundOpen, setRefundOpen] = useState(false);
+  const [cardDeposits, setCardDeposits] = useState<Movement[]>([]);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
   const [walletId, setWalletId] = useState<string | null>(null);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [pendingMovements, setPendingMovements] = useState<Movement[]>([]);
+  const retirosPendientes = pendingMovements
+    .filter((m) => m.type === "withdrawal")
+    .reduce((acc, m) => acc + Math.abs(Number(m.amount)), 0);
+  const deTarjeta = reembolsableATarjeta({ balance, gatewayFunded });
+  const retirable = retirableAlBanco({ balance, gatewayFunded, pendingWithdrawals: retirosPendientes });
   const [loading, setLoading] = useState(true);
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
@@ -153,6 +164,7 @@ ${companyBankDetails.email}`;
           (payload: any) => {
             setBalance(payload.new.balance);
             setBlockedBalance(payload.new.blocked_balance ?? 0);
+            setGatewayFunded(payload.new.gateway_funded_balance ?? 0);
           }
         )
         .subscribe();
@@ -241,7 +253,20 @@ ${companyBankDetails.email}`;
 
       setBalance(wallet.balance);
       setBlockedBalance(wallet.blocked_balance ?? 0);
+      setGatewayFunded(wallet.gateway_funded_balance ?? 0);
       setWalletId(wallet.id);
+
+      // Depósitos con tarjeta que todavía se pueden devolver.
+      const { data: depositosTarjeta } = await supabase
+        .from("wallet_movements")
+        .select("*")
+        .eq("wallet_id", wallet.id)
+        .eq("type", "deposit")
+        .eq("status", "approved")
+        .like("external_session_id", "mp_%")
+        .is("refunded_at", null)
+        .order("created_at", { ascending: false });
+      setCardDeposits(depositosTarjeta || []);
 
       // Get approved movements + pending escrow_lock movements
       const { data: approvedMovements, error: approvedError } = await supabase
@@ -361,6 +386,31 @@ ${companyBankDetails.email}`;
     }
   };
 
+  const handleRefundToCard = async (movementId: string) => {
+    setRefundingId(movementId);
+    try {
+      const { data, error } = await supabase.functions.invoke("refund-mercadopago-deposit", {
+        body: { movement_id: movementId },
+      });
+      if (error) {
+        let mensaje = error.message;
+        try {
+          const cuerpo = await (error as any).context?.json?.();
+          if (cuerpo?.error) mensaje = cuerpo.error;
+        } catch { /* sin cuerpo */ }
+        throw new Error(mensaje);
+      }
+      if (data?.error) throw new Error(data.error);
+      toast.success("Listo, la devolución va en camino a tu tarjeta");
+      setRefundOpen(false);
+      loadWalletData();
+    } catch (err: any) {
+      toast.error("No se pudo devolver: " + (err?.message ?? "error desconocido"));
+    } finally {
+      setRefundingId(null);
+    }
+  };
+
   const handleWithdraw = async () => {
     if (!user || !amount || submitting) return;
 
@@ -375,8 +425,12 @@ ${companyBankDetails.email}`;
       return;
     }
 
-    if (withdrawAmount > balance) {
-      toast.error("Saldo insuficiente");
+    if (withdrawAmount > retirable) {
+      toast.error(
+        deTarjeta > 0
+          ? `Puedes retirar hasta $${formatCLP(retirable)}. Los $${formatCLP(deTarjeta)} que depositaste con tarjeta sólo se pueden devolver a tu tarjeta.`
+          : "Saldo insuficiente"
+      );
       return;
     }
 
@@ -629,6 +683,25 @@ ${companyBankDetails.email}`;
               <p className="text-xs sm:text-sm opacity-80 mb-1">Saldo disponible</p>
               <p className="text-3xl sm:text-5xl font-bold">${formatCLP(balance)}</p>
             </div>
+            {deTarjeta > 0 && (
+              <div className="pt-2 sm:pt-3 border-t border-primary-foreground/20">
+                <p className="text-xs sm:text-sm opacity-80 mb-1">Depositado con tarjeta, sin usar</p>
+                <p className="text-lg sm:text-2xl font-semibold">${formatCLP(deTarjeta)}</p>
+                <p className="text-xs opacity-70 mt-1">
+                  Esta parte no se retira al banco: si no la usas en una compra, vuelve a tu tarjeta.
+                </p>
+                {cardDeposits.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="mt-2"
+                    onClick={() => setRefundOpen(true)}
+                  >
+                    Devolver a mi tarjeta
+                  </Button>
+                )}
+              </div>
+            )}
             {blockedBalance > 0 && (
               <div className="pt-2 sm:pt-3 border-t border-primary-foreground/20">
                 <p className="text-xs sm:text-sm opacity-80 mb-1">Escrow bloqueado</p>
@@ -928,13 +1001,49 @@ ${companyBankDetails.email}`;
         </DialogContent>
       </Dialog>
 
+      {/* Devolver a la tarjeta */}
+      <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Devolver a mi tarjeta</DialogTitle>
+            <DialogDescription>
+              La plata vuelve a la misma tarjeta con la que depositaste. Según tu banco puede
+              tardar algunos días hábiles en aparecer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {cardDeposits.map((dep) => {
+              const aDevolver = Math.min(Number(dep.amount), deTarjeta);
+              return (
+                <div key={dep.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">Depósito de ${formatCLP(Number(dep.amount))}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(dep.created_at).toLocaleDateString("es-CL")}
+                      {aDevolver < Number(dep.amount) && aDevolver > 0 && ` · se devuelven $${formatCLP(aDevolver)}`}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={aDevolver <= 0 || refundingId !== null}
+                    onClick={() => handleRefundToCard(dep.id)}
+                  >
+                    {refundingId === dep.id ? "Devolviendo..." : `Devolver $${formatCLP(aDevolver)}`}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Withdraw Dialog */}
       <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Retirar Fondos</DialogTitle>
             <DialogDescription>
-              Solicita un retiro a tu cuenta bancaria (saldo disponible: ${formatCLP(balance)})
+              Solicita un retiro a tu cuenta bancaria (disponible para retirar: ${formatCLP(retirable)})
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -949,8 +1058,14 @@ ${companyBankDetails.email}`;
                 onChange={(e) => handleAmountChange(e.target.value)}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Máximo disponible: ${formatCLP(balance)}
+                Máximo disponible: ${formatCLP(retirable)}
               </p>
+              {deTarjeta > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  ${formatCLP(deTarjeta)} de tu saldo entró con tarjeta y no se ha usado en una compra.
+                  Por seguridad esa parte no se retira al banco: se devuelve a tu tarjeta.
+                </p>
+              )}
             </div>
 
             <div className="space-y-3 p-4 bg-muted/50 rounded-lg">

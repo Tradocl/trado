@@ -22,6 +22,24 @@ interface AcceptMutualResolutionRequest {
   transactionId: string;
 }
 
+// Estados donde la sala tiene plata retenida. Espejo de ESTADOS_CON_ESCROW en
+// src/lib/escrow.ts más in_dispute y return_requested, que también la retienen.
+const ESTADOS_CON_ESCROW = [
+  "funds_secured",
+  "in_delivery",
+  "awaiting_buyer_review",
+  "return_requested",
+  "return_in_progress",
+  "in_dispute",
+];
+
+const APELACION_ABIERTA = [
+  "apelacion_abierta",
+  "en_negociacion",
+  "pendiente_intervencion_plataforma",
+  "en_revision_plataforma",
+];
+
 // NOTE: Commission should always come from the database (tx.commission)
 // which was calculated and stored when the transaction was created
 
@@ -108,7 +126,7 @@ serve(async (req: Request): Promise<Response> => {
     // 4. Get transaction to verify parties and get commission info
     const { data: tx, error: txError } = await supabaseClient
       .from("transactions")
-      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name, gateway_funded_used")
+      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name, gateway_funded_used, state")
       .eq("id", transactionId)
       .single();
 
@@ -125,6 +143,40 @@ serve(async (req: Request): Promise<Response> => {
       console.error("[accept-mutual-resolution] User is not part of transaction", { buyer_id: tx.buyer_id, seller_id: tx.seller_id, userId });
       return new Response(JSON.stringify({ error: "No autorizado - no eres parte de esta transacción" }), {
         status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // 5.5. SECURITY: la apelación tiene que ser de ESTA transacción y seguir abierta,
+    // y la transacción tiene que tener la plata todavía retenida. Antes el
+    // transactionId venía del navegador sin cruzarlo con la apelación, y no se
+    // miraba el estado: se podía aceptar una propuesta de una disputa ajena
+    // contra el escrow de otra sala, o volver a pagar una sala ya cerrada.
+    const { data: appeal, error: appealFetchError } = await supabaseClient
+      .from("appeals")
+      .select("id, transaction_id, status")
+      .eq("id", appealId)
+      .single();
+
+    if (appealFetchError || !appeal || appeal.transaction_id !== transactionId) {
+      console.error("[accept-mutual-resolution] Appeal does not belong to transaction", { appealId, transactionId });
+      return new Response(JSON.stringify({ error: "La apelación no corresponde a esta transacción" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (!APELACION_ABIERTA.includes(appeal.status)) {
+      return new Response(JSON.stringify({ error: "La apelación ya no está abierta" }), {
+        status: 409,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (!ESTADOS_CON_ESCROW.includes(tx.state)) {
+      console.error("[accept-mutual-resolution] Transaction has no escrow held", { state: tx.state });
+      return new Response(JSON.stringify({ error: "Esta transacción ya no tiene fondos retenidos" }), {
+        status: 409,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
@@ -202,6 +254,17 @@ serve(async (req: Request): Promise<Response> => {
 
     console.log(`[accept-mutual-resolution] Wallets found: buyer=${buyerWallet.id} (blocked: ${buyerWallet.blocked_balance}), seller=${sellerWallet.id}`);
 
+    // release_blocked_balance recorta en cero en vez de fallar, así que sin esta
+    // guarda se podía repartir un escrow que ya no existe: se acreditaba plata
+    // que nadie había depositado.
+    if (Number(buyerWallet.blocked_balance ?? 0) < escrowAmount) {
+      console.error(`[accept-mutual-resolution] Blocked balance ${buyerWallet.blocked_balance} < escrow ${escrowAmount}`);
+      return new Response(JSON.stringify({ error: "Los fondos retenidos no alcanzan para este acuerdo. Escríbenos a contacto@trado.cl." }), {
+        status: 409,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // ATOMIC CLAIM: accept the proposal only if it is still pending. If a concurrent
     // request already accepted it, no row comes back and we bail BEFORE paying out —
     // this is the idempotency lock that prevents a double payout.
@@ -228,6 +291,29 @@ serve(async (req: Request): Promise<Response> => {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
+
+    // Segundo candado, sobre la transacción: dos propuestas distintas aceptadas a
+    // la vez pasarían las dos el candado de la propuesta y pagarían el mismo
+    // escrow dos veces. Sólo una logra pasar la sala a completed.
+    const { data: claimedTx } = await supabaseClient
+      .from("transactions")
+      .update({ state: "completed", completed_at: new Date().toISOString() })
+      .eq("id", transactionId)
+      .in("state", ESTADOS_CON_ESCROW)
+      .select("id")
+      .maybeSingle();
+
+    if (!claimedTx) {
+      await supabaseClient
+        .from("appeal_mutual_proposals")
+        .update({ status: "pending", responded_at: null })
+        .eq("id", proposalId);
+      return new Response(JSON.stringify({ error: "Esta transacción ya se está cerrando por otro camino" }), {
+        status: 409,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const estadoOriginalTx = tx.state;
 
     // === ATOMIC OPERATION STARTS HERE ===
     // We own this acceptance now. proposalUpdated=true so the rollback reverts it on failure.
@@ -505,6 +591,13 @@ serve(async (req: Request): Promise<Response> => {
             .eq("id", proposalId);
           console.log("[accept-mutual-resolution] ROLLBACK - Proposal reverted to pending");
         }
+
+        await supabaseClient
+          .from("transactions")
+          .update({ state: estadoOriginalTx, completed_at: null })
+          .eq("id", transactionId)
+          .eq("state", "completed");
+        console.log("[accept-mutual-resolution] ROLLBACK - Transaction state reverted");
 
         if (buyerWalletUpdated) {
           await supabaseClient

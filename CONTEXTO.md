@@ -189,7 +189,19 @@ avisarse también en el flujo de pago**, no sólo ahí.
   no sólo lo completado: si contara sólo lo cerrado, se podrían abrir varias
   salas a la vez y superar el tope entre todas.
 - **Retiros:** siempre manuales, los aprueba un admin. El RUT de la cuenta
-  bancaria debe coincidir con el del perfil.
+  bancaria debe coincidir con el del perfil, y **el RUT del perfil no se puede
+  cambiar una vez ingresado** (si se pudiera, quien robe una cuenta pondría su
+  RUT y su banco).
+- **La plata de tarjeta no sale al banco** (desde 2026-09-24). Lo que entró por
+  MercadoPago y no se gastó en una sala completada (`gateway_funded_balance`)
+  sólo puede **volver a la tarjeta**: si no, una tarjeta robada se convierte en
+  efectivo con depósito → sala que no se completa → retiro. Retirable al banco =
+  `saldo − plata de tarjeta − retiros pendientes`
+  (`public.withdrawable_balance()`, espejo en `src/lib/wallet-rules.ts`). Lo
+  exigen el trigger de inserción de retiros y `admin_approve_movement`. El
+  usuario puede devolverse su plata de tarjeta él mismo desde la billetera
+  ("Devolver a mi tarjeta" → `refund-mercadopago-deposit`, que ahora acepta al
+  dueño además del admin y hace reembolsos parciales).
 
 ### Casillas internas
 
@@ -256,6 +268,43 @@ URL y la llave desde **Vault**, no desde `current_setting('app.*')`:
 
 Para diagnosticar: `SELECT * FROM cron.job_run_details ORDER BY start_time DESC`
 y las respuestas HTTP en `net._http_response`.
+
+### Modelo de seguridad de la base (desde 2026-09-24)
+
+Una auditoría encontró que un vendedor podía cobrarse el escrow sin entregar
+(editando `sale_type`/`shipped_at` para que el cron liberara) y que las partes
+de una disputa podían falsificar y re-aceptar propuestas de acuerdo, acreditando
+plata que no existía. Se corrigió con la migración
+`20260924000000_cierra_huecos_escrow.sql`. Reglas que quedaron:
+
+- **Lista de lo permitido, no de lo prohibido.** En `transactions`, `appeals` y
+  `appeal_mutual_proposals` un usuario común sólo puede cambiar las columnas que
+  la app escribe; cualquier otra lanza `No autorizado a modificar: <columna>`.
+  **Si agregas una columna que el navegador tenga que escribir, súmala a la
+  lista del trigger correspondiente** o la app va a fallar.
+- **Las fechas las pone el servidor.** `shipped_at`, `received_at`,
+  `dispute_opened_at` y `cancelled_at` se fijan con `now()` en la transición de
+  estado; lo que mande el navegador se ignora. `negotiation_deadline` también (48h).
+- Un usuario ya no puede poner una sala en `completed` (sólo `confirm-delivery`),
+  ni reabrir una cerrada con `in_dispute`, ni borrar `appeal_status`.
+- Las propuestas de acuerdo son inmutables: sólo se rechazan o retiran.
+  `accept-mutual-resolution` y `resolve-appeal` verifican que la apelación sea de
+  esa sala, que la sala tenga escrow y que `blocked_balance` alcance, porque
+  `release_blocked_balance` recorta en cero en vez de fallar.
+- **Admins con 2FA obligatorio.** `is_admin_mfa()` exige `aal2`; las políticas de
+  escritura de admin, `admin_approve_movement`, `is_admin_or_service()` y las
+  funciones `resolve-appeal`/`refund-mercadopago-deposit` lo piden. El panel
+  `/admin*` pasa por `AdminMfaGate`, que enrola o pide el código. Un admin sin
+  2FA se comporta como usuario común.
+- **Perfil de la contraparte:** ya no se lee la fila de `profiles` (tenía banco,
+  RUT, dirección, documentos). Los nombres se piden con la RPC
+  `get_profile_names` vía `src/lib/profile-names.ts`.
+- Bucket `chat-images` **privado**: el chat muestra adjuntos con URL firmada
+  (`src/lib/chat-files.ts`).
+- Calificaciones: una por persona y sala, sólo con la sala `completed`.
+- Cambiar la contraseña exige sesión reciente
+  (`security_update_password_require_reauthentication`).
+- Encabezados de seguridad en `vercel.json` (anti-clickjacking, HSTS, nosniff).
 
 ### wallet_movements no tiene user_id
 
@@ -373,6 +422,17 @@ npx supabase gen types typescript --project-id aekzrackrijuxvopqfbp > src/integr
 - [ ] Decidir el hueco de margen entre $400.000 y $1.150.000
 - [ ] Monitoreo de errores
 - [ ] Tests de las transiciones de estado del escrow
+
+**Seguridad**
+
+- [ ] Los 3 admins deben enrolar su 2FA (se les pide al entrar a `/admin`)
+- [ ] **Flujo de devoluciones roto desde antes:** `ReturnSellerResponsePanel` y
+      `ReturnStatusPanel` cambian `return_requests.status` desde el navegador, y el
+      trigger `prevent_return_request_tampering` lo prohíbe. Aceptar/rechazar una
+      devolución o marcar el envío de vuelta falla. Hay que moverlo a una Edge Function.
+- [ ] Captcha en el registro (requiere cuenta de hCaptcha o Turnstile)
+- [ ] Protección de contraseñas filtradas (HIBP): requiere plan Pro
+- [ ] Monitoreo de errores (Sentry o equivalente)
 
 **Higiene**
 

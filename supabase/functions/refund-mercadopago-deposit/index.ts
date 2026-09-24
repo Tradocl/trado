@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { alertarCritico } from "../_shared/alertas.ts";
+import { adminMfaRequired, tokenAal } from "../_shared/auth.ts";
 import {
   escapeHtml,
   formatCLP,
@@ -28,19 +29,22 @@ serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
-    // AuthN: caller must be authenticated and admin
+    // AuthN: lo puede pedir el dueño de la billetera (sólo sobre su plata de
+    // tarjeta) o un admin con segundo factor. La plata vuelve siempre a la misma
+    // tarjeta con la que se pagó, así que dejar que el usuario lo gatille no abre
+    // un camino para sacar plata a otro lado: es justamente el camino seguro.
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace(/^Bearer\s+/i, "");
     if (!token) return json({ error: "Unauthorized" }, 401);
 
     const { data: userData, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
+    const callerId = userData.user.id;
 
     const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: userData.user.id,
+      _user_id: callerId,
       _role: "admin",
     });
-    if (!isAdmin) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json().catch(() => ({}));
     const movementId = body?.movement_id as string | undefined;
@@ -62,19 +66,18 @@ serve(async (req: Request) => {
     const paymentId = sessionId.startsWith("mp_") ? sessionId.slice(3) : null;
     if (!paymentId) return json({ error: "Not a Mercado Pago deposit" }, 400);
 
-    const amount = Number(mov.amount);
-
     // Load wallet to ensure sufficient balance
     const { data: wallet, error: wErr } = await supabase
       .from("wallets")
-      .select("id, balance, user_id")
+      .select("id, balance, user_id, gateway_funded_balance")
       .eq("id", mov.wallet_id)
       .single();
     if (wErr || !wallet) return json({ error: "Wallet not found" }, 404);
 
-    if (Number(wallet.balance) < amount) {
-      return json({ error: "Saldo insuficiente para reembolsar" }, 400);
-    }
+    const esDueno = wallet.user_id === callerId;
+    if (!esDueno && !isAdmin) return json({ error: "Forbidden" }, 403);
+    // Un admin reembolsando plata ajena necesita segundo factor.
+    if (!esDueno && tokenAal(token) !== "aal2") return adminMfaRequired(corsHeaders);
 
     // Un retiro pendiente reserva ese saldo aunque todavía no lo descuente.
     // Sin esta guarda se podía reembolsar el depósito Y aprobar el retiro
@@ -85,22 +88,29 @@ serve(async (req: Request) => {
       .eq("wallet_id", mov.wallet_id)
       .eq("type", "withdrawal")
       .eq("status", "pending");
+    const reservado = (retirosPendientes ?? []).reduce(
+      (acc, r) => acc + Math.abs(Number(r.amount)),
+      0,
+    );
 
-    if (retirosPendientes && retirosPendientes.length > 0) {
-      const reservado = retirosPendientes.reduce(
-        (acc, r) => acc + Math.abs(Number(r.amount)),
-        0,
-      );
-      if (Number(wallet.balance) - reservado < amount) {
-        return json({
-          error:
-            "El usuario tiene un retiro pendiente sobre este saldo. " +
-            "Rechaza primero el retiro para poder reembolsar el depósito, " +
-            "o le estarías pagando dos veces.",
-          pendingWithdrawals: retirosPendientes.length,
-          reservado,
-        }, 409);
-      }
+    // Se devuelve lo que quede de ese depósito, no necesariamente el total: si
+    // parte ya se gastó en una sala completada, esa parte es del vendedor.
+    // El usuario sólo puede devolver plata que todavía tiene marca de tarjeta.
+    const libre = Math.max(0, Number(wallet.balance) - reservado);
+    let amount = Math.min(Number(mov.amount), libre);
+    if (esDueno && !isAdmin) {
+      amount = Math.min(amount, Number(wallet.gateway_funded_balance ?? 0));
+    }
+    amount = Math.floor(amount);
+
+    if (amount <= 0) {
+      return json({
+        error: reservado > 0
+          ? "Hay un retiro pendiente sobre este saldo. Cancélalo primero para poder reembolsar."
+          : "No queda saldo de este depósito por devolver.",
+        pendingWithdrawals: retirosPendientes?.length ?? 0,
+        reservado,
+      }, 409);
     }
 
     // RESERVA PREVIA. El movimiento se registra como 'pending' ANTES de llamar a
@@ -113,7 +123,22 @@ serve(async (req: Request) => {
     //
     // Con la reserva, un fallo de base de datos ocurre antes de mover plata, y
     // si Mercado Pago rechaza sólo queda un movimiento pending que se borra.
-    const newBalance = Number(wallet.balance) - amount;
+    //
+    // El saldo se descuenta ACÁ, de forma atómica (credit_wallet_balance falla si
+    // quedaría negativo). Antes se leía y se escribía en dos pasos: dos reembolsos
+    // simultáneos veían el mismo saldo y podían devolver más de lo que había.
+    const { data: saldoTrasDescuento, error: descuentoErr } = await supabase.rpc(
+      "credit_wallet_balance",
+      { p_wallet_id: mov.wallet_id, p_delta: -amount },
+    );
+    if (descuentoErr || saldoTrasDescuento === null || saldoTrasDescuento === undefined) {
+      console.error("[refund-mercadopago-deposit] No se pudo reservar el saldo:", descuentoErr);
+      return json({ error: "Saldo insuficiente para reembolsar" }, 409);
+    }
+    const newBalance = Number(saldoTrasDescuento);
+    const devolverSaldo = async () => {
+      await supabase.rpc("credit_wallet_balance", { p_wallet_id: mov.wallet_id, p_delta: amount });
+    };
 
     const { data: reserva, error: reservaErr } = await supabase
       .from("wallet_movements")
@@ -131,16 +156,18 @@ serve(async (req: Request) => {
 
     if (reservaErr || !reserva) {
       console.error("[refund-mercadopago-deposit] No se pudo reservar el movimiento:", reservaErr);
-      // Nada salió de Mercado Pago todavía: se aborta sin consecuencias.
+      // Nada salió de Mercado Pago todavía: se devuelve el saldo y se aborta.
+      await devolverSaldo();
       return json({
         error: "No se pudo registrar el reembolso, no se devolvió nada. " +
           (reservaErr?.message ?? ""),
       }, 500);
     }
 
-    /** Borra la reserva cuando la devolución no llegó a concretarse. */
+    /** Borra la reserva y devuelve el saldo cuando la devolución no se concretó. */
     const soltarReserva = async () => {
       await supabase.from("wallet_movements").delete().eq("id", reserva.id);
+      await devolverSaldo();
     };
 
     // Call Mercado Pago refunds API
@@ -185,9 +212,9 @@ serve(async (req: Request) => {
       await alertarCritico({
         resumen: "Reembolso enviado pero el movimiento quedó en pending",
         accion:
-          `Mercado Pago YA devolvió ${amount}. El movimiento ${reserva.id} quedó ` +
-          "en pending y el saldo sin descontar. Marca el movimiento como approved " +
-          "y descuenta el saldo de la billetera antes de aprobarle cualquier retiro.",
+          `Mercado Pago YA devolvió ${amount}. El saldo ya está descontado, pero el ` +
+          `movimiento ${reserva.id} quedó en pending. Márcalo como approved para que ` +
+          "los libros cuadren.",
         contexto: {
           movimiento: reserva.id,
           billetera: mov.wallet_id,
@@ -199,35 +226,14 @@ serve(async (req: Request) => {
     }
     const refundMov = reserva;
 
-    const { error: updWalletErr } = await supabase
-      .from("wallets")
-      .update({ balance: newBalance })
-      .eq("id", mov.wallet_id);
-
-    if (updWalletErr) {
-      // Mercado Pago YA devolvió la plata. Antes acá se borraba el movimiento,
-      // que es justo el error que causó el descuadre del 2026-09-13: se pierde
-      // el rastro de dinero que sí salió. El movimiento se conserva; lo único
-      // que queda desalineado es el saldo, y eso se ve y se corrige.
-      await alertarCritico({
-        resumen: "Reembolso enviado pero el saldo no se descontó",
-        accion:
-          `Mercado Pago YA devolvió ${amount}. El movimiento ${refundMov.id} quedó ` +
-          `registrado pero la billetera ${mov.wallet_id} sigue con el saldo viejo. ` +
-          "Descuéntalo antes de aprobarle cualquier retiro o le pagarías dos veces.",
-        contexto: {
-          movimiento: refundMov.id,
-          billetera: mov.wallet_id,
-          monto: amount,
-          pago_mercadopago: paymentId,
-        },
-        error: updWalletErr,
-      });
-      return json({
-        error: "El reembolso se envió a Mercado Pago pero no se pudo actualizar " +
-          "el saldo. El movimiento quedó registrado; revisa la billetera.",
-        refund_movement_id: refundMov.id,
-      }, 500);
+    // El saldo ya se descontó al reservar. Falta bajar la marca de tarjeta: antes
+    // no se hacía y quedaban billeteras con saldo $0 y "plata de tarjeta" > 0.
+    const { error: markConsumeErr } = await supabase.rpc("consume_gateway_funded", {
+      p_wallet_id: mov.wallet_id,
+      p_amount: amount,
+    });
+    if (markConsumeErr) {
+      console.error("[refund-mercadopago-deposit] consume_gateway_funded falló (no bloqueante):", markConsumeErr);
     }
 
     const { error: markErr } = await supabase

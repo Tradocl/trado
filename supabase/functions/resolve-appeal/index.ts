@@ -1,6 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { gatewayMarkToRestore } from "../_shared/pricing.ts";
+import { adminMfaRequired, tokenAal } from "../_shared/auth.ts";
+
+// Estados donde la sala tiene plata retenida: sólo ahí hay algo que repartir.
+const ESTADOS_CON_ESCROW = [
+  "funds_secured",
+  "in_delivery",
+  "awaiting_buyer_review",
+  "return_requested",
+  "return_in_progress",
+  "in_dispute",
+];
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -72,6 +83,12 @@ serve(async (req) => {
 
     console.log("Admin role verified for user:", user.id);
 
+    // Mover plata de una disputa exige que el admin haya confirmado su segundo
+    // factor en esta sesión: una contraseña robada sola no alcanza.
+    if (tokenAal(authHeader) !== "aal2") {
+      return adminMfaRequired(corsHeaders);
+    }
+
     const body: ResolveAppealRequest = await req.json();
     const { appealId, resolution, resolutionNotes, buyerRefundAmount, sellerPaymentAmount } = body;
 
@@ -126,7 +143,7 @@ serve(async (req) => {
     // Fetch transaction data - IMPORTANT: include initiator_role and commission
     const { data: transaction, error: transactionError } = await supabaseAdmin
       .from("transactions")
-      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name, gateway_funded_used")
+      .select("id, buyer_id, seller_id, amount, commission, initiator_role, product_name, gateway_funded_used, state")
       .eq("id", appeal.transaction_id)
       .single();
 
@@ -135,6 +152,16 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Transaction not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Una sala ya cerrada o cancelada no tiene escrow: repartir acá sería
+    // acreditar plata que no existe.
+    if (!ESTADOS_CON_ESCROW.includes(transaction.state)) {
+      console.error("[resolve-appeal] Transaction has no escrow held:", transaction.state);
+      return new Response(
+        JSON.stringify({ error: `La transacción está en estado "${transaction.state}" y ya no tiene fondos retenidos` }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -177,6 +204,22 @@ serve(async (req) => {
     if (resolution === "reembolso_total") newStatus = "resuelta_a_favor_comprador";
     else if (resolution === "liberar_fondos_vendedor") newStatus = "resuelta_a_favor_vendedor";
     else if (resolution === "reembolso_parcial") newStatus = "resuelta_parcial";
+
+    // release_blocked_balance recorta en cero en vez de fallar: si el escrow no
+    // está completo, se repartiría plata que nadie depositó. Se revisa ANTES de
+    // tomar la apelación para no dejarla marcada como resuelta sin pagar.
+    const { data: buyerWalletCheck } = await supabaseAdmin
+      .from("wallets")
+      .select("blocked_balance")
+      .eq("user_id", transaction.buyer_id)
+      .maybeSingle();
+    if (!buyerWalletCheck || Number(buyerWalletCheck.blocked_balance ?? 0) < escrowAmount) {
+      console.error("[resolve-appeal] Blocked balance insufficient:", buyerWalletCheck?.blocked_balance, escrowAmount);
+      return new Response(
+        JSON.stringify({ error: "Los fondos retenidos del comprador no cubren el escrow. Revisa la billetera antes de resolver." }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // ATOMIC CLAIM: flip the appeal status only if it is still resolvable. This is
     // the idempotency lock — if a concurrent request already resolved it, no row

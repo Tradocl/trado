@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { fetchProfileNames } from "@/lib/profile-names";
 import { Star, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -36,16 +37,18 @@ export const UserRatings = ({ userId, maxRatings = 3 }: UserRatingsProps) => {
           stars,
           comment,
           created_at,
-          rater:profiles!rater_id (
-            full_name
-          )
+          rater_id
         `)
         .eq("rated_id", userId)
         .order("created_at", { ascending: false })
         .limit(maxRatings);
 
       if (error) throw error;
-      setRatings(data || []);
+      const nombres = await fetchProfileNames((data || []).map((r) => r.rater_id));
+      setRatings((data || []).map((r) => ({
+        ...r,
+        rater: { full_name: nombres.get(r.rater_id)?.full_name ?? "" },
+      })));
     } catch (error) {
       console.error("Error loading ratings:", error);
     } finally {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { fetchProfileNames } from "@/lib/profile-names";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,14 +101,8 @@ export function EscalationPanel({
 
       let profilesMap = new Map<string, string>();
       if (userIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", userIds);
-
-        if (profilesData) {
-          profilesMap = new Map(profilesData.map((p: any) => [p.id, p.full_name]));
-        }
+        const nombres = await fetchProfileNames(userIds as string[]);
+        profilesMap = new Map([...nombres.values()].map((p) => [p.id, p.full_name ?? ""]));
       }
 
       const evidenceWithUsers = evidenceData.map((item) => ({

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { fetchProfileNames } from "@/lib/profile-names";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -84,10 +85,7 @@ export default function TransactionHistory() {
       // Load completed purchases (state = completed OR appeal resolved)
       const { data: purchaseData, error: purchaseError } = await supabase
         .from("transactions")
-        .select(`
-          *,
-          seller_profile:profiles!transactions_seller_id_fkey(full_name, reputation_score)
-        `)
+        .select("*")
         .eq("buyer_id", user!.id)
         .order("completed_at", { ascending: false });
 
@@ -96,10 +94,7 @@ export default function TransactionHistory() {
       // Load completed sales (state = completed OR appeal resolved)
       const { data: salesData, error: salesError } = await supabase
         .from("transactions")
-        .select(`
-          *,
-          buyer_profile:profiles!transactions_buyer_id_fkey(full_name, reputation_score)
-        `)
+        .select("*")
         .eq("seller_id", user!.id)
         .order("completed_at", { ascending: false });
 
@@ -118,8 +113,21 @@ export default function TransactionHistory() {
         return resolvedAppealStatuses.includes(t.appeal_status || '');
       };
 
-      setPurchases((purchaseData || []).filter(isCompletedOrResolved));
-      setSales((salesData || []).filter(isCompletedOrResolved));
+      // Nombre y reputación de la contraparte por la RPC segura.
+      const nombres = await fetchProfileNames([
+        ...(purchaseData || []).map((t) => t.seller_id),
+        ...(salesData || []).map((t) => t.buyer_id),
+      ]);
+      const perfil = (id: string | null) => {
+        const p = id ? nombres.get(id) : undefined;
+        return p ? { full_name: p.full_name ?? "", reputation_score: Number(p.reputation_score ?? 0) } : null;
+      };
+      setPurchases((purchaseData || [])
+        .map((t) => ({ ...t, seller_profile: perfil(t.seller_id) }) as Transaction)
+        .filter(isCompletedOrResolved));
+      setSales((salesData || [])
+        .map((t) => ({ ...t, buyer_profile: perfil(t.buyer_id) }) as Transaction)
+        .filter(isCompletedOrResolved));
     } catch (error: any) {
       console.error("Error loading transactions:", error);
       toast.error("Error al cargar el historial de transacciones");

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { fetchProfileNames } from "@/lib/profile-names";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,11 +104,7 @@ export default function Appeal() {
 
       const { data: transactionData, error: transactionError } = await supabase
         .from("transactions")
-        .select(`
-          *,
-          seller:profiles!transactions_seller_id_fkey(full_name, email),
-          buyer:profiles!transactions_buyer_id_fkey(full_name, email)
-        `)
+        .select("*")
         .eq("id", appealData.transaction_id)
         .single();
 
@@ -127,8 +124,15 @@ export default function Appeal() {
         setDecision(decisionData);
       }
 
+      // Nombres de las partes por la RPC segura: la fila completa del perfil
+      // de la contraparte (banco, RUT, dirección) ya no es legible.
+      const nombres = await fetchProfileNames([transactionData.seller_id, transactionData.buyer_id]);
       setAppeal(appealData);
-      setTransaction(transactionData);
+      setTransaction({
+        ...transactionData,
+        seller: { full_name: nombres.get(transactionData.seller_id)?.full_name ?? null },
+        buyer: { full_name: transactionData.buyer_id ? nombres.get(transactionData.buyer_id)?.full_name ?? null : null },
+      });
     } catch (error: any) {
       console.error("Error fetching appeal:", error);
       toast.error("Error al cargar la apelación");
@@ -398,8 +402,8 @@ export default function Appeal() {
                 sellerId={transaction.seller_id}
                 buyerName={transaction.buyer?.full_name || "Comprador"}
                 sellerName={transaction.seller?.full_name || "Vendedor"}
-                buyerEmail={transaction.buyer?.email || ""}
-                sellerEmail={transaction.seller?.email || ""}
+                buyerEmail=""
+                sellerEmail=""
                 productName={transaction.product_name}
                 totalAmount={Number(transaction.amount)}
                 appealStatus={appeal.status}
