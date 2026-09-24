@@ -1,0 +1,46 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="welcome-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1225A8"/>
+      <stop offset="50%" stop-color="#3D4BCE"/>
+      <stop offset="100%" stop-color="#7B46D8"/>
+    </linearGradient>
+    <filter id="card-glow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="20" stdDeviation="30" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <rect id="background" width="1080" height="1920" fill="url(#welcome-gradient)"/>
+
+  <g id="header-safe-zone">
+    <text x="60" y="320" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="36" font-weight="600" letter-spacing="-1.5" fill="#FFFFFF" id="logo">trado</text>
+  </g>
+
+  <g id="pill-bienvenida">
+    <rect x="60" y="380" width="280" height="50" rx="25" fill="#FFFFFF" fill-opacity="0.15" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1" id="pill-bg"/>
+    <text x="200" y="412" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="18" font-weight="700" letter-spacing="2.5" fill="#FFFFFF" text-anchor="middle" id="pill-text">BIENVENIDO</text>
+  </g>
+
+  <g id="mensaje-principal">
+    <text x="60" y="600" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="84" font-weight="700" letter-spacing="-2.5" fill="#FFFFFF" id="msg-1">Acá guardamos</text>
+    <text x="60" y="700" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="84" font-weight="700" letter-spacing="-2.5" fill="#FFFFFF" id="msg-2">las estafas</text>
+    <text x="60" y="800" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="84" font-weight="700" letter-spacing="-2.5" fill="#27C97A" id="msg-3">que detectamos.</text>
+  </g>
+
+  <g id="descripcion">
+    <text x="60" y="950" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="34" fill="#DCDCE5" id="desc-1">Cada historia es un caso real</text>
+    <text x="60" y="1000" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="34" fill="#DCDCE5" id="desc-2">en Marketplace, Yapo o Instagram.</text>
+  </g>
+
+  <g id="card-dm" filter="url(#card-glow)">
+    <rect x="60" y="1180" width="960" height="280" rx="32" fill="#FFFFFF" id="card-bg"/>
+    <text x="100" y="1260" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" letter-spacing="2" fill="#7B46D8" id="card-label">¿TE PASÓ ALGO ASÍ?</text>
+    <text x="100" y="1340" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.5" fill="#131924" id="card-title-1">Mándanos tu caso</text>
+    <text x="100" y="1400" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.5" fill="#131924" id="card-title-2">por DM.</text>
+    <text x="100" y="1440" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" fill="#6C6C78" id="card-foot">Lo subimos sin tu nombre.</text>
+  </g>
+
+  <g id="footer-handle">
+    <text x="540" y="1700" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF" text-anchor="middle" id="handle-text">@trado_cl</text>
+  </g>
+</svg>

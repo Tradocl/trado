@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<style>
+@font-face { font-family: "Inter"; font-weight: 400; src: url("file:///C:/Users/herna/trado/instagram/_sistema/fuentes/inter-latin-400-normal.woff2"); }
+@font-face { font-family: "Inter"; font-weight: 500; src: url("file:///C:/Users/herna/trado/instagram/_sistema/fuentes/inter-latin-500-normal.woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; src: url("file:///C:/Users/herna/trado/instagram/_sistema/fuentes/inter-latin-600-normal.woff2"); }
+@font-face { font-family: "Inter"; font-weight: 700; src: url("file:///C:/Users/herna/trado/instagram/_sistema/fuentes/inter-latin-700-normal.woff2"); }
+@font-face { font-family: "Inter"; font-weight: 800; src: url("file:///C:/Users/herna/trado/instagram/_sistema/fuentes/inter-latin-800-normal.woff2"); }
+:root { --indigo:#1F25C1; --violeta:#7B46D8; --texto:#131924; --gris:#6C6C78; --linea:#E4E5EE; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #fff; }
+body { width: 2400px; padding: 120px 120px 110px; font-family: Inter, sans-serif; color: var(--texto); }
+h1 { font-size: 104px; font-weight: 800; letter-spacing: -3.5px; margin: 0; line-height: 1; }
+.intro { font-size: 34px; color: var(--gris); margin: 26px 0 0; line-height: 1.4; max-width: 1700px; }
+h2 { font-size: 54px; font-weight: 800; letter-spacing: -1.5px; margin: 110px 0 10px; display: flex; align-items: baseline; gap: 24px; }
+h2 .num { color: var(--violeta); }
+.bajada { font-size: 30px; color: var(--gris); margin: 0 0 44px; line-height: 1.4; }
+.carpeta { display: inline-block; font-size: 24px; font-weight: 600; color: var(--indigo); background: #EEEEF9; padding: 8px 18px; border-radius: 10px; margin-bottom: 36px; }
+.grilla { display: grid; gap: 36px; }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g5 { grid-template-columns: repeat(5, 1fr); }
+.tile { display: flex; flex-direction: column; min-width: 0; }
+.caja { position: relative; border-radius: 26px; overflow: hidden; border: 2px solid var(--linea); display: grid; place-items: center; }
+.caja.ancha { aspect-ratio: 2 / 1; }
+.caja.cuadrada { aspect-ratio: 1 / 1; }
+.caja img { display: block; }
+.ajedrez { background: repeating-conic-gradient(#E9EAF0 0 25%, #fff 0 50%) 0 0 / 36px 36px; }
+.ajedrez.oscuro { background: repeating-conic-gradient(#2A3040 0 25%, #1B2030 0 50%) 0 0 / 36px 36px; }
+.nombre { font-size: 29px; font-weight: 700; margin-top: 22px; letter-spacing: -.4px; }
+.uso { font-size: 25px; color: var(--gris); margin-top: 8px; line-height: 1.4; }
+.oficial { position: absolute; top: 18px; left: 18px; background: #0FA968; color: #fff; font-size: 21px; font-weight: 700; padding: 7px 14px; border-radius: 999px; letter-spacing: .2px; }
+.colores { display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px; }
+.color .muestra { height: 190px; border-radius: 22px; border: 2px solid var(--linea); }
+.color b { display: block; font-size: 29px; margin-top: 18px; }
+.color code { font-family: Inter, sans-serif; font-size: 27px; color: var(--gris); font-weight: 500; }
+.reglas { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+.regla { border-radius: 26px; padding: 44px 48px; font-size: 30px; line-height: 1.55; }
+.regla h3 { margin: 0 0 18px; font-size: 34px; letter-spacing: -.6px; }
+.regla.si { background: #EAF8F1; }
+.regla.si h3 { color: #0B7A4B; }
+.regla.no { background: #FDECEC; }
+.regla.no h3 { color: #C22F2F; }
+.regla ul { margin: 0; padding-left: 36px; }
+.nousar .caja { background: #fff; }
+.nousar .caja::after { content: ""; position: absolute; inset: 0; background:
+  linear-gradient(to top right, transparent calc(50% - 4px), rgba(239,67,67,.85) calc(50% - 4px), rgba(239,67,67,.85) calc(50% + 4px), transparent calc(50% + 4px)); }
+.pie { margin-top: 110px; padding-top: 40px; border-top: 2px solid var(--linea); font-size: 25px; color: var(--gris); line-height: 1.5; }
+</style></head>
+<body>
+<h1>Logos de Trado</h1>
+<p class="intro">Todas las versiones que podemos usar, en qué carpeta están y para qué sirve cada una. Las marcadas como <b style="color:#0FA968">En uso</b> son las que ya aparecen hoy en trado.cl y en la app.</p>
+
+<h2><span class="num">1</span> Logo “trado”</h2>
+<p class="bajada">La palabra completa. Es el logo principal: úsalo siempre que haya espacio.</p>
+<div class="carpeta">📁 1 Logo trado / Con fondo</div>
+<div class="grilla g4" id="wm"></div>
+
+<div style="height:56px"></div>
+<div class="carpeta">📁 1 Logo trado / Sin fondo (transparente) · y en SVG (vectorial)</div>
+<div class="grilla g4" id="wmt"></div>
+
+<h2><span class="num">2</span> Ícono “t.”</h2>
+<p class="bajada">Para espacios chicos o cuadrados: foto de perfil, favicon, ícono de la app. En “Redondeado” tiene las esquinas como en el celular; en “Cuadrado” va lleno, porque Instagram lo recorta en círculo solo.</p>
+<div class="carpeta">📁 2 Icono t / Redondeado (como en el celular) · Cuadrado (foto de perfil)</div>
+<div class="grilla g5" id="ic"></div>
+
+<div style="height:56px"></div>
+<div class="carpeta">📁 2 Icono t / Solo la t (transparente)</div>
+<div class="grilla g4" id="ts"></div>
+
+<h2><span class="num">3</span> Colores</h2>
+<p class="bajada">Los mismos códigos que usa la app. El degradado del logo va siempre de índigo a violeta.</p>
+<div class="colores">
+  <div class="color"><div class="muestra" style="background:#1F25C1"></div><b>Índigo</b><code>#1F25C1</code></div>
+  <div class="color"><div class="muestra" style="background:#7B46D8"></div><b>Violeta</b><code>#7B46D8</code></div>
+  <div class="color"><div class="muestra" style="background:linear-gradient(90deg,#1F25C1,#7B46D8)"></div><b>Degradado</b><code>#1F25C1 → #7B46D8</code></div>
+  <div class="color"><div class="muestra" style="background:#131924"></div><b>Negro Trado</b><code>#131924</code></div>
+  <div class="color"><div class="muestra" style="background:#0F141C"></div><b>Fondo oscuro</b><code>#0F141C</code></div>
+  <div class="color"><div class="muestra" style="background:#F5F5FA"></div><b>Gris claro</b><code>#F5F5FA</code></div>
+</div>
+
+<h2><span class="num">4</span> Cómo usarlo</h2>
+<div class="reglas" style="margin-top:44px">
+  <div class="regla si"><h3>Sí</h3><ul>
+    <li><b>Fondo blanco o gris claro:</b> logo con degradado.</li>
+    <li><b>Fondo de color, oscuro o foto:</b> logo blanco.</li>
+    <li><b>Un solo color</b> (sello, bordado, grabado): índigo o negro.</li>
+    <li>Déjale aire alrededor: al menos la altura de la “t”.</li>
+    <li>Tamaño mínimo: 80 px de ancho en pantalla.</li>
+  </ul></div>
+  <div class="regla no"><h3>No</h3><ul>
+    <li>No lo estires, no lo rotes, no le pongas sombra ni brillo.</li>
+    <li>No pongas el degradado sobre un fondo de color.</li>
+    <li>No lo pintes de otros colores, ni de verde.</li>
+    <li>No lo escribas con mayúscula: siempre “trado”.</li>
+    <li>No uses los logos antiguos de abajo.</li>
+  </ul></div>
+</div>
+
+<h2><span class="num">5</span> No usar</h2>
+<p class="bajada">Logos antiguos que siguen guardados en el código pero ya no son la marca. Están en la carpeta solo como registro.</p>
+<div class="carpeta">📁 4 No usar (antiguos)</div>
+<div class="grilla g4 nousar">
+  <div class="tile"><div class="caja cuadrada"><img src="file:///C:/Users/herna/trado/src/assets/trado-logo.png" style="width:86%"></div><div class="nombre">Escudo azul y verde</div><div class="uso">El logo del comienzo. Reemplazado por “trado”.</div></div>
+  <div class="tile"><div class="caja cuadrada"><img src="escudo-app.png" style="width:62%"></div><div class="nombre">Escudo con check</div><div class="uso">Ícono viejo que quedó en el código, sin usar.</div></div>
+</div>
+
+<div class="pie">Carpeta <b>3 Como esta hoy en trado.cl</b>: copia exacta de los íconos que publica la web (favicon, ícono del celular, imagen al compartir el link). Son de referencia: no se editan aquí.<br>
+El logo “trado” está en Inter SemiBold convertido a trazos, así que se ve igual en cualquier computador. El ícono “t.” está redibujado en vector sobre el ícono real de la app.</div>
+
+<script>
+const R = 'file:///C:/Users/herna/trado/instagram/Logos%20Trado/';
+const E = s => encodeURI(s);
+const wm = [
+  ['01 trado degradado - fondo blanco', 'Degradado · fondo blanco', 'La versión principal. Web, documentos, presentaciones.', true],
+  ['02 trado degradado - fondo gris claro', 'Degradado · fondo gris claro', 'Igual que la principal, sobre el gris de los posts.'],
+  ['03 trado indigo - fondo blanco', 'Índigo · fondo blanco', 'Cuando el degradado no se puede imprimir o bordar.'],
+  ['04 trado negro - fondo blanco', 'Negro · fondo blanco', 'Documentos, contratos, impresión en blanco y negro.'],
+  ['05 trado blanco - fondo indigo', 'Blanco · fondo índigo', 'Sobre fondos de color sólido.'],
+  ['06 trado blanco - fondo degradado', 'Blanco · fondo degradado', 'Portadas y slides con el degradado de fondo.', true],
+  ['07 trado blanco - fondo oscuro', 'Blanco · fondo oscuro', 'Posts oscuros y videos.', true],
+];
+document.getElementById('wm').innerHTML = wm.map(([f, n, u, of]) =>
+  `<div class="tile"><div class="caja ancha"><img src="${R + E('1 Logo trado/Con fondo/' + f + '.png')}" style="width:100%">${of ? '<span class="oficial">En uso</span>' : ''}</div><div class="nombre">${n}</div><div class="uso">${u}</div></div>`).join('');
+const wmt = [
+  ['trado degradado', 'Degradado', 'Para poner sobre fondos claros.', ''],
+  ['trado indigo', 'Índigo', 'Un solo color, sobre fondos claros.', ''],
+  ['trado negro', 'Negro', 'Un solo color, sobre fondos claros.', ''],
+  ['trado blanco', 'Blanco', 'Sobre fotos, videos y fondos oscuros.', 'oscuro'],
+];
+document.getElementById('wmt').innerHTML = wmt.map(([f, n, u, o]) =>
+  `<div class="tile"><div class="caja ancha ajedrez ${o}"><img src="${R + E('1 Logo trado/Sin fondo (transparente)/' + f + '.png')}" style="width:68%"></div><div class="nombre">${n}</div><div class="uso">${u}</div></div>`).join('');
+const ic = [
+  ['01 icono degradado', 'Degradado', 'El ícono de la app y el favicon. Foto de perfil.', true],
+  ['02 icono indigo', 'Índigo', 'Cuando el degradado no se puede imprimir.'],
+  ['03 icono oscuro', 'Oscuro', 'Sobre fondos claros, en tono sobrio.'],
+  ['04 icono blanco con t degradado', 'Blanco, t degradado', 'Sobre fondos de color o fotos.'],
+  ['05 icono blanco con t indigo', 'Blanco, t índigo', 'Igual, en un solo color.'],
+];
+document.getElementById('ic').innerHTML = ic.map(([f, n, u, of]) =>
+  `<div class="tile"><div class="caja cuadrada ajedrez"><img src="${R + E('2 Icono t/Redondeado (como en el celular)/' + f + '.png')}" style="width:74%">${of ? '<span class="oficial">En uso</span>' : ''}</div><div class="nombre">${n}</div><div class="uso">${u}</div></div>`).join('');
+const ts = [
+  ['t degradado', 't. degradado', 'Marca de agua o sello sobre fondos claros.', ''],
+  ['t indigo', 't. índigo', 'Un solo color, sobre fondos claros.', ''],
+  ['t negro', 't. negro', 'Un solo color, sobre fondos claros.', ''],
+  ['t blanco', 't. blanco', 'Sobre fotos, videos y fondos oscuros.', 'oscuro'],
+];
+document.getElementById('ts').innerHTML = ts.map(([f, n, u, o]) =>
+  `<div class="tile"><div class="caja ancha ajedrez ${o}"><img src="${R + E('2 Icono t/Solo la t (transparente)/' + f + '.png')}" style="width:34%"></div><div class="nombre">${n}</div><div class="uso">${u}</div></div>`).join('');
+document.fonts.ready.then(() => { document.title = 'ALTO' + document.body.scrollHeight; });
+</script>
+</body></html>

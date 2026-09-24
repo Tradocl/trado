@@ -44,7 +44,8 @@ conflicto, hay apelaciones con mediación.
 | Pagos | MercadoPago + transferencia bancaria manual |
 | Emails | Resend, con plantillas propias en `_shared/email-templates/` |
 | Móvil | Capacitor (Android) |
-| Repo | https://github.com/Tradocl/trado |
+| Repo | https://github.com/Tradocl/trado (**público**) |
+| Marketing | `Instagram/`: feed, reels, historias y logos, con el sistema que los genera en `_sistema/`. `Instagram/5 Documentos/` y `notas/` no se suben porque son internos |
 
 **Proyecto Supabase:** `aekzrackrijuxvopqfbp`, cuenta **contacto@trado.cl**.
 Hay un token personal de larga duración llamado "Claude" en la cuenta; si

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css"><link rel="stylesheet" href="guia.css">
+<style>
+  .duelo { margin-top: 40px; display: grid; grid-template-columns: 1fr 64px 1fr; align-items: end; }
+  .lado .rotulo { color: #8D8FA0; margin-bottom: 18px; }
+  .panel { height: 300px; border-radius: 28px; padding: 32px 30px; display: flex; flex-direction: column; justify-content: space-between; }
+  .pantallazo { background: #fff; color: var(--texto); }
+  .pantallazo .ok { width: 58px; height: 58px; border-radius: 50%; background: #E3F7EE; color: var(--verde); display: grid; place-items: center; }
+  .pantallazo .ok svg { width: 32px; height: 32px; stroke-width: 2.8; }
+  .pantallazo b { display: block; font-size: 28px; font-weight: 700; letter-spacing: -.4px; }
+  .pantallazo .m { font-size: 56px; font-weight: 800; letter-spacing: -2px; }
+  .pantallazo .hora { font-size: 26px; color: var(--gris); }
+  .cuenta { border: 3px dashed #3A4152; }
+  .cuenta b { display: block; font-size: 28px; font-weight: 700; color: #C9CAD6; }
+  .cuenta .m { font-size: 56px; font-weight: 800; letter-spacing: -2px; color: var(--rojo); }
+  .cuenta small { font-size: 26px; color: #8D8FA0; }
+  .distinto { align-self: center; justify-self: center; margin-top: 44px; font-size: 64px; font-weight: 800; color: #5A6072; }
+</style></head>
+<body><div class="slide fondo-oscuro">
+  <div class="cabecera"><span class="logo">trado</span><span class="contador">2 / 7</span></div>
+
+  <div class="trampa">Trampa 01</div>
+  <div class="titulo guia-titulo">Te muestran <span class="marca">un pantallazo</span> y quieren el celular</div>
+
+  <div class="relleno"></div>
+  <div class="duelo">
+    <div class="lado"><div class="rotulo">Lo que te muestran</div>
+      <div class="panel pantallazo giro-izq">
+        <div class="ok"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <div><b>Transferencia exitosa</b><div class="m">$350.000</div><small class="hora">Hoy, 18:42</small></div>
+      </div></div>
+    <div class="distinto">≠</div>
+    <div class="lado"><div class="rotulo">Lo que llegó a tu cuenta</div>
+      <div class="panel cuenta">
+        <b>Movimientos de hoy</b>
+        <div><div class="m">$0</div><small>Sin abonos nuevos</small></div>
+      </div></div>
+  </div>
+
+  <div class="relleno"></div>
+  <div class="regla"><div class="check"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><p>No entregues nada hasta ver la plata en tu cuenta. Un pantallazo se edita en un minuto.</p></div>
+  <div class="en-trado" style="margin-top:40px"><span class="logo-mini">trado</span><span>Lo confirma Trado, no el comprador: en la sala aparece <b>“Pago retenido en escrow”</b>.</span></div>
+  <div class="pie" style="margin-top:48px"><span></span><span class="desliza">Desliza →</span></div>
+</div></body></html>

@@ -1,0 +1,10 @@
+/* Piezas de "para qué sirve" (post 09). */
+.tipo { margin-top: 88px; display: inline-flex; align-items: center; gap: 16px; font-size: 28px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--indigo); }
+.tipo .ic { width: 64px; height: 64px; border-radius: 18px; background: #EAEBFB; display: grid; place-items: center; }
+.tipo .ic svg { width: 34px; height: 34px; stroke-width: 2.2; }
+.caso-titulo { margin-top: 26px; }
+.sala .producto { font-size: 40px; font-weight: 800; letter-spacing: -1.2px; margin-top: 26px; }
+.pasos-caso { margin-top: 56px; display: flex; flex-direction: column; gap: 24px; }
+.paso-c { display: flex; gap: 22px; align-items: flex-start; font-size: 32px; line-height: 1.38; color: #3B4150; text-wrap: pretty; }
+.paso-c .n { flex: none; width: 50px; height: 50px; border-radius: 50%; background: var(--indigo); color: #fff; font-size: 26px; font-weight: 800; display: grid; place-items: center; margin-top: 0; }
+.paso-c b { color: var(--texto); }

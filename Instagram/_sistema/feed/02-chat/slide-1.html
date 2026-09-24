@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
+<style>
+  .telefono {
+    margin-top: 44px; padding: 30px 30px 26px;
+    background: #E9EAF3; border-radius: 44px;
+  }
+  .contacto { display: flex; align-items: center; gap: 18px; padding: 0 8px 26px; border-bottom: 1px solid #D6D8E6; margin-bottom: 26px; }
+  .avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #F59F0A, #EF4343); color: #fff; display: grid; place-items: center; font-size: 30px; font-weight: 700; }
+  .contacto b { font-size: 30px; letter-spacing: -.4px; }
+  .contacto small { display: block; font-size: 22px; color: var(--gris); margin-top: 2px; }
+  .escribiendo { padding: 20px 26px !important; align-self: flex-start; background: #fff; border-radius: 30px; border-bottom-left-radius: 8px; padding: 26px 30px; display: flex; gap: 10px; }
+  .escribiendo i { width: 14px; height: 14px; border-radius: 50%; background: #B5B7C6; }
+  .sticker {
+    align-self: flex-end; margin-top: -64px; margin-right: -12px; position: relative; z-index: 2;
+    background: #fff; color: var(--texto); border-radius: 26px; padding: 26px 34px; border: 3px solid #1F25C1;
+    box-shadow: 0 24px 50px -16px rgba(31,37,193,.40);
+  }
+  .sticker .chico { color: var(--gris); }
+  .sticker .medio { font-size: 48px; }
+  /* Mismo degradado que el logo de la app (src/components/Logo.tsx) */
+  .trado-logo { background: linear-gradient(90deg, #1F25C1, #7B46D8); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .04em; }
+  .burbuja { font-size: 29px; padding: 18px 26px; max-width: 88%; }
+  .chat { gap: 12px; }
+</style></head>
+<body><div class="slide fondo-gris">
+  <div class="cabecera"><span class="logo">trado</span><span class="etiqueta">Conversaciones reales</span></div>
+
+  <div class="titulo" style="margin-top:52px;font-size:76px">Todos hemos tenido <span class="marca">esta conversación.</span></div>
+
+  <div class="telefono giro-izq">
+    <div class="contacto">
+      <div class="avatar"><svg class="icono" viewBox="0 0 24 24" style="width:32px;height:32px"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></div>
+      <div><b>iPhone 13 impecable · $350.000</b><small>Vendedor · activo hace 2 min</small></div>
+    </div>
+    <div class="chat">
+      <div class="burbuja yo">Hola, ¿sigue disponible?</div>
+      <div class="burbuja ellos">Sí, está impecable</div>
+      <div class="burbuja yo">¿Lo puedo ver en persona?</div>
+      <div class="burbuja ellos">Justo estoy fuera de Santiago jaja</div>
+      <div class="burbuja ellos">Pero transfiéreme y te lo mando hoy mismo</div>
+      <div class="escribiendo"><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <div class="sticker giro-der">
+    <div class="chico">La respuesta correcta:</div>
+    <div class="medio">“Hagámoslo por <span class="trado-logo">Trado</span>.”</div>
+  </div>
+
+  <div class="relleno"></div>
+  <div class="pie"><span>trado.cl</span><span>Etiqueta a quien le haya pasado</span></div>
+</div></body></html>

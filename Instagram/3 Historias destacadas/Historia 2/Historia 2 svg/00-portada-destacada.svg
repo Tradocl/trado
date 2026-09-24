@@ -1,0 +1,29 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="cover-bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1A1F2E"/>
+      <stop offset="100%" stop-color="#0F141C"/>
+    </radialGradient>
+    <filter id="triangle-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="40" result="blur"/>
+      <feFlood flood-color="#EF4343" flood-opacity="0.4"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect id="background" width="1080" height="1920" fill="url(#cover-bg)"/>
+
+  <g id="triangulo-alerta" filter="url(#triangle-glow)">
+    <polygon points="540,720 280,1180 800,1180" fill="none" stroke="#EF4343" stroke-width="40" stroke-linejoin="round" id="triangle-shape"/>
+    <rect x="510" y="850" width="60" height="180" rx="8" fill="#EF4343" id="exclamation-bar"/>
+    <circle cx="540" cy="1100" r="34" fill="#EF4343" id="exclamation-dot"/>
+  </g>
+
+  <text x="540" y="1380" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="68" font-weight="700" letter-spacing="-1.5" fill="#FFFFFF" text-anchor="middle" id="cover-title">señales</text>
+
+  <text x="540" y="1450" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="32" fill="#9A9AA8" text-anchor="middle" id="cover-subtitle">estafas reales en Marketplace</text>
+</svg>

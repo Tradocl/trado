@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
+<!-- Cifras verificadas con calculateFee (src/lib/utils.ts) el 2026-09-21:
+     $1.000.000 → transferencia $32.000 · tarjeta $50.000. Transferencia desde $400.000 (Wallet.tsx). -->
+<style>
+  .boleta {
+    position: relative; margin-top: 52px; background: #fff; color: var(--texto);
+    padding: 44px 48px 64px; border-radius: 20px 20px 0 0;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 2px 4px rgba(19,25,36,.04), 0 40px 80px -30px rgba(31,37,193,.35);
+    -webkit-mask: radial-gradient(circle 14px at 50% 100%, transparent 98%, #000) center bottom / 40px 100% round no-repeat;
+  }
+  .b-cab { text-align: center; padding-bottom: 26px; border-bottom: 3px dashed #D6D8E6; }
+  .b-cab .logo { font-size: 52px; }
+  .b-cab .chico { color: var(--gris); letter-spacing: 3px; text-transform: uppercase; font-size: 22px; margin-top: 6px; }
+  .linea { display: flex; justify-content: space-between; align-items: baseline; font-size: 30px; margin-top: 22px; }
+  .linea span:first-child { color: #3B4150; }
+  .linea b { font-weight: 700; }
+  .seccion { margin-top: 30px; font-size: 22px; font-weight: 700; letter-spacing: 2.5px; color: var(--gris); text-transform: uppercase; }
+  .nota { font-size: 22px; color: var(--gris); margin-top: 4px; }
+  .total { margin-top: 30px; padding-top: 24px; border-top: 3px dashed #D6D8E6; display: flex; justify-content: space-between; align-items: baseline; }
+  .total span { font-size: 32px; font-weight: 800; letter-spacing: -.5px; }
+  .total b { font-size: 48px; font-weight: 800; color: var(--verde); letter-spacing: -1.5px; }
+</style></head>
+<body><div class="slide fondo-gris">
+  <div class="cabecera"><span class="logo">trado</span><span class="etiqueta">Sin letra chica</span></div>
+
+  <div class="titulo" style="margin-top:56px;font-size:74px">¿Cuánto cuesta <span class="marca">Trado?</span></div>
+
+  <div class="boleta">
+    <div class="b-cab"><div class="logo">trado</div><div class="chico">Boleta de precios</div></div>
+
+    <div class="linea"><span>Crear tu cuenta</span><b>$0</b></div>
+    <div class="linea"><span>Mensualidad</span><b>$0</b></div>
+
+    <div class="seccion">Comisión por operación</div>
+    <div class="nota" style="margin-top:6px">La paga quien crea la sala.</div>
+    <div class="linea"><span>Con tarjeta</span><b>5%</b></div>
+    <div class="linea"><span>Con transferencia<div class="nota">desde $400.000 · baja según el monto</div></span><b>3,5% → 2,5%</b></div>
+
+    <div class="seccion">Ejemplo: venta de $1.000.000</div>
+    <div class="linea"><span>Con tarjeta</span><b>$50.000</b></div>
+    <div class="linea"><span>Con transferencia</span><b class="acento-indigo">$32.000</b></div>
+
+    <div class="total"><span>Sorpresas al final</span><b>$0</b></div>
+  </div>
+
+  <div class="relleno"></div>
+  <div class="pie"><span>Mínimo $1.000 por operación · la comisión no se devuelve</span><span>trado.cl</span></div>
+</div></body></html>

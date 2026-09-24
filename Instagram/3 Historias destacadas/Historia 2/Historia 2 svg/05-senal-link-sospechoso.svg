@@ -1,0 +1,58 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="bubble-shadow-h4" x="-5%" y="-10%" width="110%" height="125%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect id="background" width="1080" height="1920" fill="#FFFFFF"/>
+
+  <g id="header-safe-zone">
+    <text x="60" y="320" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="36" font-weight="600" letter-spacing="-1.5" fill="#1F25C1" id="logo">trado</text>
+  </g>
+
+  <g id="pill-categoria">
+    <rect x="60" y="380" width="340" height="50" rx="25" fill="#EF4343" id="pill-bg"/>
+    <text x="230" y="412" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="20" font-weight="700" letter-spacing="2" fill="#FFFFFF" text-anchor="middle" id="pill-text">EL LINK SOSPECHOSO</text>
+  </g>
+
+  <g id="titulo-senal">
+    <text x="60" y="510" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="60" font-weight="700" letter-spacing="-2" fill="#131924" id="titulo-1">"Entra a este link</text>
+    <text x="60" y="580" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="60" font-weight="700" letter-spacing="-2" fill="#131924" id="titulo-2">para confirmar."</text>
+  </g>
+
+  <g id="bubble-comprador-1" filter="url(#bubble-shadow-h4)">
+    <rect x="60" y="680" width="900" height="260" rx="20" fill="#F5F5FA" stroke="#E6E6EB" stroke-width="1" id="b1-bg"/>
+    <text x="86" y="720" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" fill="#6C6C78" id="b1-label">Comprador</text>
+    <text x="86" y="770" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b1-line-1">Para liberar el pago necesito que</text>
+    <text x="86" y="810" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b1-line-2">confirmes tu identidad acá →</text>
+    <rect x="86" y="835" width="700" height="70" rx="10" fill="#FEEAEA" stroke="#EF4343" stroke-width="1" id="fake-link-bg"/>
+    <text x="106" y="882" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="26" font-weight="700" fill="#EF4343" id="fake-link">pagos-confirmar.cl/usuario</text>
+  </g>
+
+  <g id="bubble-tu" filter="url(#bubble-shadow-h4)">
+    <rect x="340" y="965" width="680" height="110" rx="20" fill="#DCF8C6" stroke="#C5E4AC" stroke-width="1" id="bt-bg"/>
+    <text x="366" y="1005" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" fill="#5A7A4A" id="bt-label">Tú</text>
+    <text x="366" y="1050" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="bt-line">¿Por qué tendría que entrar?</text>
+  </g>
+
+  <g id="bubble-comprador-2" filter="url(#bubble-shadow-h4)">
+    <rect x="60" y="1105" width="900" height="240" rx="20" fill="#F5F5FA" stroke="#E6E6EB" stroke-width="1" id="b2-bg"/>
+    <text x="86" y="1145" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" fill="#6C6C78" id="b2-label">Comprador</text>
+    <text x="86" y="1195" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-1">Es el protocolo. Te llegará un</text>
+    <text x="86" y="1235" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" font-weight="700" fill="#EF4343" id="b2-line-2">código por SMS,</text>
+    <text x="370" y="1235" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-2b">pásamelo</text>
+    <text x="86" y="1275" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-3">para validar</text>
+  </g>
+
+  <g id="regla-card">
+    <rect x="60" y="1400" width="960" height="180" rx="24" fill="#FEEAEA" id="regla-bg"/>
+    <polygon points="105,1445 88,1480 122,1480" fill="#EF4343" id="alert-triangle"/>
+    <text x="105" y="1473" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle" id="alert-excl">!</text>
+    <text x="140" y="1473" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" letter-spacing="1" fill="#EF4343" id="regla-label">REGLA DE ORO</text>
+    <text x="90" y="1525" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="32" font-weight="700" fill="#131924" id="regla-line-1">Nadie pide links, códigos</text>
+    <text x="90" y="1565" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="32" font-weight="700" fill="#131924" id="regla-line-2">ni claves para transferirte.</text>
+  </g>
+
+  <text x="540" y="1700" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="24" font-weight="700" fill="#6C6C78" text-anchor="middle" id="handle">@trado_cl</text>
+</svg>

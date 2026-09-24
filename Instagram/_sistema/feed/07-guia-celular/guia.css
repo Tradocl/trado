@@ -1,0 +1,13 @@
+/* Piezas compartidas de la guía (post 8). */
+.contador { font-size: 26px; font-weight: 600; color: #8D8FA0; }
+.trampa { margin-top: 64px; display: inline-flex; align-items: center; gap: 14px; font-size: 26px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--rojo); }
+.trampa::before { content: ""; width: 34px; height: 4px; border-radius: 2px; background: var(--rojo); }
+.guia-titulo { margin-top: 22px; font-size: 68px; }
+.regla { display: flex; gap: 22px; align-items: flex-start; }
+.regla .check { flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--verde-claro); color: var(--oscuro); display: grid; place-items: center; margin-top: 2px; }
+.regla .check svg { width: 30px; height: 30px; stroke-width: 3; }
+.regla p { font-size: 34px; font-weight: 600; letter-spacing: -.5px; line-height: 1.32; }
+.en-trado { display: flex; gap: 18px; align-items: center; padding: 24px 28px; border-radius: 24px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); font-size: 27px; line-height: 1.38; color: #C9CAD6; }
+.regla p, .en-trado span, .honesto { text-wrap: pretty; }
+.en-trado b { color: #fff; font-weight: 700; }
+.en-trado .logo-mini { flex: none; font-weight: 600; font-size: 30px; letter-spacing: -1.2px; color: #fff; background: var(--indigo); border-radius: 16px; padding: 10px 14px 12px; line-height: 1; }

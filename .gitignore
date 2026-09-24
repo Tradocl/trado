@@ -42,11 +42,10 @@ android/local.properties
 android/app/release/
 android/app/build/
 
-# Local-only assets not tracked in the repo
-Logos Trado.zip
-
-# Marketing assets live in Google Drive; the repo is public
-[Ii]nstagram/
+# Instagram: se sube solo lo que igual es público (posts, reels, logos, historias).
+# Estrategia, presupuesto y documentos internos quedan fuera: el repo es público.
+[Ii]nstagram/5 Documentos/
+[Ii]nstagram/_sistema/_vista.html
 
 # Notas de trabajo internas (análisis de riesgos, decisiones); el repo es público
 notas/

@@ -1,0 +1,21 @@
+/* Piezas del diccionario (post 03). */
+.entrada-num { margin-top: 96px; font-size: 26px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #8D8FA0; }
+.termino { margin-top: 26px; font-size: 92px; font-weight: 800; letter-spacing: -3.5px; line-height: 1.02; text-wrap: balance; }
+.gramatica { margin-top: 22px; font-size: 30px; color: #8D8FA0; font-style: italic; letter-spacing: -.2px; }
+.silabas { color: #C9CAD6; font-style: normal; font-weight: 600; }
+.raya { height: 2px; background: #262D3C; margin: 56px 0 50px; }
+.traduccion-rotulo { font-size: 26px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--verde-claro); }
+.traduccion { margin-top: 18px; font-size: 64px; font-weight: 700; letter-spacing: -2.2px; line-height: 1.1; text-wrap: balance; }
+.ejemplo { margin-top: 30px; font-size: 30px; color: #C9CAD6; line-height: 1.45; text-wrap: pretty; }
+.ejemplo i { color: #8D8FA0; }
+.uso-rotulo { font-size: 26px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #8D8FA0; margin-bottom: 22px; }
+.oscuro-chat .burbuja { box-shadow: none; font-size: 30px; }
+.oscuro-chat .ellos { background: #1D2330; color: #E6E7EF; }
+.oscuro-chat .yo { background: var(--indigo); }
+.notif { display: flex; align-items: center; gap: 20px; background: #1D2330; border-radius: 24px; padding: 20px 24px; }
+.notif + .notif { margin-top: 12px; }
+.notif .av { flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; font-weight: 700; color: #fff; }
+.notif b { font-size: 27px; color: #E6E7EF; }
+.notif p { font-size: 28px; color: #C9CAD6; margin-top: 2px; }
+.notif small { margin-left: auto; font-size: 26px; color: #8D8FA0; align-self: flex-start; }
+.visto { align-self: flex-end; font-size: 26px; color: #8D8FA0; margin-top: -4px; }

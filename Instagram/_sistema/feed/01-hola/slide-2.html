@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
+<style>
+  .flujo { margin-top: 70px; display: flex; flex-direction: column; align-items: stretch; }
+  .persona { display: flex; align-items: center; gap: 26px; background: #fff; border: 1px solid #E3E4EE; border-radius: 28px; padding: 26px 30px; }
+  .avatar { flex: none; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; }
+  .avatar svg { width: 42px; height: 42px; stroke-width: 2.2; }
+  .a1 { background: #EAEBFB; color: var(--indigo); }
+  .a2 { background: #E3F7EE; color: var(--verde); }
+  .persona b { display: block; font-size: 36px; letter-spacing: -1px; }
+  .persona span { font-size: 27px; color: #3B4150; }
+  .flecha { display: flex; align-items: center; gap: 22px; padding: 14px 0 14px 66px; font-size: 26px; font-weight: 600; color: var(--gris); }
+  .flecha::before { content: ""; width: 4px; height: 58px; background: repeating-linear-gradient(to bottom, #B8BAD0 0 10px, transparent 10px 18px); }
+  .custodia { display: flex; align-items: center; gap: 26px; background: var(--hero); color: #fff; border-radius: 28px; padding: 30px; box-shadow: 0 30px 60px -24px rgba(31,37,193,.55); }
+  .custodia .avatar { background: rgba(255,255,255,.16); width: 96px; height: 96px; margin-left: -6px; }
+  .custodia .avatar svg { width: 46px; height: 46px; }
+  .custodia b { display: block; font-size: 40px; letter-spacing: -1.2px; }
+  .custodia span { font-size: 27px; color: rgba(255,255,255,.85); }
+</style></head>
+<body><div class="slide fondo-gris">
+  <div class="cabecera"><span class="logo">trado</span><span class="contador">2 / 3</span></div>
+
+  <div class="titulo" style="margin-top:64px">Nos ponemos <span class="marca">al medio.</span></div>
+
+  <div class="flujo">
+    <div class="persona"><div class="avatar a1"><svg class="icono" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></div>
+      <div><b>Comprador</b><span>Paga, pero no a ciegas.</span></div></div>
+    <div class="flecha">paga</div>
+    <div class="custodia"><div class="avatar"><svg class="icono" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+      <div><b>La plata queda en custodia</b><span>Nadie la puede tocar mientras tanto.</span></div></div>
+    <div class="flecha">se libera cuando el comprador confirma</div>
+    <div class="persona"><div class="avatar a2"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <div><b>Vendedor</b><span>Ve el pago hecho antes de entregar.</span></div></div>
+  </div>
+
+  <div class="relleno"></div>
+  <div class="pie"><span></span><span class="desliza">Desliza →</span></div>
+</div></body></html>

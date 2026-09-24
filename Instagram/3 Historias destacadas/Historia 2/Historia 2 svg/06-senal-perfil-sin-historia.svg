@@ -1,0 +1,80 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="avatar-gradient-h5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DCDCE5"/>
+      <stop offset="100%" stop-color="#B4B4BE"/>
+    </linearGradient>
+    <filter id="card-shadow-h5" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="14" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect id="background" width="1080" height="1920" fill="#FFFFFF"/>
+
+  <g id="header-safe-zone">
+    <text x="60" y="320" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="36" font-weight="600" letter-spacing="-1.5" fill="#1F25C1" id="logo">trado</text>
+  </g>
+
+  <g id="pill-categoria">
+    <rect x="60" y="380" width="340" height="50" rx="25" fill="#EF4343" id="pill-bg"/>
+    <text x="230" y="412" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="20" font-weight="700" letter-spacing="2" fill="#FFFFFF" text-anchor="middle" id="pill-text">EL PERFIL SIN HISTORIA</text>
+  </g>
+
+  <g id="titulo-senal">
+    <text x="60" y="510" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="60" font-weight="700" letter-spacing="-2" fill="#131924" id="titulo-1">Cuenta nueva,</text>
+    <text x="60" y="580" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="60" font-weight="700" letter-spacing="-2" fill="#131924" id="titulo-2">vacía, sin pasado.</text>
+  </g>
+
+  <g id="mockup-perfil" filter="url(#card-shadow-h5)">
+    <rect x="60" y="680" width="960" height="660" rx="28" fill="#FFFFFF" stroke="#E6E6EB" stroke-width="1" id="mockup-bg"/>
+
+    <circle cx="180" cy="800" r="76" fill="url(#avatar-gradient-h5)" id="avatar-bg"/>
+    <circle cx="180" cy="780" r="24" fill="#FFFFFF" opacity="0.6"/>
+    <path d="M 138 838 Q 180 808 222 838 L 222 868 L 138 868 Z" fill="#FFFFFF" opacity="0.6"/>
+
+    <text x="290" y="780" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="36" font-weight="700" fill="#131924" id="perfil-nombre">juan_ventas_2025</text>
+    <text x="290" y="820" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="24" fill="#6C6C78" id="perfil-handle">Marketplace · Chile</text>
+
+    <text x="290" y="865" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" font-weight="700" fill="#131924" id="stat-1-num">0</text>
+    <text x="313" y="865" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" fill="#6C6C78" id="stat-1-label">publicaciones</text>
+    <text x="540" y="865" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" font-weight="700" fill="#131924" id="stat-2-num">12</text>
+    <text x="573" y="865" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" fill="#6C6C78" id="stat-2-label">seguidores</text>
+    <text x="730" y="865" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" font-weight="700" fill="#131924" id="stat-3-num">847</text>
+    <text x="775" y="865" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" fill="#6C6C78" id="stat-3-label">seguidos</text>
+
+    <line x1="90" y1="920" x2="990" y2="920" stroke="#E6E6EB" stroke-width="1"/>
+
+    <text x="100" y="975" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="20" font-weight="700" letter-spacing="1.5" fill="#EF4343" id="flags-title">SEÑALES DE ALERTA</text>
+
+    <circle cx="110" cy="1030" r="7" fill="#EF4343"/>
+    <text x="138" y="1038" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" fill="#131924" id="rf1">Cuenta creada hace 4 días</text>
+
+    <circle cx="110" cy="1085" r="7" fill="#EF4343"/>
+    <text x="138" y="1093" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" fill="#131924" id="rf2">Sigue a 847, lo siguen 12</text>
+
+    <circle cx="110" cy="1140" r="7" fill="#EF4343"/>
+    <text x="138" y="1148" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" fill="#131924" id="rf3">Foto genérica</text>
+
+    <circle cx="110" cy="1195" r="7" fill="#EF4343"/>
+    <text x="138" y="1203" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" fill="#131924" id="rf4">Sin publicaciones ni historial</text>
+
+    <circle cx="110" cy="1250" r="7" fill="#EF4343"/>
+    <text x="138" y="1258" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="26" fill="#131924" id="rf5">Sin contactos en común</text>
+
+    <g id="stamp-falso" transform="rotate(-8 870 780)">
+      <rect x="755" y="745" width="230" height="70" rx="8" fill="none" stroke="#EF4343" stroke-width="5" id="stamp-falso-border"/>
+      <text x="870" y="793" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="34" font-weight="700" letter-spacing="2" fill="#EF4343" text-anchor="middle" id="stamp-falso-text">FALSO</text>
+    </g>
+  </g>
+
+  <g id="regla-card">
+    <rect x="60" y="1400" width="960" height="180" rx="24" fill="#FEEAEA" id="regla-bg"/>
+    <polygon points="105,1445 88,1480 122,1480" fill="#EF4343" id="alert-triangle"/>
+    <text x="105" y="1473" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle" id="alert-excl">!</text>
+    <text x="140" y="1473" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" letter-spacing="1" fill="#EF4343" id="regla-label">REGLA DE ORO</text>
+    <text x="90" y="1525" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="32" font-weight="700" fill="#131924" id="regla-line-1">Un perfil real tiene historia.</text>
+    <text x="90" y="1565" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="32" font-weight="700" fill="#131924" id="regla-line-2">Uno falso, no alcanza a tenerla.</text>
+  </g>
+
+  <text x="540" y="1700" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="24" font-weight="700" fill="#6C6C78" text-anchor="middle" id="handle">@trado_cl</text>
+</svg>

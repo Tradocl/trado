@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
+<!-- Costo según calculateFee (src/lib/utils.ts): tarjeta 5 %, transferencia (desde $400.000) por tramos de 3,5 % a 2,5 %. -->
+<style>
+  .tabla { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; }
+  .col-cab { font-size: 26px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 0 24px 8px; }
+  .col-cab.a { color: var(--gris); }
+  .col-cab.b { color: var(--indigo); }
+  .fila-t { grid-column: 1 / -1; font-size: 26px; font-weight: 600; color: var(--gris); padding: 18px 0 10px; }
+  .celda { display: flex; gap: 16px; align-items: flex-start; padding: 18px 22px; border-radius: 22px; font-size: 28px; line-height: 1.3; letter-spacing: -.3px; text-wrap: balance; }
+  .celda svg { flex: none; width: 34px; height: 34px; margin-top: 1px; stroke-width: 2.6; }
+  .celda.a { background: #EBEBF2; color: #4A4F5E; }
+  .celda.a svg { color: #9A9CAB; }
+  .celda.b { background: #fff; color: var(--texto); font-weight: 600; box-shadow: 0 16px 40px -18px rgba(31,37,193,.35); outline: 2px solid #1F25C1; outline-offset: -2px; }
+  .celda.b svg { color: var(--verde); }
+  .remate { font-size: 42px; font-weight: 700; letter-spacing: -1.4px; line-height: 1.15; text-wrap: balance; }
+</style></head>
+<body><div class="slide fondo-gris">
+  <div class="cabecera"><span class="logo">trado</span><span class="etiqueta">Comparación honesta</span></div>
+
+  <div class="titulo" style="margin-top:52px;font-size:78px">¿Transferir directo o <span class="marca">con Trado?</span></div>
+
+  <div class="tabla">
+    <div class="col-cab a">Directo</div><div class="col-cab b">Con Trado</div>
+
+    <div class="fila-t">Mientras esperas, tu plata está…</div>
+    <div class="celda a"><svg class="icono" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg>En la cuenta del vendedor</div>
+    <div class="celda b"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>En custodia</div>
+
+    <div class="fila-t">Si no llega lo acordado…</div>
+    <div class="celda a"><svg class="icono" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg>Le reclamas a un desconocido</div>
+    <div class="celda b"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Apelas y la plata sigue retenida</div>
+
+    <div class="fila-t">El vendedor sabe que pagaste…</div>
+    <div class="celda a"><svg class="icono" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg>Por un pantallazo</div>
+    <div class="celda b"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Lo ve en la sala</div>
+
+    <div class="fila-t">Cuánto cuesta</div>
+    <div class="celda a"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>$0</div>
+    <div class="celda b"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>5% con tarjeta, menos con transferencia</div>
+  </div>
+
+  <div class="relleno" style="min-height:36px"></div>
+  <div class="remate">Transferir directo es gratis. <span style="color:var(--indigo)">Lo caro es cuando sale mal.</span></div>
+  <div class="pie" style="margin-top:32px"><span>trado.cl</span><span>Mándaselo a quien transfiere primero</span></div>
+</div></body></html>

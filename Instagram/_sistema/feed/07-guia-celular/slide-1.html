@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
+<style>
+  .comprobante {
+    position: relative; align-self: center; width: 720px;
+    background: #fff; color: var(--texto); border-radius: 30px; padding: 40px 44px;
+  }
+  .ok { width: 84px; height: 84px; border-radius: 50%; background: #E3F7EE; color: var(--verde); display: grid; place-items: center; }
+  .ok svg { width: 44px; height: 44px; stroke-width: 2.6; }
+  .comprobante .medio { font-size: 44px; margin-top: 20px; }
+  .comprobante .monto { font-size: 88px; margin-top: 8px; }
+  .comprobante .rotulo { margin-top: 10px; }
+  .sello {
+    position: absolute; right: -40px; top: 36px; transform: rotate(14deg);
+    border: 6px solid var(--rojo); color: var(--rojo); border-radius: 16px;
+    padding: 8px 26px; font-size: 64px; font-weight: 800; letter-spacing: 4px; background: rgba(15,20,28,.02);
+  }
+</style></head>
+<body><div class="slide fondo-oscuro">
+  <div class="cabecera"><span class="logo">trado</span></div>
+
+  <div class="relleno"></div>
+  <div class="comprobante giro-der">
+    <div class="ok"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <div class="medio">Transferencia exitosa</div>
+    <div class="monto">$350.000</div>
+    <div class="rotulo">Hoy, 18:42 · Comprobante n.º 004812</div>
+    <div class="sello">FALSO</div>
+  </div>
+
+  <div class="relleno"></div>
+  <div><span class="etiqueta">Guía para guardar</span></div>
+  <div class="titulo" style="font-size:84px;margin-top:28px">¿Vas a vender tu celular usado?</div>
+  <p class="medio" style="margin-top:24px;font-size:52px;color:#fff"><span class="marca">Lee esto primero.</span></p>
+  <div class="pie" style="margin-top:64px"><span>5 trampas y cómo evitarlas</span><span class="desliza">Desliza →</span></div>
+</div></body></html>

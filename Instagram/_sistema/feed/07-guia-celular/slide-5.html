@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css"><link rel="stylesheet" href="guia.css">
+<style>
+  .mapa { position: relative; margin-top: 40px; height: 440px; border-radius: 32px; overflow: hidden; background: #171D29; border: 1px solid #262D3C; }
+  .mapa svg.calles { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pin { position: absolute; display: flex; flex-direction: column; align-items: center; }
+  .pin .gota { width: 64px; height: 64px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: grid; place-items: center; box-shadow: 0 10px 24px -6px rgba(0,0,0,.6); }
+  .pin .gota svg { transform: rotate(45deg); width: 32px; height: 32px; stroke-width: 3; color: #fff; }
+  .pin.mal .gota { background: var(--rojo); }
+  .pin.bien .gota { background: var(--verde-claro); }
+  .pin.bien .gota svg { color: var(--oscuro); }
+  .pin .cartel { margin-top: 16px; background: #fff; color: var(--texto); font-size: 26px; font-weight: 700; padding: 12px 20px; border-radius: 14px; white-space: nowrap; text-align: center; }
+  .pin .cartel small { display: block; font-size: 22px; font-weight: 500; color: var(--gris); margin-top: 2px; }
+  .pin.mal .cartel { background: #3A1E24; color: #FFC2C2; }
+  .pin.mal .cartel small { color: #D99A9A; }
+  .chips { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 14px; }
+  .chips span { font-size: 28px; font-weight: 600; padding: 14px 24px; border-radius: 999px; border: 2px solid #2F3647; color: #E6E7EF; }
+</style></head>
+<body><div class="slide fondo-oscuro">
+  <div class="cabecera"><span class="logo">trado</span><span class="contador">5 / 7</span></div>
+
+  <div class="trampa">Trampa 04</div>
+  <div class="titulo guia-titulo">Te citan <span class="marca">donde nadie ve</span></div>
+
+  <div class="relleno"></div>
+  <div class="mapa">
+    <svg class="calles" viewBox="0 0 904 400" preserveAspectRatio="none">
+      <rect x="540" y="30" width="300" height="180" rx="20" fill="#1C3A30"/>
+      <g stroke="#262E3F" stroke-width="30" stroke-linecap="round" fill="none">
+        <path d="M-20 262 H930"/><path d="M-20 92 H500"/><path d="M500 -20 V420"/><path d="M240 -20 V420"/><path d="M500 342 H930"/>
+      </g>
+      <g stroke="#262E3F" stroke-width="16" stroke-linecap="round" fill="none"><path d="M40 262 V372 H170"/><path d="M370 92 V190"/></g>
+    </svg>
+    <div class="pin mal" style="left:36px;top:130px"><div class="gota"><svg class="icono" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></div><div class="cartel">Pasaje sin salida<small>22:30</small></div></div>
+    <div class="pin bien" style="left:548px;top:48px"><div class="gota"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div class="cartel">Mall, patio de comidas<small>16:00</small></div></div>
+  </div>
+
+  <div class="chips"><span>De día</span><span>Con gente</span><span>Ve con alguien</span><span>Avisa dónde vas</span></div>
+
+  <div class="relleno"></div>
+  <div class="en-trado"><span class="logo-mini">trado</span><span>El pago queda retenido antes de la junta: <b>nadie anda con efectivo encima</b>.</span></div>
+  <div class="pie" style="margin-top:48px"><span></span><span class="desliza">Desliza →</span></div>
+</div></body></html>

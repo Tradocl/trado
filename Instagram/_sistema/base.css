@@ -1,0 +1,211 @@
+/* Sistema visual Trado v2 para Instagram. Una sola fuente (Inter, incluida en fuentes/). */
+
+@font-face { font-family: "Inter"; font-weight: 400; src: url("fuentes/inter-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 500; src: url("fuentes/inter-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; src: url("fuentes/inter-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 700; src: url("fuentes/inter-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 800; src: url("fuentes/inter-latin-800-normal.woff2") format("woff2"); }
+
+:root {
+  --indigo: #1F25C1;
+  --indigo-claro: #5156D6;
+  --violeta: #7B46D8;
+  --verde: #11A770;
+  --verde-claro: #27C97A;
+  --rojo: #EF4343;
+  --ambar: #F59F0A;
+  --texto: #131924;
+  --gris: #6C6C78;
+  --muted: #EEEEF6;
+  --gris-fondo: #F5F5FA;
+  --oscuro: #0F141C;
+  --hero: linear-gradient(135deg, #1225A8 0%, #3D4BCE 50%, #7B46D8 100%);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { width: 1080px; height: 1350px; overflow: hidden; }
+
+body {
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* ── Lienzo ─────────────────────────────────────────────── */
+/* 80px de margen: el grid de Instagram recorta la foto 4:5 a 3:4 por los lados. */
+.slide {
+  position: relative;
+  width: 1080px;
+  height: 1350px;
+  padding: 88px 88px 80px;
+  overflow: hidden;
+  isolation: isolate; /* la marca de agua (z-index -1) queda sobre el fondo y bajo el contenido */
+  display: flex;
+  flex-direction: column;
+}
+
+.fondo-hero   { background: var(--hero); color: #fff; }
+.fondo-claro  { background: #fff; color: var(--texto); }
+.fondo-gris   { background: var(--gris-fondo); color: var(--texto); }
+.fondo-oscuro { background: var(--oscuro); color: #fff; }
+
+/* ── Cabecera ───────────────────────────────────────────── */
+.cabecera { display: flex; align-items: center; justify-content: space-between; }
+
+.logo {
+  font-weight: 600;
+  font-size: 44px;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+.fondo-claro .logo, .fondo-gris .logo {
+  /* Igual que el logo de la app sobre fondo claro: degradado índigo→violeta */
+  background: linear-gradient(90deg, #1F25C1, #7B46D8);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  padding-right: .06em;
+}
+
+/* Contador de carrusel (slides interiores) */
+.contador { font-size: 26px; font-weight: 600; }
+.fondo-claro .contador, .fondo-gris .contador { color: var(--gris); }
+.fondo-hero .contador   { color: rgba(255,255,255,.7); }
+.fondo-oscuro .contador { color: #8D8FA0; }
+
+.etiqueta {
+  display: inline-flex; align-items: center; gap: 12px;
+  height: 48px; padding: 0 22px;
+  border-radius: 999px;
+  font-size: 19px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+}
+.fondo-hero .etiqueta   { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); }
+.fondo-claro .etiqueta, .fondo-gris .etiqueta { background: var(--muted); color: var(--indigo); }
+.fondo-oscuro .etiqueta { background: rgba(239,67,67,.14); color: var(--rojo); }
+.fondo-oscuro .etiqueta.neutra { background: rgba(255,255,255,.08); color: #E6E7EF; border: 1px solid rgba(255,255,255,.14); }
+.etiqueta .punto { width: 10px; height: 10px; border-radius: 50%; background: var(--verde-claro); }
+
+/* ── Tipografía ─────────────────────────────────────────── */
+.mega   { font-size: 112px; font-weight: 800; letter-spacing: -4.5px; line-height: .98; }
+.titulo { font-size: 80px;  font-weight: 800; letter-spacing: -3px;   line-height: 1.02; }
+.medio  { font-size: 58px;  font-weight: 700; letter-spacing: -2px;   line-height: 1.08; }
+.sub    { font-size: 36px;  font-weight: 400; letter-spacing: -.4px;  line-height: 1.38; }
+.cuerpo { font-size: 31px;  font-weight: 400; letter-spacing: -.2px;  line-height: 1.45; }
+.chico  { font-size: 26px;  font-weight: 500; line-height: 1.4; }
+
+.fondo-hero .sub, .fondo-hero .cuerpo     { color: rgba(255,255,255,.86); }
+.fondo-claro .sub, .fondo-claro .cuerpo,
+.fondo-gris .sub, .fondo-gris .cuerpo     { color: #3B4150; }
+.fondo-oscuro .sub, .fondo-oscuro .cuerpo { color: #C9CAD6; }
+
+.acento-verde  { color: var(--verde-claro); }
+.acento-indigo { color: var(--indigo); }
+.acento-rojo   { color: var(--rojo); }
+.tachado { text-decoration: line-through; text-decoration-color: var(--rojo); text-decoration-thickness: 7px; opacity: .55; }
+
+.mega, .titulo, .medio, .sub, .cuerpo { text-wrap: balance; }
+
+.relleno { flex: 1; }
+
+/* ── Pie: paginador + desliza ──────────────────────────── */
+.pie {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 26px; font-weight: 600;
+}
+.fondo-hero .pie   { color: rgba(255,255,255,.7); }
+.fondo-claro .pie, .fondo-gris .pie { color: var(--gris); }
+.fondo-oscuro .pie { color: #8D8FA0; }
+.pie .desliza { display: inline-flex; align-items: center; gap: 10px; }
+
+/* ── Progreso de pasos ─────────────────────────────────── */
+.pasos { display: flex; gap: 12px; margin-top: 64px; }
+.pasos span { flex: 1; height: 8px; border-radius: 999px; background: #DCDDEA; }
+.pasos span.on { background: var(--indigo); }
+.pasos span.ok { background: var(--indigo); opacity: .35; }
+
+.numero-paso {
+  font-size: 30px; font-weight: 700; letter-spacing: 2px; color: var(--indigo);
+  text-transform: uppercase;
+}
+
+/* ── Tarjetas tipo app ─────────────────────────────────── */
+.tarjeta {
+  background: #fff;
+  border-radius: 32px;
+  box-shadow: 0 2px 4px rgba(19,25,36,.04), 0 24px 60px -12px rgba(31,37,193,.22);
+  padding: 44px;
+  color: var(--texto);
+}
+.fondo-claro .tarjeta { border: 1px solid #E6E7F0; }
+
+.fila { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.fila + .fila { margin-top: 26px; }
+.rotulo { font-size: 26px; font-weight: 500; color: var(--gris); }
+.valor  { font-size: 30px; font-weight: 700; letter-spacing: -.5px; }
+.monto  { font-size: 64px; font-weight: 800; letter-spacing: -2.5px; }
+.divisor { height: 1px; background: #E6E7F0; margin: 32px 0; }
+
+.estado {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 14px 24px; border-radius: 999px;
+  font-size: 24px; font-weight: 700;
+}
+.estado svg { width: 28px; height: 28px; }
+.estado-custodia  { background: #EAEBFB; color: var(--indigo); }
+.estado-ok        { background: #E3F7EE; color: var(--verde); }
+.estado-alerta    { background: #FEF3E2; color: #B46F00; }
+
+.icono { width: 1em; height: 1em; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── CTA ───────────────────────────────────────────────── */
+.cta {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #fff; color: var(--texto);
+  border-radius: 32px; padding: 44px 48px;
+}
+.cta .antes { font-size: 26px; color: var(--gris); font-weight: 500; }
+.cta .url   { font-size: 72px; font-weight: 800; letter-spacing: -3px; color: var(--indigo); line-height: 1.1; }
+.cta .boton {
+  width: 104px; height: 104px; border-radius: 50%;
+  background: var(--indigo); color: #fff;
+  display: grid; place-items: center; font-size: 48px;
+}
+
+.bandera { display: inline-block; width: 36px; height: 24px; border-radius: 4px; overflow: hidden; }
+
+/* ── Firma v2: subrayado verde a mano ──────────────────── */
+/* Un trazo irregular bajo la palabra clave. Máximo uno por slide. */
+.marca {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 30' preserveAspectRatio='none'%3E%3Cpath d='M3 17 C 40 9, 120 7, 200 9 S 280 8, 297 11 L 295 23 C 250 21, 170 22, 100 24 S 30 26, 5 27 Z' fill='%2327C97A'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 104% .34em;
+  background-position: -2% 92%;
+  padding: 0 .04em;
+}
+.marca-suave { background-size: 104% .26em; }
+
+/* ── Stickers girados ─────────────────────────────────── */
+.giro-izq { transform: rotate(-3deg); }
+.giro-der { transform: rotate(2.5deg); }
+
+/* ── Chat genérico (sin marca de ninguna app) ─────────── */
+.chat { display: flex; flex-direction: column; gap: 14px; }
+.burbuja {
+  max-width: 78%; padding: 22px 28px; border-radius: 30px;
+  font-size: 32px; line-height: 1.3; letter-spacing: -.3px;
+  box-shadow: 0 10px 30px -12px rgba(19,25,36,.25);
+}
+.burbuja .hora { display: block; margin-top: 6px; font-size: 20px; opacity: .55; text-align: right; }
+.ellos { align-self: flex-start; background: #fff; color: var(--texto); border-bottom-left-radius: 8px; }
+.yo    { align-self: flex-end; background: var(--indigo); color: #fff; border-bottom-right-radius: 8px; }
+
+/* ── Marca de agua: la "t." del ícono, gigante y sangrando por el borde ── */
+/* Solo en portadas moradas: es lo que une las tres diagonales moradas del feed. */
+.marca-agua {
+  position: absolute; right: -40px; bottom: -30px; width: 620px; height: 570px;
+  pointer-events: none; z-index: -1; opacity: .09;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='157 132 285 262'%3E%3Cpath fill='%23fff' d='M 211 146 H 237 V 186 H 289 V 218 H 237 V 306 C 237 319.5 240.5 329.5 250.5 334.8 C 259 339 272 337.8 290.6 333 V 364.4 C 282 368.9 267 371 251.5 371 C 213.5 371 195 352 195 312 V 218 H 171 V 199.4 L 181 194 C 190 189 197.1 186 199.5 179 L 211 146 Z'/%3E%3Ccircle fill='%23fff' cx='392' cy='344' r='35.75'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Antetítulo: en portadas de carrusel la etiqueta va aquí y no arriba a la derecha,
+   porque ahí Instagram pone el ícono de carrusel en la grilla. */
+.antetitulo { margin-top: 96px; }

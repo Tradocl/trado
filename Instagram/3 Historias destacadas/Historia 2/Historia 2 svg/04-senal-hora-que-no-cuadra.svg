@@ -1,0 +1,58 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="bubble-shadow-h3" x="-5%" y="-10%" width="110%" height="125%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect id="background" width="1080" height="1920" fill="#FFFFFF"/>
+
+  <g id="header-safe-zone">
+    <text x="60" y="320" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="36" font-weight="600" letter-spacing="-1.5" fill="#1F25C1" id="logo">trado</text>
+  </g>
+
+  <g id="pill-categoria">
+    <rect x="60" y="380" width="320" height="50" rx="25" fill="#EF4343" id="pill-bg"/>
+    <text x="220" y="412" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="20" font-weight="700" letter-spacing="2" fill="#FFFFFF" text-anchor="middle" id="pill-text">LA HORA QUE NO CUADRA</text>
+  </g>
+
+  <g id="titulo-senal">
+    <text x="60" y="510" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="60" font-weight="700" letter-spacing="-2" fill="#131924" id="titulo-1">"Pasa a mi depto</text>
+    <text x="60" y="580" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="60" font-weight="700" letter-spacing="-2" fill="#131924" id="titulo-2">a las 23:30."</text>
+  </g>
+
+  <g id="bubble-estafador-1" filter="url(#bubble-shadow-h3)">
+    <rect x="60" y="680" width="820" height="175" rx="20" fill="#F5F5FA" stroke="#E6E6EB" stroke-width="1" id="b1-bg"/>
+    <text x="86" y="720" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" fill="#6C6C78" id="b1-label">Vendedor</text>
+    <text x="86" y="770" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b1-line-1">Lo mejor es que pases por mi</text>
+    <text x="86" y="810" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b1-line-2">departamento y lo pruebas con calma</text>
+  </g>
+
+  <g id="bubble-tu" filter="url(#bubble-shadow-h3)">
+    <rect x="380" y="880" width="640" height="110" rx="20" fill="#DCF8C6" stroke="#C5E4AC" stroke-width="1" id="bt-bg"/>
+    <text x="406" y="920" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" fill="#5A7A4A" id="bt-label">Tú</text>
+    <text x="406" y="965" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="bt-line">¿Y en un mall mejor?</text>
+  </g>
+
+  <g id="bubble-estafador-2" filter="url(#bubble-shadow-h3)">
+    <rect x="60" y="1020" width="900" height="320" rx="20" fill="#F5F5FA" stroke="#E6E6EB" stroke-width="1" id="b2-bg"/>
+    <text x="86" y="1060" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" fill="#6C6C78" id="b2-label">Vendedor</text>
+    <text x="86" y="1110" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-1">No puedo salir del trabajo en todo</text>
+    <text x="86" y="1150" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-2">el día. La única hora disponible</text>
+    <text x="86" y="1210" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-3">es a las</text>
+    <text x="220" y="1210" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" font-weight="700" fill="#EF4343" id="b2-line-3b">23:30,</text>
+    <text x="335" y="1210" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-3c">te paso la</text>
+    <text x="86" y="1250" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-4">dirección</text>
+  </g>
+
+  <g id="regla-card">
+    <rect x="60" y="1400" width="960" height="180" rx="24" fill="#FEEAEA" id="regla-bg"/>
+    <polygon points="105,1445 88,1480 122,1480" fill="#EF4343" id="alert-triangle"/>
+    <text x="105" y="1473" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle" id="alert-excl">!</text>
+    <text x="140" y="1473" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" letter-spacing="1" fill="#EF4343" id="regla-label">REGLA DE ORO</text>
+    <text x="90" y="1525" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="32" font-weight="700" fill="#131924" id="regla-line-1">Lugar público, con cámaras,</text>
+    <text x="90" y="1565" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="32" font-weight="700" fill="#131924" id="regla-line-2">en horario diurno.</text>
+  </g>
+
+  <text x="540" y="1700" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="24" font-weight="700" fill="#6C6C78" text-anchor="middle" id="handle">@trado_cl</text>
+</svg>

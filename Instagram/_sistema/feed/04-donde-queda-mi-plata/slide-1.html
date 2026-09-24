@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
+<!-- Verificado en supabase/functions/auto-release-escrow: envío se libera 72 h después de marcar "recibido";
+     servicio y digital 24 h después de marcarse entregado; en persona NO se libera sola (solo al confirmar). -->
+<style>
+  .ruta { position: relative; margin-top: 44px; display: flex; flex-direction: column; gap: 0; }
+  .nodo { display: flex; align-items: center; gap: 30px; }
+  .circulo { flex: none; width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center; font-size: 52px; }
+  .circulo svg { width: 52px; height: 52px; stroke-width: 2.2; }
+  .c1 { background: #fff; color: var(--texto); border: 2px solid #E0E1EC; }
+  .c2 { background: var(--indigo); color: #fff; box-shadow: 0 20px 40px -14px rgba(31,37,193,.6); width: 132px; height: 132px; margin-left: -10px; }
+  .c3 { background: #E3F7EE; color: var(--verde); }
+  .nodo b { display: block; font-size: 38px; letter-spacing: -1px; }
+  .nodo p { font-size: 28px; color: #3B4150; line-height: 1.35; margin-top: 4px; }
+  .conector { width: 4px; height: 40px; margin-left: 54px; background: repeating-linear-gradient(to bottom, #B8BAD0 0 10px, transparent 10px 18px); }
+  .destacado { background: #fff; border-radius: 28px; padding: 30px 34px; margin: 6px 0; border: 2px solid var(--indigo); }
+  .notas { display: flex; gap: 18px; }
+  .notas div { flex: 1; background: #fff; border: 1px solid #E0E1EC; border-radius: 24px; padding: 26px 28px; font-size: 25px; line-height: 1.4; color: #3B4150; }
+  .notas b { display: block; color: var(--texto); font-size: 27px; margin-bottom: 6px; }
+</style></head>
+<body><div class="slide fondo-gris">
+  <div class="cabecera"><span class="logo">trado</span><span class="etiqueta">La pregunta del millón</span></div>
+
+  <div class="titulo" style="margin-top:56px;font-size:80px">¿Y dónde queda mi plata <span class="marca">mientras tanto?</span></div>
+
+  <div class="ruta">
+    <div class="nodo"><div class="circulo c1"><svg class="icono" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></div>
+      <div><b>Pagas</b><p>Con tarjeta o transferencia.</p></div></div>
+    <div class="conector"></div>
+    <div class="nodo destacado"><div class="circulo c2"><svg class="icono" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+      <div><b>Queda en custodia</b><p>Guardada en Trado. El vendedor no la puede tocar.</p></div></div>
+    <div class="conector"></div>
+    <div class="nodo"><div class="circulo c3"><svg class="icono" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <div><b>Se libera</b><p>Cuando confirmas que recibiste lo acordado.</p></div></div>
+  </div>
+
+  <div class="relleno" style="min-height:40px"></div>
+  <div class="notas">
+    <div><b>¿Y si no confirmo?</b>Con envío, se libera 72 h después de marcar recibido. En persona, solo al confirmar.</div>
+    <div><b>¿Y si algo sale mal?</b>Abres una apelación y la plata sigue retenida.</div>
+  </div>
+  <div class="pie" style="margin-top:36px"><span>trado.cl</span><span>Guárdalo para después</span></div>
+</div></body></html>

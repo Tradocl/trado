@@ -1,0 +1,63 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="bubble-shadow-h2" x="-5%" y="-10%" width="110%" height="125%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect id="background" width="1080" height="1920" fill="#FFFFFF"/>
+
+  <g id="header-safe-zone">
+    <text x="60" y="320" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="36" font-weight="600" letter-spacing="-1.5" fill="#1F25C1" id="logo">trado</text>
+  </g>
+
+  <g id="pill-categoria">
+    <rect x="60" y="380" width="380" height="50" rx="25" fill="#EF4343" id="pill-bg"/>
+    <text x="250" y="412" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="20" font-weight="700" letter-spacing="2" fill="#FFFFFF" text-anchor="middle" id="pill-text">EL COMPROBANTE FALSO</text>
+  </g>
+
+  <g id="titulo-senal">
+    <text x="60" y="510" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="60" font-weight="700" letter-spacing="-2" fill="#131924" id="titulo-1">"Ya te transferí,</text>
+    <text x="60" y="580" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="60" font-weight="700" letter-spacing="-2" fill="#131924" id="titulo-2">mira la captura."</text>
+  </g>
+
+  <g id="bubble-comprador-1" filter="url(#bubble-shadow-h2)">
+    <rect x="60" y="680" width="820" height="175" rx="20" fill="#F5F5FA" stroke="#E6E6EB" stroke-width="1" id="b1-bg"/>
+    <text x="86" y="720" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" fill="#6C6C78" id="b1-label">Comprador</text>
+    <text x="86" y="770" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b1-line-1">Listo, ya te transferí los $400.000.</text>
+    <text x="86" y="810" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b1-line-2">Te mando el comprobante 📎</text>
+  </g>
+
+  <g id="bubble-tu" filter="url(#bubble-shadow-h2)">
+    <rect x="320" y="880" width="700" height="110" rx="20" fill="#DCF8C6" stroke="#C5E4AC" stroke-width="1" id="bt-bg"/>
+    <text x="346" y="920" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" fill="#5A7A4A" id="bt-label">Tú</text>
+    <text x="346" y="965" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="bt-line">Aún no me llega la notificación...</text>
+  </g>
+
+  <g id="bubble-comprador-2" filter="url(#bubble-shadow-h2)">
+    <rect x="60" y="1020" width="900" height="320" rx="20" fill="#F5F5FA" stroke="#E6E6EB" stroke-width="1" id="b2-bg"/>
+    <text x="86" y="1060" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" fill="#6C6C78" id="b2-label">Comprador</text>
+    <text x="86" y="1110" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-1">Es que entre bancos distintos a</text>
+    <text x="86" y="1150" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-2">veces tarda. Pero ya está hecha.</text>
+    <text x="86" y="1210" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" fill="#131924" id="b2-line-3">¿Me lo entregas y me confirmas</text>
+    <text x="86" y="1250" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="30" font-weight="700" fill="#EF4343" id="b2-line-4">cuando te llegue?</text>
+    <rect x="700" y="1080" width="200" height="180" rx="8" fill="#FFFFFF" stroke="#E6E6EB" stroke-width="1" id="fake-screenshot"/>
+    <rect x="715" y="1095" width="170" height="12" rx="2" fill="#DCDCE5"/>
+    <rect x="715" y="1120" width="120" height="12" rx="2" fill="#DCDCE5"/>
+    <rect x="715" y="1150" width="170" height="12" rx="2" fill="#11A770"/>
+    <rect x="715" y="1172" width="140" height="12" rx="2" fill="#DCDCE5"/>
+    <rect x="715" y="1205" width="170" height="42" rx="6" fill="#11A770"/>
+    <text x="800" y="1232" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">EXITOSA</text>
+  </g>
+
+  <g id="regla-card">
+    <rect x="60" y="1400" width="960" height="180" rx="24" fill="#FEEAEA" id="regla-bg"/>
+    <polygon points="105,1445 88,1480 122,1480" fill="#EF4343" id="alert-triangle"/>
+    <text x="105" y="1473" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle" id="alert-excl">!</text>
+    <text x="140" y="1473" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="22" font-weight="700" letter-spacing="1" fill="#EF4343" id="regla-label">REGLA DE ORO</text>
+    <text x="90" y="1525" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="32" font-weight="700" fill="#131924" id="regla-line-1">Una captura no es plata.</text>
+    <text x="90" y="1565" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="32" font-weight="700" fill="#131924" id="regla-line-2">Espera verla en tu cuenta.</text>
+  </g>
+
+  <text x="540" y="1700" font-family="-apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif" font-size="24" font-weight="700" fill="#6C6C78" text-anchor="middle" id="handle">@trado_cl</text>
+</svg>
