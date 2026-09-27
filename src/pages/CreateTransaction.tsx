@@ -13,6 +13,7 @@ import { ArrowLeft, ArrowRight, Info, AlertCircle, CheckCircle2, Wrench, Package
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount, MAX_TRANSACTION_AMOUNT } from "@/lib/utils";
+import { FeeOptions, feeOptions } from "@/components/FeeOptions";
 import { UNVERIFIED_LIMITS, checkTransactionLimits, getUserVerificationStatus } from "@/lib/transaction-limits";
 import { nativeShare } from "@/lib/native/share";
 import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
@@ -285,13 +286,6 @@ const CreateTransaction = () => {
   };
 
   // Calculate what the user will pay/receive
-  const getBuyerPaysAmount = () => {
-    if (!orderDetails) return 0;
-    return isBuyerInitiator 
-      ? orderDetails.buyerPays + orderDetails.appFee // Buyer pays price + commission
-      : orderDetails.buyerPays; // Buyer pays just the price
-  };
-
   const getSellerReceivesAmount = () => {
     if (!orderDetails) return 0;
     return isBuyerInitiator
@@ -527,7 +521,7 @@ const CreateTransaction = () => {
                 />
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <Info className="h-3 w-3" />
-                  Comisión Trado: 5%
+                  Comisión: 5% con tarjeta · desde 3,5% con transferencia
                 </p>
               </div>
 
@@ -564,23 +558,10 @@ const CreateTransaction = () => {
                       
                       {isBuyerInitiator ? (
                         <>
-                          <div className="flex justify-between items-center py-2 bg-info/10 rounded px-2">
-                            <div className="flex flex-col">
-                              <span className="text-muted-foreground">Comisión Trado (la pagas tú):</span>
-                              <span className="text-xs text-muted-foreground/70">
-                                Como {buyerLabel.toLowerCase()}, asumes la comisión
-                              </span>
-                            </div>
-                            <span className="font-bold text-info text-lg">
-                              +${formatCLP(orderDetails.appFee)}
-                            </span>
-                          </div>
-                          <div className="pt-3 border-t-2 border-info/30 flex justify-between items-center gap-2">
-                            <span className="font-bold text-foreground min-w-0">Total que pagarás:</span>
-                            <span className="font-bold text-info text-xl sm:text-2xl shrink-0">
-                              ${formatCLP(getBuyerPaysAmount())}
-                            </span>
-                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Como {buyerLabel.toLowerCase()} que crea la sala, la comisión la pagas tú, sumada al precio.
+                          </p>
+                          <FeeOptions amount={orderDetails.buyerPays} payer="buyer" />
                           <div className="flex justify-between items-center py-2 bg-success/10 rounded px-2">
                             <span className="text-muted-foreground">{sellerLabel} recibirá:</span>
                             <span className="font-bold text-success text-lg">
@@ -590,23 +571,10 @@ const CreateTransaction = () => {
                         </>
                       ) : (
                         <>
-                          <div className="flex justify-between items-center py-2 bg-warning/5 rounded px-2">
-                            <div className="flex flex-col">
-                              <span className="text-muted-foreground">Comisión Trado:</span>
-                              <span className="text-xs text-muted-foreground/70">
-                                Se descuenta de tu pago
-                              </span>
-                            </div>
-                            <span className="font-bold text-warning text-lg">
-                              -${formatCLP(orderDetails.appFee)}
-                            </span>
-                          </div>
-                          <div className="pt-3 border-t-2 border-success/30 flex justify-between items-center gap-2">
-                            <span className="font-bold text-foreground min-w-0">Total que recibirás:</span>
-                            <span className="font-bold text-success text-xl sm:text-2xl shrink-0">
-                              ${formatCLP(getSellerReceivesAmount())}
-                            </span>
-                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            La comisión se descuenta de lo que recibes.
+                          </p>
+                          <FeeOptions amount={orderDetails.buyerPays} payer="seller" />
                         </>
                       )}
                     </div>
@@ -626,26 +594,42 @@ const CreateTransaction = () => {
                       >
                         {isBuyerInitiator ? (
                           <>
-                            Acepto que pagaré un total de{" "}
+                            Acepto pagar el precio más la comisión de Trado:{" "}
                             <span className="font-bold text-info">
-                              ${formatCLP(getBuyerPaysAmount())}
+                              ${formatCLP(feeOptions(orderDetails.buyerPays, "buyer").conTarjeta)}
                             </span>{" "}
-                            (precio + comisión) y que el {sellerLabel.toLowerCase()} recibirá{" "}
+                            en total con tarjeta
+                            {feeOptions(orderDetails.buyerPays, "buyer").transferenciaDisponible && (
+                              <>
+                                {" "}o{" "}
+                                <span className="font-bold text-info">
+                                  ${formatCLP(feeOptions(orderDetails.buyerPays, "buyer").conTransferencia)}
+                                </span>{" "}
+                                por transferencia
+                              </>
+                            )}
+                            , y que el {sellerLabel.toLowerCase()} recibirá{" "}
                             <span className="font-bold text-success">
                               ${formatCLP(getSellerReceivesAmount())}
                             </span>.
                           </>
                         ) : (
                           <>
-                            Acepto que Trado cobrará una comisión de{" "}
+                            Acepto la comisión de Trado:{" "}
                             <span className="font-bold text-warning">
-                              ${formatCLP(orderDetails.appFee)}
+                              ${formatCLP(feeOptions(orderDetails.buyerPays, "seller").tarjeta)}
                             </span>{" "}
-                            y que recibiré{" "}
-                            <span className="font-bold text-success">
-                              ${formatCLP(getSellerReceivesAmount())}
-                            </span>{" "}
-                            al completarse la transacción.
+                            si el comprador paga con tarjeta
+                            {feeOptions(orderDetails.buyerPays, "seller").transferenciaDisponible && (
+                              <>
+                                {" "}o{" "}
+                                <span className="font-bold text-warning">
+                                  ${formatCLP(feeOptions(orderDetails.buyerPays, "seller").transferencia)}
+                                </span>{" "}
+                                si paga por transferencia
+                              </>
+                            )}
+                            , descontada de lo que recibo al completarse la transacción.
                           </>
                         )}
                       </label>
@@ -770,26 +754,12 @@ const CreateTransaction = () => {
                   <span className="font-bold">${formatCLP(formData.amount)}</span>
                 </div>
                 
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Comisión Trado:</span>
-                  <span className="font-bold text-warning">${formatCLP(orderDetails.appFee)}</span>
-                </div>
+                <FeeOptions amount={Number(formData.amount)} payer={isBuyerInitiator ? "buyer" : "seller"} compact />
 
-                {isBuyerInitiator ? (
-                  <>
-                    <div className="pt-2 border-t flex justify-between items-center">
-                      <span className="font-semibold">Tú pagarás:</span>
-                      <span className="font-bold text-info text-xl">${formatCLP(getBuyerPaysAmount())}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">{sellerLabel} recibirá:</span>
-                      <span className="font-bold text-success">${formatCLP(getSellerReceivesAmount())}</span>
-                    </div>
-                  </>
-                ) : (
+                {isBuyerInitiator && (
                   <div className="pt-2 border-t flex justify-between items-center">
-                    <span className="font-semibold">Recibirás:</span>
-                    <span className="font-bold text-success text-xl">${formatCLP(getSellerReceivesAmount())}</span>
+                    <span className="text-muted-foreground">{sellerLabel} recibirá:</span>
+                    <span className="font-bold text-success">${formatCLP(getSellerReceivesAmount())}</span>
                   </div>
                 )}
               </div>

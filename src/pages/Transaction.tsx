@@ -24,7 +24,8 @@ import { ReturnRequestDialog } from "@/components/ReturnRequestDialog";
 import { ReturnStatusPanel } from "@/components/ReturnStatusPanel";
 import { MeetingProposalPanel } from "@/components/MeetingProposalPanel";
 import { TrackingPanel, CARRIER_LABELS } from "@/components/TrackingPanel";
-import { formatCLP } from "@/lib/utils";
+import { formatCLP, calculateBlendedFee } from "@/lib/utils";
+import { FeeOptions } from "@/components/FeeOptions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -76,6 +77,23 @@ const Transaction = () => {
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
+  // Plata de tarjeta sin usar en la billetera de quien deposita. Con ella se
+  // calcula la comisión EXACTA que va a fijar process-escrow-deposit.
+  const [buyerGatewayFunded, setBuyerGatewayFunded] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!depositDialogOpen || !user) return;
+    let vigente = true;
+    supabase
+      .from("wallets")
+      .select("gateway_funded_balance")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (vigente) setBuyerGatewayFunded(data ? Number(data.gateway_funded_balance ?? 0) : null);
+      });
+    return () => { vigente = false; };
+  }, [depositDialogOpen, user]);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
   const [hasRatedBuyer, setHasRatedBuyer] = useState(false);
@@ -668,9 +686,26 @@ const Transaction = () => {
   const sellerReceives = initiatorRole === 'buyer' 
     ? transaction.amount 
     : transaction.amount - transaction.commission;
-  const buyerPays = initiatorRole === 'buyer' 
-    ? transaction.amount + transaction.commission 
+  const buyerPays = initiatorRole === 'buyer'
+    ? transaction.amount + transaction.commission
     : transaction.amount;
+
+  // Antes del pago la comisión guardada es sólo una estimación (5%, tarjeta):
+  // la definitiva depende de si el comprador paga con tarjeta o transferencia.
+  const preDeposito = ["created", "invited", "awaiting_deposit"].includes(transaction.state);
+  const veoMiComision = (isSeller && initiatorRole === "seller") || (isBuyer && initiatorRole === "buyer");
+
+  // En el cuadro de depósito ya se sabe con qué plata se paga: comisión exacta,
+  // con la misma fórmula que aplica process-escrow-deposit.
+  const comisionAlDepositar = buyerGatewayFunded !== null
+    ? calculateBlendedFee(Number(transaction.amount), buyerGatewayFunded).fee
+    : Number(transaction.commission);
+  const depositoTotal = initiatorRole === "buyer"
+    ? Number(transaction.amount) + comisionAlDepositar
+    : Number(transaction.amount);
+  const vendedorRecibeAlDepositar = initiatorRole === "buyer"
+    ? Number(transaction.amount)
+    : Number(transaction.amount) - comisionAlDepositar;
   
   // Can join: only when opposite role is missing
   const canJoinAsBuyer = initiatorRole === 'seller' && !transaction.buyer_id && user?.id !== transaction.seller_id;
@@ -1582,14 +1617,14 @@ const Transaction = () => {
               <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-3 sm:p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
                 {isBuyer ? (
                   <>
-                    <span className="text-sm sm:text-base font-semibold">Tu pago total</span>
+                    <span className="text-sm sm:text-base font-semibold">{preDeposito && veoMiComision ? "Tu pago total (con tarjeta)" : "Tu pago total"}</span>
                     <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                       ${formatCLP(buyerPays)}
                     </span>
                   </>
                 ) : isSeller ? (
                   <>
-                    <span className="text-sm sm:text-base font-semibold">Recibirás</span>
+                    <span className="text-sm sm:text-base font-semibold">{preDeposito && veoMiComision ? "Recibirás (si paga con tarjeta)" : "Recibirás"}</span>
                     <span className="text-2xl sm:text-3xl font-bold text-success">
                       ${formatCLP(sellerReceives)}
                     </span>
@@ -1605,6 +1640,12 @@ const Transaction = () => {
               </div>
             </div>
             
+            {preDeposito && veoMiComision && (
+              <div className="mt-3">
+                <FeeOptions amount={Number(transaction.amount)} payer={initiatorRole === "buyer" ? "buyer" : "seller"} compact />
+              </div>
+            )}
+
             {/* Current Status Progress Indicator + collapsible timeline */}
             {joinerProfile && !['completed', 'cancelled', 'in_dispute'].includes(transaction.state) && !isAppealResolved && (
               <Collapsible open={progressOpen} onOpenChange={setProgressOpen} className="mt-4">
@@ -2278,21 +2319,25 @@ const Transaction = () => {
                 <span className="text-muted-foreground">Precio del {transaction.sale_type === "servicio" ? "servicio" : "producto"}</span>
                 <span className="font-medium">${formatCLP(transaction.amount)}</span>
               </div>
-              {initiatorRole === 'buyer' && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Comisión Trado</span>
-                  <span className="font-medium">${formatCLP(transaction.commission)}</span>
-                </div>
-              )}
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">
+                  Comisión Trado{initiatorRole === 'buyer' ? "" : ` (la paga el ${sellerLabel.toLowerCase()})`}
+                </span>
+                <span className="font-medium">${formatCLP(comisionAlDepositar)}</span>
+              </div>
               <Separator />
               <div className="flex justify-between items-center">
                 <span className="font-semibold">Total a depositar</span>
-                <span className="font-bold text-lg text-primary">${formatCLP(buyerPays)}</span>
+                <span className="font-bold text-lg text-primary">${formatCLP(depositoTotal)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">{sellerLabel} recibirá</span>
-                <span className="text-success font-medium">${formatCLP(sellerReceives)}</span>
+                <span className="text-success font-medium">${formatCLP(vendedorRecibeAlDepositar)}</span>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Comisión calculada con el saldo de tu billetera: la parte que depositaste con tarjeta paga 5% y el resto,
+                la tarifa de transferencia.
+              </p>
             </div>
             
             <div 
