@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { alertarCritico } from "../_shared/alertas.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { gatewayMarkToRestore } from "../_shared/pricing.ts";
 
@@ -381,6 +382,15 @@ serve(async (req: Request): Promise<Response> => {
           if (markErr) {
             // No es motivo de fallo: el reembolso ya se hizo.
             console.error("[accept-mutual-resolution] No se pudo restituir la marca", markErr);
+            // Sin la marca, esa plata de tarjeta quedaría retirable al banco.
+            await alertarCritico({
+              resumen: "Reembolso hecho pero la plata de tarjeta volvió sin marca",
+              accion:
+                `NO apruebes retiros de la billetera ${buyerWallet.id} hasta corregirlo. ` +
+                `Súmale ${markBack} a gateway_funded_balance (sin superar el saldo).`,
+              contexto: { billetera: buyerWallet.id, sala: transactionId, marca_faltante: markBack },
+              error: markErr,
+            });
           }
         }
       }

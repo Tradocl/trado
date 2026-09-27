@@ -59,27 +59,26 @@ export function calculateFee(amount: number, method: PaymentMethod = "gateway"):
  * Cuánta marca de pasarela devolver a la billetera cuando se reembolsa plata.
  *
  * Al financiar la sala se consumieron `gatewayFundedUsed` pesos marcados. Si
- * después se devuelve dinero al comprador, hay que restituir la marca en la
- * misma proporción: si no, esa plata vuelve como "limpia" y la próxima sala
- * pagaría tarifa de transferencia sobre dinero que en realidad entró por
- * tarjeta y ya nos costó ~3,6%.
+ * después se devuelve dinero al comprador, esa plata tiene que volver marcada:
+ * desde 2026-09-24 la plata de tarjeta no se puede retirar al banco, sólo
+ * devolver a la tarjeta, y si el reembolso la "lavara" saldría al banco una
+ * tarjeta que nunca completó una compra.
  *
- * Proporcional al reembolso, no al total: en una resolución que devuelve sólo
- * una parte, sólo esa parte recupera la marca.
+ * LA TARJETA VUELVE PRIMERO. Se restituye min(marca usada, monto devuelto), no
+ * una proporción. Con la regla proporcional anterior, una sala pagada mitad
+ * tarjeta y mitad transferencia que devolvía la mitad restituía sólo un cuarto
+ * como tarjeta: el otro cuarto de plata de tarjeta quedaba retirable.
+ *
+ * `salaAmount` se mantiene en la firma por compatibilidad con los llamadores.
  */
 export function gatewayMarkToRestore(
-  salaAmount: number,
+  _salaAmount: number,
   gatewayFundedUsed: number,
   refundedAmount: number,
 ): number {
   const used = Math.max(0, Number(gatewayFundedUsed) || 0);
-  const amount = Math.max(0, Number(salaAmount) || 0);
   const refunded = Math.max(0, Number(refundedAmount) || 0);
-
-  if (used === 0 || amount === 0 || refunded === 0) return 0;
-
-  const proporcion = Math.min(refunded / amount, 1);
-  return Math.round(used * proporcion * 100) / 100;
+  return Math.round(Math.min(used, refunded) * 100) / 100;
 }
 
 export interface BlendedFee {

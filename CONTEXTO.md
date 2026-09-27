@@ -129,10 +129,19 @@ Ejemplo, cubierto por tests: quedan $685.000 marcados y el resto entró limpio.
 Sala de $2.000.000 → 34,25% pasarela → comisión **$72.220**, entre los $57.750
 de transferencia pura y los $100.000 de tarjeta pura.
 
-**Los reembolsos restituyen la marca** (verificado en el código el 2026-09-24):
-`process-return-refund`, `resolve-appeal` y `accept-mutual-resolution` llaman a
-`restore_gateway_funded` en proporción a lo devuelto (`gatewayMarkToRestore` en
-`_shared/pricing.ts`). Importa doble desde que la plata de tarjeta no se puede
+**Los reembolsos restituyen la marca, y la tarjeta vuelve primero** (desde
+2026-09-27): `process-return-refund`, `resolve-appeal` y `accept-mutual-resolution`
+llaman a `restore_gateway_funded` con `min(marca usada, monto devuelto)`
+(`gatewayMarkToRestore` en `_shared/pricing.ts`, con tests en
+`src/lib/refund-mark.test.ts`). Antes era proporcional: una sala mitad tarjeta
+y mitad transferencia que devolvía la mitad dejaba un cuarto de plata de
+tarjeta retirable al banco. Si restituir la marca falla, llega una alerta
+crítica al admin para que no apruebe retiros de esa billetera.
+
+Toda sala que no se completa (acuerdo mutuo, decisión del admin, devolución o
+depósito revertido) devuelve la plata de tarjeta **marcada**: el comprador puede
+usarla en otra sala o devolverla a su tarjeta, nunca retirarla al banco.
+`delete-account` además bloquea borrar la cuenta con saldo. Importa doble desde que la plata de tarjeta no se puede
 retirar al banco: si un camino de reembolso no la restituyera, esa plata volvería
 "limpia" y saldría al banco. **Todo camino nuevo que devuelva escrow al
 comprador tiene que restituir la marca.** Las cancelaciones automáticas
