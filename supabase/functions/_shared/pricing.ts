@@ -56,6 +56,68 @@ export function calculateFee(amount: number, method: PaymentMethod = "gateway"):
 }
 
 /**
+ * Cómo se reparte el escrow cuando una disputa se resuelve (por acuerdo mutuo
+ * o por decisión del admin). Única regla para los dos caminos.
+ *
+ * Entradas sobre el PRECIO: `buyerPart + sellerPart === amount`. La comisión se
+ * cobra en proporción a lo que efectivamente recibe el vendedor: venta entera,
+ * comisión entera; mitad, mitad; nada, nada.
+ *
+ * - Sala creada por el vendedor (escrow = precio): la comisión se descuenta de
+ *   lo que recibe el vendedor.
+ * - Sala creada por el comprador (escrow = precio + comisión prepagada): el
+ *   vendedor recibe su parte entera y al comprador se le devuelve la comisión
+ *   que no se cobró.
+ *
+ * Antes cada camino hacía algo distinto: el admin fallando a favor del vendedor
+ * no cobraba comisión (o le pasaba al vendedor la comisión prepagada por el
+ * comprador), y un reembolso total por acuerdo mutuo se quedaba en silencio con
+ * la comisión prepagada del comprador.
+ */
+export interface ResolutionSplit {
+  escrow: number;
+  buyerFinal: number;
+  sellerFinal: number;
+  commissionCharged: number;
+}
+
+export function splitResolution(p: {
+  amount: number;
+  commission: number;
+  initiatorRole: string | null | undefined;
+  buyerPart: number;
+  sellerPart: number;
+}): ResolutionSplit {
+  const amount = Number(p.amount);
+  const commission = Math.max(0, Number(p.commission) || 0);
+  const buyerPart = Number(p.buyerPart);
+  const sellerPart = Number(p.sellerPart);
+
+  if (!(amount > 0)) throw new Error("Monto de la sala inválido");
+  if (buyerPart < 0 || sellerPart < 0) throw new Error("Los montos no pueden ser negativos");
+  if (Math.abs(buyerPart + sellerPart - amount) > 0.5) {
+    throw new Error(`Los montos deben sumar exactamente el precio de la sala (${amount})`);
+  }
+
+  const commissionCharged = sellerPart > 0 ? Math.round((commission * sellerPart) / amount) : 0;
+  const compradorPrepago = (p.initiatorRole ?? "seller") === "buyer";
+
+  return compradorPrepago
+    ? {
+        escrow: amount + commission,
+        sellerFinal: sellerPart,
+        buyerFinal: buyerPart + (commission - commissionCharged),
+        commissionCharged,
+      }
+    : {
+        escrow: amount,
+        sellerFinal: sellerPart - commissionCharged,
+        buyerFinal: buyerPart,
+        commissionCharged,
+      };
+}
+
+/**
  * Cuánta marca de pasarela devolver a la billetera cuando se reembolsa plata.
  *
  * Al financiar la sala se consumieron `gatewayFundedUsed` pesos marcados. Si

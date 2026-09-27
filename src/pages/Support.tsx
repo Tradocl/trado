@@ -65,7 +65,7 @@ const FAQ = [
   },
   {
     q: "¿Qué hago si tengo un problema con una transacción?",
-    a: "Cualquiera de las dos partes puede abrir una apelación. Se abren 48 horas para que lleguen a un acuerdo directo y, si no lo hay, un administrador de Trado revisa la evidencia de ambos lados y resuelve. Si se resuelve completamente a favor del comprador, no se cobra comisión y se le devuelve todo. Si se reparte la plata, la comisión se descuenta de lo que recibe el vendedor.",
+    a: "Cualquiera de las dos partes puede abrir una apelación. Se abren 48 horas para que lleguen a un acuerdo directo y, si no lo hay, un administrador de Trado revisa la evidencia de ambos lados y resuelve. Si se resuelve completamente a favor del comprador, no se cobra comisión y se le devuelve todo. Si se reparte la plata, la comisión se cobra en proporción a lo que recibe el vendedor.",
   },
   {
     q: "Pagué con tarjeta y la compra no se concretó, ¿qué pasa con mi plata?",

@@ -207,32 +207,26 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
 
     let buyerAmount: number | null = null;
     let sellerAmount: number | null = null;
-    // Escrow held = what the buyer actually deposited. If the buyer initiated the
-    // transaction they paid amount + commission, so a full refund must return both;
-    // otherwise the buyer would silently lose the commission. Mirrors resolve-appeal.
+    // Los montos se reparten sobre el PRECIO de la sala. El servidor
+    // (resolve-appeal → splitResolution) calcula la comisión en proporción a lo
+    // que recibe el vendedor y devuelve al comprador la comisión prepagada que
+    // no se cobre. Misma regla que el acuerdo mutuo.
     const txAmount = Number(transaction?.amount) || 0;
-    const txCommission = Number(transaction?.commission) || 0;
-    const escrowAmount = (transaction?.initiator_role || "seller") === "buyer"
-      ? txAmount + txCommission
-      : txAmount;
 
-    // Para distribución parcial, validar que se ingresen los montos
     if (resolution === "reembolso_parcial") {
       buyerAmount = buyerRefund ? parseFloat(buyerRefund) : 0;
       sellerAmount = sellerPayment ? parseFloat(sellerPayment) : 0;
-      
-      if (buyerAmount + sellerAmount !== escrowAmount) {
-        toast.error(`Los montos deben sumar exactamente ${formatCLP(escrowAmount)}`);
+
+      if (buyerAmount + sellerAmount !== txAmount) {
+        toast.error(`Los montos deben sumar exactamente ${formatCLP(txAmount)}`);
         return;
       }
     } else if (resolution === "reembolso_total") {
-      // Reembolso total al comprador
-      buyerAmount = escrowAmount;
+      buyerAmount = txAmount;
       sellerAmount = 0;
     } else if (resolution === "liberar_fondos_vendedor") {
-      // Liberar todo al vendedor
       buyerAmount = 0;
-      sellerAmount = escrowAmount;
+      sellerAmount = txAmount;
     }
 
     setSubmitting(true);
@@ -495,6 +489,10 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                             <div className="space-y-4 bg-muted/50 p-4 rounded-md">
                               <p className="text-sm text-muted-foreground">
                                 Monto total a distribuir: <span className="font-semibold text-foreground">{formatCLP(transaction.amount)}</span>
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Trado cobra la comisión en proporción a lo que recibe el vendedor. Si la sala la creó el
+                                comprador, la comisión que prepagó y no se cobra se le devuelve.
                               </p>
                               <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">

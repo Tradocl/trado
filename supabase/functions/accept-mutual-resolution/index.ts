@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { alertarCritico } from "../_shared/alertas.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { gatewayMarkToRestore } from "../_shared/pricing.ts";
+import { gatewayMarkToRestore, splitResolution } from "../_shared/pricing.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -200,35 +200,29 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    // Commission is paid by the party who initiated the transaction.
-    // If buyer initiated, they already paid commission in their deposit (escrow = amount + commission)
-    // If seller initiated, commission is deducted from seller's portion (escrow = amount)
+    // Una sola regla para acuerdos y decisiones del admin (splitResolution en
+    // _shared/pricing.ts): la comisión se cobra en proporción a lo que recibe el
+    // vendedor, y la comisión prepagada que no se cobra vuelve al comprador.
     const initiatorRole = tx.initiator_role || 'seller';
-    const escrowAmount = initiatorRole === 'buyer' ? transactionAmount + commission : transactionAmount;
-
-    // Validate total doesn't exceed actual escrow held
-    if (buyerProposedAmount + sellerProposedAmount > escrowAmount) {
-      console.error(`[accept-mutual-resolution] Invalid amounts: buyer=${buyerProposedAmount}, seller=${sellerProposedAmount}, escrow=${escrowAmount}`);
-      return new Response(JSON.stringify({ error: "Los montos propuestos exceden el escrow de la transacción" }), {
+    let split;
+    try {
+      split = splitResolution({
+        amount: transactionAmount,
+        commission,
+        initiatorRole,
+        buyerPart: buyerProposedAmount,
+        sellerPart: sellerProposedAmount,
+      });
+    } catch (splitErr) {
+      return new Response(JSON.stringify({ error: (splitErr as Error).message }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
-    
-    // Calculate actual amounts after commission
-    let buyerFinalAmount = buyerProposedAmount;
-    let sellerFinalAmount = sellerProposedAmount;
-    let commissionToDeduct = 0;
-
-    // Commission is only applied when seller receives money
-    if (sellerProposedAmount > 0) {
-      if (initiatorRole === 'seller') {
-        // Seller pays commission from their portion
-        commissionToDeduct = Math.min(commission, sellerProposedAmount);
-        sellerFinalAmount = sellerProposedAmount - commissionToDeduct;
-      }
-      // If buyer initiated, commission was already added to their deposit, seller gets full amount
-    }
+    const escrowAmount = split.escrow;
+    const buyerFinalAmount = split.buyerFinal;
+    const sellerFinalAmount = split.sellerFinal;
+    const commissionToDeduct = split.commissionCharged;
 
     console.log(`[accept-mutual-resolution] Amounts - Buyer: ${buyerProposedAmount}->${buyerFinalAmount}, Seller: ${sellerProposedAmount}->${sellerFinalAmount}, Commission: ${commissionToDeduct}`);
 
@@ -463,10 +457,14 @@ serve(async (req: Request): Promise<Response> => {
         const { error: commissionMovementError } = await supabaseClient
           .from("wallet_movements")
           .insert({
-            wallet_id: sellerWallet.id,
+            // Sale de quien la pagó: el vendedor (se le descontó) o el comprador
+            // (la prepagó al depositar, en salas que creó él).
+            wallet_id: initiatorRole === "buyer" ? buyerWallet.id : sellerWallet.id,
             type: "commission",
             amount: -commissionToDeduct,
-            balance_after: originalSellerBalance + sellerFinalAmount,
+            balance_after: initiatorRole === "buyer"
+              ? originalBuyerBalance + buyerFinalAmount
+              : originalSellerBalance + sellerFinalAmount,
             status: "approved",
             description: `Comisión Trado "${tx.product_name}"`,
             transaction_id: transactionId,

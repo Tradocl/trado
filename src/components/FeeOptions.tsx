@@ -40,6 +40,8 @@ export function FeeOptions({
   if (!amount || amount <= 0) return null;
   const o = feeOptions(amount, payer);
   const etiqueta = payer === "seller" ? "Recibes" : "Pagas";
+  // Porcentaje real: en montos chicos rige el mínimo de $1.000 y deja de ser 5%.
+  const pct = (fee: number) => `${(Math.round((fee / amount) * 1000) / 10).toLocaleString("es-CL")}%`;
 
   const fila = (
     Icono: typeof CreditCard,
@@ -74,14 +76,15 @@ export function FeeOptions({
       <p className="text-xs font-medium text-muted-foreground">
         La comisión depende de cómo pague el comprador:
       </p>
-      {fila(CreditCard, "Con tarjeta · 5%", o.tarjeta, o.conTarjeta, false)}
+      {fila(CreditCard, `Con tarjeta · ${pct(o.tarjeta)}`, o.tarjeta, o.conTarjeta, false)}
       {o.transferenciaDisponible ? (
         <>
-          {fila(Landmark, "Con transferencia", o.transferencia, o.conTransferencia, true)}
+          {fila(Landmark, `Con transferencia · ${pct(o.transferencia)}`, o.transferencia, o.conTransferencia, true)}
           {o.ahorro > 0 && (
             <p className="text-xs text-success">
-              Pagando por transferencia {payer === "seller" ? "recibes" : "ahorras"} ${formatCLP(o.ahorro)}{" "}
-              {payer === "seller" ? "más" : ""}.
+              {payer === "seller"
+                ? `Pagando por transferencia recibes $${formatCLP(o.ahorro)} más.`
+                : `Pagando por transferencia ahorras $${formatCLP(o.ahorro)}.`}
             </p>
           )}
         </>

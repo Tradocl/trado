@@ -143,8 +143,9 @@ const Terms = () => {
                 <strong className="text-foreground">3.3. Transacciones que no se completan:</strong>{" "}
                 Si una transacción se cancela, o una disputa se resuelve completamente a favor del
                 comprador, Trado no cobra comisión y los fondos se devuelven íntegros al comprador. Si
-                una disputa se resuelve repartiendo los fondos, la comisión se descuenta de la parte que
-                recibe el vendedor, hasta el total de esa parte. En la devolución de un producto ya
+                una disputa se resuelve repartiendo los fondos, la comisión se cobra en proporción a la
+                parte que recibe el vendedor; si la transacción la creó el comprador, la parte de la
+                comisión prepagada que no se cobra se le devuelve. En la devolución de un producto ya
                 recibido, si la responsabilidad es del vendedor el comprador recibe el monto íntegro;
                 si la devolución es por decisión o responsabilidad del comprador, recibe el monto
                 depositado menos la comisión de Trado.

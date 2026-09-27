@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { alertarCritico } from "../_shared/alertas.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { gatewayMarkToRestore } from "../_shared/pricing.ts";
+import { gatewayMarkToRestore, splitResolution } from "../_shared/pricing.ts";
 import { adminMfaRequired, tokenAal } from "../_shared/auth.ts";
 
 // Estados donde la sala tiene plata retenida: sólo ahí hay algo que repartir.
@@ -166,30 +166,36 @@ serve(async (req) => {
       );
     }
 
-    // Calculate correct escrow amount based on who initiated the transaction
+    // Una sola regla para decisiones del admin y acuerdos mutuos
+    // (splitResolution en _shared/pricing.ts). Los montos que manda el panel son
+    // sobre el PRECIO; la comisión se cobra en proporción a lo que recibe el
+    // vendedor. Antes, fallar a favor del vendedor no cobraba comisión, y en
+    // salas creadas por el comprador le pasaba al vendedor la comisión prepagada.
     const initiatorRole = transaction.initiator_role || 'seller';
     const transactionAmount = Number(transaction.amount);
     const commission = Number(transaction.commission) || 0;
-    
-    // If buyer initiated, they paid amount + commission. If seller initiated, buyer paid just amount.
-    const escrowAmount = initiatorRole === 'buyer' 
-      ? transactionAmount + commission 
-      : transactionAmount;
-
-    console.log(`[resolve-appeal] Transaction details: amount=${transactionAmount}, commission=${commission}, initiatorRole=${initiatorRole}, escrowAmount=${escrowAmount}`);
-
-    // Validate amounts against transaction amount (don't allow more than escrow)
-    const totalDistribution = (buyerRefundAmount || 0) + (sellerPaymentAmount || 0);
-    
-    if (totalDistribution > escrowAmount) {
-      console.error("Distribution exceeds escrow:", { totalDistribution, escrowAmount });
+    let split;
+    try {
+      split = splitResolution({
+        amount: transactionAmount,
+        commission,
+        initiatorRole,
+        buyerPart: Number(buyerRefundAmount || 0),
+        sellerPart: Number(sellerPaymentAmount || 0),
+      });
+    } catch (splitErr) {
       return new Response(
-        JSON.stringify({ error: `Total distribution (${totalDistribution}) cannot exceed escrow amount (${escrowAmount})` }),
+        JSON.stringify({ error: (splitErr as Error).message }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    const escrowAmount = split.escrow;
+    const buyerPayout = split.buyerFinal;
+    const sellerPayout = split.sellerFinal;
+    const commissionCharged = split.commissionCharged;
+    console.log(`[resolve-appeal] Split: buyer=${buyerPayout}, seller=${sellerPayout}, commission=${commissionCharged}, escrow=${escrowAmount}`);
 
-    console.log("[resolve-appeal] Processing appeal resolution:", { appealId, resolution, buyerRefundAmount, sellerPaymentAmount, escrowAmount });
+    console.log("[resolve-appeal] Processing appeal resolution:", { appealId, resolution, buyerPayout, sellerPayout, escrowAmount });
 
     // Validate resolution type explicitly before proceeding
     const validResolutions = ["reembolso_total", "reembolso_parcial", "liberar_fondos_vendedor"];
@@ -257,8 +263,8 @@ serve(async (req) => {
         admin_id: user.id,
         resolution: resolution,
         resolution_notes: resolutionNotes.trim(),
-        buyer_refund_amount: buyerRefundAmount,
-        seller_payment_amount: sellerPaymentAmount,
+        buyer_refund_amount: buyerPayout,
+        seller_payment_amount: sellerPayout,
         is_mutual_agreement: false,
       });
 
@@ -299,10 +305,10 @@ serve(async (req) => {
     }
 
     // Process buyer refund if applicable — atomic credit.
-    if (buyerRefundAmount && buyerRefundAmount > 0) {
+    if (buyerPayout && buyerPayout > 0) {
       const { data: newBuyerBalance, error: updateBuyerError } = await supabaseAdmin.rpc("credit_wallet_balance", {
         p_wallet_id: buyerWallet.id,
-        p_delta: buyerRefundAmount,
+        p_delta: buyerPayout,
       });
 
       if (updateBuyerError) {
@@ -318,7 +324,7 @@ serve(async (req) => {
         .insert({
           wallet_id: buyerWallet.id,
           type: "escrow_release",
-          amount: buyerRefundAmount,
+          amount: buyerPayout,
           balance_after: newBuyerBalance,
           description: `Reembolso "${transaction.product_name}"`,
           transaction_id: transaction.id,
@@ -337,7 +343,7 @@ serve(async (req) => {
       const markBack = gatewayMarkToRestore(
         Number(transaction.amount),
         Number(transaction.gateway_funded_used ?? 0),
-        buyerRefundAmount,
+        buyerPayout,
       );
       if (markBack > 0) {
         const { error: markErr } = await supabaseAdmin.rpc("restore_gateway_funded", {
@@ -359,11 +365,11 @@ serve(async (req) => {
         }
       }
 
-      console.log("[resolve-appeal] Buyer refund processed:", { buyerRefundAmount, newBuyerBalance, markBack });
+      console.log("[resolve-appeal] Buyer refund processed:", { buyerPayout, newBuyerBalance, markBack });
     }
 
     // Process seller payment if applicable — atomic credit.
-    if (sellerPaymentAmount && sellerPaymentAmount > 0) {
+    if (sellerPayout && sellerPayout > 0) {
       const { data: sellerWallet, error: sellerWalletError } = await supabaseAdmin
         .from("wallets")
         .select("id")
@@ -380,7 +386,7 @@ serve(async (req) => {
 
       const { data: newSellerBalance, error: updateSellerError } = await supabaseAdmin.rpc("credit_wallet_balance", {
         p_wallet_id: sellerWallet.id,
-        p_delta: sellerPaymentAmount,
+        p_delta: sellerPayout,
       });
 
       if (updateSellerError) {
@@ -396,7 +402,7 @@ serve(async (req) => {
         .insert({
           wallet_id: sellerWallet.id,
           type: "escrow_release",
-          amount: sellerPaymentAmount,
+          amount: sellerPayout,
           balance_after: newSellerBalance,
           description: `Venta "${transaction.product_name}"`,
           transaction_id: transaction.id,
@@ -408,7 +414,34 @@ serve(async (req) => {
         // Log but don't fail - wallet balance is already updated
       }
 
-      console.log("[resolve-appeal] Seller payment processed:", { sellerPaymentAmount, newSellerBalance });
+      console.log("[resolve-appeal] Seller payment processed:", { sellerPayout, newSellerBalance });
+    }
+
+    // La comisión cobrada queda registrada en la billetera de quien la pagó:
+    // el vendedor (se le descontó) o el comprador (la prepagó en salas que creó).
+    if (commissionCharged > 0) {
+      const pagadorId = initiatorRole === "buyer" ? transaction.buyer_id : transaction.seller_id;
+      const { data: pagadorWallet } = await supabaseAdmin
+        .from("wallets")
+        .select("id, balance")
+        .eq("user_id", pagadorId)
+        .single();
+      if (pagadorWallet) {
+        const { error: commissionMovementError } = await supabaseAdmin
+          .from("wallet_movements")
+          .insert({
+            wallet_id: pagadorWallet.id,
+            type: "commission",
+            amount: -commissionCharged,
+            balance_after: pagadorWallet.balance,
+            description: `Comisión Trado "${transaction.product_name}"`,
+            transaction_id: transaction.id,
+            status: "approved",
+          });
+        if (commissionMovementError) {
+          console.error("[resolve-appeal] Error registrando la comisión (no bloqueante):", commissionMovementError);
+        }
+      }
     }
 
     // Mark any pending escrow_lock movements as approved (resolved)
@@ -443,7 +476,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("[resolve-appeal] Appeal resolution completed successfully:", { appealId, newStatus, escrowAmount, buyerRefundAmount, sellerPaymentAmount });
+    console.log("[resolve-appeal] Appeal resolution completed successfully:", { appealId, newStatus, escrowAmount, buyerPayout, sellerPayout });
 
     // Send notification emails to both parties (fire and forget)
     try {
@@ -457,8 +490,8 @@ serve(async (req) => {
           appealId,
           resolution,
           resolutionNotes: resolutionNotes.trim(),
-          buyerRefundAmount,
-          sellerPaymentAmount,
+          buyerRefundAmount: buyerPayout,
+          sellerPaymentAmount: sellerPayout,
           isMutualAgreement: false,
         }),
       });

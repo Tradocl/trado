@@ -521,7 +521,7 @@ const CreateTransaction = () => {
                 />
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <Info className="h-3 w-3" />
-                  Comisión: 5% con tarjeta · desde 3,5% con transferencia
+                  Comisión: 5% con tarjeta · desde 3,5% con transferencia · mínimo $1.000
                 </p>
               </div>
 

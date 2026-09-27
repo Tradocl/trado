@@ -141,7 +141,10 @@ crítica al admin para que no apruebe retiros de esa billetera.
 Toda sala que no se completa (acuerdo mutuo, decisión del admin, devolución o
 depósito revertido) devuelve la plata de tarjeta **marcada**: el comprador puede
 usarla en otra sala o devolverla a su tarjeta, nunca retirarla al banco.
-`delete-account` además bloquea borrar la cuenta con saldo. Importa doble desde que la plata de tarjeta no se puede
+`delete-account` además bloquea borrar la cuenta con saldo.
+`process-escrow-deposit` también baja la marca por la comisión que el comprador
+prepaga en salas que creó él (desde 2026-09-27); antes quedaba por encima de la
+plata de tarjeta real después de una venta completada. Importa doble desde que la plata de tarjeta no se puede
 retirar al banco: si un camino de reembolso no la restituyera, esa plata volvería
 "limpia" y saldría al banco. **Todo camino nuevo que devuelva escrow al
 comprador tiene que restituir la marca.** Las cancelaciones automáticas
@@ -207,8 +210,16 @@ avisarse también en el flujo de pago**, no sólo ahí.
   obligó a tocar `auto-release-escrow` (una de las 6 de dinero) para que
   servicio y digital se liberen desde `in_delivery`; **ese deploy exige ventana
   sin escrow vivo + revalidar Fase 0** de [REVISION.md](REVISION.md).
-- **Apelaciones:** 48h de negociación directa, después media un admin. La
-  comisión **nunca** se devuelve, ni en apelaciones ni en acuerdos mutuos.
+- **Apelaciones:** 48h de negociación directa, después media un admin.
+  **Comisión en disputas (desde 2026-09-27): una sola regla para acuerdo mutuo y
+  decisión del admin**, `splitResolution` en `_shared/pricing.ts` (tests en
+  `src/lib/resolution-split.test.ts`). Los montos se reparten sobre el **precio**
+  y la comisión se cobra **en proporción a lo que recibe el vendedor**: a favor
+  del vendedor, entera; reembolso total, cero; mitad, mitad. En salas creadas por
+  el comprador, la comisión prepagada que no se cobra se le devuelve. Antes el
+  admin fallando a favor del vendedor no cobraba comisión (o le pasaba la
+  prepagada del comprador) y el reembolso total por acuerdo mutuo se quedaba con
+  la comisión prepagada sin registrarla.
   `auto-escalate-appeals` (cron horario) escala al vencer las 48h y, **una vez al
   día a las 12:00 UTC**, manda a `ADMIN_ALERT_EMAIL` un resumen de las disputas que
   llevan más de 48h esperando decisión: mientras esperan, la plata sigue retenida.

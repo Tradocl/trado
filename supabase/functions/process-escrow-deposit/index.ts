@@ -189,12 +189,15 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const consumedMark = pricingReady ? Number(gatewayUsed ?? 0) : 0;
+    // Total de marca consumida: la del precio más, en salas creadas por el
+    // comprador, la de la comisión que prepaga (se suma más abajo).
+    let consumedTotal = consumedMark;
     /** Devuelve la marca si algo falla después de haberla consumido. */
     const restoreMark = async () => {
-      if (consumedMark > 0) {
+      if (consumedTotal > 0) {
         await supabaseClient.rpc("restore_gateway_funded", {
           p_wallet_id: wallet.id,
-          p_amount: consumedMark,
+          p_amount: consumedTotal,
         });
       }
     };
@@ -231,6 +234,26 @@ serve(async (req: Request): Promise<Response> => {
       : salaAmount;
 
     console.log(`[process-escrow-deposit] Deposit amount: ${depositAmount}, initiatorRole: ${initiatorRole}`);
+
+    // Si el comprador prepaga la comisión, esa plata también sale de su saldo:
+    // si era de tarjeta, la marca tiene que bajar igual. Si no, después de una
+    // venta completada la marca queda por encima de la plata de tarjeta real y
+    // "ensucia" como tarjeta un depósito futuro por transferencia. La tasa ya
+    // se calculó sobre el precio; esto sólo lleva la cuenta de la marca.
+    if (pricingReady && initiatorRole === "buyer" && commission > 0) {
+      const { data: extraUsed } = await supabaseClient.rpc("consume_gateway_funded", {
+        p_wallet_id: wallet.id,
+        p_amount: commission,
+      });
+      const extra = Number(extraUsed ?? 0);
+      if (extra > 0) {
+        consumedTotal += extra;
+        await supabaseClient
+          .from("transactions")
+          .update({ gateway_funded_used: consumedTotal })
+          .eq("id", transactionId);
+      }
+    }
 
     // Check sufficient balance
     if (Number(wallet.balance) < depositAmount) {
