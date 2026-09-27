@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { TradoBankContact } from "@/components/TradoBankContact";
+import { OFFER_TRANSFER_AT } from "@/lib/trado-bank";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -904,6 +906,12 @@ const Transaction = () => {
               </p>
             </CardContent>
           </Card>
+        )}
+
+        {/* Pagos que pueden ir por transferencia: que agregue a Trado en su banco
+            antes, porque la primera transferencia a alguien nuevo tiene límite. */}
+        {isBuyer && transaction.state === "invited" && buyerPays >= OFFER_TRANSFER_AT && (
+          <TradoBankContact urgente />
         )}
 
         {/* Seller mark as shipped (envío) */}

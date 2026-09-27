@@ -91,6 +91,8 @@ export default function Admin() {
   const { isAdmin, loading: roleLoading } = useAdminRole();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [approvedDeposits, setApprovedDeposits] = useState<WalletMovement[]>([]);
+  // Depósitos por transferencia esperando que el admin confirme que llegó la plata.
+  const [pendingTransfers, setPendingTransfers] = useState<WalletMovement[]>([]);
   const [pendingWithdrawals, setPendingWithdrawals] = useState<WalletMovement[]>([]);
   const [approvedWithdrawals, setApprovedWithdrawals] = useState<WalletMovement[]>([]);
   const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
@@ -126,6 +128,10 @@ export default function Admin() {
     theoreticalWalletBalance: 0, // Depósitos - Retiros - Comisiones (lo que debería haber en wallets)
     tradoNetProfit: 0, // Comisiones Trado - Fees MP (ganancia neta real)
     discrepancy: 0,
+    // Plata de tarjeta que los usuarios pueden pedir de vuelta: sin usar en
+    // billeteras + retenida en salas activas. MercadoPago sólo reembolsa si la
+    // cuenta tiene saldo disponible, así que ése es el piso a mantener ahí.
+    reembolsableATarjeta: 0,
     movementsByType: [] as { type: string; count: number; total: number }[],
     walletDetails: [] as { user_name: string; user_email: string; balance: number }[],
   });
@@ -162,8 +168,17 @@ export default function Admin() {
       if (profilesError) throw profilesError;
       setProfiles(profilesData || []);
 
-      // Deposits are auto-credited by the Mercado Pago webhook (status=approved
-      // directly), so there is no pending-deposit approval flow anymore.
+      // Los depósitos por MercadoPago se acreditan solos (webhook). Los por
+      // transferencia (request-transfer-deposit) quedan pending hasta que un
+      // admin confirma que la plata llegó a la cuenta de Trado.
+      const { data: pendingTransfersData, error: pendingTransfersError } = await supabase
+        .from("wallet_movements")
+        .select("*")
+        .eq("status", "pending")
+        .eq("type", "deposit")
+        .order("created_at", { ascending: true });
+
+      if (pendingTransfersError) throw pendingTransfersError;
 
       // Load approved deposits (last 20)
       const { data: approvedDepositsData, error: approvedDepositsError } = await supabase
@@ -221,6 +236,7 @@ export default function Admin() {
       const enrichedApprovedWithdrawals = await enrichMovements(approvedWithdrawalsData);
 
       setApprovedDeposits(enrichedApprovedDeposits);
+      setPendingTransfers(await enrichMovements(pendingTransfersData));
       setPendingWithdrawals(enrichedPendingWithdrawals);
       setApprovedWithdrawals(enrichedApprovedWithdrawals);
 
@@ -284,9 +300,18 @@ export default function Admin() {
       // 1. Total circulating (sum of all wallet balances + blocked_balance)
       const { data: walletsData } = await supabase
         .from("wallets")
-        .select("balance, blocked_balance, user_id, profiles!wallets_user_id_fkey(full_name, email)");
+        .select("balance, blocked_balance, gateway_funded_balance, user_id, profiles!wallets_user_id_fkey(full_name, email)");
 
       const totalCirculating = walletsData?.reduce((sum, w) => sum + (w.balance || 0) + (w.blocked_balance || 0), 0) || 0;
+
+      const tarjetaEnBilleteras = walletsData?.reduce(
+        (sum, w) => sum + Math.min(Number(w.gateway_funded_balance || 0), Number(w.balance || 0)), 0) || 0;
+      const { data: salasConTarjeta } = await supabase
+        .from("transactions")
+        .select("gateway_funded_used")
+        .in("state", ["funds_secured", "in_delivery", "awaiting_buyer_review", "return_requested", "return_in_progress", "in_dispute"])
+        .gt("gateway_funded_used", 0);
+      const tarjetaEnSalas = (salasConTarjeta || []).reduce((sum, t) => sum + Number(t.gateway_funded_used || 0), 0);
 
       const walletDetails = walletsData?.map(w => ({
         user_name: w.profiles?.full_name || "Usuario",
@@ -382,6 +407,7 @@ export default function Admin() {
         theoreticalWalletBalance,
         tradoNetProfit,
         discrepancy,
+        reembolsableATarjeta: tarjetaEnBilleteras + tarjetaEnSalas,
         movementsByType,
         walletDetails,
       });
@@ -469,7 +495,7 @@ export default function Admin() {
       loadAdminData();
     } catch (error) {
       console.error("Error approving movement:", error);
-      toast.error("Error al aprobar el movimiento");
+      toast.error("Error al aprobar el movimiento: " + ((error as any)?.message ?? ""));
     } finally {
       setProcessingId(null);
     }
@@ -816,6 +842,11 @@ export default function Admin() {
         <TabsList>
           <TabsTrigger value="deposits">
             Depósitos
+            {pendingTransfers.length > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {pendingTransfers.length}
+              </Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger value="withdrawals">
             Retiros
@@ -1025,6 +1056,78 @@ export default function Admin() {
         </TabsContent>
 
         <TabsContent value="deposits" className="space-y-4">
+          <Card className={pendingTransfers.length > 0 ? "border-2 border-warning/40" : ""}>
+            <CardHeader>
+              <CardTitle>Transferencias por verificar</CardTitle>
+              <CardDescription>
+                Revisa en la cuenta de Trado (MercadoPago) que llegó el monto con el código de referencia antes de
+                aprobar. Puede venir en varias transferencias con el mismo código, porque los bancos limitan la
+                primera transferencia a un destinatario nuevo: aprueba cuando haya llegado el total.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {pendingTransfers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No hay transferencias pendientes.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Usuario</TableHead>
+                      <TableHead>Monto</TableHead>
+                      <TableHead>Referencia</TableHead>
+                      <TableHead>Pedido</TableHead>
+                      <TableHead className="text-right">Acción</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingTransfers.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell>
+                          <div className="font-medium">{t.user_name}</div>
+                          <div className="text-xs text-muted-foreground">{t.user_email}</div>
+                        </TableCell>
+                        <TableCell className="font-bold">${formatCLP(t.amount)}</TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {t.description?.match(/\[([^\]]+)\]/)?.[1] ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(t.created_at).toLocaleString("es-CL", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </TableCell>
+                        <TableCell className="text-right space-x-2 whitespace-nowrap">
+                          <Button
+                            size="sm"
+                            disabled={processingId === t.id}
+                            onClick={() => {
+                              if (window.confirm(`¿Confirmas que llegaron $${formatCLP(t.amount)} con la referencia correcta?`)) {
+                                handleApproveMovement(t.id);
+                              }
+                            }}
+                          >
+                            <CheckCircle className="mr-1 h-4 w-4" />
+                            Aprobar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={processingId === t.id}
+                            onClick={() => {
+                              if (window.confirm("¿Rechazar esta solicitud? El usuario no recibe saldo.")) {
+                                handleRejectMovement(t.id);
+                              }
+                            }}
+                          >
+                            <XCircle className="mr-1 h-4 w-4" />
+                            Rechazar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Depósitos vía Mercado Pago</CardTitle>
@@ -1424,6 +1527,19 @@ export default function Admin() {
               <CardContent>
                 <div className="text-2xl font-bold text-info">${formatCLP(tokenStats.totalCirculating)}</div>
                 <p className="text-xs text-muted-foreground">Balance actual en wallets</p>
+              </CardContent>
+            </Card>
+            <Card className="border-2 border-warning/30 bg-warning/5">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Reservar en MercadoPago</CardTitle>
+                <Coins className="h-4 w-4 text-warning" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-warning">${formatCLP(tokenStats.reembolsableATarjeta)}</div>
+                <p className="text-xs text-muted-foreground">
+                  Plata de tarjeta que se puede tener que reembolsar. Mantén al menos esto de saldo
+                  disponible en MercadoPago: sin saldo, el reembolso falla.
+                </p>
               </CardContent>
             </Card>
             <Card className="border-2 border-success/30 bg-success/5">

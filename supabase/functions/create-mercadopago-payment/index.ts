@@ -127,6 +127,13 @@ serve(async (req: Request) => {
           pending: cancelUrl,
         },
         auto_return: "approved",
+        // Un solo pago, sin cuotas. El 5% de la tarifa de tarjeta está calculado
+        // sobre el costo medido de MercadoPago (3,08%); una modalidad en cuotas
+        // más cara se comería el margen sin que Trado lo note.
+        payment_methods: {
+          installments: 1,
+          default_installments: 1,
+        },
         notification_url: `${SUPABASE_URL}/functions/v1/mercadopago-webhook`,
         metadata: {
           user_id: user.id,

@@ -154,7 +154,27 @@ la comisión no puede depender del medio sin rediseñar cuándo se cobra.
 
 - `OFFER_TRANSFER_AT` = $400.000 → se ofrece transferencia
 - `FORCE_TRANSFER_AT` = $1.150.000 → transferencia obligatoria
+  (en `src/lib/trado-bank.ts`, espejo en `request-transfer-deposit`)
 - Por transferencia no hay costo de pasarela: el monto se acredita completo.
+- **La cuenta que recibe transferencias es una Cuenta Vista de MercadoPago**
+  (`TRADO_BANK` en `src/lib/trado-bank.ts`): cae en el mismo saldo con que se
+  reembolsan los pagos con tarjeta.
+- **Tarjeta: 1 sola cuota** (`payment_methods.installments = 1` en
+  `create-mercadopago-payment`). El 5% está calculado sobre el costo medido
+  (3,08%); una modalidad en cuotas más cara se comería el margen.
+- **Reembolsos a tarjeta:** MercadoPago no cobra por devolver (según sus
+  páginas de ayuda, y lo observado en septiembre de 2026), permite hacerlo hasta
+  **180 días** después del pago, y **exige saldo disponible en la cuenta**. El
+  panel de admin (pestaña Tokens) muestra "Reservar en MercadoPago": plata de
+  tarjeta sin usar + retenida en salas activas; no bajar de eso en MP.
+- **Límite de primera transferencia:** los bancos limitan la primera
+  transferencia a un destinatario nuevo (BancoEstado $200.000, Santander y BCI
+  $250.000, Itaú $300.000, Banco de Chile $350.000, por 12 a 24 horas). Por eso
+  `TradoBankContact` invita a agregar a Trado como destinatario antes de pagar
+  (billetera y sala del comprador desde `OFFER_TRANSFER_AT`), y un depósito por
+  transferencia puede llegar en varias partes con el mismo código: el admin lo
+  aprueba al llegar el total, desde "Transferencias por verificar" en la pestaña
+  Depósitos (hasta el 2026-09-27 esa lista no existía en el panel).
 
 **La transferencia no es instantánea.** Puede tomar hasta 24 horas hábiles en
 acreditarse, y hasta entonces los fondos no están asegurados y el vendedor no
@@ -445,6 +465,18 @@ npx supabase gen types typescript --project-id aekzrackrijuxvopqfbp > src/integr
 - [ ] Decidir el hueco de margen entre $400.000 y $1.150.000
 - [ ] Monitoreo de errores
 - [ ] Tests de las transiciones de estado del escrow
+
+**Comisiones (plan del 2026-09-27)**
+
+- [ ] **Decidir la devolución de producto:** hoy `process-return-refund` le
+      reembolsa al comprador el monto **menos la comisión**, aunque la culpa sea
+      del vendedor, mientras que cancelar o ganar una disputa devuelve todo. Los
+      Términos (3.3) y el FAQ ya lo dicen así; si se cambia, cambiar los tres.
+- [ ] Devolución automática a la tarjeta de la plata sin usar antes de los 180 días
+- [ ] Bajar `OFFER_TRANSFER_AT` (p. ej. a $20.000) según capacidad de confirmar a mano
+- [ ] Piso para cotizaciones a medida: 2% por transferencia, sin tarjeta
+- [ ] Confirmar con el contador el IVA de la comisión (Ley 21.420: los servicios
+      pagan IVA desde 2023) y si el IVA de MercadoPago sirve de crédito fiscal
 
 **Seguridad**
 

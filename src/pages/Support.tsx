@@ -37,7 +37,7 @@ const FAQ = [
   },
   {
     q: "¿Cómo funciona el pago por transferencia?",
-    a: "Desde $400.000 te ofrecemos la opción, y sobre $1.150.000 es la única vía. Te damos los datos de la cuenta y un código de referencia que debes escribir en el comentario de la transferencia. Cuando la confirmamos, los fondos quedan asegurados en custodia.",
+    a: "Desde $400.000 te ofrecemos la opción, y sobre $1.150.000 es la única vía. Te damos los datos de la cuenta y un código de referencia que debes escribir en el comentario de la transferencia. Cuando la confirmamos, los fondos quedan asegurados en custodia. Ojo: si es tu primera transferencia a Trado, tu banco puede limitar el monto las primeras 12 a 24 horas (por ejemplo, BancoEstado a $200.000). Agréganos como destinatario con anticipación desde tu billetera, o envía el monto en partes, siempre con el mismo código.",
   },
   {
     q: "¿Cuánto demora en confirmarse una transferencia?",
@@ -65,11 +65,15 @@ const FAQ = [
   },
   {
     q: "¿Qué hago si tengo un problema con una transacción?",
-    a: "Cualquiera de las dos partes puede abrir una apelación. Se abren 48 horas para que lleguen a un acuerdo directo y, si no lo hay, un administrador de Trado revisa la evidencia de ambos lados y resuelve. Ten en cuenta que la comisión no se devuelve, ni siquiera en apelaciones o acuerdos mutuos.",
+    a: "Cualquiera de las dos partes puede abrir una apelación. Se abren 48 horas para que lleguen a un acuerdo directo y, si no lo hay, un administrador de Trado revisa la evidencia de ambos lados y resuelve. Si se resuelve completamente a favor del comprador, no se cobra comisión y se le devuelve todo. Si se reparte la plata, la comisión se descuenta de lo que recibe el vendedor.",
+  },
+  {
+    q: "Pagué con tarjeta y la compra no se concretó, ¿qué pasa con mi plata?",
+    a: "Vuelve a tu billetera y puedes usarla en otra compra o devolverla a tu tarjeta desde la billetera, con el botón \"Devolver a mi tarjeta\". Por seguridad no se puede retirar a una cuenta bancaria: la plata que entró con tarjeta vuelve a la tarjeta. Mercado Pago permite devolverla hasta 180 días después del pago.",
   },
   {
     q: "¿Puedo pedir una devolución?",
-    a: "Sí, en productos con envío y antes de confirmar la recepción. Al procesarla se determina de quién es la responsabilidad, y eso define quién paga el envío de vuelta.",
+    a: "Sí, antes de confirmar la recepción. Al procesarla se determina de quién es la responsabilidad, y eso define quién paga el envío de vuelta. Cuando el vendedor recibe el producto de vuelta, te reembolsamos el monto menos la comisión de Trado.",
   },
 ];
 

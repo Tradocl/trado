@@ -14,6 +14,8 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatCLP, formatAmountInput, parseFormattedAmount } from "@/lib/utils";
 import { reembolsableATarjeta, retirableAlBanco } from "@/lib/wallet-rules";
+import { TRADO_BANK, tradoBankText, LIMITE_PRIMERA_TRANSFERENCIA_EJEMPLO, OFFER_TRANSFER_AT, FORCE_TRANSFER_AT } from "@/lib/trado-bank";
+import { TradoBankContact } from "@/components/TradoBankContact";
 import { Badge } from "@/components/ui/badge";
 import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
@@ -104,30 +106,15 @@ const Wallet = () => {
   // Deposit-method thresholds (on the deposit amount). Above OFFER, MP's 3.19%
   // fee starts eating Trado's commission, so we offer a fee-free bank transfer;
   // above FORCE the transfer is the only option.
-  const OFFER_TRANSFER_AT = 400_000;
-  const FORCE_TRANSFER_AT = 1_150_000;
   const depositAmountNum = parseFormattedAmount(amountDisplay);
   const transferOffered = depositAmountNum >= OFFER_TRANSFER_AT;
   const transferForced = depositAmountNum >= FORCE_TRANSFER_AT;
 
-  // Company bank details for deposits
-  const companyBankDetails = {
-    name: "Sociedad Comercial Trado Limitada",
-    rut: "78.236.214-3",
-    bank: "Mercado Pago",
-    accountType: "Cuenta Vista",
-    accountNumber: "1038152132",
-    email: "contacto@trado.cl",
-  };
+  // Datos de la cuenta de Trado: compartidos con TradoBankContact.
+  const companyBankDetails = TRADO_BANK;
 
   const copyAllBankDetails = () => {
-    const allDetails = `SOCIEDAD COMERCIAL TRADO LIMITADA
-RUT: ${companyBankDetails.rut}
-${companyBankDetails.bank}
-${companyBankDetails.accountType}
-Número de cuenta: ${companyBankDetails.accountNumber}
-${companyBankDetails.email}`;
-    copyToClipboard(allDetails);
+    copyToClipboard(tradoBankText());
   };
 
   useEffect(() => {
@@ -712,6 +699,8 @@ ${companyBankDetails.email}`;
           </CardContent>
         </Card>
 
+        <TradoBankContact />
+
         {pendingMovements.filter((m) => m.type === "deposit" || m.type === "withdrawal").length > 0 && (
           <Card className="border-warning/50 bg-warning/5">
             <CardHeader className="py-3 sm:py-6">
@@ -914,6 +903,16 @@ ${companyBankDetails.email}`;
                   Transfiere <strong>${formatCLP(parseFormattedAmount(amountDisplay))}</strong> a la cuenta de
                   abajo e incluye el código de referencia en el mensaje. Acreditamos tu saldo al verificar la
                   transferencia (normalmente el mismo día hábil).
+                </p>
+              </div>
+
+              <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg text-xs text-muted-foreground space-y-1">
+                <p className="font-medium text-foreground">¿Es tu primera transferencia a Trado?</p>
+                <p>
+                  Tu banco puede limitar la primera transferencia a un destinatario nuevo
+                  ({LIMITE_PRIMERA_TRANSFERENCIA_EJEMPLO} las primeras 12 a 24 horas). Si te frena, envíalo
+                  en partes, <span className="font-medium text-foreground">siempre con el mismo código</span>:
+                  acreditamos cuando llegue el total.
                 </p>
               </div>
 

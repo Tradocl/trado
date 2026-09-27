@@ -518,9 +518,9 @@ const WebLanding = () => {
                 </div>
                 <div className="flex items-baseline justify-center gap-2 mb-3">
                   <span className="text-6xl font-extrabold bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">5%</span>
-                  <span className="text-xl text-muted-foreground">por transacción</span>
+                  <span className="text-xl text-muted-foreground">con tarjeta</span>
                 </div>
-                <p className="text-muted-foreground mb-2">Solo pagas si cierras el trato</p>
+                <p className="text-muted-foreground mb-2">Con transferencia, desde 3,5% y bajando hasta 2,5%</p>
                 <p className="text-sm text-muted-foreground mb-8">Solo pagas cuando se cierra el trato. Sin suscripciones, sin costos ocultos.</p>
                 <div className="grid grid-cols-2 gap-4 mb-8 text-left">
                   {[

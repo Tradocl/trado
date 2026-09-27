@@ -37,7 +37,7 @@ const Terms = () => {
             </h1>
           </div>
           <p className="text-white/80 text-lg">
-            Última actualización: Junio 2026
+            Última actualización: Septiembre 2026
           </p>
         </div>
       </div>
@@ -124,34 +124,49 @@ const Terms = () => {
             </div>
             <div className="text-muted-foreground space-y-4">
               <p>
-                <strong className="text-foreground">3.1. Comisión por transacción:</strong> Trado
-                cobra una comisión del <strong className="text-foreground">5%</strong> sobre el
-                valor total de cada transacción completada exitosamente. La comisión de Trado es
-                independiente de los costos de procesamiento de pagos que aplica Mercado Pago sobre
-                los depósitos realizados a la billetera.
+                <strong className="text-foreground">3.1. Comisión por transacción:</strong> La
+                comisión depende del medio con que se financió la transacción. Con fondos depositados
+                con tarjeta u otros medios a través de Mercado Pago es de{" "}
+                <strong className="text-foreground">5%</strong> del monto. Con fondos depositados por
+                transferencia bancaria es de <strong className="text-foreground">3,5%</strong> hasta
+                $400.000, <strong className="text-foreground">3%</strong> sobre la parte entre $400.000
+                y $1.150.000, y <strong className="text-foreground">2,5%</strong> sobre la parte que
+                exceda $1.150.000. Si los fondos combinan ambos orígenes, la comisión se calcula en la
+                misma proporción. En todos los casos la comisión mínima es de $1.000 y los montos
+                informados son el total que paga el usuario.
               </p>
               <p>
-                <strong className="text-foreground">3.2. Momento del cobro:</strong> La comisión
-                se descuenta automáticamente al momento de liberar los fondos al vendedor, o al
-                momento de procesar un reembolso en caso de cancelación o devolución.
+                <strong className="text-foreground">3.2. Momento del cobro:</strong> La comisión se
+                cobra al liberar los fondos al vendedor, con las excepciones del punto 3.3.
               </p>
               <p>
-                <strong className="text-foreground">3.3. Cancelaciones y devoluciones:</strong> La
-                comisión de Trado se aplica a toda transacción que haya alcanzado la etapa de fondos
-                asegurados, independientemente de si el resultado final es una entrega o una devolución.
-                En caso de devolución, el comprador recibirá el monto depositado menos la comisión
-                correspondiente de vuelta a su billetera Trado.
+                <strong className="text-foreground">3.3. Transacciones que no se completan:</strong>{" "}
+                Si una transacción se cancela, o una disputa se resuelve completamente a favor del
+                comprador, Trado no cobra comisión y los fondos se devuelven íntegros al comprador. Si
+                una disputa se resuelve repartiendo los fondos, la comisión se descuenta de la parte que
+                recibe el vendedor, hasta el total de esa parte. En la devolución de un producto ya
+                recibido, el comprador recibe el monto depositado menos la comisión de Trado.
               </p>
               <p>
-                <strong className="text-foreground">3.4. Transacciones de alto monto:</strong> Para
+                <strong className="text-foreground">3.4. Fondos depositados con tarjeta:</strong> Los
+                fondos que ingresan con tarjeta u otros medios a través de Mercado Pago y que no se usan
+                en una transacción completada no pueden retirarse a una cuenta bancaria: solo pueden
+                usarse en otra transacción o devolverse al mismo medio de pago con que se pagó. El
+                usuario puede solicitar esa devolución desde su billetera. Mercado Pago permite
+                devoluciones hasta 180 días después de aprobado el pago.
+              </p>
+              <p>
+                <strong className="text-foreground">3.5. Transacciones de alto monto:</strong> Para
                 transacciones superiores a <strong className="text-foreground">$2.000.000 CLP</strong>,
                 las condiciones deben coordinarse directamente con el equipo de Trado a través de
                 soporte antes de iniciar la operación.
               </p>
               <p>
-                <strong className="text-foreground">3.5. Retiros bancarios:</strong> Los retiros
-                desde la billetera Trado hacia cuenta bancaria son gratuitos. Trado se reserva el
-                derecho de aplicar tarifas en el futuro, notificando con al menos 15 días de anticipación.
+                <strong className="text-foreground">3.6. Retiros bancarios:</strong> Los retiros
+                desde la billetera Trado hacia cuenta bancaria son gratuitos y aplican a los fondos
+                recibidos por ventas completadas o depositados por transferencia bancaria. Trado se
+                reserva el derecho de aplicar tarifas en el futuro, notificando con al menos 15 días
+                de anticipación.
               </p>
             </div>
           </section>
