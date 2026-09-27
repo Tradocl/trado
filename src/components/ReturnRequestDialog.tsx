@@ -317,22 +317,21 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
                 </div>
               )}
 
-              {/* Commission warning - always shown */}
+              {/* Comisión: sólo si la devolución es por culpa del comprador */}
               <div 
-                className="p-4 bg-destructive/10 rounded-lg border border-destructive/20 animate-fade-in transition-all duration-200 hover:bg-destructive/15"
+                className="p-4 bg-muted/50 rounded-lg border animate-fade-in"
                 style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
-                    <DollarSign className="h-4 w-4 text-destructive" />
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="text-sm">
-                    <p className="font-semibold text-destructive mb-1">
-                      Comisión de {formatCLP(commission)} será cobrada
-                    </p>
+                    <p className="font-semibold mb-1">¿Cuánto te devolvemos?</p>
                     <p className="text-muted-foreground">
-                      Al solicitar una devolución, la comisión de la plataforma será descontada de tu reembolso. 
-                      Recibirás el monto depositado menos la comisión.
+                      Si el problema es del vendedor (producto dañado, distinto o incompleto), te devolvemos
+                      todo. Si es por tu decisión, te devolvemos el monto menos la comisión de Trado
+                      ({formatCLP(commission)}).
                     </p>
                   </div>
                 </div>

@@ -217,7 +217,11 @@ avisarse también en el flujo de pago**, no sólo ahí.
   si asume la culpa parte aceptada y él paga el envío de vuelta, si no el vendedor
   acepta (paga él) o rechaza (va a mediación del admin, que decide quién paga).
   Luego el comprador despacha, y al recibir el vendedor `process-return-refund`
-  reembolsa. Estuvo roto hasta el 2026-09-24: el trigger prohibía todos los pasos
+  reembolsa. **Comisión en devoluciones (desde 2026-09-27): la paga sólo el
+  culpable-comprador.** Si `shipping_paid_by = 'seller'` (el vendedor aceptó una
+  devolución por su culpa, o el admin lo decidió), el comprador recibe todo; si
+  no, el monto menos la comisión. No se le cobra al vendedor porque en una
+  devolución no tiene plata retenida de donde descontarla. Estuvo roto hasta el 2026-09-24: el trigger prohibía todos los pasos
   y el admin no tenía permiso de escritura; lo repara
   `20260924010000_repara_devoluciones.sql`.
 - **Límites sin verificar** ([`src/lib/escrow.ts`](src/lib/escrow.ts) →
@@ -468,10 +472,6 @@ npx supabase gen types typescript --project-id aekzrackrijuxvopqfbp > src/integr
 
 **Comisiones (plan del 2026-09-27)**
 
-- [ ] **Decidir la devolución de producto:** hoy `process-return-refund` le
-      reembolsa al comprador el monto **menos la comisión**, aunque la culpa sea
-      del vendedor, mientras que cancelar o ganar una disputa devuelve todo. Los
-      Términos (3.3) y el FAQ ya lo dicen así; si se cambia, cambiar los tres.
 - [ ] Devolución automática a la tarjeta de la plata sin usar antes de los 180 días
 - [ ] Bajar `OFFER_TRANSFER_AT` (p. ej. a $20.000) según capacidad de confirmar a mano
 - [ ] Piso para cotizaciones a medida: 2% por transferencia, sin tarjeta

@@ -145,7 +145,9 @@ const Terms = () => {
                 comprador, Trado no cobra comisión y los fondos se devuelven íntegros al comprador. Si
                 una disputa se resuelve repartiendo los fondos, la comisión se descuenta de la parte que
                 recibe el vendedor, hasta el total de esa parte. En la devolución de un producto ya
-                recibido, el comprador recibe el monto depositado menos la comisión de Trado.
+                recibido, si la responsabilidad es del vendedor el comprador recibe el monto íntegro;
+                si la devolución es por decisión o responsabilidad del comprador, recibe el monto
+                depositado menos la comisión de Trado.
               </p>
               <p>
                 <strong className="text-foreground">3.4. Fondos depositados con tarjeta:</strong> Los

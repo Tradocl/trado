@@ -73,7 +73,7 @@ const FAQ = [
   },
   {
     q: "¿Puedo pedir una devolución?",
-    a: "Sí, antes de confirmar la recepción. Al procesarla se determina de quién es la responsabilidad, y eso define quién paga el envío de vuelta. Cuando el vendedor recibe el producto de vuelta, te reembolsamos el monto menos la comisión de Trado.",
+    a: "Sí, antes de confirmar la recepción. Al procesarla se determina de quién es la responsabilidad, y eso define quién paga el envío de vuelta. Cuando el vendedor recibe el producto de vuelta, te reembolsamos: todo si el problema era del vendedor, o el monto menos la comisión de Trado si la devolución es por tu decisión.",
   },
 ];
 

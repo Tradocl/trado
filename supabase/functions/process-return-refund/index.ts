@@ -97,7 +97,7 @@ serve(async (req: Request): Promise<Response> => {
     // Get return request
     const { data: returnRequest, error: returnError } = await supabaseClient
       .from("return_requests")
-      .select("id, status")
+      .select("id, status, shipping_paid_by")
       .eq("id", returnRequestId)
       .eq("transaction_id", transactionId)
       .single();
@@ -183,9 +183,15 @@ serve(async (req: Request): Promise<Response> => {
       ? transactionAmount + commission 
       : transactionAmount;
 
-    // IMPORTANT: Commission is ALWAYS charged on returns
-    // Refund amount = what they paid MINUS commission
-    const refundAmount = escrowAmount - commission;
+    // La comisión la paga el comprador sólo si la devolución es por su culpa.
+    // Si la culpa es del vendedor (aceptó la devolución, o el admin lo decidió
+    // al mediar), el comprador recupera todo: cobrarle por un producto malo del
+    // otro es el reclamo más obvio. A Trado no le cuesta nada, porque
+    // MercadoPago devuelve su comisión en el reembolso. `shipping_paid_by` es
+    // donde queda registrada la responsabilidad (quién paga el envío de vuelta).
+    const culpaDelVendedor = returnRequest.shipping_paid_by === "seller";
+    const commissionCharged = culpaDelVendedor ? 0 : commission;
+    const refundAmount = escrowAmount - commissionCharged;
 
     console.log(`[process-return-refund] Processing refund: initiatorRole=${initiatorRole}, escrowAmount=${escrowAmount}, commission=${commission}, refundAmount=${refundAmount}`);
 
@@ -262,7 +268,9 @@ serve(async (req: Request): Promise<Response> => {
         type: "escrow_release",
         amount: refundAmount,
         balance_after: newBalance,
-        description: `Reembolso "${tx.product_name}" (menos comisión)`,
+        description: commissionCharged > 0
+          ? `Reembolso "${tx.product_name}" (menos comisión)`
+          : `Reembolso "${tx.product_name}"`,
         status: "approved",
       });
 
@@ -275,15 +283,15 @@ serve(async (req: Request): Promise<Response> => {
 
     // Create commission movement to track platform revenue
     // balance_after for this record = newBalance - commission (reflects the actual deduction)
-    if (commission > 0) {
+    if (commissionCharged > 0) {
       const { error: commissionError } = await supabaseClient
         .from("wallet_movements")
         .insert({
           wallet_id: wallet.id,
           transaction_id: transactionId,
           type: "commission",
-          amount: -commission,
-          balance_after: newBalance - commission,
+          amount: -commissionCharged,
+          balance_after: newBalance - commissionCharged,
           description: `Comisión "${tx.product_name}"`,
           status: "approved",
         });
