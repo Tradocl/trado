@@ -1,6 +1,6 @@
 Nos preguntan harto cuánto cobramos, así que lo pusimos como boleta 🧾
 
-Crear tu cuenta y usar la app no cuesta nada. Pagas una comisión solo cuando haces una operación:
+Crear tu cuenta y usar la app no cuesta nada. Pagas una comisión solo cuando la venta se concreta:
 
 💳 Con tarjeta: 5%.
 🏦 Con transferencia (desde $400.000): 3,5% hasta $400.000, 3% sobre lo que exceda hasta $1.150.000 y 2,5% sobre lo que pase de ahí.
@@ -9,7 +9,7 @@ Ejemplo: en una venta de $1.000.000 pagas $32.000 con transferencia o $50.000 co
 
 La paga quien crea la sala: si la crea el comprador, se suma a lo que paga; si la crea el vendedor, se descuenta de lo que recibe.
 
-Y algo que preferimos decirte ahora y no después: la comisión no se devuelve, ni siquiera si hay una apelación.
+¿Y si la venta se cae? Si se cancela o una disputa se resuelve a favor del comprador, no hay comisión y te devolvemos todo. Si pagaste con tarjeta, vuelve a tu tarjeta. Solo si devuelves un producto por decisión tuya se descuenta la comisión.
 
 ¿Dudas? Escríbenos por DM, te respondemos nosotros.
 
@@ -20,4 +20,6 @@ Y algo que preferimos decirte ahora y no después: la comisión no se devuelve, 
 Formato: 4:5 · Ubicación: Santiago, Chile · Etiqueta de IA: apagada
 
 Texto alternativo (Configuración avanzada → Accesibilidad):
-Precios de Trado: cuenta gratis, 5% con tarjeta y de 3,5% a 2,5% con transferencia desde $400.000.
+Precios de Trado: cuenta gratis, 5% con tarjeta y de 3,5% a 2,5% con transferencia desde $400.000. Si la venta se cancela, no hay comisión.
+
+Cifras verificadas con calculateFee (src/lib/utils.ts) el 2026-09-27.
