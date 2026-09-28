@@ -2,14 +2,12 @@ Nos preguntan harto cuánto cobramos, así que lo pusimos como boleta 🧾
 
 Crear tu cuenta y usar la app no cuesta nada. Pagas una comisión solo cuando la venta se concreta:
 
-💳 Con tarjeta: 5%.
-🏦 Con transferencia (desde $400.000): 3,5% hasta $400.000, 3% sobre lo que exceda hasta $1.150.000 y 2,5% sobre lo que pase de ahí.
+💳 Con tarjeta: hasta 5%.
+🏦 Con transferencia: menos, y baja mientras más grande sea la venta.
 
-Ejemplo: en una venta de $1.000.000 pagas $32.000 con transferencia o $50.000 con tarjeta. El mínimo por operación es $1.000.
+Si la venta se cancela, no pagas comisión y te devolvemos tu plata.
 
-La paga quien crea la sala: si la crea el comprador, se suma a lo que paga; si la crea el vendedor, se descuenta de lo que recibe.
-
-¿Y si la venta se cae? Si se cancela o una disputa se resuelve a favor del comprador, no hay comisión y te devolvemos todo. Si pagaste con tarjeta, vuelve a tu tarjeta. Solo si devuelves un producto por decisión tuya se descuenta la comisión.
+Y lo más importante: antes de crear la sala ves la comisión exacta, en pesos. Sin sorpresas al final.
 
 ¿Dudas? Escríbenos por DM, te respondemos nosotros.
 
@@ -20,6 +18,8 @@ La paga quien crea la sala: si la crea el comprador, se suma a lo que paga; si l
 Formato: 4:5 · Ubicación: Santiago, Chile · Etiqueta de IA: apagada
 
 Texto alternativo (Configuración avanzada → Accesibilidad):
-Precios de Trado: cuenta gratis, 5% con tarjeta y de 3,5% a 2,5% con transferencia desde $400.000. Si la venta se cancela, no hay comisión.
+Boleta de precios de Trado: cuenta y mensualidad gratis, comisión hasta 5% con tarjeta y menos con transferencia, $0 si la venta se cancela, y la comisión exacta se ve antes de pagar.
 
-Cifras verificadas con calculateFee (src/lib/utils.ts) el 2026-09-27.
+Versión sin cifras que puedan cambiar (2026-09-28). "Hasta 5%" vale para la tarjeta; hay un mínimo por operación
+(hoy $1.000 en calculateFee), por eso la imagen dice "con un mínimo por operación". Si cambian las tarifas, este
+post sigue siendo cierto mientras la tarjeta no pase de 5% y la transferencia siga siendo más barata.

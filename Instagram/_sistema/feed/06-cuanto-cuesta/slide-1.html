@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
-<!-- Cifras verificadas con calculateFee (src/lib/utils.ts) el 2026-09-27:
-     $1.000.000 → transferencia $32.000 · tarjeta $50.000. Transferencia desde $400.000
-     (OFFER_TRANSFER_AT en src/lib/trado-bank.ts). Venta cancelada o disputa ganada por el
-     comprador: sin comisión (Términos 3.3). Ya NO dice "la comisión no se devuelve". -->
+<!-- Versión sin compromiso (2026-09-28): sin tramos, sin umbrales ni ejemplos que
+     puedan cambiar. "Hasta 5%" es cierto para la tarjeta; el mínimo por operación
+     (hoy $1.000, calculateFee) se menciona sin número porque en montos chicos el
+     porcentaje real supera el 5%. La cifra exacta se ve en la app antes de crear la sala. -->
 <style>
   .boleta {
     position: relative; margin-top: 52px; background: #fff; color: var(--texto);
@@ -35,18 +35,17 @@
     <div class="linea"><span>Cuenta y mensualidad</span><b>$0</b></div>
 
     <div class="seccion">Comisión por operación</div>
-    <div class="nota" style="margin-top:6px">La paga quien crea la sala.</div>
-    <div class="linea"><span>Con tarjeta</span><b>5%</b></div>
-    <div class="linea"><span>Con transferencia<div class="nota">desde $400.000 · baja según el monto</div></span><b>3,5% → 2,5%</b></div>
+    <div class="nota" style="margin-top:6px">Solo si la venta se concreta.</div>
+    <div class="linea"><span>Con tarjeta</span><b>hasta 5%</b></div>
+    <div class="linea"><span>Con transferencia</span><b class="acento-indigo">menos</b></div>
     <div class="linea"><span>Si la venta se cancela</span><b style="color:var(--verde)">$0</b></div>
 
-    <div class="seccion">Ejemplo: venta de $1.000.000</div>
-    <div class="linea"><span>Con tarjeta</span><b>$50.000</b></div>
-    <div class="linea"><span>Con transferencia</span><b class="acento-indigo">$32.000</b></div>
+    <div class="seccion">Antes de pagar</div>
+    <div class="linea"><span>Ves la comisión exacta</span><b>✓</b></div>
 
     <div class="total"><span>Sorpresas al final</span><b>$0</b></div>
   </div>
 
   <div class="relleno"></div>
-  <div class="pie"><span>Mínimo $1.000 por operación · detalle en los Términos</span><span>trado.cl</span></div>
+  <div class="pie"><span>Con un mínimo por operación · detalle en la app</span><span>trado.cl</span></div>
 </div></body></html>
