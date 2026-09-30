@@ -6,9 +6,10 @@
  * puede desplegar antes de tener la cuenta publicitaria lista.
  *
  * El ID del píxel es público (va en el HTML de cualquier sitio que lo use):
- * se configura en Vercel como VITE_META_PIXEL_ID o se pega en META_PIXEL_ID.
+ * va fijo aquí; VITE_META_PIXEL_ID en Vercel lo reemplaza si algún día cambia.
+ * Píxel "Trado" del administrador de eventos (business 3017559251930534).
  */
-const META_PIXEL_ID: string = import.meta.env.VITE_META_PIXEL_ID ?? "";
+const META_PIXEL_ID: string = import.meta.env.VITE_META_PIXEL_ID || "2622592151544928";
 
 export const COOKIE_KEY = "trado_cookie_consent";
 export const CONSENT_EVENT = "trado:cookie-consent";

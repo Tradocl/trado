@@ -46,7 +46,7 @@ conflicto, hay apelaciones con mediación.
 | Móvil | Capacitor (Android) |
 | Repo | https://github.com/Tradocl/trado (**público**) |
 | Marketing | `Instagram/`: feed, reels, historias y logos, con el sistema que los genera en `_sistema/`. `Instagram/5 Documentos/` y `notas/` no se suben porque son internos |
-| Píxel de Meta | `src/lib/meta-pixel.ts`. Apagado mientras no exista `VITE_META_PIXEL_ID` en Vercel; con ID, se carga solo si el usuario tocó "Aceptar todo" en el banner de cookies. Eventos: `PageView` por ruta y `CompleteRegistration` al crear cuenta. La política de privacidad (sección 9) lo menciona |
+| Píxel de Meta | `src/lib/meta-pixel.ts`. ID `2622592151544928` fijo en el archivo (`VITE_META_PIXEL_ID` lo reemplaza); se carga solo si el usuario tocó "Aceptar todo" en el banner de cookies. Eventos: `PageView` por ruta y `CompleteRegistration` al crear cuenta. La política de privacidad (sección 9) lo menciona |
 
 **Proyecto Supabase:** `aekzrackrijuxvopqfbp`, cuenta **contacto@trado.cl**.
 Hay un token personal de larga duración llamado "Claude" en la cuenta; si
