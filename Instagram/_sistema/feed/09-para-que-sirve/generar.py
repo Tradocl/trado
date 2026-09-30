@@ -53,14 +53,14 @@ collage = "\n".join(
 <style>
   .grande {{ margin-top: 32px; font-size: 124px; font-weight: 800; letter-spacing: -5.5px; line-height: .96; }}
   .collage {{ position: relative; height: 560px; margin-top: 30px; }}
-  .mini {{ position: absolute; background: #fff; color: var(--texto); border-radius: 26px; padding: 24px 28px; width: 420px; box-shadow: 0 30px 60px -24px rgba(10,12,60,.6); }}
+  .mini {{ position: absolute; background: #fff; color: var(--texto); border-radius: 26px; padding: 24px 28px; width: 420px; box-shadow: 0 2px 4px rgba(19,25,36,.05), 0 36px 70px -28px rgba(31,37,193,.42); }}
   .mini .t {{ display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 700; color: var(--indigo); }}
   .mini .t svg {{ width: 30px; height: 30px; stroke-width: 2.2; }}
   .mini b {{ display: block; font-size: 34px; letter-spacing: -1px; margin-top: 12px; }}
   .mini span.m {{ font-size: 30px; font-weight: 800; letter-spacing: -.8px; color: #3B4150; }}
 </style></head>
-<body><div class="slide fondo-hero">
-  <div class="marca-agua"></div>
+<!-- Portada gris: el carrusel sale como post 10 (par = gris en la X del feed). -->
+<body><div class="slide fondo-gris">
   <div class="cabecera"><span class="logo">trado</span></div>
   <div class="antetitulo"><span class="etiqueta">4 formas de usarlo</span></div>
 
