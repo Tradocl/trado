@@ -7,9 +7,12 @@
  *
  * El ID del píxel es público (va en el HTML de cualquier sitio que lo use):
  * va fijo aquí; VITE_META_PIXEL_ID en Vercel lo reemplaza si algún día cambia.
- * Píxel "Trado" del administrador de eventos (business 3017559251930534).
+ * Píxel "Trado web" del portafolio "trado | negocia seguro" (business
+ * 1729253141780740), el mismo de la cuenta publicitaria "Trado ads". El primer
+ * píxel (2622592151544928) quedó en otro portafolio y Meta no deja compartirlo
+ * con socios hasta que el portafolio cumpla semanas: por eso se reemplazó.
  */
-const META_PIXEL_ID: string = import.meta.env.VITE_META_PIXEL_ID || "2622592151544928";
+const META_PIXEL_ID: string = import.meta.env.VITE_META_PIXEL_ID || "28314429144904443";
 
 export const COOKIE_KEY = "trado_cookie_consent";
 export const CONSENT_EVENT = "trado:cookie-consent";
