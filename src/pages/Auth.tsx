@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase, signIn, signUp } from "@/lib/supabase";
+import { trackRegistro } from "@/lib/meta-pixel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -239,6 +240,7 @@ const Auth = () => {
       setLoading(false);
     } else if (data.user) {
       // Welcome email is sent automatically by AuthContext on SIGNED_IN (idempotent).
+      trackRegistro();
       
       
       setSignupPassword("");
@@ -424,7 +426,7 @@ const Auth = () => {
     <>
       <Helmet>
         <title>Iniciar sesión o registrarse — Trado</title>
-        <meta name="description" content="Accede a tu cuenta Trado o regístrate gratis para empezar a usar el escrow P2P más seguro de Chile." />
+        <meta name="description" content="Accede a tu cuenta Trado o regístrate gratis para comprar y vender con tu plata retenida hasta que se cumpla el trato." />
         <link rel="canonical" href="https://trado.cl/auth" />
         <meta property="og:title" content="Iniciar sesión — Trado" />
         <meta property="og:url" content="https://trado.cl/auth" />
@@ -447,7 +449,7 @@ const Auth = () => {
             <div className="flex flex-col items-center text-center space-y-2">
               <Logo height={56} />
               <CardDescription className="text-base">
-                Negocia seguro, sin riesgos
+                Compra y vende seguro
               </CardDescription>
             </div>
           </CardHeader>

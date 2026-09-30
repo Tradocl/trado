@@ -2349,7 +2349,7 @@ const Transaction = () => {
                   <Lock className="w-4 h-4 text-warning" />
                 </div>
                 <p className="text-sm">
-                  Tu dinero estará 100% seguro. Solo se liberará al {sellerLabel.toLowerCase()} cuando confirmes que
+                  Tu dinero queda retenido en Trado. Solo se liberará al {sellerLabel.toLowerCase()} cuando confirmes que
                   recibiste {transaction.sale_type === "servicio" ? "el servicio" : "el producto"}.
                 </p>
               </div>

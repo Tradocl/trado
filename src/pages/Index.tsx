@@ -160,7 +160,7 @@ const AppLanding = () => {
         <div className="text-center space-y-2 mt-2">
           <h1 className="text-4xl font-black text-white tracking-tight">
             Compra y vende<br />
-            <span className="text-[#818cf8]">sin riesgo</span>
+            <span className="text-[#818cf8]">seguro</span>
           </h1>
           <p className="text-white/60 text-base">Tu dinero protegido hasta confirmar la entrega</p>
         </div>
@@ -198,7 +198,7 @@ const AppLanding = () => {
           {/* Trust pills */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { icon: Shield, label: "Escrow", sub: "100% seguro" },
+              { icon: Shield, label: "Escrow", sub: "Plata retenida" },
               { icon: Star, label: "Reputación", sub: "Verificada" },
               { icon: CheckCircle, label: "Disputas", sub: "Mediadas" },
             ].map(({ icon: Icon, label, sub }) => (
@@ -267,10 +267,10 @@ const WebLanding = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Trado — Negocia Seguro con Escrow P2P | Chile</title>
-        <meta name="description" content="Trado protege tu dinero en escrow hasta confirmar la entrega. Compra, vende y contrata servicios sin riesgos en Chile." />
+        <meta name="description" content="Trado protege tu dinero en escrow hasta confirmar la entrega. Compra, vende y contrata servicios entre personas en Chile, con tu plata retenida hasta que se cumpla el trato." />
         <link rel="canonical" href="https://trado.cl/" />
         <meta property="og:title" content="Trado — Negocia Seguro con Escrow P2P" />
-        <meta property="og:description" content="Tu dinero protegido en escrow hasta confirmar la entrega. Sin estafas, sin riesgos." />
+        <meta property="og:description" content="Tu plata queda retenida hasta que confirmas la entrega. Compra y vende más tranquilo." />
         <meta property="og:url" content="https://trado.cl/" />
         <script type="application/ld+json">{JSON.stringify(FAQ_JSON_LD)}</script>
       </Helmet>
@@ -380,7 +380,7 @@ const WebLanding = () => {
               <Shield className="h-6 w-6 text-white" />
             </div>
             <p className="text-2xl font-bold mb-3">Trado existe para que esto no vuelva a pasarte.</p>
-            <p className="text-white/85">El dinero queda retenido hasta que ambas partes confirmen que todo salió bien. Sin riesgos, sin estafas.</p>
+            <p className="text-white/85">El dinero queda retenido hasta que ambas partes confirmen que todo salió bien. Si algo no calza, apelas y la plata sigue retenida.</p>
           </div>
         </div>
       </section>
@@ -455,9 +455,9 @@ const WebLanding = () => {
               {
                 icon: Shield, gradient: "from-success/10 to-emerald-50",
                 border: "border-success/20", iconBg: "bg-success/10", iconColor: "text-success",
-                title: "Escrow 100% Seguro",
+                title: "Tu plata, retenida",
                 desc: "Tu dinero queda bloqueado en la plataforma. Quien recibe el pago no puede cobrarlo hasta que confirmes que se cumplió lo acordado.",
-                items: ["Dinero protegido siempre", "Devolución si hay problemas", "Mediación por nuestro equipo"],
+                items: ["Retenida hasta que confirmas", "Devolución si hay problemas", "Mediación por nuestro equipo"],
                 check: "text-success",
               },
               {
@@ -615,7 +615,7 @@ const WebLanding = () => {
               <CheckCircle className="h-4 w-4 text-emerald-400" />
               Gratis para empezar
             </div>
-            <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4">¿Listo para hacer tratos sin riesgos?</h2>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4">¿Listo para tu próximo trato?</h2>
             <p className="text-white/80 text-lg mb-8">
               Crea tu cuenta gratis en menos de un minuto y haz tu primera transacción segura hoy.
             </p>

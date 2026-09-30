@@ -16,6 +16,7 @@ import { AdminMfaGate } from "./components/admin/AdminMfaGate";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { SupportFab } from "./components/SupportFab";
 import { CookieBanner } from "./components/CookieBanner";
+import { trackPageView, CONSENT_EVENT } from "@/lib/meta-pixel";
 
 // Eager: most frequent entry points
 import Index from "./pages/Index";
@@ -120,6 +121,17 @@ const ScrollToTop = () => {
   return null;
 };
 
+// Píxel de Meta: una visita por página, y la actual apenas se aceptan las cookies.
+const MetaPixelPageViews = () => {
+  const { pathname } = useLocation();
+  useEffect(() => { trackPageView(); }, [pathname]);
+  useEffect(() => {
+    window.addEventListener(CONSENT_EVENT, trackPageView);
+    return () => window.removeEventListener(CONSENT_EVENT, trackPageView);
+  }, []);
+  return null;
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -129,6 +141,7 @@ const App = () => (
         <BrowserRouter>
           <MobileBootstrap />
           <ScrollToTop />
+          <MetaPixelPageViews />
           <AuthProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>

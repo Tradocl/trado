@@ -35,7 +35,7 @@ const Privacy = () => {
             </h1>
           </div>
           <p className="text-white/80 text-lg">
-            Última actualización: Junio 2026
+            Última actualización: Septiembre 2026
           </p>
         </div>
       </div>
@@ -304,6 +304,7 @@ const Privacy = () => {
                 <li><strong>Cookies esenciales:</strong> Necesarias para el funcionamiento de la plataforma (sesión, autenticación).</li>
                 <li><strong>Cookies de preferencias:</strong> Recordar tus configuraciones (tema, idioma).</li>
                 <li><strong>Cookies analíticas:</strong> Entender cómo usas la plataforma para mejorarla.</li>
+                <li><strong>Medición de publicidad:</strong> Solo si eliges "Aceptar todo", usamos el píxel de Meta (Facebook e Instagram) para saber qué anuncios traen visitas y registros. No compartimos con Meta tus datos de pagos ni de tus transacciones. Si eliges "Solo esenciales", no se carga.</li>
               </ul>
               <p>
                 Puedes configurar tu navegador para rechazar cookies, aunque esto puede afectar 

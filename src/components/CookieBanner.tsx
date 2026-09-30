@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Cookie } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const COOKIE_KEY = "trado_cookie_consent";
+import { COOKIE_KEY, CONSENT_EVENT } from "@/lib/meta-pixel";
 
 export const CookieBanner = () => {
   const [visible, setVisible] = useState(false);
@@ -20,6 +19,7 @@ export const CookieBanner = () => {
   const acceptAll = () => {
     localStorage.setItem(COOKIE_KEY, "accepted");
     setVisible(false);
+    window.dispatchEvent(new Event(CONSENT_EVENT));
   };
 
   if (!visible) return null;
@@ -29,8 +29,8 @@ export const CookieBanner = () => {
       <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <Cookie className="h-5 w-5 text-primary shrink-0 mt-0.5" />
         <p className="text-sm text-muted-foreground flex-1">
-          Usamos cookies esenciales para el funcionamiento de la plataforma y cookies analíticas
-          para mejorar tu experiencia.{" "}
+          Usamos cookies esenciales para el funcionamiento de la plataforma y, si aceptas todo, cookies analíticas
+          y de medición de publicidad (Meta) para mejorar tu experiencia.{" "}
           <Link to="/privacy" className="text-primary underline hover:text-primary/80">
             Política de Privacidad
           </Link>
