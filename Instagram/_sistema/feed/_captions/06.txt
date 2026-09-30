@@ -3,7 +3,7 @@ Nos preguntan harto cuánto cobramos, así que lo pusimos como boleta 🧾
 Crear tu cuenta y usar la app no cuesta nada. Pagas una comisión solo cuando la venta se concreta:
 
 💳 Con tarjeta: hasta 5%.
-🏦 Con transferencia: aún menos, y baja mientras más grande sea la venta.
+🏦 En ventas grandes, con transferencia: aún menos, y baja mientras más grande sea la venta.
 
 Si la venta se cancela, no pagas comisión y te devolvemos tu plata.
 
@@ -18,8 +18,10 @@ Y lo más importante: antes de crear la sala ves la comisión exacta, en pesos. 
 Formato: 4:5 · Ubicación: Santiago, Chile · Etiqueta de IA: apagada
 
 Texto alternativo (Configuración avanzada → Accesibilidad):
-Boleta de precios de Trado: cuenta y mensualidad gratis, comisión hasta 5% con tarjeta y aún menos con transferencia, $0 si la venta se cancela, y la comisión exacta se ve antes de pagar.
+Boleta de precios de Trado: cuenta y mensualidad gratis, comisión hasta 5% con tarjeta y aún menos con transferencia en ventas grandes, $0 si la venta se cancela, y la comisión exacta se ve antes de pagar.
 
 Versión sin cifras que puedan cambiar (2026-09-28). "Hasta 5%" vale para la tarjeta; hay un mínimo por operación
 (hoy $1.000 en calculateFee), por eso la imagen dice "con un mínimo por operación". Si cambian las tarifas, este
 post sigue siendo cierto mientras la tarjeta no pase de 5% y la transferencia siga siendo más barata.
+La transferencia solo se habilita desde OFFER_TRANSFER_AT (hoy $400.000, src/lib/trado-bank.ts): por eso
+"en ventas grandes", sin cifra.
