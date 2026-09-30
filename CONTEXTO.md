@@ -457,6 +457,31 @@ transferencia obligatoria. Hay reunión por Zoom pendiente.
 **Corrección pendiente:** si se le envió el número viejo de comisión, hay que
 corregirlo antes de la reunión.
 
+### Publicidad en Meta (desde 2026-09-30)
+
+Todo vive en el portafolio **"trado | negocia seguro"** (business
+`1729253141780740`): página de Facebook *Trado*, Instagram *trado_cl*, cuenta
+publicitaria **Trado ads** (`2310519049715939`, CLP, hora de Santiago) y el
+píxel **Trado web** (`28314429144904443`).
+
+Hay restos que **no se usan**: el portafolio "Trado" (`3017559251930534`) con
+el primer píxel (`2622592151544928`), y la cuenta publicitaria personal
+"Trado Escrow" (`1793698338319038`). Meta no dejó moverlos al portafolio bueno
+(cuenta personal sin pagos; portafolio nuevo sin permiso para compartir), por
+eso se rehízo todo en el portafolio bueno.
+
+**Campaña 1:** "Captación - Semana 1", tráfico optimizado por visitas a la
+página de destino, $6.000 diarios (más IVA), Chile, sugerencia 20-55. Un
+anuncio: el reel "Pago falso" como publicación existente, botón *Registrarte*,
+URL `https://www.trado.cl/?utm_source=meta&utm_medium=paid&utm_campaign=semana1&utm_content=reel`.
+WhatsApp fuera de las ubicaciones: Meta exige un número de WhatsApp conectado a
+la página y no se quiso usar el personal. Presupuesto total: $200.000 al mes
+con IVA.
+
+**Decisiones:** sin mejoras de contenido con IA (Meta agrega texto y música que
+no controlamos) y sin coincidencias avanzadas automáticas (leerían los
+formularios de billetera y perfil).
+
 ## 8. Comandos útiles
 
 ```bash
