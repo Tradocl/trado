@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
+<!-- Portada del reel 05 "Me dejaron en visto". Gris: sale como post 12 (par = gris en la X).
+     Lienzo 1080x1920; la grilla muestra el centro 3:4 (y 240 a 1680).
+     chat.png sale de reel05.py (chat genérico, sin marca de ninguna app). -->
+<style>
+  html, body { height: 1920px; }
+  .slide { height: 1920px; padding: 300px 88px 300px; }
+  .alerta { background: rgba(239,67,67,.10) !important; color: var(--rojo) !important; }
+  .grande { margin-top: 40px; font-size: 128px; font-weight: 800; letter-spacing: -5.5px; line-height: .96; }
+  .chat { display: block; width: 800px; margin: 40px auto 0; border-radius: 48px; transform: rotate(-2deg);
+          box-shadow: 0 50px 90px -30px rgba(31,37,193,.45); }
+  .ver { display: flex; align-items: center; gap: 24px; font-size: 34px; font-weight: 700; color: var(--indigo); }
+  .play { width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #1F25C1, #7B46D8); display: grid; place-items: center; }
+  .play svg { width: 30px; height: 30px; fill: #fff; margin-left: 5px; }
+</style></head>
+<body><div class="slide fondo-gris">
+  <div class="cabecera"><span class="logo">trado</span><span class="etiqueta alerta">¿Te ha pasado? Comenta YO</span></div>
+  <div class="grande">Hice el trabajo. Me dejaron en <span class="marca">visto.</span></div>
+  <img class="chat" src="chat.png">
+  <div class="relleno"></div>
+  <div class="ver"><span class="play"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></span>Mira cómo evitarlo</div>
+</div></body></html>
