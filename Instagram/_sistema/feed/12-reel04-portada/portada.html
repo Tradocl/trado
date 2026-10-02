@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
+<!-- Portada del reel 04 "¿Qué había en la caja?". Oscura: sale como post 11
+     (impares de color, alternando azul y oscuro; el 9 fue azul).
+     Lienzo 1080x1920; la grilla muestra el centro 3:4 (y 240 a 1680).
+     caja.png sale de reel04.py. -->
+<style>
+  html, body { height: 1920px; }
+  .slide { height: 1920px; padding: 300px 88px 300px; }
+  .grande { margin-top: 40px; font-size: 140px; font-weight: 800; letter-spacing: -6px; line-height: .95; }
+  .sub { margin-top: 34px; font-size: 44px; font-weight: 700; color: #C9CAD6; }
+  .sub b { color: #FF6B4A; }
+  .caja { display: block; width: 900px; margin: 30px auto 0; transform: rotate(-3deg); }
+  .ver { display: flex; align-items: center; gap: 24px; font-size: 34px; font-weight: 700; color: #fff; }
+  .play { width: 84px; height: 84px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+  .play svg { width: 30px; height: 30px; fill: #1F25C1; margin-left: 5px; }
+</style></head>
+<body><div class="slide fondo-oscuro">
+  <div class="cabecera"><span class="logo">trado</span><span class="etiqueta neutra">Juego · comenta tu apuesta</span></div>
+  <div class="grande">¿Qué había en la <span class="marca">caja?</span></div>
+  <div class="sub">Pagó $350.000 por una consola. <b>Adivina.</b></div>
+  <img class="caja" src="caja.png">
+  <div class="relleno"></div>
+  <div class="ver"><span class="play"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></span>Mira qué llegó</div>
+</div></body></html>
