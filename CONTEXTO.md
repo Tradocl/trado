@@ -434,6 +434,20 @@ Están acá para no repetirlos.
 3. **Casi sobrescribir `main` con un merge desde una rama vieja.** El push fue
    rechazado por GitHub y eso salvó dos meses de trabajo. **No forzar pushes.**
 
+4. **Quitarle EXECUTE a `PUBLIC` creyendo que `service_role` no lo necesita.**
+   La migración del 2026-09-13 cerró la acuñación revocando las funciones de
+   dinero `FROM PUBLIC`, con el comentario "service_role no pasa por estos
+   permisos". Es falso: `service_role` se salta **RLS**, no los grants de
+   EXECUTE, y los heredaba de PUBLIC. Durante tres semanas todo paso que mueve
+   saldo desde una Edge Function (acreditar tarjeta, financiar sala, liberar,
+   devolver) habría fallado con `permission denied`. Lo destapó el pago MP
+   `181036601005` del 2026-10-02, que llegó al webhook y no se acreditó. Las
+   simulaciones de seguridad no lo vieron porque corrían como `postgres`.
+   Arreglo: `20261002000000_service_role_ejecuta_funciones_de_dinero.sql`.
+   **Guarda:** `src/lib/rpc-grants.test.ts` falla si una función que una Edge
+   Function llama por `rpc()` queda sin EXECUTE para service_role. Y al simular
+   flujos legítimos, hacerlo con `SET LOCAL ROLE service_role`, no como postgres.
+
 ## 7. Clientes y comercial
 
 ### Caso abierto: tmuros.cl (Jorge Adriazola)
