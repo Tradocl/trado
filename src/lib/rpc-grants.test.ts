@@ -14,17 +14,19 @@ const FUNCTIONS_DIR = join(__dirname, "../../supabase/functions");
 const MIGRATIONS_DIR = join(__dirname, "../../supabase/migrations");
 
 function rpcCalledByEdgeFunctions(): Set<string> {
+  // Incluye _shared: ahí vive, por ejemplo, la acreditación de pagos de MP.
   const names = new Set<string>();
-  for (const dir of readdirSync(FUNCTIONS_DIR, { withFileTypes: true })) {
-    if (!dir.isDirectory() || dir.name.startsWith("_")) continue;
-    let src: string;
-    try {
-      src = readFileSync(join(FUNCTIONS_DIR, dir.name, "index.ts"), "utf8");
-    } catch {
-      continue;
+  const walk = (dir: string) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else if (e.name.endsWith(".ts")) {
+        const src = readFileSync(full, "utf8");
+        for (const m of src.matchAll(/\.rpc\(\s*["'`]([a-z_0-9]+)["'`]/g)) names.add(m[1]);
+      }
     }
-    for (const m of src.matchAll(/\.rpc\(\s*["'`]([a-z_0-9]+)["'`]/g)) names.add(m[1]);
-  }
+  };
+  walk(FUNCTIONS_DIR);
   return names;
 }
 

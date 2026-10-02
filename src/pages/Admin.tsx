@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { formatCLP } from "@/lib/utils";
 import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
 import { AdminReturnMediationList } from "@/components/admin/AdminReturnMediationList";
+import { MpReconciliation } from "@/components/admin/MpReconciliation";
 
 interface Profile {
   id: string;
@@ -123,8 +124,9 @@ export default function Admin() {
     totalWithdrawals: 0,
     activeEscrow: 0,
     totalCommissions: 0,
-    totalMpFees: 0, // Comisiones cobradas por Mercado Pago en los depósitos
-    expectedBankBalance: 0, // Depósitos - Fees MP - Retiros (lo que debe haber en cuenta Trado)
+    totalMpFees: 0, // Comisión de MP de los depósitos que no se devolvieron
+    totalCardRefunds: 0, // Reembolsos a tarjeta (plata que salió de Trado)
+    expectedBankBalance: 0, // Depósitos - Fees MP - Retiros - Reembolsos (lo que debe haber en MP + banco)
     theoreticalWalletBalance: 0, // Depósitos - Retiros - Comisiones (lo que debería haber en wallets)
     tradoNetProfit: 0, // Comisiones Trado - Fees MP (ganancia neta real)
     discrepancy: 0,
@@ -320,45 +322,51 @@ export default function Admin() {
         blocked_balance: w.blocked_balance || 0,
       })).sort((a, b) => b.balance - a.balance) || [];
 
-      // 2. Total deposits approved (gross credited to wallets) + MP fees withheld
+      // 2. Depósitos aprobados (bruto acreditado) y comisión de MP.
+      // MP devuelve su comisión cuando se reembolsa el pago a la tarjeta, así que
+      // sólo cuesta la de los depósitos que NO se devolvieron.
       const { data: depositsData } = await supabase
         .from("wallet_movements")
-        .select("amount, external_fee")
+        .select("amount, external_fee, refunded_at")
         .eq("type", "deposit")
         .eq("status", "approved");
 
-      const deposits = ((depositsData as unknown) as { amount: number; external_fee: number | null }[] | null) || [];
-      const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
-      // Mercado Pago fee withheld before funds reach the Trado account
-      const totalMpFees = deposits.reduce((sum, d) => sum + (d.external_fee || 0), 0);
+      const deposits = ((depositsData as unknown) as { amount: number; external_fee: number | null; refunded_at: string | null }[] | null) || [];
+      const totalDeposits = deposits.reduce((sum, d) => sum + Number(d.amount), 0);
+      const totalMpFees = deposits.reduce((sum, d) => sum + (d.refunded_at ? 0 : Number(d.external_fee || 0)), 0);
 
-      // 3. Total withdrawals approved
+      // 3. Retiros aprobados (el monto se guarda positivo) y reembolsos a tarjeta
+      // (se guardan negativos). Las dos son plata que salió de Trado.
       const { data: withdrawalsData } = await supabase
         .from("wallet_movements")
         .select("amount")
         .eq("type", "withdrawal")
         .eq("status", "approved");
+      const totalWithdrawals = withdrawalsData?.reduce((sum, w) => sum + Math.abs(Number(w.amount)), 0) || 0;
 
-      const totalWithdrawals = withdrawalsData?.reduce((sum, w) => sum + w.amount, 0) || 0;
-
-      // 4. Active escrow - only count escrow_lock with status 'pending' 
-      // When transaction completes, escrow_lock changes to 'approved', so it's no longer active
-      const { data: escrowLockData } = await supabase
+      const { data: refundsData } = await supabase
         .from("wallet_movements")
         .select("amount")
-        .eq("type", "escrow_lock")
-        .eq("status", "pending");
+        .eq("type", "refund")
+        .eq("status", "approved");
+      const totalCardRefunds = refundsData?.reduce((sum, r) => sum + Math.abs(Number(r.amount)), 0) || 0;
 
-      // escrow_lock amounts are stored as negative, so we use Math.abs
-      const activeEscrow = escrowLockData?.reduce((sum, e) => sum + Math.abs(e.amount), 0) || 0;
+      // 4. Escrow activo = lo que hoy está retenido en salas.
+      const activeEscrow = walletsData?.reduce((sum, w) => sum + Number(w.blocked_balance || 0), 0) || 0;
 
-      // 5. Total commissions from completed transactions
-      const { data: commissionsData } = await supabase
-        .from("transactions")
-        .select("commission")
-        .eq("state", "completed");
-
-      const totalCommissions = commissionsData?.reduce((sum, t) => sum + (t.commission || 0), 0) || 0;
+      // 5. Comisión realmente cobrada, leída del libro y no de transactions.commission:
+      // lo que entró a salas, menos lo que salió de ellas, menos lo que sigue retenido.
+      // Una sala reembolsada entera deja 0; en una disputa cuenta sólo la parte cobrada.
+      // (Los movimientos type="commission" son informativos: la liberación ya viene
+      // descontada, por eso no se suman aparte.)
+      const { data: escrowData } = await supabase
+        .from("wallet_movements")
+        .select("type, amount, status")
+        .in("type", ["escrow_lock", "escrow_release"])
+        .in("status", ["approved", "pending"]);
+      const lockedIn = (escrowData || []).filter(e => e.type === "escrow_lock").reduce((s, e) => s + Math.abs(Number(e.amount)), 0);
+      const releasedOut = (escrowData || []).filter(e => e.type === "escrow_release" && e.status === "approved").reduce((s, e) => s + Number(e.amount), 0);
+      const totalCommissions = Math.max(0, Math.round((lockedIn - releasedOut - activeEscrow) * 100) / 100);
 
       // 6. Movements by type
       const { data: allMovements } = await supabase
@@ -381,19 +389,12 @@ export default function Admin() {
         total: data.total,
       }));
 
-      // Calculate balances
-      // expectedBankBalance = Depósitos - Fees MP - Retiros
-      // (lo que REALMENTE debe haber en la cuenta Trado: MP descuenta su comisión
-      //  antes de que el dinero llegue, aunque al usuario se le acredita el bruto)
-      const expectedBankBalance = totalDeposits - totalMpFees - totalWithdrawals;
-
-      // theoreticalWalletBalance = Depósitos - Retiros - Comisiones (lo que debería estar en wallets de usuarios)
-      const theoreticalWalletBalance = totalDeposits - totalWithdrawals - totalCommissions;
-
-      // discrepancy = diferencia entre lo teórico y lo real en wallets
-      const discrepancy = theoreticalWalletBalance - totalCirculating;
-
-      // Ganancia neta real de Trado = comisiones cobradas - fees pagados a MP
+      // Lo que tiene que haber en la cuenta de Trado (MP + banco), y lo que es de los usuarios.
+      const expectedBankBalance = totalDeposits - totalMpFees - totalWithdrawals - totalCardRefunds;
+      const theoreticalWalletBalance = totalDeposits - totalWithdrawals - totalCardRefunds - totalCommissions;
+      // Cuadra si el libro de movimientos explica exactamente los saldos (a $1 por redondeos).
+      const rawDiscrepancy = theoreticalWalletBalance - totalCirculating;
+      const discrepancy = Math.abs(rawDiscrepancy) < 1 ? 0 : Math.round(rawDiscrepancy);
       const tradoNetProfit = totalCommissions - totalMpFees;
 
       setTokenStats({
@@ -403,6 +404,7 @@ export default function Admin() {
         activeEscrow,
         totalCommissions,
         totalMpFees,
+        totalCardRefunds,
         expectedBankBalance,
         theoreticalWalletBalance,
         tradoNetProfit,
@@ -887,7 +889,7 @@ export default function Admin() {
           </TabsTrigger>
           <TabsTrigger value="tokens">
             <Coins className="h-4 w-4 mr-2" />
-            Tokens
+            Cuadratura
           </TabsTrigger>
           <TabsTrigger value="users">Usuarios</TabsTrigger>
         </TabsList>
@@ -1507,6 +1509,8 @@ export default function Admin() {
         </TabsContent>
 
         <TabsContent value="tokens" className="space-y-4">
+          <MpReconciliation />
+
           {/* Token Summary Cards - Primera fila: Métricas principales */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card className="border-2 border-primary/30 bg-primary/5">
@@ -1516,7 +1520,7 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.expectedBankBalance)}</div>
-                <p className="text-xs text-muted-foreground">Depósitos - Fees MP - Retiros (real en banco)</p>
+                <p className="text-xs text-muted-foreground">Depósitos − retiros − reembolsos − fees MP (MP + banco)</p>
               </CardContent>
             </Card>
             <Card>
@@ -1611,7 +1615,7 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">${formatCLP(tokenStats.totalCommissions)}</div>
-                <p className="text-xs text-muted-foreground">De transacciones completadas</p>
+                <p className="text-xs text-muted-foreground">Cobradas de verdad (entra a salas − sale de salas)</p>
               </CardContent>
             </Card>
             <Card>
@@ -1621,7 +1625,7 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-destructive">${formatCLP(tokenStats.totalMpFees)}</div>
-                <p className="text-xs text-muted-foreground">~3,8% retenido por MP en depósitos (3,19% + IVA)</p>
+                <p className="text-xs text-muted-foreground">De depósitos con tarjeta no devueltos (MP devuelve su comisión al reembolsar)</p>
               </CardContent>
             </Card>
           </div>
@@ -1640,7 +1644,7 @@ export default function Admin() {
                 {/* Ecuación Principal */}
                 <div className="p-4 rounded-lg bg-muted/50 border">
                   <h4 className="font-semibold mb-3">Ecuación de Balance:</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-center text-center">
+                  <div className="grid grid-cols-2 md:grid-cols-7 gap-3 items-center text-center">
                     <div className="p-3 rounded-lg bg-success/10 border border-success/20">
                       <div className="text-xs text-muted-foreground">Depósitos</div>
                       <div className="text-lg font-bold text-success">${formatCLP(tokenStats.totalDeposits)}</div>
@@ -1649,6 +1653,11 @@ export default function Admin() {
                     <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
                       <div className="text-xs text-muted-foreground">Retiros</div>
                       <div className="text-lg font-bold text-warning">${formatCLP(tokenStats.totalWithdrawals)}</div>
+                    </div>
+                    <div className="text-xl font-bold hidden md:block">−</div>
+                    <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                      <div className="text-xs text-muted-foreground">Reembolsos a tarjeta</div>
+                      <div className="text-lg font-bold text-warning">${formatCLP(tokenStats.totalCardRefunds)}</div>
                     </div>
                     <div className="text-xl font-bold hidden md:block">−</div>
                     <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
@@ -1677,7 +1686,7 @@ export default function Admin() {
                     <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
                       <div className="text-sm text-muted-foreground">Debe haber en cuenta</div>
                       <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.expectedBankBalance)}</div>
-                      <div className="text-xs text-muted-foreground mt-1">Depósitos - Fees MP - Retiros</div>
+                      <div className="text-xs text-muted-foreground mt-1">Depósitos − retiros − reembolsos − fees MP</div>
                     </div>
                     <div className="p-3 rounded-lg bg-info/10 border border-info/20">
                       <div className="text-sm text-muted-foreground">De eso, es de usuarios</div>
@@ -1707,8 +1716,8 @@ export default function Admin() {
                     <p className="text-sm mt-2">
                       Diferencia de <strong>${formatCLP(Math.abs(tokenStats.discrepancy))}</strong> entre el balance teórico y real. 
                       {tokenStats.discrepancy > 0 
-                        ? " Faltan tokens en las wallets de usuarios." 
-                        : " Hay más tokens en wallets de lo que debería haber."}
+                        ? " Los saldos de usuarios suman menos de lo que explica el libro de movimientos." 
+                        : " Los saldos de usuarios suman más de lo que explica el libro de movimientos."}
                     </p>
                   </div>
                 )}
@@ -1720,8 +1729,8 @@ export default function Admin() {
                       <span className="font-semibold">Sistema Reconciliado</span>
                     </div>
                     <p className="text-sm mt-2">
-                      ✓ Depósitos - Retiros - Comisiones = Balance en Wallets<br/>
-                      ✓ Cuenta Trado (Depósitos - Fees MP - Retiros) = Obligación con Usuarios + Ganancia neta Trado
+                      ✓ Depósitos − Retiros − Reembolsos − Comisiones = Balance en Wallets<br/>
+                      ✓ Cuenta Trado (MP + banco) = Obligación con usuarios + Ganancia neta Trado
                     </p>
                   </div>
                 )}

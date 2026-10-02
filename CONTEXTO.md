@@ -48,6 +48,7 @@ conflicto, hay apelaciones con mediación.
 | Marketing | `Instagram/`: feed, reels, historias y logos, con el sistema que los genera en `_sistema/`. `Instagram/5 Documentos/` y `notas/` no se suben porque son internos |
 | Píxel de Meta | `src/lib/meta-pixel.ts`. ID `28314429144904443` (portafolio "trado | negocia seguro", cuenta publicitaria "Trado ads") fijo en el archivo (`VITE_META_PIXEL_ID` lo reemplaza); se carga solo si el usuario tocó "Aceptar todo" en el banner de cookies. Eventos: `PageView` por ruta y `CompleteRegistration` al crear cuenta. La política de privacidad (sección 9) lo menciona |
 | Login con Google | `src/components/GoogleSignInButton.tsx`: botón oficial de Google (GIS) + `signInWithIdToken`, para que la ventana de Google diga trado.cl y no `aekzrackrijuxvopqfbp.supabase.co`. Cliente **GTrado** (`311993626172-…`, proyecto de Google Cloud de Trado, orígenes trado.cl, www.trado.cl, localhost:8080). En Supabase, `external_google_client_id` es una **lista**: el primero (`374220022266-…`, de otro proyecto) es el del flujo OAuth antiguo, que queda de respaldo en la app nativa o si el script de Google no carga. ⚠️ No usar `external_google_additional_client_ids` por la API: reemplazó el cliente principal y rompió el OAuth unos minutos |
+| Cuadratura MP | `reconcile-mercadopago` + `_shared/mp-deposit.ts` (única lógica de acreditación, la usan también el webhook). Compara cada pago de MP con `external_reference` de Trado contra `wallet_movements` (`mp_<id>`, `mp_refund_<id>`); acredita lo faltante (idempotente), **nunca debita**: los reembolsos hechos en MP sin registro sólo se avisan. Panel admin → pestaña **Cuadratura**. El saldo de MP no tiene que igualar lo de usuarios (incluye comisiones de Trado, cobros que no son de la app y plata ya pasada al banco); lo que debe cumplirse es MP + banco ≥ lo que se le debe a usuarios |
 
 **Proyecto Supabase:** `aekzrackrijuxvopqfbp`, cuenta **contacto@trado.cl**.
 Hay un token personal de larga duración llamado "Claude" en la cuenta; si
@@ -306,11 +307,11 @@ Con `verify_jwt = true` el gateway **reemplaza** el header `Authorization`, así
 que la función ya no ve el token original y `requireServiceRole` falla. Las
 funciones llamadas por cron deben ir con `--no-verify-jwt` y autovalidarse
 internamente. Están así: `auto-release-escrow`, `expire-stale-transactions`,
-`auto-escalate-appeals`.
+`auto-escalate-appeals`, `reconcile-mercadopago`.
 
 ### Cron jobs
 
-Los 3 jobs (`cron.job`) llaman Edge Functions vía `net.http_post`, leyendo la
+Los 4 jobs (`cron.job`) llaman Edge Functions vía `net.http_post`, leyendo la
 URL y la llave desde **Vault**, no desde `current_setting('app.*')`:
 
 ```sql
@@ -325,6 +326,7 @@ URL y la llave desde **Vault**, no desde `current_setting('app.*')`:
 | `auto-release-escrow` | `0 * * * *` | Libera escrow vencido el plazo de revisión |
 | `auto-escalate-appeals` | `15 * * * *` | Escala apelaciones sin acuerdo a los admins |
 | `expire-stale-transactions` | `30 * * * *` | Cancela transacciones sin movimiento (72h) |
+| `reconcile-mercadopago` | `5,35 * * * *` | Cuadratura MP ↔ Trado: acredita pagos de Trado aprobados en MP que el webhook no registró; avisa diferencias (resumen diario 12:00 UTC) |
 
 Para diagnosticar: `SELECT * FROM cron.job_run_details ORDER BY start_time DESC`
 y las respuestas HTTP en `net._http_response`.

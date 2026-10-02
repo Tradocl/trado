@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { acreditarPagoMP } from "../_shared/mp-deposit.ts";
+import { alertarCritico } from "../_shared/alertas.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -73,106 +75,31 @@ serve(async (req: Request) => {
     }
 
     const pay = await payResp.json();
-    if (pay.status !== "approved") {
-      console.log(`[mercadopago-webhook] Payment ${paymentId} status=${pay.status}, skipping`);
-      return new Response(JSON.stringify({ received: true, skipped: pay.status }), { status: 200 });
+    const r = await acreditarPagoMP(supabase, pay, "mercadopago-webhook");
+    const json = (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+
+    switch (r.estado) {
+      case "acreditado":
+      case "ya_estaba":
+      case "no_aprobado":
+        return json({ received: true, estado: r.estado });
+      case "no_es_de_trado":
+        // Pagos que no salieron de create-mercadopago-payment (link de pago,
+        // QR, etc.): no se acreditan a nadie. 200 para que MP no reintente.
+        console.log(`[mercadopago-webhook] Pago ${paymentId} sin referencia de Trado, se ignora`);
+        return json({ received: true, estado: r.estado });
+      case "error":
+        // 500 para que MP reintente; la cuadratura (reconcile-mercadopago)
+        // también lo va a recoger. Pero que alguien se entere hoy.
+        await alertarCritico({
+          resumen: `Pago MP ${paymentId} cobrado y no acreditado`,
+          accion: "La plata está en Mercado Pago y no en la billetera. La cuadratura lo reintenta cada 30 min; si el error sigue, revisar el detalle.",
+          contexto: { pago: paymentId, monto: pay.transaction_amount, motivo: r.motivo },
+          error: r.detalle instanceof Error ? r.detalle : JSON.stringify(r.detalle),
+        });
+        return json({ error: r.motivo }, 500);
     }
-
-    // Parse external_reference set in create-mercadopago-payment
-    let metadata: any;
-    try {
-      metadata = JSON.parse(pay.external_reference);
-    } catch {
-      console.error("[mercadopago-webhook] Bad external_reference:", pay.external_reference);
-      return new Response("Bad metadata", { status: 400 });
-    }
-
-    const { user_id, wallet_id } = metadata;
-    const depositAmount = Number(pay.transaction_amount);
-
-    // MP deducts a processor fee before the money reaches the Trado account.
-    // Wallet is credited the gross amount; record the fee for accounting.
-    const netReceived = Number(pay.transaction_details?.net_received_amount ?? depositAmount);
-    const mpFee = Math.max(0, Math.round((depositAmount - netReceived) * 100) / 100);
-
-    if (!user_id || !wallet_id || !depositAmount) {
-      console.error("[mercadopago-webhook] Missing metadata:", metadata);
-      return new Response("Missing metadata", { status: 400 });
-    }
-
-    // Confirm wallet/user match (anti-spoofing)
-    const { data: wallet, error: walletErr } = await supabase
-      .from("wallets")
-      .select("id, balance, user_id")
-      .eq("id", wallet_id)
-      .single();
-
-    if (walletErr || !wallet) {
-      console.error("[mercadopago-webhook] Wallet not found:", wallet_id);
-      return new Response("Wallet not found", { status: 404 });
-    }
-
-    if (wallet.user_id !== user_id) {
-      console.error("[mercadopago-webhook] Wallet/user mismatch:", wallet_id, user_id);
-      return new Response("Metadata mismatch", { status: 400 });
-    }
-
-    // Idempotency via UNIQUE index on external_session_id (added in 20260511010000_audit_fixes)
-    const sessionId = `mp_${paymentId}`;
-    const newBalance = Number(wallet.balance) + depositAmount;
-
-    const { data: insertedMov, error: movInsertErr } = await supabase
-      .from("wallet_movements")
-      .insert({
-        wallet_id,
-        type: "deposit",
-        amount: depositAmount,
-        balance_after: newBalance,
-        description: `Depósito Mercado Pago [${paymentId}]`,
-        status: "approved",
-        external_session_id: sessionId,
-        external_fee: mpFee,
-      })
-      .select("id")
-      .maybeSingle();
-
-    if (movInsertErr) {
-      if ((movInsertErr as any).code === "23505") {
-        console.log("[mercadopago-webhook] Already processed (DB race caught):", paymentId);
-        return new Response("Already processed", { status: 200 });
-      }
-      console.error("[mercadopago-webhook] Insert error:", movInsertErr);
-      return new Response("Error creating movement", { status: 500 });
-    }
-
-    if (!insertedMov) {
-      console.log("[mercadopago-webhook] Insert returned no row (concurrent):", paymentId);
-      return new Response("Already processed", { status: 200 });
-    }
-
-    // Atomic credit (row-locked increment) so a concurrent escrow release on the
-    // same wallet can't clobber this deposit via a stale read-modify-write.
-    // from_gateway: esta plata entró por MercadoPago y ya nos costó ~3,6%.
-    // Queda marcada para que, al financiar una sala, pague tarifa de tarjeta
-    // en vez de la escala barata de transferencia.
-    const { error: walletUpdateErr } = await supabase.rpc("credit_wallet_balance_with_origin", {
-      p_wallet_id: wallet_id,
-      p_delta: depositAmount,
-      p_from_gateway: true,
-    });
-
-    if (walletUpdateErr) {
-      console.error("[mercadopago-webhook] Wallet update failed, rolling back movement:", walletUpdateErr);
-      await supabase.from("wallet_movements").delete().eq("id", insertedMov.id);
-      return new Response("Error updating wallet", { status: 500 });
-    }
-
-    console.log(`[mercadopago-webhook] Deposit confirmed: user=${user_id}, amount=${depositAmount}, new_balance=${newBalance}`);
-
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
   } catch (error: any) {
     console.error("[mercadopago-webhook] Unexpected error:", error);
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });

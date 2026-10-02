@@ -45,6 +45,8 @@ project_id = "aekzrackrijuxvopqfbp"
     verify_jwt = true
   [functions.mercadopago-webhook]
     verify_jwt = false
+  [functions.reconcile-mercadopago]
+    verify_jwt = false
   [functions.refund-mercadopago-deposit]
     verify_jwt = true
   [functions.invite-buyer]
