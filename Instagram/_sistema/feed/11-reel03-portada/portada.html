@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../../base.css">
+<!-- Portada del reel 03 "¿Cuál es falso?". Gris: sale como post 10 (par = gris en la X).
+     Lienzo 1080x1920; la grilla muestra el centro 3:4 (y 240 a 1680).
+     rA.png y rB.png salen de reel03.py (comprobantes genéricos, sin bancos reales). -->
+<style>
+  html, body { height: 1920px; }
+  .slide { height: 1920px; padding: 300px 88px 300px; }
+  .alerta { background: rgba(239,67,67,.10) !important; color: var(--rojo) !important; }
+  .grande { margin-top: 40px; font-size: 150px; font-weight: 800; letter-spacing: -6.5px; line-height: .95; }
+  .par { position: relative; height: 760px; margin-top: 60px; }
+  .par img { position: absolute; width: 470px; }
+  .par .a { left: -20px; top: 20px; transform: rotate(-4deg); }
+  .par .b { right: -20px; top: 60px; transform: rotate(4deg); }
+  .ver { display: flex; align-items: center; gap: 24px; font-size: 34px; font-weight: 700; color: var(--indigo); }
+  .play { width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #1F25C1, #7B46D8); display: grid; place-items: center; }
+  .play svg { width: 30px; height: 30px; fill: #fff; margin-left: 5px; }
+</style></head>
+<body><div class="slide fondo-gris">
+  <div class="cabecera"><span class="logo">trado</span><span class="etiqueta alerta">Juego · comenta A o B</span></div>
+  <div class="grande">¿Cuál es <span class="marca">falso?</span></div>
+  <div class="par"><img class="a" src="rA.png"><img class="b" src="rB.png"></div>
+  <div class="relleno"></div>
+  <div class="ver"><span class="play"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></span>Mira la respuesta</div>
+</div></body></html>
