@@ -1,4 +1,4 @@
-# Genera los slides del post 09. Tipos de venta y plazos verificados en
+# Genera los slides de "Para qué sirve" (en la banca, sin publicar). Tipos de venta y plazos verificados en
 # src/pages/CreateTransaction.tsx y supabase/functions/auto-release-escrow.
 # Uso: python generar.py && node ../../render.mjs .
 import pathlib
@@ -59,7 +59,7 @@ collage = "\n".join(
   .mini b {{ display: block; font-size: 34px; letter-spacing: -1px; margin-top: 12px; }}
   .mini span.m {{ font-size: 30px; font-weight: 800; letter-spacing: -.8px; color: #3B4150; }}
 </style></head>
-<!-- Portada gris: el carrusel sale como post 10 (par = gris en la X del feed). -->
+<!-- Portada gris: sirve si sale en un puesto par de la X; en uno impar necesita portada de color. -->
 <body><div class="slide fondo-gris">
   <div class="cabecera"><span class="logo">trado</span></div>
   <div class="antetitulo"><span class="etiqueta">4 formas de usarlo</span></div>

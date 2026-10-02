@@ -1,5 +1,5 @@
 # Simula el perfil de @trado_cl: miniaturas recortadas a 3:4, lo más nuevo arriba a la izquierda.
-# Uso (desde _sistema):  python vista-perfil.py salida.png [--reel]
+# Uso (desde _sistema):  python vista-perfil.py salida.png [--reel]   (--reel suma los reels a la grilla)
 import os, sys, subprocess, pathlib
 AQUI = pathlib.Path(__file__).parent.resolve()
 FEED = AQUI / "feed"
@@ -19,10 +19,15 @@ DESTACADAS = [("1 Como va", "Cómo va"), ("2 Precios", "Precios"), ("3 Senales",
 PORTADAS = AQUI.parent / "3 Historias destacadas"
 assert len(BIO) <= 150, f"La bio tiene {len(BIO)} caracteres; Instagram acepta 150."
 
-posts = sorted(d for d in os.listdir(FEED) if d[:2].isdigit() and not d.startswith("10-reel"))
-items = [(d, FEED / d / "slide-1.png", "carrusel" if len(list((FEED / d).glob("slide-*.png"))) > 1 else "") for d in posts]
-if con_reel:
-    items.append(("10-reel", FEED / "10-reel-portada" / "portada.png", "reel"))
+# El número de carpeta es el puesto en la grilla; lo que no empieza con número (banca-…) no sale.
+# Sin --reel se muestran solo los posts de imagen y carrusel.
+posts = sorted(d for d in os.listdir(FEED) if d[:2].isdigit() and (con_reel or "-reel" not in d))
+items = []
+for d in posts:
+    if "-reel" in d:
+        items.append((d, FEED / d / "portada.png", "reel"))
+    else:
+        items.append((d, FEED / d / "slide-1.png", "carrusel" if len(list((FEED / d).glob("slide-*.png"))) > 1 else ""))
 items.reverse()
 
 ICONO = {
