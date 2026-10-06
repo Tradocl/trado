@@ -59,7 +59,19 @@ export function trackPageView() {
   if (cargar()) window.fbq?.("track", "PageView");
 }
 
-/** Cuenta creada (el formulario de registro terminó sin error). */
-export function trackRegistro() {
-  if (cargar()) window.fbq?.("track", "CompleteRegistration");
+/**
+ * Cuenta creada. Se llama desde el formulario de registro (correo) y desde
+ * AuthContext cuando entra una cuenta recién creada (Google). Una vez por
+ * usuario y navegador, para no contar dos veces la misma cuenta.
+ */
+export function trackRegistro(userId?: string) {
+  const k = `trado_reg_${userId ?? "anon"}`;
+  try {
+    if (userId && localStorage.getItem(k)) return;
+  } catch { /* sin storage: se cuenta igual */ }
+  if (!cargar()) return;
+  window.fbq?.("track", "CompleteRegistration");
+  try {
+    if (userId) localStorage.setItem(k, "1");
+  } catch { /* nada */ }
 }

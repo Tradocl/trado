@@ -17,6 +17,7 @@ import MobileBottomNav from "./components/MobileBottomNav";
 import { SupportFab } from "./components/SupportFab";
 import { CookieBanner } from "./components/CookieBanner";
 import { trackPageView, CONSENT_EVENT } from "@/lib/meta-pixel";
+import { capturarAtribucion } from "@/lib/attribution";
 
 // Eager: most frequent entry points
 import Index from "./pages/Index";
@@ -125,6 +126,7 @@ const ScrollToTop = () => {
 const MetaPixelPageViews = () => {
   const { pathname } = useLocation();
   useEffect(() => { trackPageView(); }, [pathname]);
+  useEffect(() => { capturarAtribucion(); }, []);
   useEffect(() => {
     window.addEventListener(CONSENT_EVENT, trackPageView);
     return () => window.removeEventListener(CONSENT_EVENT, trackPageView);

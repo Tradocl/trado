@@ -241,7 +241,7 @@ const Auth = () => {
       setLoading(false);
     } else if (data.user) {
       // Welcome email is sent automatically by AuthContext on SIGNED_IN (idempotent).
-      trackRegistro();
+      trackRegistro(data.user.id);
       
       
       setSignupPassword("");

@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { setupPushNotifications, removePushListeners } from "@/lib/native/notifications";
+import { trackRegistro } from "@/lib/meta-pixel";
+import { esCuentaNueva, guardarAtribucion } from "@/lib/attribution";
 
 interface AuthContextType {
   user: User | null;
@@ -16,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 const welcomeEmailInvocations = new Set<string>();
+const cuentasNuevasVistas = new Set<string>();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -52,7 +55,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
         if (session?.user) {
           setupPushNotifications(session.user.id);
-          if (event === "SIGNED_IN") maybeSendWelcome(session);
+          if (event === "SIGNED_IN") {
+            maybeSendWelcome(session);
+            // Cuenta recién creada (también con Google, que no pasa por el
+            // formulario de registro): medir el registro y de qué anuncio vino.
+            const u = session.user;
+            if (esCuentaNueva(u) && !cuentasNuevasVistas.has(u.id)) {
+              cuentasNuevasVistas.add(u.id);
+              trackRegistro(u.id);
+              setTimeout(() => guardarAtribucion(u), 0);
+            }
+          }
         } else {
           removePushListeners();
         }

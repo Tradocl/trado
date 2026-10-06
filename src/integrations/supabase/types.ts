@@ -736,6 +736,39 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_attribution: {
+        Row: {
+          created_at: string
+          landing: string | null
+          user_id: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          via: string | null
+        }
+        Insert: {
+          created_at?: string
+          landing?: string | null
+          user_id: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          via?: string | null
+        }
+        Update: {
+          created_at?: string
+          landing?: string | null
+          user_id?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          via?: string | null
+        }
+        Relationships: []
+      }
       ratings: {
         Row: {
           comment: string | null

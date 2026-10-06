@@ -46,7 +46,8 @@ conflicto, hay apelaciones con mediación.
 | Móvil | Capacitor (Android) |
 | Repo | https://github.com/Tradocl/trado (**público**) |
 | Marketing | `Instagram/`: feed, reels, historias y logos, con el sistema que los genera en `_sistema/`. `Instagram/5 Documentos/` y `notas/` no se suben porque son internos |
-| Píxel de Meta | `src/lib/meta-pixel.ts`. ID `28314429144904443` (portafolio "trado | negocia seguro", cuenta publicitaria "Trado ads") fijo en el archivo (`VITE_META_PIXEL_ID` lo reemplaza); se carga solo si el usuario tocó "Aceptar todo" en el banner de cookies. Eventos: `PageView` por ruta y `CompleteRegistration` al crear cuenta. La política de privacidad (sección 9) lo menciona |
+| Píxel de Meta | `src/lib/meta-pixel.ts`. ID `28314429144904443` (portafolio "trado | negocia seguro", cuenta publicitaria "Trado ads") fijo en el archivo (`VITE_META_PIXEL_ID` lo reemplaza); se carga solo si el usuario tocó "Aceptar todo" en el banner de cookies. Eventos: `PageView` por ruta y `CompleteRegistration` al crear cuenta, **también con Google** (AuthContext detecta la cuenta recién creada; antes sólo contaba el formulario de correo y Meta mostraba 0 registros). La política de privacidad (sección 9) lo menciona |
+| Origen de cada cuenta | `src/lib/attribution.ts` guarda el `utm_*` con que llegó la persona (30 días) y al crear la cuenta lo escribe en `signup_attribution` (una fila por usuario, sólo la propia; la leen admins con 2FA). Cada anuncio lleva su `utm_content` para saber qué video trajo cada cuenta |
 | Login con Google | `src/components/GoogleSignInButton.tsx`: botón oficial de Google (GIS) + `signInWithIdToken`, para que la ventana de Google diga trado.cl y no `aekzrackrijuxvopqfbp.supabase.co`. Cliente **GTrado** (`311993626172-…`, proyecto de Google Cloud de Trado, orígenes trado.cl, www.trado.cl, localhost:8080). En Supabase, `external_google_client_id` es una **lista**: el primero (`374220022266-…`, de otro proyecto) es el del flujo OAuth antiguo, que queda de respaldo en la app nativa o si el script de Google no carga. ⚠️ No usar `external_google_additional_client_ids` por la API: reemplazó el cliente principal y rompió el OAuth unos minutos |
 | Cuadratura MP | `reconcile-mercadopago` + `_shared/mp-deposit.ts` (única lógica de acreditación, la usan también el webhook). Compara cada pago de MP con `external_reference` de Trado contra `wallet_movements` (`mp_<id>`, `mp_refund_<id>`); acredita lo faltante (idempotente), **nunca debita**: los reembolsos hechos en MP sin registro sólo se avisan. Panel admin → pestaña **Cuadratura**. El saldo de MP no tiene que igualar lo de usuarios (incluye comisiones de Trado, cobros que no son de la app y plata ya pasada al banco); lo que debe cumplirse es MP + banco ≥ lo que se le debe a usuarios |
 
@@ -487,13 +488,15 @@ el primer píxel (`2622592151544928`), y la cuenta publicitaria personal
 (cuenta personal sin pagos; portafolio nuevo sin permiso para compartir), por
 eso se rehízo todo en el portafolio bueno.
 
-**Campaña 1:** "Captación - Semana 1", tráfico optimizado por visitas a la
+**Campaña 1 (pausada el 2026-10-06):** "Captación - Semana 1", tráfico optimizado por visitas a la
 página de destino, $6.000 diarios (más IVA), Chile, sugerencia 20-55. Un
 anuncio: el reel "Pago falso" como publicación existente, botón *Registrarte*,
 URL `https://www.trado.cl/?utm_source=meta&utm_medium=paid&utm_campaign=semana1&utm_content=reel`.
 WhatsApp fuera de las ubicaciones: Meta exige un número de WhatsApp conectado a
 la página y no se quiso usar el personal. Presupuesto total: $200.000 al mes
 con IVA.
+
+**Resultado de la campaña 1:** $32.306 sin IVA, 721 visitas, **2 cuentas, 0 salas**. El 71% del gasto se fue a mayores de 65: optimizar "visitas a la página" con público Advantage+ busca clics baratos, no usuarios. Para la siguiente: edad 20-50 como límite real (Advantage+ apagado), sólo Instagram + Reels de Facebook, un `utm_content` por video.
 
 **Decisiones:** sin mejoras de contenido con IA (Meta agrega texto y música que
 no controlamos) y sin coincidencias avanzadas automáticas (leerían los
