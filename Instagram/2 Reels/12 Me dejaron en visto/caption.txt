@@ -17,7 +17,11 @@ Mándaselo a ese amigo freelance que siempre cobra al final 📲
 ════════ NO COPIAR DESDE AQUÍ: es para configurar la publicación ════════
 
 Portada: portada.png (gris; sale como post 12 y sigue la X). "Compartir también en el feed" activado.
-Ubicación: Santiago, Chile · Etiqueta de IA: apagada · Sin música de Instagram (el video trae su audio).
+Ubicación: Santiago, Chile · Etiqueta de IA: apagada.
+Video a subir: reel-sin-musica.mp4 (trae sólo los efectos de Trado; reel.mp4 queda de respaldo, con la música antigua).
+Música (biblioteca de Instagram): buscar "dramatic", "sad piano" o "comedy". Drama exagerado, como de teleserie: que se note la ironía.
+Propuesta: algo melancólico hasta "Nunca pagó." (segundo 6) que cambie a algo más alegre cuando entra Trado (segundo 9). Si no hay un tema así, mejor "comedy".
+Volumen: audio original 100 % · música 30 %.
 Primer comentario fijado (publícalo tú apenas subas el reel): "YO 🙋 ¿A cuántos les ha pasado? Cuéntennos qué trabajo fue"
 Dato verificado en el código (auto-release-escrow): servicio = si el cliente no confirma ni apela, se libera al vencer 24 h desde que el prestador lo marca realizado.
 Chat genérico: sin la marca ni los colores de ninguna app de mensajería.

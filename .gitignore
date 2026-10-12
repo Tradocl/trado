@@ -49,3 +49,8 @@ android/app/build/
 
 # Notas de trabajo internas (análisis de riesgos, decisiones); el repo es público
 notas/
+
+# Generador de reels: archivos que se regeneran (no subir)
+[Ii]nstagram/_sistema/reels/**/__pycache__/
+[Ii]nstagram/_sistema/reels/**/*_vista_previa.png
+[Ii]nstagram/_sistema/reels/**/*.wav
