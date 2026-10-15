@@ -23,7 +23,7 @@ Imágenes de esta carpeta:
 | Sitio web | https://www.trado.cl |
 | Sector | Servicios financieros |
 | Tamaño | 2-10 empleados |
-| Tipo | Empresa privada |
+| Tipo | De financiación privada (no "Empresa individual", que es para una sola persona o EIRL) |
 | Sede | Santiago, Chile |
 | Botón | "Visitar sitio web" → https://www.trado.cl |
 
