@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<!-- Portada de la página de empresa en LinkedIn: 1128x191 (se exporta al doble).
+     En escritorio el logo tapa la esquina inferior izquierda y en el celular se recortan
+     los lados, así que el texto va del centro hacia la derecha y nada importa a la izquierda. -->
+<link rel="stylesheet" href="../../Instagram/_sistema/base.css">
+<style>
+  html, body { width: 1128px; height: 191px; }
+  .portada {
+    position: relative; width: 1128px; height: 191px; overflow: hidden; isolation: isolate;
+    background: var(--hero); color: #fff;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 72px 0 300px;
+  }
+  .marca-agua { width: 300px; height: 276px; left: 30px; right: auto; bottom: -70px; opacity: .1; }
+  .bloque { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; text-align: right; }
+  h1 { font-size: 40px; font-weight: 700; letter-spacing: -1.4px; line-height: 1.05; }
+  p { font-size: 18px; font-weight: 500; opacity: .88; letter-spacing: -.2px; }
+  .web { font-size: 15px; font-weight: 600; opacity: .7; letter-spacing: .2px; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="portada">
+  <div class="marca-agua"></div>
+  <div class="bloque">
+    <h1>Confianza entre <span class="marca">desconocidos</span>.</h1>
+    <p>Guardamos la plata hasta que se cumple el trato.</p>
+    <span class="web">trado.cl · Hecho en Chile</span>
+  </div>
+</div>
+</body>
+</html>
