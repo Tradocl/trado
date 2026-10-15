@@ -5,7 +5,7 @@ https://www.linkedin.com/company/setup/new/ y después en "Editar página".
 
 Imágenes de esta carpeta:
 
-- `logo-400.png` → logo (LinkedIn pide 400x400). Es "trado degradado · fondo blanco", la versión principal según `Instagram/4 Logos/00 GUIA`, y resalta sobre la portada morada.
+- `logo.png` → logo, 1200x1200 dibujado desde el SVG (LinkedIn pide mínimo 400x400 y lo achica solo). Fuente en `_sistema/logo.html`. Es "trado degradado · fondo blanco", la versión principal según `Instagram/4 Logos/00 GUIA`, y resalta sobre la portada morada.
 - `portada.png` → portada (1128x191, exportada al doble para que se vea nítida).
   El fuente está en `_sistema/portada.html`.
 
