@@ -1,0 +1,13 @@
+Hola, LinkedIn. Somos Trado 👋
+
+Cada vez que dos personas que no se conocen hacen un trato, alguien tiene que confiar primero. El que paga primero arriesga la plata. El que despacha primero arriesga el producto.
+
+Creamos Trado para que eso deje de ser un acto de fe: el comprador paga, nosotros guardamos la plata, el vendedor entrega y, cuando el comprador confirma, liberamos el pago.
+
+Simple de explicar, harto trabajo de construir. Por acá vamos a contar cómo lo hacemos, lo que aprendemos y también lo que nos sale mal.
+
+Si compras o vendes entre particulares, o tu empresa recibe pagos de clientes que todavía no te conocen, conversemos.
+
+🌐 trado.cl
+
+#fintech #Chile #emprendimiento #ecommerce

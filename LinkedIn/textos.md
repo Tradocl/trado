@@ -1,5 +1,8 @@
 # Trado en LinkedIn — página de empresa
 
+Para copiar y pegar, usa los archivos de `para copiar/`: ahí cada
+párrafo va en una sola línea. Este archivo corta las líneas para leerlo cómodo.
+
 Todo lo que hay que pegar al crear la página en
 https://www.linkedin.com/company/setup/new/ y después en "Editar página".
 
@@ -29,7 +32,7 @@ Imágenes de esta carpeta:
 
 **Eslogan** (máx. 120 caracteres):
 
-> Pagos protegidos entre personas que no se conocen. Guardamos la plata hasta que se cumple el trato. 🇨🇱
+> Pagos protegidos entre personas que no se conocen. Guardamos la plata hasta que se cumple el trato.
 
 **Especialidades** (LinkedIn acepta hasta 20; estas bastan):
 
