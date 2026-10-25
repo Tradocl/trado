@@ -8,25 +8,17 @@ const CARA = { x: 535, y: 1060 };
 
 /** Cómo sales en pantalla. Cambiar de modo en cada frase es lo que hace los "jump cuts".
  *  "real" es el video original, con tu fondo de verdad; los demás son el recorte sobre la marca. */
-export type Modo = "real" | "abajo" | "cerca" | "izq" | "der" | "burbujaIzq" | "burbujaDer" | "burbujaCentro" | "cerrada" | "fuera";
+export type Modo = "real" | "abajo" | "cerca" | "izq" | "der" | "fuera";
 
-// Ventana (x, y, w, h, r) donde se ve el recorte; k es la escala del video y fx, fy
-// dónde queda tu cara dentro de la ventana. `fondo` 1 = burbuja con fondo claro y borde.
-type Pose = { x: number; y: number; w: number; h: number; r: number; fondo: number; k: number; fx: number; fy: number };
-const PANTALLA = { x: 0, y: 0, w: 1080, h: 1920, r: 0, fondo: 0 };
-const D = 340;
-const burbuja = (cx: number, cy: number, d = D): Pose => ({ x: cx - d / 2, y: cy - d / 2, w: d, h: d, r: d / 2, fondo: 1, k: 0.62, fx: d / 2, fy: d / 2 + 25 });
+// k es la escala del recorte y fx, fy dónde queda el centro de tu cara en pantalla.
+type Pose = { k: number; fx: number; fy: number };
 const POSES: Record<Modo, Pose> = {
-  real: { ...PANTALLA, k: 1, fx: CARA.x, fy: CARA.y },
-  abajo: { ...PANTALLA, k: 0.7, fx: 540, fy: 1320 },
-  cerca: { ...PANTALLA, k: 1.25, fx: 540, fy: 880 },
-  izq: { ...PANTALLA, k: 0.8, fx: 290, fy: 1260 },
-  der: { ...PANTALLA, k: 0.8, fx: 790, fy: 1260 },
-  burbujaIzq: burbuja(230, 1250),
-  burbujaDer: burbuja(850, 1250),
-  burbujaCentro: burbuja(540, 1150),
-  cerrada: burbuja(540, 1150, 0),
-  fuera: { ...PANTALLA, k: 0.7, fx: 540, fy: 2700 },
+  real: { k: 1, fx: CARA.x, fy: CARA.y },
+  abajo: { k: 0.7, fx: 540, fy: 1320 },
+  cerca: { k: 1.25, fx: 540, fy: 880 },
+  izq: { k: 0.8, fx: 290, fy: 1260 },
+  der: { k: 0.8, fx: 790, fy: 1260 },
+  fuera: { k: 0.7, fx: 540, fy: 2700 },
 };
 
 const mezcla = (a: Pose, b: Pose, p: number): Pose => {
@@ -69,11 +61,9 @@ export const Toma: React.FC<{
   linea: Linea;
   palabras: [string, number][][];
   modos: [number, Modo][];
-  golpes?: number[];
-  sacudidas?: number[];
   encima?: React.ReactNode;
   children?: React.ReactNode;
-}> = ({ archivo, origen, linea: L, palabras, modos, golpes = [], sacudidas = [], encima, children }) => {
+}> = ({ archivo, origen, linea: L, palabras, modos, encima, children }) => {
   const f = useCurrentFrame();
 
   // Pose actual: salto con resorte desde la anterior
@@ -89,18 +79,10 @@ export const Toma: React.FC<{
   const pose = mezcla(POSES[previo], POSES[modo], p);
   const iris = modo === "real" ? (aReal ? suave(f, cuando + 12, IRIS) : 1) : deReal ? 1 - suave(f, cuando, IRIS) : 0;
 
-  // Golpe de zoom en las palabras fuertes: acerca toda la imagen hacia tu cara
-  const golpe = Math.max(0, ...golpes.map((g) => interpolate(f - L.en(g), [0, 3, 12], [0, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })));
-  const k = pose.k;
-
-  // Sacudida de pantalla
-  const sac = Math.max(0, ...sacudidas.map((g) => interpolate(f - L.en(g), [0, 14], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })));
-  const dx = Math.sin(f * 2.3) * 22 * sac, dy = Math.cos(f * 3.1) * 16 * sac;
-
   return (
     <AbsoluteFill style={{ fontFamily: FUENTE, overflow: "hidden" }}>
       <Fondo tipo="marca" />
-      <AbsoluteFill style={{ transform: `translate(${dx}px, ${dy}px) scale(${1 + 0.06 * golpe + 0.04 * sac})`, transformOrigin: `${CARA.x}px ${CARA.y}px` }}>
+      <AbsoluteFill>
         {iris > 0 && (
           <AbsoluteFill style={{ clipPath: iris < 1 ? `circle(${RADIO * iris}px at ${CARA.x}px ${CARA.y}px)` : undefined }}>
             {tramosDe(L).map(({ a, inicio, largo }) => (
@@ -116,21 +98,15 @@ export const Toma: React.FC<{
             borderRadius: "50%", boxShadow: "0 0 0 12px rgba(255,255,255,0.9)" }} />
         )}
         {children}
-        <div style={{ position: "absolute", left: pose.x, top: pose.y, width: pose.w, height: pose.h, borderRadius: pose.r, overflow: "hidden",
-          boxShadow: `0 0 0 ${10 * pose.fondo}px rgba(255,255,255,${pose.fondo}), 0 24px 60px rgba(10,10,40,${0.35 * pose.fondo})` }}>
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg, #FFFFFF 0%, #D9D3FF 100%)", opacity: Math.min(1, Math.max(0, pose.fondo)) }} />
-          {tramosDe(L).map(({ a, inicio, largo }) => {
-            return (
-              <Sequence key={a} from={inicio} durationInFrames={largo} layout="none">
-                <OffthreadVideo transparent muted trimBefore={Math.round(a * FPS)} src={staticFile(`material/generado/${archivo}.webm`)}
-                  style={{ position: "absolute", left: pose.fx - CARA.x * k, top: pose.fy - CARA.y * k, width: 1080 * k, height: 1920 * k }} />
-                {/* Fundido de 2 cuadros en cada corte para que no haga clic */}
-                <Audio trimBefore={Math.round(a * FPS)} src={staticFile(`material/generado/${archivo}.wav`)}
-                  volume={(c) => interpolate(c, [0, 2, largo - 2, largo], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })} />
-              </Sequence>
-            );
-          })}
-        </div>
+        {tramosDe(L).map(({ a, inicio, largo }) => (
+          <Sequence key={a} from={inicio} durationInFrames={largo} layout="none">
+            <OffthreadVideo transparent muted trimBefore={Math.round(a * FPS)} src={staticFile(`material/generado/${archivo}.webm`)}
+              style={{ position: "absolute", left: pose.fx - CARA.x * pose.k, top: pose.fy - CARA.y * pose.k, width: 1080 * pose.k, height: 1920 * pose.k }} />
+            {/* Fundido de 2 cuadros en cada corte para que no haga clic */}
+            <Audio trimBefore={Math.round(a * FPS)} src={staticFile(`material/generado/${archivo}.wav`)}
+              volume={(c) => interpolate(c, [0, 2, largo - 2, largo], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })} />
+          </Sequence>
+        ))}
         {encima}
       </AbsoluteFill>
       <SubtituloVoz grupos={palabras.map((g) => g.map(([w, t]) => [w, L.en(t) / FPS] as [string, number]))} y={1460} />

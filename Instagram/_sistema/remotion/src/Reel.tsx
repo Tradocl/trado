@@ -67,7 +67,7 @@ export const Reel: React.FC = () => {
 /** Cada escena entra con un zoom corto: le da el empujón de los cortes de TikTok. */
 const Entrada: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const f = useCurrentFrame();
-  return <AbsoluteFill style={{ transform: `scale(${1 + 0.07 * (1 - suave(f, 0, 8))})` }}>{children}</AbsoluteFill>;
+  return <AbsoluteFill style={{ transform: `scale(${1 + 0.04 * (1 - suave(f, 0, 10))})` }}>{children}</AbsoluteFill>;
 };
 
 /** Desplaza los cuadros de los hijos: así una Sequence anidada puede usar tiempos de la toma. */
@@ -81,30 +81,25 @@ const Gancho: React.FC = () => {
   const f = useCurrentFrame();
   return (
     <Toma archivo="hook-prueba" origen={0.4} linea={L}
-      modos={[[0, "real"], [1.0, "abajo"], [3.0, "der"]]}
-      golpes={[4.12]}
+      modos={[[0, "real"]]}
       palabras={[
         [["Lo", 0.45], ["encontraste.", 0.88]],
         [["Precio", 1.82], ["perfecto,", 2.04]],
         [["pero", 3.0], ["el", 3.14], ["vendedor", 3.26]],
         [["está", 3.68], ["en", 4.0], ["Arica.", 4.12]],
       ]}>
-      {/* El feed aparece cuando dejas tu pieza y caes sobre la publicación */}
-      <Desde en={L.en(1.0)}>
-        <Publicacion y={190} alto={860} paraEn={L.en(1.6) - L.en(1.0)} marcas={{ precio: L.en(2.0) - L.en(1.0), lugar: L.en(4.12) - L.en(1.0), duda: L.en(4.4) - L.en(1.0) }} />
-      </Desde>
+      {/* El feed corre en tu pieza, sobre tu cabeza, y frena en la bicicleta */}
+      <Publicacion y={110} alto={680} paraEn={L.en(1.6)} marcas={{ precio: L.en(2.0), lugar: L.en(4.12), duda: L.en(4.4) }} />
       {/* A un lado, lo lejos que está */}
       <Mapa x={170} y={1040} escala={0.3} desde={L.en(3.0)} nombres
         ciudades={["arica", "santiago"]} rutas={[{ de: "arica", a: "santiago", desde: L.en(3.68), dur: 14, color: C.naranjo, dudosa: true }]} />
       {f >= L.en(4.12) && (
         <Pildora texto="≈ 2.000 km" fondo={C.naranjo} color={C.blanco}
-          style={{ top: 1330, left: 250, fontSize: 48, transform: `scale(${rebote(f, L.en(4.12))}) rotate(-5deg)` }} />
+          style={{ top: 1000, left: 735, fontSize: 42, whiteSpace: "nowrap", transform: `scale(${rebote(f, L.en(4.12))}) rotate(-5deg)` }} />
       )}
       <Sfx nombre="whoosh_sube" en={0} vol={0.5} />
-      <Sfx nombre="whoosh_baja" en={L.en(1.0)} vol={0.4} />
-      <Sfx nombre="tic" en={L.en(1.6)} />
-      <Sfx nombre="whoosh_baja" en={L.en(3.0)} vol={0.4} />
-      <Sfx nombre="golpe" en={L.en(4.12)} />
+            <Sfx nombre="tic" en={L.en(1.6)} />
+            <Sfx nombre="golpe" en={L.en(4.12)} />
       <Sfx nombre="fracaso" en={L.en(4.4)} vol={0.6} />
     </Toma>
   );
@@ -145,8 +140,7 @@ const Duda: React.FC = () => {
   const chat1 = L.en(2.5), chat2 = L.en(9.25);
   return (
     <Toma archivo="duda" origen={22.8} linea={L}
-      modos={[[0, "real"], [2.5, "fuera"], [5.05, "burbujaDer"], [6.95, "real"], [9.25, "der"]]}
-      golpes={[1.84, 8.0, 11.5]} sacudidas={[8.0]}
+      modos={[[0, "real"], [2.5, "fuera"], [6.95, "real"], [9.25, "der"]]}
       palabras={[
         [["Y", 0.16], ["ahí", 0.3], ["es", 0.76], ["donde", 1.14]],
         [["empieza", 1.38], ["la", 1.62], ["duda.", 1.84]],
@@ -213,12 +207,10 @@ const Mira: React.FC = () => {
   const f = useCurrentFrame();
   const cae = rebote(f, L.en(0.1));
   const abre = L.en(1.57);
-  const tiembla = f < abre ? Math.sin(f * 1.9) * 7 * suave(f, L.en(0.5), 6) : 0;
-  const sube = rebote(f, abre);
+    const sube = rebote(f, abre);
   return (
     <Toma archivo="mira" origen={46.8} linea={L}
       modos={[[0, "real"], [2.4, "cerca"]]}
-      golpes={[1.57, 3.13]} sacudidas={[0.3, 1.57]}
       palabras={[
         [["Mira,", 0.19]],
         [["ahí", 1.57], ["está", 1.77], ["tu", 1.85], ["producto", 1.99]],
@@ -229,7 +221,7 @@ const Mira: React.FC = () => {
           style={{ top: 1230, left: "50%", fontSize: 56, whiteSpace: "nowrap", transform: `translateX(-50%) scale(${rebote(f, L.en(3.13))}) rotate(-6deg)` }} />
       )}>
       <Rayos en={abre} x={540} y={500} />
-      <div style={{ position: "absolute", left: 0, right: 0, top: lerp(-600, 520, cae), textAlign: "center", fontSize: 380, lineHeight: 1, transform: `rotate(${tiembla}deg)` }}>📦</div>
+      <div style={{ position: "absolute", left: 0, right: 0, top: lerp(-600, 520, cae), textAlign: "center", fontSize: 380, lineHeight: 1}}>📦</div>
       {f >= abre && (
         <div style={{ position: "absolute", left: 0, right: 0, top: 560 - 320 * sube, textAlign: "center", fontSize: 250, lineHeight: 1, transform: `rotate(${-16 * sube}deg) scale(${0.4 + 0.6 * sube})` }}>🪨</div>
       )}
@@ -270,8 +262,7 @@ const NoMarketplace: React.FC = () => {
   const f = useCurrentFrame();
   return (
     <Toma archivo="nomkt" origen={59.2} linea={L}
-      modos={[[0, "real"], [1.83, "burbujaIzq"], [5.55, "burbujaCentro"]]}
-      golpes={[0.91]}
+      modos={[[0, "real"], [1.83, "abajo"]]}
       palabras={[
         [["Trado", 0.21], ["no", 0.45], ["es", 0.65]],
         [["un", 0.77], ["Marketplace.", 0.91]],
@@ -309,8 +300,7 @@ const AlMedio: React.FC = () => {
   const L = L_MEDIO;
   return (
     <Toma archivo="medio" origen={92.8} linea={L}
-      modos={[[0, "real"], [1.3, "burbujaDer"], [4.5, "burbujaIzq"], [8.9, "burbujaDer"]]}
-      golpes={[1.56, 9.1]}
+      modos={[[0, "real"], [1.3, "der"], [4.5, "izq"], [8.9, "der"]]}
       palabras={[
         [["Nosotros", 0.2], ["nos", 0.76], ["ponemos", 1.02]],
         [["al", 1.34], ["medio.", 1.56]],
@@ -344,8 +334,7 @@ const DondeQuieras: React.FC = () => {
     ({ de, a, desde: L.en(t), dur: 22 });
   return (
     <Toma archivo="cierre" origen={125.5} linea={L}
-      modos={[[0, "der"], [2.6, "burbujaDer"]]}
-      golpes={[2.64, 3.74]}
+      modos={[[0, "der"]]}
       palabras={[
         [["Así", 0.16], ["da", 0.46], ["lo", 0.72], ["mismo", 0.9]],
         [["donde", 1.06], ["esté", 1.28], ["tu", 1.44], ["producto.", 1.62]],
@@ -365,12 +354,12 @@ const DondeQuieras: React.FC = () => {
   );
 };
 
-// «En trado.cl»: tarjeta final; tu burbuja se cierra al terminar la frase
+// «En trado.cl»: tarjeta final; al terminar la frase sales de cuadro
 const Final: React.FC = () => {
   const L = L_TRADO;
   const f = useCurrentFrame();
   return (
-    <Toma archivo="trado" origen={135.3} linea={L} modos={[[0, "burbujaCentro"], [1.25, "cerrada"]]} palabras={[[["En", 0.18], ["trado.cl", 0.3]]]}>
+    <Toma archivo="trado" origen={135.3} linea={L} modos={[[0, "abajo"], [1.25, "fuera"]]} palabras={[[["En", 0.18], ["trado.cl", 0.3]]]}>
       <div style={{ position: "absolute", top: 300, width: "100%", textAlign: "center", color: C.blanco, fontWeight: 800, fontSize: 190, letterSpacing: "-0.04em", transform: `scale(${rebote(f, 0)})` }}>trado</div>
       <Palabra texto={"Compra y vende\ndesde donde quieras."} en={6} y={540} size={66} giro={0} />
       <Pildora texto="trado.cl" style={{ top: 780, left: "50%", transform: `translateX(-50%) scale(${rebote(f, 10)})`, fontSize: 64, color: C.azul, padding: "22px 70px" }} />
