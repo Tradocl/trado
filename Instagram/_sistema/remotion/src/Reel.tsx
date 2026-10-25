@@ -27,7 +27,7 @@ import { linea, Toma } from "./piezas/Toma";
 const L_HOOK = linea([[0.08, 4.95]]);
 const L_DUDA = linea([[0, 1.68], [1.82, 3.58], [3.96, 5.8], [5.9, 7.7], [7.78, 10.45]]);
 const L_MIRA = linea([[0, 0.6], [0.72, 3.25]]);
-const L_NOMKT = linea([[0, 5.15], [5.85, 8.6]]);
+const L_NOMKT = linea([[0, 4.62], [5.82, 8.6]]);
 const L_MEDIO = linea([[0, 2.1], [2.4, 3.6], [3.8, 5.6], [5.85, 10.0]]);
 const L_CIERRE = linea([[0, 2.3], [2.6, 4.85]]);
 const L_TRADO = linea([[0, 1.45]]);
