@@ -9,7 +9,7 @@ efectos de sonido que ese motor.
 
 ```bash
 npm install
-npm run sfx     # exporta los efectos de ../reels/sonido.py a public/sfx/
+npm run sfx     # exporta los efectos de ../reels/sonido.py y la música de fondo (scripts/musica.py) a public/sfx/
 npm run mapa    # solo si cambias ciudades: regenera src/chile.ts
 ```
 

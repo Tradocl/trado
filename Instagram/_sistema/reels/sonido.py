@@ -155,6 +155,89 @@ def campanas():
     return y
 
 
+def _mete(y, sig, at, g=1.0):
+    i = int(at * SR)
+    if i < len(y): y[i:i + len(sig)] += sig[: len(y) - i] * g
+    return y
+
+
+def tecleo():
+    """Alguien escribiendo: cinco teclas seguidas, sin ritmo fijo."""
+    y, at = np.zeros(int(0.55 * SR)), 0.0
+    for _ in range(5):
+        _mete(y, key_click(), at); at += rng.uniform(0.07, 0.11)
+    return y
+
+
+def burbuja():
+    """Mensaje que llega: un «blup» redondo, más suave que el pop."""
+    t = t_(0.14)
+    f = 280 + 820 * np.sqrt(t / 0.14)
+    return fft_filter(np.sin(2 * np.pi * np.cumsum(f) / SR), hi=3000) * env(len(t), 0.004, 0.05)
+
+
+def caja():
+    """Caja registradora: clic metálico y dos campanitas (la plata)."""
+    y = np.zeros(int(0.9 * SR)); n = int(0.05 * SR)
+    _mete(y, fft_filter(rng.standard_normal(n), lo=2000, hi=8000) * env(n, 0.0005, 0.01), 0, 0.8)
+    for i, f in enumerate((2093.0, 2637.0)):
+        _mete(y, bell(f, 0.8), 0.06 + i * 0.08, 0.7)
+    return y
+
+
+def piedra():
+    """Una piedra que cae: golpe seco y grave con crujido de grava."""
+    y = np.zeros(int(0.5 * SR))
+    _mete(y, thump(0.4), 0)
+    for _ in range(7):
+        n = int(rng.uniform(0.008, 0.02) * SR)
+        _mete(y, fft_filter(rng.standard_normal(n), lo=600, hi=4000) * env(n, 0.0005, 0.006), rng.uniform(0.0, 0.18), rng.uniform(0.2, 0.5))
+    return y
+
+
+def grillos():
+    """Silencio incómodo: tres «cri-cri» (cuando te dejan en visto)."""
+    y = np.zeros(int(1.4 * SR)); d = 0.022; tt = t_(d)
+    pulso = np.sin(2 * np.pi * 4400 * tt) * np.sin(np.pi * tt / d)
+    for c in range(3):
+        for p in range(4):
+            _mete(y, pulso, c * 0.42 + p * 0.032, 0.7 if c < 2 else 0.45)
+    return y
+
+
+def pregunta():
+    """«¿Mmm?»: una nota que sube como una pregunta."""
+    d = 0.4; t = t_(d)
+    f = 330 * 2 ** (0.6 * (t / d) ** 2)
+    s = np.sin(2 * np.pi * np.cumsum(f) / SR) + 0.25 * np.sin(4 * np.pi * np.cumsum(f) / SR)
+    e = np.minimum(1, t / 0.03) * np.clip((d - t) / 0.12, 0, 1)
+    return s * e
+
+
+def tachon():
+    """Plumón que tacha: rasguño rápido de ida y vuelta."""
+    n = int(0.24 * SR); t = np.arange(n) / SR
+    s = fft_filter(rng.standard_normal(n), lo=1200, hi=6000)
+    return s * np.abs(np.sin(2 * np.pi * 6 * t)) ** 0.5 * np.clip((0.24 - t) / 0.06, 0, 1) * np.minimum(1, t / 0.01)
+
+
+def candado():
+    """Candado que se cierra: clic agudo y el golpecito del cerrojo."""
+    y = np.zeros(int(0.2 * SR))
+    _mete(y, tick(), 0, 1.0)
+    t = t_(0.06)
+    _mete(y, np.sin(2 * np.pi * 900 * t) * env(len(t), 0.0005, 0.012), 0.05, 0.8)
+    return y
+
+
+def brillo():
+    """Destellos: arpegio rápido y agudo, para cuando algo sale bien."""
+    y = np.zeros(int(1.0 * SR))
+    for i, f in enumerate((1046.5, 1318.5, 1568.0, 2093.0, 2637.0)):
+        _mete(y, bell(f, 0.5), i * 0.045, 1 - i * 0.12)
+    return y
+
+
 EFECTOS = {
     "pop": (lambda: pop(), 0.5),
     "pop_agudo": (lambda: pop(700, 1300, 0.07), 0.45),
@@ -166,6 +249,15 @@ EFECTOS = {
     "whoosh_baja": (lambda: whoosh(0.4, up=False), 0.4),
     "campanas": (campanas, 0.2),
     "fracaso": (fracaso, 0.3),
+    "tecleo": (tecleo, 0.5),
+    "burbuja": (burbuja, 0.55),
+    "caja": (caja, 0.3),
+    "piedra": (piedra, 0.9),
+    "grillos": (grillos, 0.25),
+    "pregunta": (pregunta, 0.3),
+    "tachon": (tachon, 0.35),
+    "candado": (candado, 0.6),
+    "brillo": (brillo, 0.22),
 }
 
 

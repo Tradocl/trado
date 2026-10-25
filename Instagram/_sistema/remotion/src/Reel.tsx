@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Sequence, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { C, FUENTE, rebote, s, suave } from "./marca";
 import { Pildora, Sfx } from "./piezas/base";
 import { Chat } from "./piezas/Chat";
@@ -45,10 +45,39 @@ const ESCENAS: { id: string; dur: number; C: () => React.ReactElement }[] = [
 
 export const DURACION_REEL = ESCENAS.reduce((t, e) => t + e.dur, 0);
 
+// Música de fondo sintetizada (scripts/musica.py). Con MUSICA = false sale sin ella,
+// para publicarlo con una canción de la biblioteca de Instagram.
+const MUSICA = true;
+const COMPAS = s(2.5); // un compás a 96 BPM, igual que en scripts/musica.py
+
+const inicioDe = (id: string) => {
+  let t = 0;
+  for (const e of ESCENAS) { if (e.id === id) return t; t += e.dur; }
+  return t;
+};
+
+const Musica: React.FC = () => {
+  // El ritmo entra en el primer compás después de que aparece Trado al medio
+  const ritmo = Math.ceil(inicioDe("medio") / COMPAS) * COMPAS;
+  const sinVoz = inicioDe("trado") + s(1.3); // al final ya no hablas: la música sube un poco
+  const cierra = Math.max(sinVoz + 9, DURACION_REEL - 20);
+  const nivel = (f: number) => interpolate(f, [0, 15, sinVoz, sinVoz + 8, cierra, DURACION_REEL], [0, 1, 1, 1.6, 1.6, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  return (
+    <>
+      <Audio src={staticFile("sfx/musica_base.wav")} volume={(f) => 0.06 * nivel(f)} />
+      <Sequence from={ritmo} layout="none">
+        <Audio src={staticFile("sfx/musica_ritmo.wav")} volume={(f) => 0.15 * nivel(f + ritmo) * Math.min(1, f / 8)} />
+      </Sequence>
+    </>
+  );
+};
+
 export const Reel: React.FC = () => {
   let desde = 0;
   return (
     <AbsoluteFill style={{ fontFamily: FUENTE, background: C.tinta }}>
+      {MUSICA && <Musica />}
       {ESCENAS.map((e, i) => {
         const inicio = desde;
         desde += e.dur;
@@ -100,7 +129,7 @@ const Gancho: React.FC = () => {
       <Sfx nombre="whoosh_sube" en={0} vol={0.5} />
             <Sfx nombre="tic" en={L.en(1.6)} />
             <Sfx nombre="golpe" en={L.en(4.12)} />
-      <Sfx nombre="fracaso" en={L.en(4.4)} vol={0.6} />
+      <Sfx nombre="pregunta" en={L.en(4.4)} />
     </Toma>
   );
 };
@@ -186,17 +215,18 @@ const Duda: React.FC = () => {
       </Desde>
       <Sfx nombre="pop_grave" en={L.en(0.3)} />
       <Sfx nombre="golpe" en={L.en(1.84)} />
-      <Sfx nombre="pop" en={L.en(2.6)} />
+      <Sfx nombre="burbuja" en={L.en(2.6)} />
+      <Sfx nombre="tecleo" en={L.en(3.84) - 14} />
       <Sfx nombre="pop_agudo" en={L.en(3.84)} />
-      <Sfx nombre="pop" en={L.en(4.25)} />
-      <Sfx nombre="whoosh_sube" en={L.en(5.15)} vol={0.5} />
+      <Sfx nombre="burbuja" en={L.en(4.25)} />
+      <Sfx nombre="caja" en={L.en(5.15)} />
       <Sfx nombre="pop_grave" en={L.en(5.82)} />
       <Sfx nombre="whoosh_baja" en={L.en(7.6)} vol={0.6} />
-      <Sfx nombre="golpe" en={L.en(8.0)} />
-      <Sfx nombre="fracaso" en={L.en(8.1)} vol={0.7} />
+      <Sfx nombre="piedra" en={L.en(8.0)} />
       <Sfx nombre="pop_agudo" en={L.en(9.5)} />
+      <Sfx nombre="tecleo" en={L.en(11.4) - 14} />
       <Sfx nombre="pop_agudo" en={L.en(11.4)} />
-      <Sfx nombre="fracaso" en={L.en(11.9)} vol={0.5} />
+      <Sfx nombre="grillos" en={L.en(11.9)} />
     </Toma>
   );
 };
@@ -230,7 +260,7 @@ const Mira: React.FC = () => {
       <Sfx nombre="golpe" en={L.en(0.3)} />
       <Sfx nombre="pop_grave" en={abre} />
       <Sfx nombre="fracaso" en={abre + 6} vol={0.8} />
-      <Sfx nombre="golpe" en={L.en(3.13)} vol={0.7} />
+      <Sfx nombre="caja" en={L.en(3.13)} />
     </Toma>
   );
 };
@@ -243,15 +273,14 @@ const Tachado: React.FC<{ en: number; y: number; ancho: number }> = ({ en, y, an
 };
 
 /** Tarjeta de una app donde ya vendes: solo el nombre en texto, sin logos ni colores ajenos. */
-const App: React.FC<{ nombre: string; emoji: string; en: number; x: number; giro: number }> = ({ nombre, emoji, en, x, giro }) => {
+const App: React.FC<{ nombre: string; en: number; x: number; giro: number }> = ({ nombre, en, x, giro }) => {
   const f = useCurrentFrame();
   if (f < en) return null;
   const k = rebote(f, en);
   return (
-    <div style={{ position: "absolute", top: 600, left: x, width: 290, height: 300, borderRadius: 44, background: C.blanco, boxShadow: "0 20px 50px rgba(10,10,40,0.3)",
-      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, transform: `translateY(${(1 - k) * 200}px) scale(${k}) rotate(${giro}deg)` }}>
-      <div style={{ fontSize: 120, lineHeight: 1 }}>{emoji}</div>
-      <div style={{ fontSize: 40, fontWeight: 800, color: C.tinta }}>{nombre}</div>
+    <div style={{ position: "absolute", top: 640, left: x, width: 290, height: 190, borderRadius: 44, background: C.blanco, boxShadow: "0 20px 50px rgba(10,10,40,0.3)",
+      display: "flex", alignItems: "center", justifyContent: "center", transform: `translateY(${(1 - k) * 200}px) scale(${k}) rotate(${giro}deg)` }}>
+      <div style={{ fontSize: 46, fontWeight: 800, color: C.tinta, letterSpacing: "-0.03em" }}>{nombre}</div>
     </div>
   );
 };
@@ -281,16 +310,20 @@ const NoMarketplace: React.FC = () => {
       <Desde en={L.en(4.3)}>
         <Palabra texto="donde ya estás" en={0} y={430} size={64} />
       </Desde>
-      <App nombre="Marketplace" emoji="🏷️" en={L.en(4.37)} x={60} giro={-4} />
-      <App nombre="Instagram" emoji="📸" en={L.en(4.85)} x={395} giro={3} />
-      <App nombre="WhatsApp" emoji="💬" en={L.en(5.55)} x={730} giro={-2} />
+      <App nombre="Marketplace" en={L.en(4.37)} x={60} giro={-4} />
+      <App nombre="Instagram" en={L.en(4.85)} x={395} giro={3} />
+      <App nombre="WhatsApp" en={L.en(5.55)} x={730} giro={-2} />
       {f >= L.en(5.75) && <Confeti en={L.en(5.75)} x={540} y={700} n={40} semilla="apps" />}
       <Sfx nombre="golpe" en={L.en(0.21)} />
       <Sfx nombre="pop" en={L.en(0.91)} />
-      <Sfx nombre="fracaso" en={L.en(1.2)} vol={0.5} />
+      <Sfx nombre="tachon" en={L.en(1.2)} />
       <Sfx nombre="pop_agudo" en={L.en(2.05)} />
-      <Sfx nombre="pop_agudo" en={L.en(2.71)} />
-      {[4.37, 4.85, 5.55].map((t) => <Sfx key={t} nombre="pop" en={L.en(t)} />)}
+      <Sfx nombre="pop_grave" en={L.en(2.71)} />
+      {/* Las tres apps suben de tono, como una escalera */}
+      <Sfx nombre="pop_grave" en={L.en(4.37)} />
+      <Sfx nombre="pop" en={L.en(4.85)} />
+      <Sfx nombre="pop_agudo" en={L.en(5.55)} />
+      <Sfx nombre="brillo" en={L.en(5.75)} vol={0.7} />
     </Toma>
   );
 };
@@ -317,12 +350,13 @@ const AlMedio: React.FC = () => {
       <Sfx nombre="whoosh_baja" en={L.en(1.4)} vol={0.5} />
       <Sfx nombre="golpe" en={L.en(1.6)} />
       <Sfx nombre="whoosh_sube" en={L.en(2.66)} vol={0.5} />
-      <Sfx nombre="tic" en={L.en(2.66) + 18} />
-      <Sfx nombre="pop" en={L.en(4.58)} />
+      <Sfx nombre="candado" en={L.en(2.66) + 18} />
+      <Sfx nombre="whoosh_baja" en={L.en(4.58)} vol={0.35} />
       <Sfx nombre="tic" en={L.en(6.62)} />
       <Sfx nombre="pop_agudo" en={L.en(7.96)} />
       <Sfx nombre="whoosh_sube" en={L.en(9.1)} vol={0.5} />
-      <Sfx nombre="campanas" en={L.en(9.1) + 16} />
+      <Sfx nombre="caja" en={L.en(9.1) + 10} />
+      <Sfx nombre="campanas" en={L.en(9.1) + 16} vol={0.7} />
     </Toma>
   );
 };
@@ -349,7 +383,7 @@ const DondeQuieras: React.FC = () => {
       {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => <Sfx key={i} nombre="tic" en={30 + i * 4} vol={0.4} />)}
       <Sfx nombre="whoosh_sube" en={L.en(2.64)} vol={0.6} />
       <Sfx nombre="golpe" en={L.en(3.38)} />
-      <Sfx nombre="campanas" en={L.en(3.74)} vol={0.7} />
+      <Sfx nombre="brillo" en={L.en(3.74)} />
     </Toma>
   );
 };

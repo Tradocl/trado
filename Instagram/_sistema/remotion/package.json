@@ -5,7 +5,7 @@
   "scripts": {
     "studio": "remotion studio",
     "mapa": "node scripts/chile.mjs",
-    "sfx": "python scripts/efectos.py",
+    "sfx": "python scripts/efectos.py && python scripts/musica.py",
     "vista": "remotion still Reel out/vista.png --frame=0",
     "render": "remotion render Reel out/reel-crudo.mp4",
     "final": "npm run render && remotion ffmpeg -y -i out/reel-crudo.mp4 -c:v copy -af loudnorm=I=-15:TP=-3:LRA=11 -c:a aac -b:a 192k out/reel.mp4"
