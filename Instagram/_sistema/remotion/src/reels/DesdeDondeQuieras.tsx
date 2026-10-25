@@ -9,7 +9,7 @@ import { Mapa } from "../piezas/Mapa";
 import { Publicacion } from "../piezas/Publicacion";
 import { linea, Toma } from "../piezas/Toma";
 
-// Reel «Desde donde quieras» (post 15), armado con la segunda grabación (prueba-2).
+// Reel «Desde donde quieras» (post 16), armado con la segunda grabación (prueba-2).
 // Se alterna lo orgánico (tu video tal cual, con las animaciones entre tu fondo y tú)
 // con la marca (tu recorte sobre el post, el chat o el esquema). El paso entre los dos
 // es un círculo que se cierra hacia tu cara. En cada frase cambias de lugar y las pausas se cortan.

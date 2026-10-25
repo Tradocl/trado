@@ -24,7 +24,8 @@ Guárdalo para tu próxima compra a distancia 📌
 
 ════════ NO COPIAR DESDE AQUÍ: es para configurar la publicación ════════
 
-Portada: portada.png (oscura; sale como post 15 y sigue la X: impares de color, alternando azul y oscuro, y el 13 fue azul). "Compartir también en el feed" activado.
+Portada: portada.png (gris; sale como post 16 y sigue la X: pares en gris). "Compartir también en el feed" activado.
+Orden: publicar DESPUÉS del post 15 (otro video, todavía sin publicar; como impar le toca color, y oscuro porque el 13 fue azul). Si este sale antes, la X se descuadra.
 Ubicación: Santiago, Chile · Etiqueta de IA: apagada (eres tú grabado de verdad; las animaciones son nuestras).
 Video a subir: reel.mp4. Ya trae música de fondo propia (sintetizada por nosotros, sin derechos de autor) mezclada bajo la voz, así que se puede subir tal cual, en Instagram y en Facebook.
 Si prefieres una canción de la biblioteca de Instagram: sube reel-sin-musica.mp4 y busca "lofi", "chill" o "upbeat", instrumental y sin voz (acá habla una persona).

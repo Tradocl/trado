@@ -5,7 +5,7 @@ animación de marca. Los reels 100 % animados siguen en `../reels/` (Pillow).
 Usa la misma marca (colores, Plus Jakarta Sans, zona segura) y los mismos
 efectos de sonido que ese motor.
 
-El primero hecho así es «Desde donde quieras» (post 15): `src/reels/DesdeDondeQuieras.tsx`,
+El primero hecho así es «Desde donde quieras» (post 16): `src/reels/DesdeDondeQuieras.tsx`,
 guion en `guion/desde-donde-quieras.md`. Para uno nuevo, copia ese archivo y cámbiale las escenas.
 
 ## El estilo
@@ -63,20 +63,29 @@ public/material/<reel>/
      Pildora, Palabra, Salto, Confeti, Rayos, Destello, Sfx.
 8. **Mirar** con `npm run studio`, y antes de dar por listo, una hoja del render cada 0,7 s
    (`python scripts/hoja.py out/<Id>.mp4 out/hoja.jpg cada=0.7`).
-9. **Render final**: `python scripts/final.py <Id> --a "NN Nombre"` y lo mismo con `--sin-musica`.
-   Deja `reel.mp4` y `reel-sin-musica.mp4` en `Instagram/2 Reels/NN Nombre/`.
-10. **Portada** en `../feed/NN-reelXX-portada/portada.html` (1080×1920; la grilla muestra
-    el centro 3:4, de y 240 a 1680). Para sacarte del video: un cuadro de `generado/<toma>.webm`
-    con sonrisa de verdad. `node render.mjs feed/NN-reelXX-portada` desde `_sistema`.
-11. **Caption** en `2 Reels/NN Nombre/caption.txt`, con el mismo formato que los demás
-    (texto, hashtags y la parte "NO COPIAR" con cómo configurar la publicación).
+9. **Número en la grilla (NN)**: es el puesto donde va a salir, contando también lo que ya está
+   hecho y todavía no se publica. No basta con mirar `2 Reels/`: pregunta cuál es el último
+   (este iba a ser el 15, pero el 15 ya lo tenía otro video sin publicar, así que es el 16).
+   XX es el número de reel (`16-reel09-portada` = noveno reel).
+10. **Render final**: `python scripts/final.py <Id> --a "NN Nombre"` y lo mismo con `--sin-musica`
+    (uno después del otro, nunca a la vez: escriben el mismo archivo intermedio).
+    Deja `reel.mp4` y `reel-sin-musica.mp4` en `Instagram/2 Reels/NN Nombre/`; agrega esa carpeta
+    al `.gitignore` de la raíz (los mp4 pesan ~50 MB y llevan tu cara y tu voz).
+11. **Portada** en `../feed/NN-reelXX-portada/portada.html` (1080×1920; la grilla muestra
+    el centro 3:4, de y 240 a 1680). El color sigue la X de la grilla: **par = gris**
+    (`fondo-gris`); **impar = color**, alternando azul (`fondo-hero`) y oscuro (`fondo-oscuro`)
+    según cuál fue el impar anterior. Para sacarte del video: un cuadro de `generado/<toma>.webm`
+    con sonrisa de verdad. `node render.mjs feed/NN-reelXX-portada` y `python revisar.py feed/NN-reelXX-portada`
+    desde `_sistema`. Copia el `portada.png` a `2 Reels/NN Nombre/`.
+12. **Caption** en `2 Reels/NN Nombre/caption.txt`, con el mismo formato que los demás
+    (texto, hashtags y la parte "NO COPIAR" con cómo configurar la publicación y en qué orden publicar).
 
 ## Consejos para grabar
 
 - Vertical, 30 fps. Si el iPhone graba en HDR, no pasa nada: `convertir.py` lo arregla.
 - Luz de frente (ventana o lámpara detrás del celular), nunca detrás tuyo.
 - Fondo lo más simple posible: el recorte se ensucia con cuadros, plantas o colores
-  parecidos a la piel (en el post 15 un pedazo de cuadro rosado se pegó al pelo).
+  parecidos a la piel (en el post 16 un pedazo de cuadro rosado se pegó al pelo).
 - Misma ropa y mismo lugar en todas las frases del reel.
 - Di cada frase entera de corrido, y si te equivocas repite **la frase completa**, no
   solo la palabra. Deja un segundo quieto y con los ojos abiertos antes de empezar.
@@ -85,19 +94,29 @@ public/material/<reel>/
 ## Lecciones (lo que ya costó)
 
 - **Los subtítulos siguen al audio, no al guion**, salvo que te hayas equivocado y no se
-  pueda regrabar: en el post 15 se te escapó "Marketplace" por "WhatsApp" y la tarjeta y el
+  pueda regrabar: en el post 16 se te escapó "Marketplace" por "WhatsApp" y la tarjeta y el
   subtítulo dicen WhatsApp. Si se puede, mejor regrabar solo esa frase con la misma luz y ropa.
 - **Nada de burbujas con tu cara ni vibración de pantalla**: se ve barato. El paso
   entre real y marca es solo el círculo.
-- **Mira cómo sale cada emoji en el render**: son los de Windows, y no siempre se leen.
-  El 🪨 sale como un cristal blanco; por eso la piedra está dibujada (`Piedra` en `piezas/efectos.tsx`).
-  Si un objeto es clave para el chiste, dibújalo.
+- **Los emojis del video son los de Windows** (Microsoft Fluent), y no siempre se leen: el 🪨
+  sale como un cristal blanco, por eso la piedra está dibujada (`Piedra` en `piezas/efectos.tsx`),
+  aunque tampoco convenció del todo. Ya revisado, para no repetirlo:
+  - Los de Apple no se pueden usar: son de Apple y no traen licencia para uso comercial
+    (que una librería los incluya no da el permiso). En el caption sí, ahí son texto.
+  - El set 3D gratis de Microsoft (fluentui-emoji, MIT) es igual a lo que ya sale. Twemoji,
+    Noto (el de Android) y OpenMoji son planos o del estilo que no gustó.
+  - Lo que queda por probar si un objeto es clave para el chiste: una foto real recortada
+    (licencia libre para uso comercial, recortada con rembg como tu toma). Para lo decorativo,
+    los íconos Lucide (los mismos de la app) o nada.
 - **Apps: solo el nombre**, nunca su logo ni su interfaz. El chat y la publicación son diseño nuestro.
 - **Varía los efectos**: el mismo "pop" para todo cansa. Tres cosas seguidas → tonos que suben.
 - **La música va ~11 dB bajo la voz** y el ritmo entra recién cuando aparece Trado.
 - **Corta toda pausa de más de ~0,3 s**; la de antes de una enumeración también.
-- **Revisa el primer cuadro**: es la miniatura antes de que carguen. En el post 15 sale
+- **Revisa el primer cuadro**: es la miniatura antes de que carguen. En el post 16 sale
   con los ojos cerrados (la toma empieza a 0,08 s); conviene empezar en uno con ojos abiertos.
+- **Tu recorte en una portada clara: revísalo con zoom.** En el 16 el borde del pelo tenía un
+  escalón que en fondo oscuro no se veía y en gris sí. Y todo texto que caiga sobre tu ropa
+  oscura va en pastilla blanca (el "Mira cómo"), o no se lee.
 - **Una línea SVG de largo 0 con punta redonda igual dibuja un punto**: no la muestres
   hasta que empiece a crecer (pasó en `Esquema.tsx`).
 - **loudnorm en una pasada satura** (pico de +2,7 dBFS). `final.py` hace dos pasadas lineales y un limitador.

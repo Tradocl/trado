@@ -1,4 +1,4 @@
-# Reel «Desde donde quieras» (post 15): guion final
+# Reel «Desde donde quieras» (post 16): guion final
 
 Lo que quedó publicado, tal como se dijo en la grabación (prueba-2). El borrador
 original tenía otro texto; los subtítulos siguen al audio, no al borrador.
