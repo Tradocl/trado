@@ -6,9 +6,9 @@
     "studio": "remotion studio",
     "mapa": "node scripts/chile.mjs",
     "sfx": "python scripts/efectos.py",
-    "vista": "remotion still Regiones out/vista.png --frame=0",
-    "render": "remotion render Regiones out/regiones-crudo.mp4",
-    "final": "npm run render && remotion ffmpeg -y -i out/regiones-crudo.mp4 -c:v copy -af loudnorm=I=-15:TP=-3:LRA=11 -c:a aac -b:a 192k out/regiones.mp4"
+    "vista": "remotion still Reel out/vista.png --frame=0",
+    "render": "remotion render Reel out/reel-crudo.mp4",
+    "final": "npm run render && remotion ffmpeg -y -i out/reel-crudo.mp4 -c:v copy -af loudnorm=I=-15:TP=-3:LRA=11 -c:a aac -b:a 192k out/reel.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.533",

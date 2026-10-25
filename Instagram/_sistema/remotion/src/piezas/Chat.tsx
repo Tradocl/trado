@@ -1,8 +1,8 @@
 import React from "react";
 import { useCurrentFrame } from "remotion";
-import { C, FUENTE, rebote } from "../marca";
+import { C, FUENTE, rebote, suave } from "../marca";
 
-export type Mensaje = { de: "yo" | "otro"; texto: string; en: number };
+export type Mensaje = { de: "yo" | "otro"; texto: string; en: number; visto?: number };
 
 /** Chat genérico (sin marcas ajenas): burbujas que entran con rebote. */
 export const Chat: React.FC<{ mensajes: Mensaje[]; y: number; titulo?: string }> = ({ mensajes, y, titulo }) => {
@@ -24,8 +24,12 @@ export const Chat: React.FC<{ mensajes: Mensaje[]; y: number; titulo?: string }>
         return (
           <div key={i} style={{ alignSelf: yo ? "flex-end" : "flex-start", maxWidth: 760, transform: `scale(${0.6 + 0.4 * k})`, transformOrigin: yo ? "right bottom" : "left bottom", opacity: Math.min(1, k * 1.4),
             background: yo ? C.medio : "#252C48", color: C.blanco, fontSize: 46, fontWeight: 700, lineHeight: 1.25, padding: "26px 34px",
-            borderRadius: 36, borderBottomRightRadius: yo ? 10 : 36, borderBottomLeftRadius: yo ? 36 : 10, boxShadow: "0 10px 30px rgba(0,0,0,0.3)" }}>
+            position: "relative", borderRadius: 36, borderBottomRightRadius: yo ? 10 : 36, borderBottomLeftRadius: yo ? 36 : 10, boxShadow: "0 10px 30px rgba(0,0,0,0.3)" }}>
             {m.texto}
+            {/* "Visto" sin respuesta, bajo la burbuja */}
+            {m.visto !== undefined && f >= m.visto && (
+              <div style={{ position: "absolute", right: 8, bottom: -50, fontSize: 30, fontWeight: 700, color: C.blanco, opacity: 0.8 * suave(f, m.visto, 6) }}>Visto ✓✓</div>
+            )}
           </div>
         );
       })}

@@ -4,6 +4,7 @@ import { FUENTE, s } from "./marca";
 import { MATERIAL } from "./material";
 import { Clip, Fondo, Sfx, SubtituloVoz } from "./piezas/base";
 import { Publicacion } from "./piezas/Publicacion";
+import { RECORTE } from "./piezas/Toma";
 
 // Hook en formato green screen: el feed atrás y tú recortado abajo, comentándolo.
 // Los tiempos salen de la toma 1 de prueba-1.mp4 (desde el segundo 0,4).
@@ -21,9 +22,7 @@ export const Hook: React.FC = () => (
     <Fondo tipo="marca" />
     <Publicacion y={190} alto={860} paraEn={s(1.6)} marcas={{ precio: s(2.0), lugar: s(4.1), duda: s(4.6) }} />
     {MATERIAL.hookRecorte ? (
-      // Recortado y anclado abajo, como los videos de green screen
-      <OffthreadVideo transparent src={staticFile(MATERIAL.hookRecorte)}
-        style={{ position: "absolute", left: 160, bottom: 0, width: 760, height: 1351, objectFit: "cover" }} muted />
+      <OffthreadVideo transparent src={staticFile(MATERIAL.hookRecorte)} style={RECORTE} muted />
     ) : (
       <Clip src={null} etiqueta="Tú abajo, recortado" style={{ top: 1060, left: 140, right: 140, bottom: 0 }} />
     )}
