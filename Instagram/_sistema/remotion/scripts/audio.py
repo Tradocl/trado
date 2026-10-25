@@ -2,7 +2,7 @@
 fondo, le da presencia y la deja pareja. No inventa nada: es la misma voz con menos ruido.
 
 Uso:
-    python scripts/audio.py public/material/videos/prueba-1.mp4 0.4 6.3 public/material/generado/hook.wav
+    python scripts/audio.py public/material/<reel>/video.mp4 6.8 11.8 public/material/<reel>/generado/hook.wav
 """
 import subprocess
 import sys

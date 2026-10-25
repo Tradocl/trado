@@ -1,28 +1,30 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
-import { C, FUENTE, rebote, s, suave } from "./marca";
-import { Pildora, Sfx } from "./piezas/base";
-import { Chat } from "./piezas/Chat";
-import { Confeti, Destello, Palabra, Rayos, Salto } from "./piezas/efectos";
-import { Esquema } from "./piezas/Esquema";
-import { Mapa } from "./piezas/Mapa";
-import { Publicacion } from "./piezas/Publicacion";
-import { linea, Toma } from "./piezas/Toma";
+import { C, FUENTE, rebote, s, suave } from "../marca";
+import { Pildora, Sfx } from "../piezas/base";
+import { Chat } from "../piezas/Chat";
+import { Confeti, Destello, Palabra, Rayos, Salto } from "../piezas/efectos";
+import { Esquema } from "../piezas/Esquema";
+import { Mapa } from "../piezas/Mapa";
+import { Publicacion } from "../piezas/Publicacion";
+import { linea, Toma } from "../piezas/Toma";
 
-// Reel «Desde donde quieras», armado con las tomas de prueba-2.mp4 (la segunda grabación).
+// Reel «Desde donde quieras» (post 15), armado con la segunda grabación (prueba-2).
 // Se alterna lo orgánico (tu video tal cual, con las animaciones entre tu fondo y tú)
 // con la marca (tu recorte sobre el post, el chat o el esquema). El paso entre los dos
 // es un círculo que se cierra hacia tu cara. En cada frase cambias de lugar y las pausas se cortan.
 // Todos los tiempos de cada escena van en segundos de su toma.
 //
-// toma      origen en prueba-2.mp4                 cara
-// hook-2    6,8–11,8                               534, 1009
-// duda-2    19,2–29,7                              548, 1030
-// mira-2    35,7–39,0                              598, 1040
-// nomkt-2   42,0–50,6                              576, 1015
-// medio-2   91,7–101,7  (la tercera, la completa)  594, 1032
-// cierre-2  104,4–109,3                            579, 1015
-// trado-2   118,9–120,6 (la tercera de cinco)      606, 1056
+// toma      origen en video.mp4                    cara
+// hook      6,8–11,8                               534, 1009
+// duda      19,2–29,7                              548, 1030
+// mira      35,7–39,0                              598, 1040
+// nomkt     42,0–50,6                              576, 1015
+// medio     91,7–101,7  (la tercera, la completa)  594, 1032
+// cierre    104,4–109,3                            579, 1015
+// trado     118,9–120,6 (la tercera de cinco)      606, 1056
+
+const CARPETA = "material/desde-donde-quieras";
 
 const L_HOOK = linea([[0.08, 4.95]]);
 const L_DUDA = linea([[0, 1.68], [1.82, 3.58], [3.96, 5.8], [5.9, 7.7], [7.78, 10.45]]);
@@ -43,11 +45,10 @@ const ESCENAS: { id: string; dur: number; C: () => React.ReactElement }[] = [
   { id: "trado", dur: L_TRADO.dur + s(1.1), C: () => <Final /> },
 ];
 
-export const DURACION_REEL = ESCENAS.reduce((t, e) => t + e.dur, 0);
+export const DURACION = ESCENAS.reduce((t, e) => t + e.dur, 0);
 
-// Música de fondo sintetizada (scripts/musica.py). Con MUSICA = false sale sin ella,
-// para publicarlo con una canción de la biblioteca de Instagram.
-const MUSICA = true;
+// Música de fondo sintetizada (scripts/musica.py). Con la prop musica = false sale sin ella
+// (`python scripts/final.py DesdeDondeQuieras --sin-musica`), para usar una canción de Instagram.
 const COMPAS = s(2.5); // un compás a 96 BPM, igual que en scripts/musica.py
 
 const inicioDe = (id: string) => {
@@ -60,8 +61,8 @@ const Musica: React.FC = () => {
   // El ritmo entra en el primer compás después de que aparece Trado al medio
   const ritmo = Math.ceil(inicioDe("medio") / COMPAS) * COMPAS;
   const sinVoz = inicioDe("trado") + s(1.3); // al final ya no hablas: la música sube un poco
-  const cierra = Math.max(sinVoz + 9, DURACION_REEL - 20);
-  const nivel = (f: number) => interpolate(f, [0, 15, sinVoz, sinVoz + 8, cierra, DURACION_REEL], [0, 1, 1, 1.6, 1.6, 0],
+  const cierra = Math.max(sinVoz + 9, DURACION - 20);
+  const nivel = (f: number) => interpolate(f, [0, 15, sinVoz, sinVoz + 8, cierra, DURACION], [0, 1, 1, 1.6, 1.6, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <>
@@ -73,11 +74,11 @@ const Musica: React.FC = () => {
   );
 };
 
-export const Reel: React.FC = () => {
+export const DesdeDondeQuieras: React.FC<{ musica?: boolean }> = ({ musica = true }) => {
   let desde = 0;
   return (
     <AbsoluteFill style={{ fontFamily: FUENTE, background: C.tinta }}>
-      {MUSICA && <Musica />}
+      {musica && <Musica />}
       {ESCENAS.map((e, i) => {
         const inicio = desde;
         desde += e.dur;
@@ -109,7 +110,7 @@ const Gancho: React.FC = () => {
   const L = L_HOOK;
   const f = useCurrentFrame();
   return (
-    <Toma archivo="hook-2" origen={6.8} cara={{ x: 534, y: 1009 }} linea={L}
+    <Toma carpeta={CARPETA} archivo="hook" origen={6.8} cara={{ x: 534, y: 1009 }} linea={L}
       modos={[[0, "real"]]}
       palabras={[
         [["Lo", 0.19], ["encontraste,", 0.55]],
@@ -168,7 +169,7 @@ const Duda: React.FC = () => {
   const L = L_DUDA;
   const chat1 = L.en(1.82), piedra = L.en(5.9), chat2 = L.en(7.78);
   return (
-    <Toma archivo="duda-2" origen={19.2} cara={{ x: 548, y: 1030 }} linea={L}
+    <Toma carpeta={CARPETA} archivo="duda" origen={19.2} cara={{ x: 548, y: 1030 }} linea={L}
       modos={[[0, "real"], [1.82, "fuera"], [5.9, "real"], [7.78, "der"]]}
       palabras={[
         [["Y", 0.14], ["ahí", 0.22], ["es", 0.52], ["donde", 0.62]],
@@ -238,7 +239,7 @@ const Mira: React.FC = () => {
   const abre = L.en(0.8);
     const sube = rebote(f, abre);
   return (
-    <Toma archivo="mira-2" origen={35.7} cara={{ x: 598, y: 1040 }} linea={L}
+    <Toma carpeta={CARPETA} archivo="mira" origen={35.7} cara={{ x: 598, y: 1040 }} linea={L}
       modos={[[0, "real"], [1.62, "cerca"]]}
       palabras={[
         [["Mira,", 0.2]],
@@ -289,7 +290,7 @@ const NoMarketplace: React.FC = () => {
   const L = L_NOMKT;
   const f = useCurrentFrame();
   return (
-    <Toma archivo="nomkt-2" origen={42.0} cara={{ x: 576, y: 1015 }} linea={L}
+    <Toma carpeta={CARPETA} archivo="nomkt" origen={42.0} cara={{ x: 576, y: 1015 }} linea={L}
       modos={[[0, "real"], [2.08, "abajo"]]}
       palabras={[
         [["Trado", 0.22], ["no", 0.56], ["es", 0.8]],
@@ -331,7 +332,7 @@ const NoMarketplace: React.FC = () => {
 const AlMedio: React.FC = () => {
   const L = L_MEDIO;
   return (
-    <Toma archivo="medio-2" origen={91.7} cara={{ x: 594, y: 1032 }} linea={L}
+    <Toma carpeta={CARPETA} archivo="medio" origen={91.7} cara={{ x: 594, y: 1032 }} linea={L}
       modos={[[0, "real"], [1.2, "der"], [4.4, "izq"], [8.3, "der"]]}
       palabras={[
         [["Nosotros", 0.2], ["nos", 0.62], ["ponemos", 0.88]],
@@ -366,7 +367,7 @@ const DondeQuieras: React.FC = () => {
   const r = (de: "arica" | "calama" | "laSerena" | "santiago" | "concepcion" | "puertoMontt" | "coyhaique" | "puntaArenas", a: typeof de, t: number) =>
     ({ de, a, desde: L.en(t), dur: 22 });
   return (
-    <Toma archivo="cierre-2" origen={104.4} cara={{ x: 579, y: 1015 }} linea={L}
+    <Toma carpeta={CARPETA} archivo="cierre" origen={104.4} cara={{ x: 579, y: 1015 }} linea={L}
       modos={[[0, "der"]]}
       palabras={[
         [["Y", 0.19], ["así", 0.27], ["da", 0.53], ["lo", 0.79], ["mismo", 0.93]],
@@ -392,7 +393,7 @@ const Final: React.FC = () => {
   const L = L_TRADO;
   const f = useCurrentFrame();
   return (
-    <Toma archivo="trado-2" origen={118.9} cara={{ x: 606, y: 1056 }} linea={L} modos={[[0, "abajo"], [1.38, "fuera"]]} palabras={[[["En", 0.2], ["trado.cl", 0.5]]]}>
+    <Toma carpeta={CARPETA} archivo="trado" origen={118.9} cara={{ x: 606, y: 1056 }} linea={L} modos={[[0, "abajo"], [1.38, "fuera"]]} palabras={[[["En", 0.2], ["trado.cl", 0.5]]]}>
       <div style={{ position: "absolute", top: 300, width: "100%", textAlign: "center", color: C.blanco, fontWeight: 800, fontSize: 190, letterSpacing: "-0.04em", transform: `scale(${rebote(f, 0)})` }}>trado</div>
       <Palabra texto={"Compra y vende\ndesde donde quieras."} en={6} y={540} size={66} giro={0} />
       <Pildora texto="trado.cl" style={{ top: 780, left: "50%", transform: `translateX(-50%) scale(${rebote(f, 10)})`, fontSize: 64, color: C.azul, padding: "22px 70px" }} />

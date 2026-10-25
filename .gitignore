@@ -54,3 +54,8 @@ notas/
 [Ii]nstagram/_sistema/reels/**/__pycache__/
 [Ii]nstagram/_sistema/reels/**/*_vista_previa.png
 [Ii]nstagram/_sistema/reels/**/*.wav
+
+# Reels con tu cara y tu voz: el mp4 final pesa ~50 MB y se regenera con
+# remotion/scripts/final.py. Caption y portada sí se suben, como en los demás.
+[Ii]nstagram/2 Reels/15 Desde donde quieras/*.mp4
+[Ii]nstagram/_sistema/remotion/scripts/__pycache__/

@@ -1,4 +1,5 @@
-// Renderiza cada slide-*.html de una carpeta a PNG 1080x1350 con Chrome headless.
+// Renderiza cada slide-*.html de una carpeta a PNG 1080x1350 con Chrome headless,
+// y portada.html (portada de reel) a 1080x1920.
 // Uso:  node render.mjs posts/post-4   [carpeta de salida opcional]
 // Por defecto el PNG queda al lado de su HTML.
 
@@ -22,8 +23,8 @@ const origen = resolve(process.argv[2] ?? ".");
 const destino = resolve(process.argv[3] ?? origen);
 mkdirSync(destino, { recursive: true });
 
-const slides = readdirSync(origen).filter((f) => /^slide-.*\.html$/.test(f)).sort();
-if (!slides.length) throw new Error(`No hay slide-*.html en ${origen}`);
+const slides = readdirSync(origen).filter((f) => /^(slide-.*|portada)\.html$/.test(f)).sort();
+if (!slides.length) throw new Error(`No hay slide-*.html ni portada.html en ${origen}`);
 
 for (const archivo of slides) {
   const salida = join(destino, basename(archivo, ".html") + ".png");
@@ -33,7 +34,7 @@ for (const archivo of slides) {
     "--hide-scrollbars",
     "--allow-file-access-from-files",
     "--force-device-scale-factor=1",
-    "--window-size=1080,1350",
+    archivo === "portada.html" ? "--window-size=1080,1920" : "--window-size=1080,1350",
     "--virtual-time-budget=4000", // deja cargar las fuentes antes de capturar
     `--screenshot=${salida}`,
     pathToFileURL(join(origen, archivo)).href,

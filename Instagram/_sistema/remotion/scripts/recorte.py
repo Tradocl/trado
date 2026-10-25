@@ -1,7 +1,7 @@
 """Recorta a la persona de un clip y deja el fondo transparente (WebM VP9 con alfa).
 
 Uso:
-    python scripts/recorte.py public/material/videos/prueba-1.mp4 0.5 6.2 public/material/generado/hook.webm
+    python scripts/recorte.py public/material/<reel>/video.mp4 6.8 11.8 public/material/<reel>/generado/hook.webm
 
 Corre en CPU con el modelo u2net_human_seg de rembg (~1 s por cuadro). Con pared lisa
 y luz de frente queda limpio; el pelo largo o las manos rápidas cuestan más.

@@ -3,8 +3,9 @@ import { AbsoluteFill, Audio, interpolate, OffthreadVideo, Sequence, spring, sta
 import { FPS, FUENTE, suave } from "../marca";
 import { Fondo, SubtituloVoz } from "./base";
 
-// El video original de donde salen las tomas (1080×1920, ya pasado a SDR).
-const VIDEO = "material/videos/prueba-2.mp4";
+// Cada reel tiene su carpeta en public/material/<reel>/ (fuera del repo):
+//   video.mp4           la grabación completa, 1080×1920 y ya pasada a SDR (scripts/convertir.py)
+//   generado/<toma>.*   cada toma recortada (.webm) y con la voz limpia (.wav) (scripts/tomas.py)
 // Dónde queda el centro de tu cara (cuadro de 1080×1920). Cada toma trae la suya con `cara`,
 // porque entre frase y frase te mueves un poco; esta es la de referencia.
 export type Punto = { x: number; y: number };
@@ -57,10 +58,11 @@ export const linea = (tramos: Tramo[]): Linea => ({
 /** Una toma tuya: fondo de marca o tu video original (modo "real"), la animación (`children`), tú encima según `modos`,
  *  lo que va sobre ti (`encima`) y subtítulos con los tiempos reales.
  *  Todos los tiempos van en segundos de la toma original; `linea` los acomoda a los cortes.
- *  `archivo`: nombre base en public/material/generado/ (sale de scripts/recorte.py y audio.py).
- *  `origen`: segundo del VIDEO donde empieza esa toma, para el fondo real.
+ *  `carpeta`: la del reel en public/material/; `archivo`: nombre de la toma en su generado/.
+ *  `origen`: segundo de video.mp4 donde empieza esa toma, para el fondo real.
  *  `cara`: centro de tu cara en esa toma (medido con scripts de detección, ver README). */
 export const Toma: React.FC<{
+  carpeta: string;
   archivo: string;
   origen: number;
   linea: Linea;
@@ -69,7 +71,7 @@ export const Toma: React.FC<{
   cara?: Punto;
   encima?: React.ReactNode;
   children?: React.ReactNode;
-}> = ({ archivo, origen, linea: L, palabras, modos, cara = CARA, encima, children }) => {
+}> = ({ carpeta, archivo, origen, linea: L, palabras, modos, cara = CARA, encima, children }) => {
   const f = useCurrentFrame();
   const poses = { ...POSES, real: { k: 1, fx: cara.x, fy: cara.y } };
 
@@ -94,7 +96,7 @@ export const Toma: React.FC<{
           <AbsoluteFill style={{ clipPath: iris < 1 ? `circle(${RADIO * iris}px at ${cara.x}px ${cara.y}px)` : undefined }}>
             {tramosDe(L).map(({ a, inicio, largo }) => (
               <Sequence key={a} from={inicio} durationInFrames={largo} layout="none">
-                <OffthreadVideo muted trimBefore={Math.round((origen + a) * FPS)} src={staticFile(VIDEO)}
+                <OffthreadVideo muted trimBefore={Math.round((origen + a) * FPS)} src={staticFile(`${carpeta}/video.mp4`)}
                   style={{ position: "absolute", inset: 0, width: 1080, height: 1920 }} />
               </Sequence>
             ))}
@@ -107,10 +109,10 @@ export const Toma: React.FC<{
         {children}
         {tramosDe(L).map(({ a, inicio, largo }) => (
           <Sequence key={a} from={inicio} durationInFrames={largo} layout="none">
-            <OffthreadVideo transparent muted trimBefore={Math.round(a * FPS)} src={staticFile(`material/generado/${archivo}.webm`)}
+            <OffthreadVideo transparent muted trimBefore={Math.round(a * FPS)} src={staticFile(`${carpeta}/generado/${archivo}.webm`)}
               style={{ position: "absolute", left: pose.fx - cara.x * pose.k, top: pose.fy - cara.y * pose.k, width: 1080 * pose.k, height: 1920 * pose.k }} />
             {/* Fundido de 2 cuadros en cada corte para que no haga clic */}
-            <Audio trimBefore={Math.round(a * FPS)} src={staticFile(`material/generado/${archivo}.wav`)}
+            <Audio trimBefore={Math.round(a * FPS)} src={staticFile(`${carpeta}/generado/${archivo}.wav`)}
               volume={(c) => interpolate(c, [0, 2, largo - 2, largo], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })} />
           </Sequence>
         ))}

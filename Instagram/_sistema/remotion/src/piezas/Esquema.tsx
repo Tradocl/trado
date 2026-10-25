@@ -53,7 +53,8 @@ export const Esquema: React.FC<{ y: number; m: Momentos }> = ({ y, m }) => {
     <div style={{ position: "absolute", inset: 0, fontFamily: FUENTE }}>
       {/* Las uniones: punteadas, pasan por Trado */}
       <svg width={1080} height={1920} style={{ position: "absolute", inset: 0 }}>
-        {[[X.comprador + 110, X.trado - 125], [X.trado + 125, X.vendedor - 110]].map(([a, b], i) => (
+        {/* Con largo 0 la punta redonda igual dibuja un punto: no se muestran hasta que empiezan a crecer */}
+        {lineas > 0 && [[X.comprador + 110, X.trado - 125], [X.trado + 125, X.vendedor - 110]].map(([a, b], i) => (
           <line key={i} x1={a} y1={Y} x2={lerp(a, b, lineas)} y2={Y} stroke="rgba(255,255,255,0.8)" strokeWidth={8} strokeDasharray="4 18" strokeLinecap="round" />
         ))}
         {f >= m.llega && (
