@@ -2,7 +2,7 @@ Lo encontraste, al precio perfecto… pero el vendedor está en Arica 📍
 
 ¿Pagas y rezas para que te llegue? ¿Envías y rezas para que te paguen? Comprar a distancia a alguien que no conoces da miedo, y con razón.
 
-Trado no es un marketplace: sigues comprando y vendiendo donde ya lo haces (Marketplace, Instagram, Facebook). Trado se pone al medio. Así funciona:
+Trado no es un marketplace: sigues comprando y vendiendo donde ya lo haces (WhatsApp, Instagram, Facebook). Trado se pone al medio. Así funciona:
 1️⃣ Creas una sala con lo que se vende y el precio, y compartes el link.
 2️⃣ El comprador paga en Trado y la plata queda retenida, no en la cuenta del vendedor.
 3️⃣ El vendedor envía el producto.
@@ -33,5 +33,5 @@ Subtítulos: ya vienen quemados en el video; no actives los automáticos de Inst
 Primer comentario fijado: "¿Tú compras o vendes a distancia? Cuéntanos desde dónde 👇"
 Uso recomendado: es el primero contigo a cámara. Probarlo como anuncio a público de regiones.
 Verificado contra la app: cualquiera de las partes crea la sala; "Pago retenido en escrow"; el vendedor envía; 72 h para revisar desde que se marca recibido (envío); se libera al confirmar; apelación con la plata retenida; cuenta gratis; comisión solo si se concreta; tarjeta o transferencia.
-Apps nombradas solo con su nombre, sin logos ni interfaces de terceros.
+Apps nombradas solo con su nombre, sin logos ni interfaces de terceros. En el audio se escapa "Marketplace" en vez de "WhatsApp"; la tarjeta y el subtítulo dicen WhatsApp.
 No está en git: los mp4 (~50 MB, con tu cara y tu voz) quedan solo en este computador; se regeneran con remotion/scripts/final.py.

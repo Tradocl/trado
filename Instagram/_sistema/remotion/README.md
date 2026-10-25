@@ -84,10 +84,14 @@ public/material/<reel>/
 
 ## Lecciones (lo que ya costó)
 
-- **Los subtítulos siguen al audio, no al guion.** En la grabación dijiste "Facebook"
-  donde el guion decía "WhatsApp": lo que vale es lo que dijiste.
+- **Los subtítulos siguen al audio, no al guion**, salvo que te hayas equivocado y no se
+  pueda regrabar: en el post 15 se te escapó "Marketplace" por "WhatsApp" y la tarjeta y el
+  subtítulo dicen WhatsApp. Si se puede, mejor regrabar solo esa frase con la misma luz y ropa.
 - **Nada de burbujas con tu cara ni vibración de pantalla**: se ve barato. El paso
   entre real y marca es solo el círculo.
+- **Mira cómo sale cada emoji en el render**: son los de Windows, y no siempre se leen.
+  El 🪨 sale como un cristal blanco; por eso la piedra está dibujada (`Piedra` en `piezas/efectos.tsx`).
+  Si un objeto es clave para el chiste, dibújalo.
 - **Apps: solo el nombre**, nunca su logo ni su interfaz. El chat y la publicación son diseño nuestro.
 - **Varía los efectos**: el mismo "pop" para todo cansa. Tres cosas seguidas → tonos que suben.
 - **La música va ~11 dB bajo la voz** y el ritmo entra recién cuando aparece Trado.

@@ -10,6 +10,45 @@ export const Salto: React.FC<{ emoji: string; en: number; style: React.CSSProper
   return <div style={{ position: "absolute", fontSize: size, lineHeight: 1, transform: `scale(${k}) rotate(${giro * k}deg)`, ...style }}>{emoji}</div>;
 };
 
+/** Una piedra dibujada: el emoji 🪨 de Windows sale como un cristal blanco y no se lee como piedra.
+ *  Gris tierra con contorno oscuro, cara de arriba iluminada, grietas y pintas, para que se note
+ *  tanto sobre la pared clara como sobre el azul. */
+export const Piedra: React.FC<{ ancho?: number; style?: React.CSSProperties }> = ({ ancho = 260, style }) => {
+  const id = React.useId().replace(/:/g, "");
+  return (
+    <svg width={ancho} height={ancho * 0.8} viewBox="0 0 200 160" style={{ overflow: "visible", filter: "drop-shadow(0 18px 22px rgba(10,10,30,0.45))", ...style }}>
+      <defs>
+        <linearGradient id={`${id}c`} x1="0.15" y1="0.1" x2="0.85" y2="1">
+          <stop offset="0" stopColor="#A49C91" />
+          <stop offset="0.55" stopColor="#7C746A" />
+          <stop offset="1" stopColor="#4F4943" />
+        </linearGradient>
+        <clipPath id={`${id}r`}>
+          <path d={ROCA} />
+        </clipPath>
+      </defs>
+      <path d={ROCA} fill={`url(#${id}c)`} />
+      <g clipPath={`url(#${id}r)`}>
+        {/* Cara de arriba, más clara: le da volumen */}
+        <path d="M44 66 C62 40 104 26 136 34 C158 40 176 56 180 74 C150 84 110 88 74 84 C60 82 50 76 44 66 Z" fill="#C9C1B5" opacity={0.55} />
+        {/* Sombra de abajo */}
+        <ellipse cx={120} cy={168} rx={110} ry={44} fill="#2E2A26" opacity={0.45} />
+        {/* Brillo */}
+        <ellipse cx={86} cy={52} rx={26} ry={9} transform="rotate(-18 86 52)" fill="#FFFFFF" opacity={0.5} />
+        {/* Pintas */}
+        {[[62, 104, 4], [96, 118, 3], [146, 106, 4.5], [130, 132, 3], [78, 134, 3.5], [160, 84, 3], [110, 60, 2.5]].map(([x, y, r], i) => (
+          <circle key={i} cx={x} cy={y} r={r} fill={i % 3 === 2 ? "#E4DDD2" : "#3B3631"} opacity={i % 3 === 2 ? 0.7 : 0.45} />
+        ))}
+      </g>
+      {/* Grietas */}
+      <path d="M126 86 L134 104 L126 120" fill="none" stroke="#3B3631" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" opacity={0.7} />
+      <path d="M66 92 L80 102" fill="none" stroke="#3B3631" strokeWidth={3.5} strokeLinecap="round" opacity={0.6} />
+      <path d={ROCA} fill="none" stroke="#35302B" strokeWidth={6} strokeLinejoin="round" />
+    </svg>
+  );
+};
+const ROCA = "M26 112 C14 88 24 58 52 46 C68 26 104 16 130 26 C158 30 184 52 186 84 C192 112 174 140 142 148 C112 158 62 156 40 142 C32 134 28 124 26 112 Z";
+
 /** Texto que entra gigante y se clava en su lugar. */
 export const Palabra: React.FC<{ texto: string; en: number; y: number; size?: number; color?: string; fondo?: string; giro?: number; style?: React.CSSProperties }> = ({ texto, en, y, size = 110, color = C.blanco, fondo, giro = -3, style }) => {
   const f = useCurrentFrame();

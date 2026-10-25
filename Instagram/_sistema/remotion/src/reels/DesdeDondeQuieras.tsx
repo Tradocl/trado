@@ -3,7 +3,7 @@ import { AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame
 import { C, FUENTE, rebote, s, suave } from "../marca";
 import { Pildora, Sfx } from "../piezas/base";
 import { Chat } from "../piezas/Chat";
-import { Confeti, Destello, Palabra, Rayos, Salto } from "../piezas/efectos";
+import { Confeti, Destello, Palabra, Piedra, Rayos, Salto } from "../piezas/efectos";
 import { Esquema } from "../piezas/Esquema";
 import { Mapa } from "../piezas/Mapa";
 import { Publicacion } from "../piezas/Publicacion";
@@ -154,13 +154,13 @@ const Transferencia: React.FC<{ en: number }> = ({ en }) => {
   );
 };
 
-/** Emoji que cae desde arriba y aterriza en `hasta`. */
-const Cae: React.FC<{ emoji: string; en: number; llega: number; x: number; y: number; size?: number }> = ({ emoji, en, llega, x, y, size = 260 }) => {
+/** Algo que cae desde arriba dando una vuelta y aterriza derecho en `llega` (arriba a la izquierda en x, y), con un pequeño aplastón. */
+const Cae: React.FC<{ en: number; llega: number; x: number; y: number; children: React.ReactNode }> = ({ en, llega, x, y, children }) => {
   const f = useCurrentFrame();
   if (f < en) return null;
   const t = Math.min(1, (f - en) / (llega - en));
   const aplasta = f >= llega ? 1 - 0.25 * Math.max(0, 1 - (f - llega) / 6) : 1;
-  return <div style={{ position: "absolute", left: x, top: lerp(-400, y, t * t), fontSize: size, lineHeight: 1, transform: `scaleY(${aplasta}) rotate(${t * 200}deg)`, transformOrigin: "bottom" }}>{emoji}</div>;
+  return <div style={{ position: "absolute", left: x, top: lerp(-400, y, t * t), transform: `scaleY(${aplasta}) rotate(${t * 360}deg)`, transformOrigin: "bottom" }}>{children}</div>;
 };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -186,7 +186,7 @@ const Duda: React.FC = () => {
       encima={
         // La piedra le cae en la cabeza
         <Desde en={piedra} hasta={chat2}>
-          <Cae emoji="🪨" en={L.en(6.5) - piedra} llega={L.en(6.92) - piedra} x={483} y={270} />
+          <Cae en={L.en(6.5) - piedra} llega={L.en(6.92) - piedra} x={415} y={556}><Piedra ancho={270} /></Cae>
         </Desde>
       }>
       <Desde en={0} hasta={chat1}>
@@ -253,7 +253,7 @@ const Mira: React.FC = () => {
       <Rayos en={abre} x={540} y={500} />
       <div style={{ position: "absolute", left: 0, right: 0, top: lerp(-600, 520, cae), textAlign: "center", fontSize: 380, lineHeight: 1}}>📦</div>
       {f >= abre && (
-        <div style={{ position: "absolute", left: 0, right: 0, top: 560 - 320 * sube, textAlign: "center", fontSize: 250, lineHeight: 1, transform: `rotate(${-16 * sube}deg) scale(${0.4 + 0.6 * sube})` }}>🪨</div>
+        <div style={{ position: "absolute", left: 0, right: 0, top: 600 - 340 * sube, display: "flex", justifyContent: "center", transform: `rotate(${-16 * sube}deg) scale(${0.4 + 0.6 * sube})` }}><Piedra ancho={290} /></div>
       )}
       <Destello en={abre} fuerza={0.5} />
       <Sfx nombre="whoosh_baja" en={L.en(0.05)} vol={0.5} />
@@ -285,7 +285,9 @@ const App: React.FC<{ nombre: string; en: number; x: number; giro: number }> = (
   );
 };
 
-// «Trado no es un marketplace. Sigues comprando y vendiendo donde ya lo haces: Marketplace, Instagram, Facebook»
+// «Trado no es un marketplace. Sigues comprando y vendiendo donde ya lo haces: WhatsApp, Instagram, Facebook»
+// En la grabación se te escapó "Marketplace" en vez de "WhatsApp" y no se pudo regrabar: la tarjeta y el
+// subtítulo dicen WhatsApp, que es lo que querías decir.
 const NoMarketplace: React.FC = () => {
   const L = L_NOMKT;
   const f = useCurrentFrame();
@@ -297,7 +299,7 @@ const NoMarketplace: React.FC = () => {
         [["un", 0.96], ["Marketplace.", 1.08]],
         [["Sigues", 2.08], ["comprando", 2.3], ["y", 2.88], ["vendiendo", 3.1]],
         [["donde", 3.58], ["ya", 3.8], ["lo", 3.94], ["haces.", 4.2]],
-        [["En", 6.0], ["Marketplace,", 6.2], ["Instagram,", 7.18], ["Facebook.", 7.8]],
+        [["En", 6.0], ["WhatsApp,", 6.2], ["Instagram,", 7.18], ["Facebook.", 7.8]],
       ]}>
       <Palabra texto="trado" en={L.en(0.22)} y={190} size={150} fondo={C.azul} giro={0} />
       <Desde en={0} hasta={L.en(5.9)}>
@@ -310,7 +312,7 @@ const NoMarketplace: React.FC = () => {
       <Desde en={L.en(5.9)}>
         <Palabra texto="donde ya estás" en={0} y={430} size={64} />
       </Desde>
-      <App nombre="Marketplace" en={L.en(6.2)} x={60} giro={-4} />
+      <App nombre="WhatsApp" en={L.en(6.2)} x={60} giro={-4} />
       <App nombre="Instagram" en={L.en(7.18)} x={395} giro={3} />
       <App nombre="Facebook" en={L.en(7.8)} x={730} giro={-2} />
       {f >= L.en(8.1) && <Confeti en={L.en(8.1)} x={540} y={700} n={40} semilla="apps" />}
