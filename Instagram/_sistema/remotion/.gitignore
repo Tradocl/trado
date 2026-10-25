@@ -1,0 +1,6 @@
+node_modules/
+out/
+# Efectos: se regeneran con `npm run sfx` desde el motor de sonido de los reels
+public/sfx/
+# Fotos, clips y voz en bruto: nunca al repo (es público).
+public/material

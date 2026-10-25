@@ -1,0 +1,27 @@
+{
+  "name": "trado-reels-remotion",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "mapa": "node scripts/chile.mjs",
+    "sfx": "python scripts/efectos.py",
+    "vista": "remotion still Regiones out/vista.png --frame=0",
+    "render": "remotion render Regiones out/regiones-crudo.mp4",
+    "final": "npm run render && remotion ffmpeg -y -i out/regiones-crudo.mp4 -c:v copy -af loudnorm=I=-15:TP=-3:LRA=11 -c:a aac -b:a 192k out/regiones.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.533",
+    "@remotion/fonts": "4.0.533",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.533"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "d3-geo": "3.1.1",
+    "topojson-client": "3.1.0",
+    "typescript": "5.8.3",
+    "world-atlas": "2.0.2"
+  }
+}
