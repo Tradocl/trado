@@ -43,9 +43,8 @@ python scripts/audio.py   public/material/videos/prueba-1.mp4 22.8 35.1 public/m
 ## Archivos
 
 - `src/marca.ts`: colores, fuente y curvas de animación
-- `src/piezas/`: piezas reutilizables (título, subtítulo, chat, sala, mapa, postales)
-- `src/Reel.tsx`: reel "Desde donde quieras" armado con tus tomas (formato green screen)
-- `src/Hook.tsx`: su gancho, con el feed de publicaciones atrás
+- `src/piezas/`: piezas reutilizables (título, subtítulo, chat, sala, mapa, postales, esquema de pago, efectos)
+- `src/Reel.tsx`: reel "Desde donde quieras" armado con tus tomas: cortes sin pausas y tú cambiando de lugar (`piezas/Toma.tsx`)
 - `src/Regiones.tsx`: el primer borrador, todo animado con recuadros "TU CLIP"
 
 Las afirmaciones sobre Trado (plazos, comisión, estados) se verifican contra el

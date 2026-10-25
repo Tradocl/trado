@@ -3,9 +3,6 @@
 // Mientras un campo esté en null, el reel muestra un recuadro "TU CLIP" en su lugar.
 export const MATERIAL: Record<string, string | null> = {
   hook: null, // "material/videos/hook.mp4"   tú a cámara: la frase del gancho
-  // Recorte con fondo transparente (scripts/recorte.py) y audio limpio (scripts/audio.py)
-  hookRecorte: "material/generado/hook-prueba.webm",
-  hookAudio: "material/generado/hook-prueba.wav",
   calama: null, // "material/videos/calama.mp4"
   laSerena: null,
   cordillera: null,
