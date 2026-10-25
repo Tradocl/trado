@@ -10,8 +10,9 @@ import { Publicacion } from "./piezas/Publicacion";
 import { linea, Toma } from "./piezas/Toma";
 
 // Reel «Desde donde quieras», armado con las tomas de prueba-1.mp4.
-// La animación lleva el ritmo y tú vas cambiando de lugar en cada frase
-// (cara grande, a un lado, en burbuja o solo tu voz); las pausas se cortan.
+// Se alterna lo orgánico (tu video tal cual, con las animaciones entre tu fondo y tú)
+// con la marca (tu recorte sobre el post, el chat o el esquema). El paso entre los dos
+// es un círculo que se cierra hacia tu cara. En cada frase cambias de lugar y las pausas se cortan.
 // Todos los tiempos de cada escena van en segundos de su toma.
 //
 // toma         origen en prueba-1.mp4
@@ -79,16 +80,19 @@ const Gancho: React.FC = () => {
   const L = L_HOOK;
   const f = useCurrentFrame();
   return (
-    <Toma archivo="hook-prueba" linea={L}
-      modos={[[0, "cerca"], [1.0, "abajo"], [3.0, "der"]]}
-      golpes={[0.88, 4.12]} sacudidas={[4.12]}
+    <Toma archivo="hook-prueba" origen={0.4} linea={L}
+      modos={[[0, "real"], [1.0, "abajo"], [3.0, "der"]]}
+      golpes={[4.12]}
       palabras={[
         [["Lo", 0.45], ["encontraste.", 0.88]],
         [["Precio", 1.82], ["perfecto,", 2.04]],
         [["pero", 3.0], ["el", 3.14], ["vendedor", 3.26]],
         [["está", 3.68], ["en", 4.0], ["Arica.", 4.12]],
       ]}>
-      <Publicacion y={190} alto={860} paraEn={L.en(1.6)} marcas={{ precio: L.en(2.0), lugar: L.en(4.12), duda: L.en(4.4) }} />
+      {/* El feed aparece cuando dejas tu pieza y caes sobre la publicación */}
+      <Desde en={L.en(1.0)}>
+        <Publicacion y={190} alto={860} paraEn={L.en(1.6) - L.en(1.0)} marcas={{ precio: L.en(2.0) - L.en(1.0), lugar: L.en(4.12) - L.en(1.0), duda: L.en(4.4) - L.en(1.0) }} />
+      </Desde>
       {/* A un lado, lo lejos que está */}
       <Mapa x={170} y={1040} escala={0.3} desde={L.en(3.0)} nombres
         ciudades={["arica", "santiago"]} rutas={[{ de: "arica", a: "santiago", desde: L.en(3.68), dur: 14, color: C.naranjo, dudosa: true }]} />
@@ -97,6 +101,7 @@ const Gancho: React.FC = () => {
           style={{ top: 1330, left: 250, fontSize: 48, transform: `scale(${rebote(f, L.en(4.12))}) rotate(-5deg)` }} />
       )}
       <Sfx nombre="whoosh_sube" en={0} vol={0.5} />
+      <Sfx nombre="whoosh_baja" en={L.en(1.0)} vol={0.4} />
       <Sfx nombre="tic" en={L.en(1.6)} />
       <Sfx nombre="whoosh_baja" en={L.en(3.0)} vol={0.4} />
       <Sfx nombre="golpe" en={L.en(4.12)} />
@@ -139,9 +144,9 @@ const Duda: React.FC = () => {
   const L = L_DUDA;
   const chat1 = L.en(2.5), chat2 = L.en(9.25);
   return (
-    <Toma archivo="duda" linea={L}
-      modos={[[0, "izq"], [2.5, "fuera"], [5.05, "burbujaDer"], [6.95, "cerca"], [9.25, "der"]]}
-      golpes={[1.84, 8.0, 11.5]} sacudidas={[1.84, 8.0]}
+    <Toma archivo="duda" origen={22.8} linea={L}
+      modos={[[0, "real"], [2.5, "fuera"], [5.05, "burbujaDer"], [6.95, "real"], [9.25, "der"]]}
+      golpes={[1.84, 8.0, 11.5]} sacudidas={[8.0]}
       palabras={[
         [["Y", 0.16], ["ahí", 0.3], ["es", 0.76], ["donde", 1.14]],
         [["empieza", 1.38], ["la", 1.62], ["duda.", 1.84]],
@@ -211,8 +216,8 @@ const Mira: React.FC = () => {
   const tiembla = f < abre ? Math.sin(f * 1.9) * 7 * suave(f, L.en(0.5), 6) : 0;
   const sube = rebote(f, abre);
   return (
-    <Toma archivo="mira" linea={L}
-      modos={[[0, "abajo"], [2.4, "cerca"]]}
+    <Toma archivo="mira" origen={46.8} linea={L}
+      modos={[[0, "real"], [2.4, "cerca"]]}
       golpes={[1.57, 3.13]} sacudidas={[0.3, 1.57]}
       palabras={[
         [["Mira,", 0.19]],
@@ -264,9 +269,9 @@ const NoMarketplace: React.FC = () => {
   const L = L_NOMKT;
   const f = useCurrentFrame();
   return (
-    <Toma archivo="nomkt" linea={L}
-      modos={[[0, "cerca"], [1.83, "burbujaIzq"], [5.55, "burbujaCentro"]]}
-      golpes={[0.91]} sacudidas={[1.2]}
+    <Toma archivo="nomkt" origen={59.2} linea={L}
+      modos={[[0, "real"], [1.83, "burbujaIzq"], [5.55, "burbujaCentro"]]}
+      golpes={[0.91]}
       palabras={[
         [["Trado", 0.21], ["no", 0.45], ["es", 0.65]],
         [["un", 0.77], ["Marketplace.", 0.91]],
@@ -274,7 +279,7 @@ const NoMarketplace: React.FC = () => {
         [["donde", 3.05], ["ya", 3.29], ["lo", 3.43], ["haces.", 3.69]],
         [["Marketplace,", 4.37], ["Instagram,", 4.85], ["WhatsApp.", 5.55]],
       ]}>
-      <Palabra texto="trado" en={L.en(0.21)} y={200} size={150} giro={0} />
+      <Palabra texto="trado" en={L.en(0.21)} y={190} size={150} fondo={C.azul} giro={0} />
       <Desde en={0} hasta={L.en(4.3)}>
         <Palabra texto="marketplace" en={L.en(0.91)} y={410} size={84} fondo={C.blanco} color={C.tinta} giro={0} />
         <Tachado en={L.en(1.2)} y={455} ancho={600} />
@@ -303,9 +308,9 @@ const NoMarketplace: React.FC = () => {
 const AlMedio: React.FC = () => {
   const L = L_MEDIO;
   return (
-    <Toma archivo="medio" linea={L}
-      modos={[[0, "cerca"], [1.45, "burbujaDer"], [4.5, "burbujaIzq"], [8.9, "burbujaDer"]]}
-      golpes={[1.56, 9.1]} sacudidas={[1.6]}
+    <Toma archivo="medio" origen={92.8} linea={L}
+      modos={[[0, "real"], [1.3, "burbujaDer"], [4.5, "burbujaIzq"], [8.9, "burbujaDer"]]}
+      golpes={[1.56, 9.1]}
       palabras={[
         [["Nosotros", 0.2], ["nos", 0.76], ["ponemos", 1.02]],
         [["al", 1.34], ["medio.", 1.56]],
@@ -338,7 +343,7 @@ const DondeQuieras: React.FC = () => {
   const r = (de: "arica" | "calama" | "laSerena" | "santiago" | "concepcion" | "puertoMontt" | "coyhaique" | "puntaArenas", a: typeof de, t: number) =>
     ({ de, a, desde: L.en(t), dur: 22 });
   return (
-    <Toma archivo="cierre" linea={L}
+    <Toma archivo="cierre" origen={125.5} linea={L}
       modos={[[0, "der"], [2.6, "burbujaDer"]]}
       golpes={[2.64, 3.74]}
       palabras={[
@@ -365,7 +370,7 @@ const Final: React.FC = () => {
   const L = L_TRADO;
   const f = useCurrentFrame();
   return (
-    <Toma archivo="trado" linea={L} modos={[[0, "burbujaCentro"], [1.25, "cerrada"]]} palabras={[[["En", 0.18], ["trado.cl", 0.3]]]}>
+    <Toma archivo="trado" origen={135.3} linea={L} modos={[[0, "burbujaCentro"], [1.25, "cerrada"]]} palabras={[[["En", 0.18], ["trado.cl", 0.3]]]}>
       <div style={{ position: "absolute", top: 300, width: "100%", textAlign: "center", color: C.blanco, fontWeight: 800, fontSize: 190, letterSpacing: "-0.04em", transform: `scale(${rebote(f, 0)})` }}>trado</div>
       <Palabra texto={"Compra y vende\ndesde donde quieras."} en={6} y={540} size={66} giro={0} />
       <Pildora texto="trado.cl" style={{ top: 780, left: "50%", transform: `translateX(-50%) scale(${rebote(f, 10)})`, fontSize: 64, color: C.azul, padding: "22px 70px" }} />
