@@ -61,3 +61,8 @@ Instagram/_sistema/feed/15-reel08-portada/noticia.png
 Instagram/_sistema/feed/15-reel08-portada/portada.png
 # El reel 15 lleva segundos de un noticiero: sus mp4 tampoco van al repo (se regeneran con reels/15-noticia-metro)
 Instagram/2 Reels/15 Venta en el metro/*.mp4
+
+# Reels con tu cara y tu voz: el mp4 final pesa ~50 MB y se regenera con
+# remotion/scripts/final.py. Caption y portada sí se suben, como en los demás.
+[Ii]nstagram/2 Reels/16 Desde donde quieras/*.mp4
+[Ii]nstagram/_sistema/remotion/scripts/__pycache__/

@@ -1,0 +1,27 @@
+{
+  "name": "trado-reels-remotion",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "mapa": "node scripts/chile.mjs",
+    "sfx": "python scripts/efectos.py && python scripts/musica.py",
+    "vista": "remotion still DesdeDondeQuieras out/vista.png --frame=0",
+    "render": "remotion render DesdeDondeQuieras out/DesdeDondeQuieras-crudo.mp4",
+    "final": "python scripts/final.py DesdeDondeQuieras"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.533",
+    "@remotion/fonts": "4.0.533",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.533"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "d3-geo": "3.1.1",
+    "topojson-client": "3.1.0",
+    "typescript": "5.8.3",
+    "world-atlas": "2.0.2"
+  }
+}
