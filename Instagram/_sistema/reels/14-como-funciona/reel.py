@@ -34,6 +34,7 @@ R13 = _cargar("13-quien-paga-primero")    # person, trado_node, money, box_icon,
 
 SA, SB, SC, SD, SE = 10.2, 2.2, 12.0, 2.2, 2.6
 STEP = SC / 5
+PULSO = STEP / 4  # 0,6 s: el ritmo de los pasos (100 BPM), 4 golpes por paso
 LX, CX, RX, NY = 200, 540, 880, 1150
 
 
@@ -125,7 +126,8 @@ def sA(t):
     d = ImageDraw.Draw(img)
     logo(d)
     if t < 5.6:
-        text_center(d, 240, "¿Has tenido este chat?", font(92, 800), ul="este chat?", ul_prog=min(1, 0.4 + t / 0.5))
+        text_center(d, 236, "¿Has tenido este chat comprando por internet?", font(76, 800), maxw=960,
+                    ul="por internet?", ul_prog=min(1, 0.4 + t / 0.5))
     else:
         k = ease_out((t - 5.6) / 0.3)
         lay = capa_texto("Nadie quiere arriesgarse primero.", font(80, 800), alto=260, ul="primero.")
@@ -227,11 +229,11 @@ def sala(i, tt):
     paste_scaled(im, pill, x0 + 50 + pill.width / 2, y0 + 262, max(0.01, pk))
     y = y0 + 345
     for j, txt in enumerate(HITOS):
-        hecho = j < i or (j == i and tt > 0.45)
+        hecho = j < i or (j == i and tt > PULSO - 0.05)
         actual = j == i
         cx, cy = x0 + 74, y + 30
         if hecho:
-            prog = 1.0 if j < i else min(1.0, (tt - 0.45) / 0.25)
+            prog = 1.0 if j < i else min(1.0, (tt - PULSO + 0.05) / 0.25)
             d.ellipse((cx - 24, cy - 24, cx + 24, cy + 24), fill=GREEN)
             p1, p2, p3 = (cx - 11, cy), (cx - 3, cy + 9), (cx + 12, cy - 9)
             if prog > 0.4:
@@ -334,7 +336,7 @@ def efectos(p):
             k = t0 - 0.55
             while k < t0 - 0.05:
                 p.add(key_click(), k, 0.35); k += 0.07
-        p.add(pop(700, 1200, 0.07) if out else pop(420, 760, 0.08), t0 + 0.02, 0.45)
+        p.add(msg_enviado() if out else msg_recibido(), t0 + 0.02, 0.45 if out else 0.5)
     dt = t_(SA - 0.3)
     p.add((np.sin(2 * np.pi * 55 * dt) + 0.4 * np.sin(2 * np.pi * 82.4 * dt)) * (0.3 + 0.7 * dt / (SA - 0.3)), 0.0, 0.16)
     p.add(thump(0.35), 5.6, 0.55)                       # "Nadie quiere arriesgarse primero."
@@ -343,20 +345,18 @@ def efectos(p):
     p.add(campanas(), 7.05, 0.18)                        # "¿y si usamos Trado?"
     # la idea
     p.add(whoosh(0.5, up=True), B - 0.4, 0.45)
-    p.add(thump(0.4), B + 0.45, 0.7)
-    p.add(campanas(), B + 0.5, 0.2)
+    p.add(thump(0.4), C - 3 * PULSO, 0.7)
+    p.add(campanas(), C - 3 * PULSO + 0.05, 0.2)
     # pasos: whoosh al entrar cada titular, golpe del estado, check del hito
     for i in range(5):
         t0 = C + i * STEP
         p.add(whoosh(0.3, up=True), t0 - 0.15, 0.35)
         p.add(pop(600, 1000, 0.06), t0 + 0.02, 0.35)
-        if i > 0:
-            p.add(thump(0.25), t0 + 0.27, 0.5)
-        p.add(pop(800, 1400, 0.05), t0 + 0.47, 0.3)
-    p.add(tick(), C + STEP + 0.3, 0.6)                    # candado: pago retenido
+        p.add(pop(800, 1400, 0.05), t0 + PULSO, 0.3)
+    p.add(tick(), C + STEP + PULSO / 2, 0.6)               # candado: pago retenido
     for k in range(3):
-        p.add(tick(), C + 3 * STEP + 0.7 + k * 0.4, 0.22)  # reloj 72 h
-    p.add(campanas(), C + 4 * STEP + 0.45, 0.25)          # se libera
+        p.add(tick(), C + 3 * STEP + (k + 1) * PULSO, 0.22)  # reloj 72 h
+    p.add(campanas(), C + 4 * STEP + PULSO, 0.25)         # se libera
     for k in range(6):
         p.add(pop(900 + k * 120, 1600 + k * 100, 0.04), C + 4 * STEP + 0.55 + k * 0.06, 0.15)  # confeti
     # dudas y cierre
@@ -368,6 +368,10 @@ def efectos(p):
     p.add(pop(500, 850, 0.06), E + 0.4, 0.25)
     p.add(pop(600, 1400, 0.12), E + 0.75, 0.45)
     p.add(tick(), E + 1.05, 0.45)
+    # cierre: acorde suave que se apaga con el video (antes el último 1,5 s quedaba mudo)
+    for i, f in enumerate((523.25, 659.25, 783.99)):
+        p.add(bell(f, 2.2), E + 1.25 + i * 0.05, 0.12)
+    dt = t_(1.4); p.add(np.sin(2 * np.pi * 130.81 * dt) * env(len(dt), 0.05, 0.7), E + 1.2, 0.18)
 
 
 SCENES_CLI = [(d, f) for _, d, f in SCENES]

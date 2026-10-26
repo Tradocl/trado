@@ -14,6 +14,7 @@ reels/
   12-me-dejaron-en-visto/reel.py
   13-quien-paga-primero/reel.py
   14-como-funciona/reel.py   (explicativo largo: reutiliza piezas del 12 y el 13)
+  15-noticia-metro/reel.py   (gancho con segundos de un noticiero: el video va en material/, fuera del repo)
 ```
 
 El número de cada carpeta es el puesto del reel en la grilla, igual que en
@@ -44,9 +45,11 @@ El render completo tarda unos minutos (dibuja ~30 cuadros por segundo de video).
 
 - **Efectos** (whooshes, pops, golpes, campanas, el trombón de "fracaso"): son la
   identidad sonora de Trado y van siempre. Están en `efectos(p)` de cada reel.
-- **Música** (110 BPM, sintetizada): opcional, con `--con-musica`. Desde octubre de 2026
-  los reels se publican **sin** ella y se les pone una canción de la biblioteca de
-  Instagram al subirlos (qué buscar está en el `caption.txt` de cada reel).
+- **Música** (110 BPM, sintetizada): es **la música de Trado**, la misma del reel 09 ya
+  publicado. Entra cuando aparece Trado en cada reel (`MUSICA_DESDE`). Los reels se publican
+  **con ella** (`reel.mp4`, que se genera con `--con-musica`) para que todos suenen a la misma
+  marca. No se agrega música de Instagram encima. Ojo: no sumar otro ritmo en los efectos;
+  dos ritmos a la vez suenan a destiempo (pasó con los reels 10-14 en octubre de 2026).
 
 Los efectos se normalizan a −15 LUFS con pico máximo de −3 dBTP (`motor.LUFS`, `motor.PICO`):
 los cuatro quedan parejos y dejan espacio para la música de Instagram.
@@ -64,3 +67,5 @@ va a ocupar, cambia las escenas y los efectos, y el último argumento de `cli(..
 - **Todo lo que se diga de Trado, verificado en el código** (plazos, comisiones, qué
   pasa en una apelación). Nada de "100 % seguro" ni promesas absolutas.
 - **Sin marcas ajenas:** comprobantes, chats y bancos genéricos.
+- **Material de terceros (reel 15):** el video de la noticia se lee de `15-noticia-metro/material/`, que está en
+  `.gitignore` junto con los mp4 del reel y su portada. Nunca subirlos: el repo es público. Ese reel es sólo orgánico.

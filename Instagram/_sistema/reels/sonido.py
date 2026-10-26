@@ -155,7 +155,36 @@ def campanas():
     return y
 
 
+def _marimba(f, d=0.35):
+    tt = t_(d)
+    tono = np.sin(2 * np.pi * f * tt) + 0.25 * np.sin(2 * np.pi * f * 4.0 * tt) * np.exp(-tt / 0.02)
+    return tono * env(len(tt), 0.002, d / 3.5)
+
+
+def msg_recibido():
+    """Mensaje que llega: dos notas cortas de marimba (propio de Trado, no copia de ninguna app)."""
+    y = np.zeros(int(0.5 * SR))
+    for k, f in ((0.0, 987.77), (0.09, 1318.51)):
+        s = _marimba(f); i = int(k * SR); y[i:i + len(s)] += s[: len(y) - i]
+    return y
+
+
+def msg_enviado():
+    """Mensaje enviado: un "fiu" corto que sube y una burbuja al final."""
+    d = 0.12
+    tt = t_(d)
+    f = 500 + 1100 * (tt / d) ** 1.5
+    fiu = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * tt / d) ** 2 * 0.6
+    burbuja = _marimba(1567.98, 0.18) * 0.5
+    y = np.zeros(int(0.32 * SR))
+    y[:len(fiu)] += fiu
+    i = int(0.1 * SR); y[i:i + len(burbuja)] += burbuja[: len(y) - i]
+    return y
+
+
 EFECTOS = {
+    "msg_recibido": (msg_recibido, 0.5),
+    "msg_enviado": (msg_enviado, 0.45),
     "pop": (lambda: pop(), 0.5),
     "pop_agudo": (lambda: pop(700, 1300, 0.07), 0.45),
     "pop_grave": (lambda: pop(380, 680, 0.08), 0.45),
@@ -189,6 +218,9 @@ class Pista:
         self.add(fn(), at, v if vol is None else vol, pan)
 
     def _musica(self, desde):
+        """La música del reel 09 "Pago falso" (ya publicado): la identidad sonora de Trado.
+        110 BPM, acordes Do-Sol-La-Fa, bombo, palmas, platillos, bajo en corcheas, pluck en
+        contratiempo y la música bajando un poco en cada bombo (sidechain). Entra con Trado."""
         N, dur = self.N, self.dur
         L = np.zeros(N); R = np.zeros(N)
 
@@ -202,8 +234,8 @@ class Pista:
         while t < fin:
             root, notes = CHORDS[bar % 4]
             for nm in notes:
-                p = fft_filter(saw(hz(nm, 4), 4 * BEAT + 0.3), hi=2000)
-                e = np.ones(len(p)); a = int(0.05 * SR); e[:a] = np.linspace(0, 1, a); rl = int(0.3 * SR); e[-rl:] *= np.linspace(1, 0, rl)
+                p = fft_filter(saw(hz(nm, 4), min(4 * BEAT + 0.3, fin - t + 0.1)), hi=1800)
+                e = np.ones(len(p)); a = int(0.05 * SR); e[:a] = np.linspace(0, 1, a); rl = min(len(p), int(0.3 * SR)); e[-rl:] *= np.linspace(1, 0, rl)
                 madd(p * e, t, 0.07, rng.uniform(-0.4, 0.4))
             for b in range(4):
                 bt = t + b * BEAT
@@ -211,15 +243,26 @@ class Pista:
                 madd(kick(), bt, 0.85)
                 if b in (1, 3): madd(clap(), bt, 0.35)
                 madd(hat(), bt + BEAT / 2, 0.22, 0.3)
+                madd(hat(), bt, 0.12, -0.3)
                 for h in (0, 1):
                     bd = BEAT / 2 * 0.85
                     madd(fft_filter(saw(hz(root, 2), bd, 2), hi=420) * env(int(bd * SR), 0.004, 0.12), bt + h * BEAT / 2, 0.5)
+                pl = sum(fft_filter(saw(hz(nm, 5), 0.25, 1), hi=3000) for nm in notes) * env(int(0.25 * SR), 0.002, 0.06)
+                madd(pl, bt + BEAT / 2, 0.06, 0.2)
             t += 4 * BEAT; bar += 1
         madd(kick(), fin, 0.9)
         for nm in CHORDS[0][1]:
             madd(fft_filter(saw(hz(nm, 4), dur - fin), hi=2600) * env(int((dur - fin) * SR), 0.005, 0.5), fin, 0.09)
-        k = np.arange(N) / SR
-        g = np.clip((k - desde + 0.05) / 0.1, 0, 1) * np.clip((dur - k) / 0.6, 0, 1) * 0.9
+        madd(fft_filter(saw(hz(CHORDS[0][0], 2), dur - fin), hi=500) * env(int((dur - fin) * SR), 0.005, 0.8), fin, 0.35)
+        # sidechain: la música respira en cada bombo
+        side = np.ones(N)
+        k = desde
+        while k < fin:
+            i = int(k * SR); n = int(0.2 * SR)
+            side[i:i + n] = np.minimum(side[i:i + n], 1 - 0.35 * np.exp(-np.arange(len(side[i:i + n])) / SR / 0.06))
+            k += BEAT
+        kk = np.arange(N) / SR
+        g = np.clip((kk - desde + 0.05) / 0.1, 0, 1) * np.clip((dur - kk) / 1.2, 0, 1) * 0.9 * side
         return L * g, R * g
 
     def guardar(self, salida, musica_desde=None):

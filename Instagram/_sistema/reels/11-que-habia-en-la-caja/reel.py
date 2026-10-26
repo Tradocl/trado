@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from motor import *  # noqa: F401,F403  colores, tipografía, fondos, text_center, cli
 from sonido import *  # noqa: F401,F403  Pista y efectos
 
-S1, S2, S3, S4, S5 = 4.0, 2.6, 2.4, 3.4, 2.6
+S1, S2, S3, S4, S5 = 4.0, 2.6, 3.4, 3.4, 2.6
 
 KRAFT, KRAFT_D, KRAFT_L = (196, 148, 96), (150, 108, 66), (218, 174, 122)
 INSIDE = (92, 62, 36)
@@ -98,7 +98,8 @@ def chip(text, col=(255, 255, 255), fg=INK):
 
 CHIPS = [(chip("¿La consola?"), 250, 760, -6, 1.0),
          (chip("¿Vacía?"), 850, 730, 7, 1.7),
-         (chip("¿Otra cosa?"), 820, 1500, -5, 2.4)]
+         (chip("¿Otra cosa?"), 820, 1500, -5, 2.4),
+         (chip("¿Una réplica?"), 270, 1540, 6, 3.0)]
 
 
 def header_q(d, t):
@@ -168,8 +169,18 @@ def s3(t):
     td = ImageDraw.Draw(tx)
     y = text_center(td, 0, "Pagó antes de abrir la caja.", font(108, 800), ul="antes", ul_prog=ease_out((t - 0.45) / 0.4))
     if t > 0.9:
-        text_center(td, y + 50, "Y la plata ya estaba en la cuenta del vendedor.", font(54, 700), fill=(205, 208, 222), maxw=860)
+        y = text_center(td, y + 50, "Y la plata ya estaba en la cuenta del vendedor.", font(54, 700), fill=(205, 208, 222), maxw=860)
     paste_scaled(img, tx, W / 2, 820 + 40 * (1 - a), 1.0, a)
+    # contexto: no es un caso raro
+    if t > 1.7:
+        k = ease_back((t - 1.7) / 0.3)
+        pill = Image.new("RGBA", (860, 130), (0, 0, 0, 0))
+        pd = ImageDraw.Draw(pill)
+        pd.rounded_rectangle((0, 0, 859, 129), radius=65, fill=ORANGE)
+        fp = font(62, 800)
+        txt = "Y esto pasa todos los días."
+        pd.text((430 - pd.textlength(txt, font=fp) / 2, 28), txt, font=fp, fill=INK)
+        paste_scaled(img, pill.rotate(-3, expand=True, resample=Image.BICUBIC), W / 2, 1330, max(0.01, 0.6 + 0.4 * k), min(1, (t - 1.7) / 0.15))
     return img
 
 
@@ -261,11 +272,11 @@ SCENES = [("a", S1, s1), ("b", S2, s2), ("c", S3, s3), ("d", S4, s4), ("e", S5, 
 # ---------------------------------------------------------------- sonido
 # Capa de EFECTOS: idéntica a la del reel publicado (son la identidad sonora de
 # Trado). La música es otra capa, opcional: ver sonido.Pista.guardar.
-MUSICA_DESDE = 9.0  # segundo en que entraba la música de fondo (si se pide --con-musica)
+MUSICA_DESDE = 10.0  # segundo en que entraba la música de fondo (si se pide --con-musica)
 
 
 def efectos(p):
-    S2, S3, S4, S5 = 4.0, 6.6, 9.0, 12.4
+    S2, S3, S4, S5 = 4.0, 6.6, 10.0, 13.4
     # 1. la caja tiembla: traqueteo creciente + redoble
     rt = 0.05
     while rt < 3.9:
@@ -273,7 +284,7 @@ def efectos(p):
         p.add(fft_filter(rng.standard_normal(n), lo=150, hi=1800)*env(n, 0.001, 0.02), rt, g, rng.uniform(-0.3, 0.3))
         rt += max(0.06, 0.16 - 0.025*rt)
     p.add(pop(), 0.05, 0.5)
-    for at in (1.0, 1.7, 2.4):
+    for at in (1.0, 1.7, 2.4, 3.0):
         p.add(pop(520, 980, 0.07), at, 0.35)
     dt = t_(1.2); p.add(np.sin(2*np.pi*np.cumsum(140 + 260*(dt/1.2)**2)/SR)*(dt/1.2)**2, 2.8, 0.2)
     # 2. se abre: golpe y "fracaso" cómico (trombón que baja)
@@ -286,7 +297,8 @@ def efectos(p):
         p.add(s, S2 + 0.7 + i*0.3, 0.32)
     # 3. explicación
     p.add(whoosh(0.4, up=False), S3 - 0.1, 0.4)
-    dt = t_(2.4); p.add(np.sin(2*np.pi*49*dt)*env(len(dt), 0.05, 1.2), S3, 0.35)
+    dt = t_(3.4); p.add(np.sin(2*np.pi*49*dt)*env(len(dt), 0.05, 1.7), S3, 0.35)
+    p.add(thump(0.4), S3 + 1.72, 0.8); p.add(pop(380, 700, 0.1), S3 + 1.75, 0.45)   # "pasa todos los días"
     # 4. Trado
     p.add(whoosh(0.5, up=True), S4 - 0.4, 0.5)
     for i, f in enumerate((1046.5, 1318.5, 1568.0)):

@@ -54,3 +54,10 @@ notas/
 [Ii]nstagram/_sistema/reels/**/__pycache__/
 [Ii]nstagram/_sistema/reels/**/*_vista_previa.png
 [Ii]nstagram/_sistema/reels/**/*.wav
+
+# Material de terceros para los reels (videos de noticias): nunca al repo público
+Instagram/_sistema/reels/*/material/
+Instagram/_sistema/feed/15-reel08-portada/noticia.png
+Instagram/_sistema/feed/15-reel08-portada/portada.png
+# El reel 15 lleva segundos de un noticiero: sus mp4 tampoco van al repo (se regeneran con reels/15-noticia-metro)
+Instagram/2 Reels/15 Venta en el metro/*.mp4

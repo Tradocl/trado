@@ -84,8 +84,8 @@ def chat(t, dim=0.0, ausente=False):
 
 
 def title(d, t):
-    text_center(d, 250, "Hice el trabajo. Me dejaron en visto.", font(92, 800), maxw=900,
-                ul="visto.", ul_prog=min(1, 0.4 + t / 0.5))
+    text_center(d, 236, "Hice el trabajo, me dejaron en visto y nunca me pagaron.", font(78, 800), maxw=960,
+                ul="pagaron.", ul_prog=min(1, 0.4 + t / 0.5))
 
 
 # ------------------------------------------------------------- escenas
@@ -226,15 +226,46 @@ def s5(t):
     return img
 
 
-SCENES = [("a", S1, s1), ("b", S2, s2), ("c", S3, s3), ("d", S4, s4), ("e", S5, s5)]
+_SCENES_BASE = [("a", S1, s1), ("b", S2, s2), ("c", S3, s3), ("d", S4, s4), ("e", S5, s5)]
+
+# oct-2026: a la velocidad original no se alcanzaba a leer. Todo (imagen y efectos)
+# se estira por igual, así la sincronía no cambia.
+LENTO = 1.5
+SCENES = [(n, d * LENTO, (lambda f: lambda t: f(t / LENTO))(f)) for n, d, f in _SCENES_BASE]
 
 # ---------------------------------------------------------------- sonido
 # Capa de EFECTOS: idéntica a la del reel publicado (son la identidad sonora de
 # Trado). La música es otra capa, opcional: ver sonido.Pista.guardar.
-MUSICA_DESDE = 9.2  # segundo en que entraba la música de fondo (si se pide --con-musica)
+MUSICA_DESDE = 9.2 * LENTO  # segundo en que entra la música (con --con-musica)
+
+
+class _Escala:
+    def __init__(self, p, k):
+        self.p, self.k = p, k
+
+    def add(self, sig, at, gain=1.0, pan=0.0):
+        self.p.add(sig, at * self.k, gain, pan)
 
 
 def efectos(p):
+    _efectos_base(_Escala(p, LENTO))
+    # Relleno (oct-2026): después del trombón quedaba en silencio. En tiempo real,
+    # no estirado: el ritmo tiene que ir a su velocidad.
+    s3, s4 = (S1 + S2) * LENTO, (S1 + S2 + S3) * LENTO
+    fin = sum(d for _, d, _ in SCENES)
+    # el fondo grave del chat duraba 4,2 s y el chat ahora dura 6,3: se completa
+    dt = t_(S1 * LENTO - 3.9)
+    p.add((np.sin(2 * np.pi * 55 * dt) + 0.4 * np.sin(2 * np.pi * 82.4 * dt)) * np.clip(dt / 0.3, 0, 1) * np.clip((len(dt) / SR - dt) / 0.3, 0, 1), 3.9, 0.22)
+    # "Trabajaste gratis": fondo grave y un pulso lento, como corazón
+    dt = t_(s4 - s3 + 0.3)
+    p.add((np.sin(2 * np.pi * 55 * dt) + 0.5 * np.sin(2 * np.pi * 82.4 * dt)) * np.clip(dt / 0.6, 0, 1), s3, 0.16)
+    tt = s3 + 0.3
+    while tt < s4 - 0.2:
+        p.add(thump(0.3), tt, 0.45); p.add(thump(0.25), tt + 0.18, 0.3)
+        tt += 1.0
+
+
+def _efectos_base(p):
     S2, S3, S4, S5 = 4.2, 6.8, 9.2, 12.8
     # 1. chat: pop de mensaje entrante/saliente, tic de "visto"
     p.add(pop(420, 760, 0.08), 0.02, 0.5)

@@ -10,7 +10,7 @@ from sonido import *  # noqa: F401,F403  Pista y efectos
 
 
 # Duraciones (s) de cada escena
-S1, S2, S3, S4, S5 = 4.2, 2.3, 2.4, 3.2, 2.6
+S1, S2, S3, SQ, S4, S5 = 4.2, 2.3, 3.6, 3.2, 3.2, 2.6  # SQ: qué es Trado (oct-2026)
 
 
 def receipt(variant):
@@ -78,7 +78,8 @@ def s1(t):
     logo(d)
     # título presente desde el primer cuadro (el gancho no puede esperar)
     text_center(d, 250, "¿Cuál es falso?", font(118, 800), ul="falso", ul_prog=min(1, 0.35 + t / 0.5))
-    text_center(d, 412, "Comenta A o B antes del final", font(42, 700), fill=(205, 208, 222))
+    y = text_center(d, 404, "Vendiste algo por internet y te mandan esto.", font(42, 700), fill=(205, 208, 222))
+    text_center(d, y + 2, "Comenta A o B antes del final", font(42, 800), fill=ORANGE)
     flo = math.sin(t * 2.2) * 6
     paste_scaled(img, RA, RA_POS[0], RA_POS[1] + flo, 1.0)
     paste_scaled(img, RB, RB_POS[0], RB_POS[1] - flo, 1.0)
@@ -110,7 +111,8 @@ def s2(t):
     d = ImageDraw.Draw(img)
     logo(d)
     text_center(d, 250, "¿Cuál es falso?", font(118, 800), ul="falso")
-    text_center(d, 412, "Comenta A o B antes del final", font(42, 700), fill=(205, 208, 222))
+    y = text_center(d, 404, "Vendiste algo por internet y te mandan esto.", font(42, 700), fill=(205, 208, 222))
+    text_center(d, y + 2, "Comenta A o B antes del final", font(42, 800), fill=ORANGE)
     paste_scaled(img, RA, RA_POS[0] + shake, RA_POS[1], 1.0)
     paste_scaled(img, RB, RB_POS[0] - shake, RB_POS[1], 1.0)
     for (px, py), t0 in ((RA_POS, 0.05), (RB_POS, 0.5)):
@@ -135,16 +137,20 @@ def s3(t):
     k = ease_out(t / 0.35)
     # comprobantes se alejan y se apagan
     for (px, py), r in ((RA_POS, RA), (RB_POS, RB)):
-        paste_scaled(img, r, px, py + 260 * k, 1 - 0.25 * k, 1 - 0.75 * k)
-        paste_scaled(img, STAMP, px, py - 40 + 260 * k, 0.92 * (1 - 0.25 * k), 1 - 0.75 * k)
+        paste_scaled(img, r, px, py + 420 * k, 1 - 0.3 * k, 1 - 0.8 * k)
+        paste_scaled(img, STAMP, px, py - 40 + 420 * k, 0.92 * (1 - 0.3 * k), 1 - 0.8 * k)
     a = ease_out((t - 0.15) / 0.3)
     lay = Image.new("RGBA", (W, 900), (0, 0, 0, 0))
     ld = ImageDraw.Draw(lay)
     y = text_center(ld, 0, "Un pantallazo se edita en un minuto.", font(104, 800), ul="un minuto",
                     ul_prog=ease_out((t - 0.5) / 0.4))
     if t > 0.9:
-        text_center(ld, y + 50, "No prueba que la plata llegó.", font(56, 700), fill=(205, 208, 222))
-    paste_scaled(img, lay, W / 2, 400 + 450 + 40 * (1 - a), 1.0, a)
+        y = text_center(ld, y + 50, "No prueba que la plata llegó.", font(56, 700), fill=(205, 208, 222))
+    if t > 1.9:
+        k2 = ease_out((t - 1.9) / 0.3)
+        text_center(ld, y + 40, "Si despachas confiando en él, pierdes el producto y la plata.", font(56, 800),
+                    fill=ORANGE, maxw=900)
+    paste_scaled(img, lay, W / 2, 360 + 450 + 40 * (1 - a), 1.0, a)
     return img
 
 
@@ -167,7 +173,7 @@ def sala_card(t):
         pd.rounded_rectangle((0, 0, 429, 83), radius=42, fill=(220, 246, 236))
         pd.ellipse((22, 18, 70, 66), fill=GREEN)
         pd.line([(34, 42), (43, 52), (59, 33)], fill=WHITE, width=6, joint="curve")
-        pd.text((88, 20), "Pago retenido", font=font(38, 800), fill=(4, 120, 87))
+        pd.text((88, 20), "Pago liberado" if t >= 2.5 else "Pago retenido", font=font(38, 800), fill=(4, 120, 87))
         paste_scaled(im, pill, x0 + 56 + 215, y0 + 160, max(0.01, pk))
     d.text((x0 + 56, y0 + 230), "$180.000", font=font(120, 800), fill=INK)
     d.text((x0 + 56, y0 + 380), "Lo confirma Trado, no un pantallazo.", font=font(36, 700), fill=GRAY)
@@ -176,16 +182,49 @@ def sala_card(t):
     sx = [x0 + 110, x0 + w / 2, x0 + w - 110]
     yy = y0 + 520
     d.line((sx[0], yy, sx[2], yy), fill=LINE, width=8)
-    prog = min(1, max(0, (t - 0.9) / 0.6))
-    d.line((sx[0], yy, sx[0] + (sx[1] - sx[0]) * prog * 0.5, yy), fill=GREEN, width=8)
+    # la barra avanza hasta el final: Pagado -> Entregas (1,6 s) -> Se libera (2,5 s)
+    p1 = min(1, max(0, (t - 0.9) / 0.7))
+    p2 = min(1, max(0, (t - 1.8) / 0.7))
+    d.line((sx[0], yy, sx[0] + (sx[1] - sx[0]) * p1, yy), fill=GREEN, width=8)
+    if p2 > 0:
+        d.line((sx[1], yy, sx[1] + (sx[2] - sx[1]) * p2, yy), fill=GREEN, width=8)
+    hechos = [True, p1 >= 1, p2 >= 1]
     for i, (x, s) in enumerate(zip(sx, steps)):
-        on = i == 0
+        on = hechos[i]
         d.ellipse((x - 26, yy - 26, x + 26, yy + 26), fill=GREEN if on else WHITE, outline=GREEN if on else LINE, width=6)
         if on:
             d.line([(x - 11, yy), (x - 3, yy + 9), (x + 12, yy - 9)], fill=WHITE, width=6, joint="curve")
         fs = font(30, 800 if on else 600)
         d.text((x - d.textlength(s, font=fs) / 2, yy + 44), s, font=fs, fill=INK if on else GRAY)
     return im
+
+
+def sQ(t):
+    """Quiénes somos: una página desconocida tiene que decirlo antes de explicar."""
+    img = grad()
+    if t < 0.18:
+        img.alpha_composite(Image.new("RGBA", (W, H), (255, 255, 255, int(200 * (1 - t / 0.18)))))
+    k = ease_back(t / 0.35)
+    lg = Image.new("RGBA", (800, 260), (0, 0, 0, 0))
+    ld = ImageDraw.Draw(lg)
+    ld.text((400 - ld.textlength("trado", font=font(200, 800)) / 2, 0), "trado", font=font(200, 800), fill=WHITE)
+    paste_scaled(img, lg, W / 2, 620, 0.6 + 0.4 * k, min(1, t / 0.12))
+    a = ease_out((t - 0.35) / 0.3)
+    # Trado no compra ni vende: protege el pago cuando la gente compra y vende entre ella.
+    lay = capa_texto("Una app chilena que protege tu plata cuando compras o vendes por internet.",
+                     font(62, 800), alto=380, maxw=900, ul="protege", ul_col=GREEN, ul_prog=ease_out((t - 0.6) / 0.35))
+    paste_scaled(img, lay, W / 2, 1000 + 25 * (1 - a), 1.0, a)
+    if t > 1.6:
+        k2 = ease_out((t - 1.6) / 0.25)
+        fp = font(44, 800)
+        tx = "Trado guarda la plata hasta que entregas."
+        tw = int(ImageDraw.Draw(Image.new("RGBA", (1, 1))).textlength(tx, font=fp)) + 90
+        pill = Image.new("RGBA", (tw, 120), (0, 0, 0, 0))
+        pd = ImageDraw.Draw(pill)
+        pd.rounded_rectangle((0, 0, tw - 1, 119), radius=60, fill=WHITE)
+        pd.text((tw / 2 - pd.textlength(tx, font=fp) / 2, 32), tx, font=fp, fill=BLUE)
+        paste_scaled(img, pill, W / 2, 1360 + 20 * (1 - k2), 1.0, k2)
+    return img
 
 
 def s4(t):
@@ -239,16 +278,16 @@ def s5(t):
     return img
 
 
-SCENES = [("a", S1, s1), ("b", S2, s2), ("c", S3, s3), ("d", S4, s4), ("e", S5, s5)]
+SCENES = [("a", S1, s1), ("b", S2, s2), ("c", S3, s3), ("q", SQ, sQ), ("d", S4, s4), ("e", S5, s5)]
 
 # ---------------------------------------------------------------- sonido
 # Capa de EFECTOS: idéntica a la del reel publicado (son la identidad sonora de
 # Trado). La música es otra capa, opcional: ver sonido.Pista.guardar.
-MUSICA_DESDE = 8.9  # segundo en que entraba la música de fondo (si se pide --con-musica)
+MUSICA_DESDE = 10.1  # segundo en que entraba la música de fondo (si se pide --con-musica)
 
 
 def efectos(p):
-    S2, S3, S4, S5 = 4.2, 6.5, 8.9, 12.1
+    S2, S3, SQ_, S4, S5 = 4.2, 6.5, 10.1, 13.3, 16.5
     # 1. juego: pulso tenso y cuenta regresiva
     dt = t_(4.2)
     drone = (np.sin(2*np.pi*55*dt) + 0.5*np.sin(2*np.pi*82.4*dt)) * (0.4 + 0.6*dt/4.2)
@@ -265,9 +304,17 @@ def efectos(p):
         p.add(thump(0.5), at, 1.0); p.add(whoosh(0.18, up=False), at - 0.05, 0.4)
         n = int(0.12*SR); p.add(fft_filter(rng.standard_normal(n), lo=200, hi=3000)*env(n, 0.001, 0.04), at, 0.5)
     p.add(pop(300, 700, 0.12), S2 + 0.97, 0.6)
+    # después de "Los dos." quedaba 1 s en silencio: fondo grave que sube hacia la explicación
+    dt = t_(S3 - S2 - 0.8)
+    p.add((np.sin(2*np.pi*55*dt) + 0.5*np.sin(2*np.pi*82.4*dt)) * np.clip(dt / 0.3, 0, 1), S2 + 0.9, 0.22)
     # 3. explicación
     p.add(whoosh(0.4, up=False), S3 - 0.1, 0.4)
-    dt = t_(2.4); p.add(np.sin(2*np.pi*49*dt)*env(len(dt), 0.05, 1.2), S3, 0.35)
+    dt = t_(3.6); p.add(np.sin(2*np.pi*49*dt)*env(len(dt), 0.05, 1.8), S3, 0.35)
+    p.add(thump(0.35), S3 + 1.92, 0.7); p.add(pop(380, 700, 0.1), S3 + 1.95, 0.45)   # "pierdes el producto y la plata"
+    # qué es Trado
+    p.add(whoosh(0.4, up=True), SQ_ - 0.35, 0.5); p.add(thump(0.5), SQ_ + 0.02, 1.0)
+    p.add(campanas(), SQ_ + 0.05, 0.25); p.add(pop(500, 850, 0.06), SQ_ + 0.62, 0.3)
+    p.add(pop(650, 1100, 0.06), SQ_ + 1.62, 0.35)
     # 4. Trado
     p.add(whoosh(0.5, up=True), S4 - 0.4, 0.5)
     for i, f in enumerate((1046.5, 1318.5, 1568.0)):
@@ -280,6 +327,8 @@ def efectos(p):
     p.add(whoosh(0.35, up=True), S4 + 0.1, 0.25)        # entra la tarjeta de la sala
     p.add(pop(650, 1100, 0.06), S4 + 0.35, 0.3)         # aparece "Pago retenido"
     p.add(tick(), S4 + 1.0, 0.45)                       # avanza la barra de pasos
+    p.add(pop(800, 1400, 0.05), S4 + 1.6, 0.35); p.add(tick(), S4 + 1.6, 0.45)   # check "Entregas"
+    p.add(pop(800, 1400, 0.05), S4 + 2.5, 0.35); p.add(campanas(), S4 + 2.5, 0.25)  # check "Se libera"
     p.add(whoosh(0.5, up=True), S5 - 0.3, 0.35)         # cambio al cierre
     p.add(thump(0.3), S5 + 0.05, 0.45)                  # aparece el logo
     p.add(pop(500, 850, 0.06), S5 + 0.4, 0.25)          # frase de cierre
