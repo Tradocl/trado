@@ -210,15 +210,6 @@ const AppLanding = () => {
             ))}
           </div>
 
-          {/* Social proof */}
-          <div className="flex items-center justify-center gap-1.5 py-1">
-            <div className="flex -space-x-1.5">
-              {["#6366f1","#16A34A","#f59e0b","#ec4899"].map((c, i) => (
-                <div key={i} className="w-6 h-6 rounded-full border-2 border-[#0f1035]" style={{ background: c }} />
-              ))}
-            </div>
-            <p className="text-white/50 text-[11px]">+1.200 usuarios activos en Chile</p>
-          </div>
         </div>
       </div>
 
@@ -292,7 +283,7 @@ const WebLanding = () => {
             <Button variant="ghost" onClick={() => navigate("/auth")} className="hidden sm:flex text-primary font-semibold">
               Iniciar Sesión
             </Button>
-            <Button onClick={() => navigate("/auth")} className="bg-gradient-to-r from-primary to-info text-white shadow-md hover:opacity-95 transition-opacity">
+            <Button onClick={() => navigate("/auth?tab=register")} className="bg-gradient-to-r from-primary to-info text-white shadow-md hover:opacity-95 transition-opacity">
               <span className="hidden sm:inline">Comenzar Gratis</span>
               <span className="sm:hidden">Comenzar</span>
               <ArrowRight className="ml-1 h-4 w-4" />
@@ -326,7 +317,7 @@ const WebLanding = () => {
               </p>
 
               <div className="hero-cta flex flex-col sm:flex-row gap-4">
-                <Button size="lg" onClick={() => navigate("/auth")} className="bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-10 py-6 h-auto font-bold">
+                <Button size="lg" onClick={() => navigate("/auth?tab=register")} className="bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-10 py-6 h-auto font-bold">
                   Empezar Ahora — Es Gratis
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -537,7 +528,7 @@ const WebLanding = () => {
                     </div>
                   ))}
                 </div>
-                <Button size="lg" onClick={() => navigate("/auth")} className="w-full bg-gradient-to-r from-primary to-info text-white text-lg h-14 font-bold shadow-lg hover:opacity-95 transition-opacity">
+                <Button size="lg" onClick={() => navigate("/auth?tab=register")} className="w-full bg-gradient-to-r from-primary to-info text-white text-lg h-14 font-bold shadow-lg hover:opacity-95 transition-opacity">
                   Crear Cuenta Gratis
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -619,7 +610,7 @@ const WebLanding = () => {
             <p className="text-white/80 text-lg mb-8">
               Crea tu cuenta gratis en menos de un minuto y haz tu primera transacción segura hoy.
             </p>
-            <Button size="lg" onClick={() => navigate("/auth")} className="bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-12 py-6 h-auto font-bold">
+            <Button size="lg" onClick={() => navigate("/auth?tab=register")} className="bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-12 py-6 h-auto font-bold">
               Crear Cuenta Gratis
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

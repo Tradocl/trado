@@ -56,7 +56,7 @@ const items: readonly Item[] = Object.freeze([
   },
 ]);
 
-const isPublicPath = (pathname: string) =>
+export const isPublicPath = (pathname: string) =>
   pathname === "/" ||
   PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
