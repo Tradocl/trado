@@ -965,7 +965,7 @@ export default function Admin() {
                       <TableCell>
                         {/* El RUT a la vista para compararlo con el carnet sin tener que recordarlo */}
                         {verification.rut ? (
-                          <div className="space-y-1">
+                          <div className="flex flex-col items-start gap-1">
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-lg font-semibold tracking-wide">
                                 {formatRUT(verification.rut)}
@@ -983,6 +983,25 @@ export default function Admin() {
                             ) : (
                               <Badge variant="destructive">Dígito verificador no calza</Badge>
                             )}
+                            {/* Consulta manual: abre el buscador público con el RUT ya escrito para comparar
+                                el nombre con el del carnet. Copia el RUT por si el sitio pide un paso extra. */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => {
+                                const rut = formatRUT(verification.rut!);
+                                navigator.clipboard.writeText(rut);
+                                window.open(
+                                  `https://www.nombrerutyfirma.com/rut?term=${encodeURIComponent(rut)}`,
+                                  "_blank",
+                                  "noopener,noreferrer"
+                                );
+                              }}
+                            >
+                              <Search className="h-3 w-3 mr-1" />
+                              Buscar nombre del RUT
+                            </Button>
                           </div>
                         ) : (
                           <Badge variant="outline" className="text-warning">Sin RUT en el perfil</Badge>
