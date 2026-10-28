@@ -18,6 +18,8 @@ import { formatCLP } from "@/lib/utils";
 import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
 import { AdminReturnMediationList } from "@/components/admin/AdminReturnMediationList";
 import { MpReconciliation } from "@/components/admin/MpReconciliation";
+import { VerificacionDocumentos } from "@/components/admin/VerificacionDocumentos";
+import { formatRUT, validateRUT } from "@/lib/validators";
 
 interface Profile {
   id: string;
@@ -56,6 +58,7 @@ interface VerificationRequest {
   id: string;
   full_name: string;
   email: string;
+  rut: string | null;
   verification_status: string;
   verification_document_url: string | null;
   verification_selfie_url: string | null;
@@ -245,7 +248,7 @@ export default function Admin() {
       // Load pending verifications - only show users who have submitted documents (in_review)
       const { data: verificationsData, error: verificationsError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, verification_status, verification_document_url, verification_selfie_url, verification_submitted_at")
+        .select("id, full_name, email, rut, verification_status, verification_document_url, verification_selfie_url, verification_submitted_at")
         .eq("verification_status", "in_review")
         .order("verification_submitted_at", { ascending: false });
 
@@ -946,75 +949,55 @@ export default function Admin() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Usuario</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Fecha Envío</TableHead>
-                    <TableHead>Documentos</TableHead>
+                    <TableHead>RUT</TableHead>
+                    <TableHead>Carnet y selfie</TableHead>
+                    <TableHead>Enviada</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {verifications.map((verification) => (
                     <TableRow key={verification.id}>
-                      <TableCell className="font-medium">{verification.full_name}</TableCell>
-                      <TableCell>{verification.email}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{verification.verification_status}</Badge>
+                        <p className="font-medium">{verification.full_name}</p>
+                        <p className="text-xs text-muted-foreground">{verification.email}</p>
                       </TableCell>
                       <TableCell>
+                        {/* El RUT a la vista para compararlo con el carnet sin tener que recordarlo */}
+                        {verification.rut ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-lg font-semibold tracking-wide">
+                                {formatRUT(verification.rut)}
+                              </span>
+                              <button
+                                onClick={() => copyToClipboard(formatRUT(verification.rut!), "RUT")}
+                                className="text-muted-foreground hover:text-foreground"
+                                title="Copiar RUT"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </button>
+                            </div>
+                            {validateRUT(verification.rut) ? (
+                              <Badge variant="secondary" className="text-success">RUT válido</Badge>
+                            ) : (
+                              <Badge variant="destructive">Dígito verificador no calza</Badge>
+                            )}
+                          </div>
+                        ) : (
+                          <Badge variant="outline" className="text-warning">Sin RUT en el perfil</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <VerificacionDocumentos
+                          carnet={verification.verification_document_url}
+                          selfie={verification.verification_selfie_url}
+                        />
+                      </TableCell>
+                      <TableCell className="text-sm">
                         {verification.verification_submitted_at
-                          ? new Date(verification.verification_submitted_at).toLocaleDateString()
+                          ? new Date(verification.verification_submitted_at).toLocaleDateString("es-CL")
                           : "-"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {verification.verification_document_url && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={async () => {
-                                const stored = verification.verification_document_url!;
-                                const path = stored.includes('/verification-documents/')
-                                  ? stored.split('/verification-documents/')[1]
-                                  : stored;
-                                const { data, error } = await supabase.storage
-                                  .from('verification-documents')
-                                  .createSignedUrl(path, 3600);
-                                if (data?.signedUrl) {
-                                  window.open(data.signedUrl, "_blank");
-                                } else {
-                                  console.error("Error carnet:", error, "path:", path);
-                                  toast.error("Error al abrir el documento: " + (error?.message ?? "sin URL"));
-                                }
-                              }}
-                            >
-                              Ver Carnet
-                            </Button>
-                          )}
-                          {verification.verification_selfie_url && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={async () => {
-                                const stored = verification.verification_selfie_url!;
-                                const path = stored.includes('/verification-documents/')
-                                  ? stored.split('/verification-documents/')[1]
-                                  : stored;
-                                const { data, error } = await supabase.storage
-                                  .from('verification-documents')
-                                  .createSignedUrl(path, 3600);
-                                if (data?.signedUrl) {
-                                  window.open(data.signedUrl, "_blank");
-                                } else {
-                                  console.error("Error selfie:", error, "path:", path);
-                                  toast.error("Error al abrir la selfie: " + (error?.message ?? "sin URL"));
-                                }
-                              }}
-                            >
-                              Ver Selfie
-                            </Button>
-                          )}
-                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -1046,7 +1029,7 @@ export default function Admin() {
                   ))}
                   {verifications.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
                         No hay verificaciones pendientes
                       </TableCell>
                     </TableRow>

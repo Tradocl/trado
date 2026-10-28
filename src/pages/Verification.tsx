@@ -10,6 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Upload, CheckCircle, Clock, XCircle, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
+import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
+import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 
 const Verification = () => {
   const navigate = useNavigate();
@@ -183,7 +185,19 @@ const Verification = () => {
     }
   };
 
+  // El RUT tiene que estar en el perfil antes de enviar el carnet: así el admin lo compara
+  // con el documento en la misma fila, sin pedírselo después.
+  const { showCompleteProfileModal, requireCompleteProfile, onProfileCompleted, closeModal } = useRequireCompleteProfile();
+
   const handleUpload = async () => {
+    if (!selectedFile || !selectedSelfie || !user) {
+      toast.error("Debes subir tanto tu carnet como tu selfie con el carnet");
+      return;
+    }
+    await requireCompleteProfile(() => { void subirVerificacion(); });
+  };
+
+  const subirVerificacion = async () => {
     if (!selectedFile || !selectedSelfie || !user) {
       toast.error("Debes subir tanto tu carnet como tu selfie con el carnet");
       return;
@@ -419,6 +433,12 @@ const Verification = () => {
           </CardContent>
         </Card>
       </div>
+
+      <CompleteProfileModal
+        open={showCompleteProfileModal}
+        onClose={closeModal}
+        onComplete={onProfileCompleted}
+      />
     </div>
   );
 };
