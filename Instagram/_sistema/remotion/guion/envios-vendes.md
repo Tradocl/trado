@@ -1,6 +1,6 @@
-# Reel «Envíos» (serie segmentada): borrador para grabar
+# Reel «Envíos · vendes» (serie segmentada): borrador para grabar
 
-Para: emprendedores que venden por Instagram o WhatsApp y despachan por courier.
+Para: emprendedores que **venden** por Instagram o WhatsApp y despachan por courier. (El que compra tiene su propio reel: [envios-compras.md](envios-compras.md).)
 Tipo de sala: `producto_envio`. ~38 s. (El post 16 ya habló de envíos desde el comprador;
 este es el lado del que vende.)
 

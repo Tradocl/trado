@@ -1,6 +1,6 @@
-# Reel «Freelance» (serie segmentada): borrador para grabar
+# Reel «Freelance · cobras» (serie segmentada): borrador para grabar
 
-Para: quien cobra después de trabajar (diseño, fotos, edición, clases, desarrollo, arreglos).
+Para: quien **hace el trabajo** y cobra después (diseño, fotos, edición, clases, desarrollo). (El que contrata tiene su propio reel: [freelance-contratas.md](freelance-contratas.md).)
 Tipo de sala: `servicio`. ~35 s.
 
 **Idea:** el problema del freelance no es conseguir el trabajo, es cobrarlo.

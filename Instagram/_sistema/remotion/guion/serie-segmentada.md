@@ -4,12 +4,19 @@ Mismo formato que «Desde donde quieras» (post 16): tú a cámara, jump cuts, s
 palabra por palabra y animación de marca. La diferencia es que **cada reel le habla a una
 sola persona con un solo problema**, en vez de explicar Trado para todos.
 
-| Reel | Para quién | Tipo de sala en la app | Guion |
+Cada caso tiene **dos reels, uno por lado**: el que paga y el que recibe la plata. Son
+miedos distintos (el que paga teme quedarse sin nada; el que vende o trabaja teme no cobrar),
+así que no se mezclan en el mismo video.
+
+| Caso | Tipo de sala | El que paga | El que cobra |
 |---|---|---|---|
-| Entradas | Quien compra o vende entradas de reventa | `producto_digital` | [entradas.md](entradas.md) |
-| Freelance | Diseñadores, fotógrafos, editores, profes: los que cobran después de trabajar | `servicio` | [freelance.md](freelance.md) |
-| En persona | Quien vende o compra usado y se junta a entregar (metro, mall) | `producto_persona` | [en-persona.md](en-persona.md) |
-| Envíos | Emprendedores que venden por redes y despachan | `producto_envio` | [envios.md](envios.md) |
+| Entradas | `producto_digital` | [entradas-compras.md](entradas-compras.md): «¿Vas a comprar una entrada de reventa por Instagram?» | [entradas-vendes.md](entradas-vendes.md): «¿Tienes una entrada que ya no vas a usar y la quieres vender?» |
+| Trabajos | `servicio` | [freelance-contratas.md](freelance-contratas.md): «Le pagaste el adelanto al diseñador… y hace dos semanas que no te contesta.» | [freelance-cobras.md](freelance-cobras.md): «Si eres freelance, esto te pasó: entregaste el trabajo… y el cliente te dejó en visto.» |
+| En persona | `producto_persona` | [en-persona-compras.md](en-persona-compras.md): «¿Vas a comprar un celular usado y te vas a juntar con el vendedor?» | [en-persona-vendes.md](en-persona-vendes.md): «Te juntas a vender tu celular. Te muestra la transferencia… y la plata nunca llega.» |
+| Envíos | `producto_envio` | [envios-compras.md](envios-compras.md): «Encontraste la zapatilla que buscabas, en una tienda de Instagram que no conoces.» | [envios-vendes.md](envios-vendes.md): «Si tienes un emprendimiento, seguro te han escrito esto: "¿Y cómo sé que no eres estafa?"» |
+
+Los dos reels de un mismo caso comparten la mitad de Trado (el esquema y los botones de la
+app), así que se graban seguidos y se arman reutilizando esas escenas.
 
 ## Las reglas de la serie
 
@@ -43,16 +50,27 @@ a mostrarle el anuncio a todos, que es justo lo que queremos dejar de hacer.
 
 | Reel | Edad | Intereses (escribirlos en el buscador de Meta; usar los que existan) |
 |---|---|---|
-| Entradas | 18–34 | Conciertos, Festivales de música, Música en vivo, Lollapalooza, Ticketmaster |
-| Freelance | 22–45 | Trabajo independiente, Freelancer, Diseño gráfico, Fotografía, Edición de video, Workana |
-| En persona | 18–45 | Facebook Marketplace, Productos de segunda mano, Teléfonos inteligentes, Videojuegos, Yapo |
-| Envíos | 22–50 | Emprendimiento, Pequeñas empresas, Comercio electrónico, Instagram Shopping, Chilexpress |
+| Entradas · compras | 18–34 | Conciertos, Festivales de música, Música en vivo, Lollapalooza, Ticketmaster |
+| Entradas · vendes | 18–34 | Los mismos de compras: es el mismo público, cambia el gancho |
+| Trabajos · contratas | 25–50 | Pequeñas empresas, Emprendimiento, Marketing digital, Diseño de logotipos, Fotografía de bodas |
+| Trabajos · cobras | 22–45 | Trabajo independiente, Freelancer, Diseño gráfico, Fotografía, Edición de video, Workana |
+| En persona · compras | 18–45 | Productos de segunda mano, Facebook Marketplace, Teléfonos inteligentes, iPhone, Videojuegos |
+| En persona · vendes | 18–45 | Los mismos de compras, más Yapo |
+| Envíos · compras | 18–40 | Compras en línea, Moda, Zapatillas, Instagram Shopping, Ofertas y descuentos |
+| Envíos · vendes | 22–50 | Emprendimiento, Pequeñas empresas, Comercio electrónico, Instagram Shopping, Chilexpress |
+
+Cuando dos reels comparten audiencia (entradas, en persona), van en conjuntos separados igual:
+así se ve cuál de los dos lados responde mejor.
 
 Mismo objetivo que la campaña actual (visitas al perfil de Instagram) para comparar con lo
 que ya hay. El reparto del presupuesto se decide aparte (ver `notas/`, fuera de git).
 
 ## Orden sugerido para grabar
 
-Los cuatro se pueden grabar el mismo día, con la misma ropa y luz: son ~25 frases en total.
-Conviene grabar **Freelance y En persona primero**: son los dolores más fáciles de reconocer
-en 2 segundos y los que menos dependen de una explicación.
+Son ~52 frases en total: dos sesiones de grabación, cada una con la misma ropa y luz.
+Conviene grabar **Trabajos y En persona primero** (los cuatro reels): son los dolores más
+fáciles de reconocer en 2 segundos. Entradas y Envíos en la segunda sesión.
+
+No hace falta lanzar los ocho anuncios a la vez: con el presupuesto mensual alcanzan pocos
+conjuntos al mismo tiempo. Lo razonable es probar los dos lados de un caso, quedarse con el
+que mejor convierte y pasar al caso siguiente.
