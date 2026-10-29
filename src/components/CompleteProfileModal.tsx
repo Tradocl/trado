@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Shield, User, MapPin, Phone } from "lucide-react";
-import { validateRUT, validateChileanPhone, formatRUT } from "@/lib/validators";
+import { Shield, User, MapPin, Phone, Building2 } from "lucide-react";
+import { validateRUT, validateChileanPhone, formatRUT, esRutEmpresa } from "@/lib/validators";
 import { regiones, ciudadesPorRegion } from "@/lib/chilean-locations";
 
 interface CompleteProfileModalProps {
@@ -34,9 +34,18 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
   const [numero, setNumero] = useState("");
   const [depto, setDepto] = useState("");
 
+  // Cuenta de empresa (RUT desde 50.000.000): full_name pasa a ser la razón social y quien
+  // se registró queda como representante legal.
+  const [razonSocial, setRazonSocial] = useState("");
+  const [repNombre, setRepNombre] = useState("");
+  const [repRut, setRepRut] = useState("");
+  const [repRutError, setRepRutError] = useState("");
+  const empresa = esRutEmpresa(rutValue);
+
   // Lock fields that already have a saved value (cannot be overridden)
   const [rutLocked, setRutLocked] = useState(false);
   const [phoneLocked, setPhoneLocked] = useState(false);
+  const [repRutLocked, setRepRutLocked] = useState(false);
 
   // Pre-fill with existing profile data when modal opens
   useEffect(() => {
@@ -45,7 +54,7 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
     (async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('rut, phone, address')
+        .select('rut, phone, address, full_name, representante_nombre, representante_rut')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -54,6 +63,18 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
       if (data.rut) {
         setRutValue(formatRUT(data.rut.replace(/[^0-9kK]/g, '').toUpperCase()));
         setRutLocked(true);
+      }
+      // Si ya completó como empresa, full_name es la razón social; si no, es su nombre
+      // de cuando se registró y sirve para prellenar el del representante.
+      if (data.representante_nombre) {
+        setRazonSocial(data.full_name || "");
+        setRepNombre(data.representante_nombre);
+      } else {
+        setRepNombre(data.full_name || "");
+      }
+      if (data.representante_rut) {
+        setRepRut(formatRUT(data.representante_rut.replace(/[^0-9kK]/g, '').toUpperCase()));
+        setRepRutLocked(true);
       }
       if (data.phone) {
         setPhoneValue(data.phone);
@@ -131,6 +152,22 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
       return;
     }
 
+    if (empresa) {
+      if (razonSocial.trim().length < 3) {
+        toast.error("Escribe la razón social de la empresa");
+        return;
+      }
+      if (repNombre.trim().length < 3) {
+        toast.error("Escribe el nombre del representante legal");
+        return;
+      }
+      if (!validateRUT(repRut) || esRutEmpresa(repRut)) {
+        setRepRutError("RUT de persona inválido");
+        toast.error("El RUT del representante legal tiene que ser el de una persona.");
+        return;
+      }
+    }
+
     // Validate phone
     if (!validateChileanPhone(phoneValue)) {
       setPhoneError("Teléfono inválido");
@@ -189,7 +226,12 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
           rut: rutValue,
           phone: phoneValue,
           address: address,
-          profile_completed: true
+          profile_completed: true,
+          ...(empresa && {
+            full_name: razonSocial.trim(),
+            representante_nombre: repNombre.trim(),
+            representante_rut: repRut,
+          }),
         })
         .eq('id', user.id);
 
@@ -260,6 +302,64 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
             />
             {rutError && <p className="text-xs text-destructive">{rutError}</p>}
           </div>
+
+          {empresa && (
+            <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                Cuenta de empresa
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Este RUT es de empresa. Así se va a ver tu cuenta en las salas, y la persona que la maneja
+                queda como representante legal.
+              </p>
+              <div className="space-y-1">
+                <Label htmlFor="razonSocial" className="text-xs text-muted-foreground">Razón social *</Label>
+                <Input
+                  id="razonSocial"
+                  placeholder="Constructora Ejemplo SpA"
+                  value={razonSocial}
+                  onChange={(e) => setRazonSocial(e.target.value)}
+                  maxLength={100}
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="repNombre" className="text-xs text-muted-foreground">Nombre del representante legal *</Label>
+                <Input
+                  id="repNombre"
+                  value={repNombre}
+                  onChange={(e) => setRepNombre(e.target.value)}
+                  maxLength={100}
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="repRut" className="text-xs text-muted-foreground">RUT del representante legal *</Label>
+                <Input
+                  id="repRut"
+                  placeholder="12.345.678-9"
+                  value={repRut}
+                  onChange={(e) => {
+                    const rawValue = e.target.value.replace(/[^0-9kK]/g, '').toUpperCase();
+                    if (rawValue.length <= 9) {
+                      setRepRut(formatRUT(rawValue));
+                      setRepRutError(
+                        rawValue.length >= 8 && (!validateRUT(rawValue) || esRutEmpresa(rawValue))
+                          ? "RUT de persona inválido"
+                          : ""
+                      );
+                    }
+                  }}
+                  required
+                  readOnly={repRutLocked}
+                  disabled={repRutLocked}
+                  className={`${repRutError ? "border-destructive" : ""} ${repRutLocked ? "bg-muted cursor-not-allowed" : ""}`}
+                />
+                {repRutError && <p className="text-xs text-destructive">{repRutError}</p>}
+              </div>
+            </div>
+          )}
 
           {/* Phone Field */}
           <div className="space-y-2">

@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Save, Building2, Camera, ChevronDown, ChevronUp, Mail, Phone, MapPin, CreditCard, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut, Download, FileText } from "lucide-react";
+import { ArrowLeft, Save, Building2, Camera, ChevronDown, ChevronUp, Mail, Phone, MapPin, CreditCard, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut, Download, FileText, UserRound } from "lucide-react";
+import { esRutEmpresa } from "@/lib/validators";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { PushNotificationCard } from "@/components/PushNotificationCard";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +61,8 @@ interface ProfileData {
   rut: string | null;
   address: string | null;
   avatar_url: string | null;
+  representante_nombre: string | null;
+  representante_rut: string | null;
   created_at: string | null;
   is_verified: boolean | null;
   total_transactions: number | null;
@@ -193,7 +196,8 @@ const Profile = () => {
   const [exportingData, setExportingData] = useState(false);
 
   const isProfileComplete = profileData?.rut && profileData?.phone && profileData?.address &&
-    profileData.rut.trim() !== '' && profileData.phone.trim() !== '' && profileData.address.trim() !== '';
+    profileData.rut.trim() !== '' && profileData.phone.trim() !== '' && profileData.address.trim() !== '' &&
+    (!esRutEmpresa(profileData.rut) || !!profileData.representante_rut);
 
   const bankForm = useForm<BankAccountFormValues>({
     resolver: zodResolver(bankAccountSchema),
@@ -707,6 +711,11 @@ const Profile = () => {
                 <p className="text-sm text-muted-foreground mt-0.5">Miembro desde {miembroDesde}</p>
               )}
               <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+                {esRutEmpresa(profileData?.rut) && (
+                  <Badge variant="secondary">
+                    <Building2 className="mr-1 h-3 w-3" /> Empresa
+                  </Badge>
+                )}
                 {profileData?.is_verified ? (
                   <Badge className="bg-success/10 text-success hover:bg-success/10 border-0">
                     <Shield className="mr-1 h-3 w-3" /> Verificado
@@ -777,7 +786,7 @@ const Profile = () => {
         {/* Datos personales */}
         <Card className="border shadow-sm">
           <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base">Datos personales</CardTitle>
+            <CardTitle className="text-base">{esRutEmpresa(profileData?.rut) ? "Datos de la empresa" : "Datos personales"}</CardTitle>
             {!editingProfile && (
               <Button variant="ghost" size="sm" className="h-8" onClick={() => setEditingProfile(true)}>
                 <Edit2 className="mr-1.5 h-3.5 w-3.5" />
@@ -793,6 +802,15 @@ const Profile = () => {
                   { icon: Phone, label: "Teléfono", value: profileData?.phone },
                   { icon: CreditCard, label: "RUT", value: profileData?.rut },
                   { icon: MapPin, label: "Dirección", value: profileData?.address },
+                  ...(esRutEmpresa(profileData?.rut)
+                    ? [{
+                        icon: UserRound,
+                        label: "Representante",
+                        value: profileData?.representante_nombre
+                          ? `${profileData.representante_nombre} · ${profileData.representante_rut ?? ""}`
+                          : null,
+                      }]
+                    : []),
                 ].map(({ icon: Icon, label, value }) => (
                   <div key={label} className="flex items-center gap-3 py-2.5">
                     <Icon className="h-4 w-4 text-muted-foreground shrink-0" />

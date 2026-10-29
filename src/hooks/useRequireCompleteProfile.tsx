@@ -1,12 +1,15 @@
 import { useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { esRutEmpresa } from "@/lib/validators";
 
 interface ProfileData {
   rut: string | null;
   phone: string | null;
   address: string | null;
   profile_completed: boolean | null;
+  representante_nombre: string | null;
+  representante_rut: string | null;
 }
 
 export const useRequireCompleteProfile = () => {
@@ -21,7 +24,7 @@ export const useRequireCompleteProfile = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("rut, phone, address, profile_completed")
+        .select("rut, phone, address, profile_completed, representante_nombre, representante_rut")
         .eq("id", user.id)
         .single();
 
@@ -39,7 +42,9 @@ export const useRequireCompleteProfile = () => {
         profile?.address &&
         profile.rut.trim() !== '' &&
         profile.phone.trim() !== '' &&
-        profile.address.trim() !== ''
+        profile.address.trim() !== '' &&
+        // Una empresa además necesita su representante legal
+        (!esRutEmpresa(profile.rut) || (!!profile.representante_nombre?.trim() && !!profile.representante_rut?.trim()))
       );
 
       return isComplete;

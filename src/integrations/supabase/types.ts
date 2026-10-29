@@ -600,10 +600,13 @@ export type Database = {
           nickname: string | null
           phone: string | null
           profile_completed: boolean | null
+          representante_nombre: string | null
+          representante_rut: string | null
           reputation_score: number | null
           rut: string | null
           total_transactions: number | null
           updated_at: string | null
+          verification_company_doc_url: string | null
           verification_document_url: string | null
           verification_rejection_reason: string | null
           verification_result_email_key: string
@@ -633,10 +636,13 @@ export type Database = {
           nickname?: string | null
           phone?: string | null
           profile_completed?: boolean | null
+          representante_nombre?: string | null
+          representante_rut?: string | null
           reputation_score?: number | null
           rut?: string | null
           total_transactions?: number | null
           updated_at?: string | null
+          verification_company_doc_url?: string | null
           verification_document_url?: string | null
           verification_rejection_reason?: string | null
           verification_result_email_key?: string
@@ -666,10 +672,13 @@ export type Database = {
           nickname?: string | null
           phone?: string | null
           profile_completed?: boolean | null
+          representante_nombre?: string | null
+          representante_rut?: string | null
           reputation_score?: number | null
           rut?: string | null
           total_transactions?: number | null
           updated_at?: string | null
+          verification_company_doc_url?: string | null
           verification_document_url?: string | null
           verification_rejection_reason?: string | null
           verification_result_email_key?: string

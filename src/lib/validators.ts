@@ -41,6 +41,19 @@ export const formatRUT = (rut: string): string => {
   return `${formattedBody}-${dv}`;
 };
 
+// En Chile los RUT de personas jurídicas parten en 50.000.000 (76..., 77..., 96...); los de
+// personas naturales, extranjeros incluidos, van hoy cerca de los 27 millones. Es una
+// convención, no una regla del SII: lo que confirma que es empresa es el documento que se
+// sube en la verificación.
+export const RUT_EMPRESA_DESDE = 50_000_000;
+
+export const esRutEmpresa = (rut: string | null | undefined): boolean => {
+  if (!rut) return false;
+  const body = rut.replace(/[^0-9kK]/g, '').slice(0, -1);
+  if (!/^\d+$/.test(body)) return false;
+  return parseInt(body, 10) >= RUT_EMPRESA_DESDE;
+};
+
 // Validación de teléfono chileno
 export const validateChileanPhone = (phone: string): boolean => {
   // Eliminar espacios y caracteres especiales

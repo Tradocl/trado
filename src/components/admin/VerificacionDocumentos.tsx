@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { FileText } from "lucide-react";
 
 // Miniaturas del carnet y la selfie de una verificación, para revisarlas en la misma fila
 // sin abrir pestañas. El bucket es privado: se firma cada URL por una hora.
@@ -46,7 +47,11 @@ const Miniatura = ({ guardado, etiqueta }: { guardado: string | null; etiqueta: 
       className="group flex flex-col items-center gap-1"
     >
       <div className="h-24 w-36 overflow-hidden rounded-md border border-border bg-muted">
-        {url && (
+        {guardado.toLowerCase().endsWith(".pdf") ? (
+          <div className="flex h-full w-full items-center justify-center">
+            <FileText className="h-8 w-8 text-muted-foreground group-hover:text-foreground" />
+          </div>
+        ) : url && (
           <img src={url} alt={etiqueta} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
         )}
       </div>
@@ -55,15 +60,19 @@ const Miniatura = ({ guardado, etiqueta }: { guardado: string | null; etiqueta: 
   );
 };
 
+// `empresa` sólo llega en cuentas de empresa: el e-RUT o la carpeta tributaria del SII.
 export const VerificacionDocumentos = ({
   carnet,
   selfie,
+  empresa,
 }: {
   carnet: string | null;
   selfie: string | null;
+  empresa?: string | null;
 }) => (
-  <div className="flex gap-3">
+  <div className="flex flex-wrap gap-3">
     <Miniatura guardado={carnet} etiqueta="Carnet" />
     <Miniatura guardado={selfie} etiqueta="Selfie" />
+    {empresa !== undefined && <Miniatura guardado={empresa} etiqueta="Documento SII" />}
   </div>
 );

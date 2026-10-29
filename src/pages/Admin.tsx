@@ -19,7 +19,8 @@ import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
 import { AdminReturnMediationList } from "@/components/admin/AdminReturnMediationList";
 import { MpReconciliation } from "@/components/admin/MpReconciliation";
 import { VerificacionDocumentos } from "@/components/admin/VerificacionDocumentos";
-import { formatRUT, validateRUT } from "@/lib/validators";
+import { RutConBusqueda } from "@/components/admin/RutConBusqueda";
+import { esRutEmpresa } from "@/lib/validators";
 
 interface Profile {
   id: string;
@@ -62,6 +63,9 @@ interface VerificationRequest {
   verification_status: string;
   verification_document_url: string | null;
   verification_selfie_url: string | null;
+  verification_company_doc_url: string | null;
+  representante_nombre: string | null;
+  representante_rut: string | null;
   verification_submitted_at: string | null;
 }
 
@@ -248,7 +252,7 @@ export default function Admin() {
       // Load pending verifications - only show users who have submitted documents (in_review)
       const { data: verificationsData, error: verificationsError } = await supabase
         .from("profiles")
-        .select("id, full_name, email, rut, verification_status, verification_document_url, verification_selfie_url, verification_submitted_at")
+        .select("id, full_name, email, rut, verification_status, verification_document_url, verification_selfie_url, verification_company_doc_url, representante_nombre, representante_rut, verification_submitted_at")
         .eq("verification_status", "in_review")
         .order("verification_submitted_at", { ascending: false });
 
@@ -961,48 +965,30 @@ export default function Admin() {
                       <TableCell>
                         <p className="font-medium">{verification.full_name}</p>
                         <p className="text-xs text-muted-foreground">{verification.email}</p>
+                        {esRutEmpresa(verification.rut) && (
+                          <Badge className="mt-1">Empresa</Badge>
+                        )}
                       </TableCell>
                       <TableCell>
-                        {/* El RUT a la vista para compararlo con el carnet sin tener que recordarlo */}
+                        {/* El RUT a la vista para compararlo con el carnet sin tener que recordarlo. En una
+                            empresa se compara el carnet con el representante, y el SII con la empresa. */}
                         {verification.rut ? (
-                          <div className="flex flex-col items-start gap-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-lg font-semibold tracking-wide">
-                                {formatRUT(verification.rut)}
-                              </span>
-                              <button
-                                onClick={() => copyToClipboard(formatRUT(verification.rut!), "RUT")}
-                                className="text-muted-foreground hover:text-foreground"
-                                title="Copiar RUT"
-                              >
-                                <Copy className="h-4 w-4" />
-                              </button>
+                          esRutEmpresa(verification.rut) ? (
+                            <div className="flex flex-col items-start gap-3">
+                              <RutConBusqueda rut={verification.rut} buscador="empresa" etiqueta="Empresa" />
+                              {verification.representante_rut ? (
+                                <RutConBusqueda
+                                  rut={verification.representante_rut}
+                                  buscador="persona"
+                                  etiqueta={`Representante: ${verification.representante_nombre || "sin nombre"}`}
+                                />
+                              ) : (
+                                <Badge variant="outline" className="text-warning">Sin representante legal</Badge>
+                              )}
                             </div>
-                            {validateRUT(verification.rut) ? (
-                              <Badge variant="secondary" className="text-success">RUT válido</Badge>
-                            ) : (
-                              <Badge variant="destructive">Dígito verificador no calza</Badge>
-                            )}
-                            {/* Consulta manual: abre el buscador público con el RUT ya escrito para comparar
-                                el nombre con el del carnet. Copia el RUT por si el sitio pide un paso extra. */}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 px-2 text-xs"
-                              onClick={() => {
-                                const rut = formatRUT(verification.rut!);
-                                navigator.clipboard.writeText(rut);
-                                window.open(
-                                  `https://www.nombrerutyfirma.com/rut?term=${encodeURIComponent(rut)}`,
-                                  "_blank",
-                                  "noopener,noreferrer"
-                                );
-                              }}
-                            >
-                              <Search className="h-3 w-3 mr-1" />
-                              Buscar nombre del RUT
-                            </Button>
-                          </div>
+                          ) : (
+                            <RutConBusqueda rut={verification.rut} buscador="persona" />
+                          )
                         ) : (
                           <Badge variant="outline" className="text-warning">Sin RUT en el perfil</Badge>
                         )}
@@ -1011,6 +997,7 @@ export default function Admin() {
                         <VerificacionDocumentos
                           carnet={verification.verification_document_url}
                           selfie={verification.verification_selfie_url}
+                          empresa={esRutEmpresa(verification.rut) ? verification.verification_company_doc_url : undefined}
                         />
                       </TableCell>
                       <TableCell className="text-sm">

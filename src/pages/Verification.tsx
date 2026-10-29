@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
+import { esRutEmpresa } from "@/lib/validators";
 
 const Verification = () => {
   const navigate = useNavigate();
@@ -22,6 +23,9 @@ const Verification = () => {
   const [profile, setProfile] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedSelfie, setSelectedSelfie] = useState<File | null>(null);
+  // Sólo empresas: e-RUT o carpeta tributaria del SII, que vincula al representante con la empresa
+  const [selectedEmpresaDoc, setSelectedEmpresaDoc] = useState<File | null>(null);
+  const empresa = esRutEmpresa(profile?.rut);
 
   useEffect(() => {
     if (!user) {
@@ -161,6 +165,27 @@ const Verification = () => {
     }
   };
 
+  const handleEmpresaDocSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      let file = e.target.files[0];
+      const esPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      if (!esPdf && !file.type.startsWith('image/') && !isHeicFile(file)) {
+        toast.error("Sube el documento en PDF o como imagen");
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("El documento debe ser menor a 10MB");
+        return;
+      }
+      try {
+        if (!esPdf) file = await processFile(file);
+        setSelectedEmpresaDoc(file);
+      } catch (error: any) {
+        toast.error(error.message || "Error al procesar el documento");
+      }
+    }
+  };
+
   const handleDocumentNativeCapture = async () => {
     try {
       const photo = await takeNativePhoto('prompt');
@@ -203,9 +228,29 @@ const Verification = () => {
       return;
     }
 
+    // El RUT puede haberse ingresado recién en el modal: si resultó ser de empresa, falta
+    // el documento del SII, que recién ahora aparece en la página.
+    const { data: actual } = await supabase.from('profiles').select('rut').eq('id', user.id).single();
+    if (esRutEmpresa(actual?.rut) && !selectedEmpresaDoc) {
+      await fetchProfile();
+      toast.info("Tu RUT es de empresa: sube también el e-RUT o la carpeta tributaria del SII.");
+      return;
+    }
+
     setUploading(true);
 
     try {
+      // Documento del SII (sólo empresas)
+      let empresaDocName: string | null = null;
+      if (selectedEmpresaDoc && esRutEmpresa(actual?.rut)) {
+        const docExt = selectedEmpresaDoc.name.split('.').pop();
+        empresaDocName = `${user.id}/empresa-${Date.now()}.${docExt}`;
+        const { error: docUploadError } = await supabase.storage
+          .from('verification-documents')
+          .upload(empresaDocName, selectedEmpresaDoc);
+        if (docUploadError) throw docUploadError;
+      }
+
       // Subir documento de identidad
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${user.id}/document-${Date.now()}.${fileExt}`;
@@ -232,6 +277,7 @@ const Verification = () => {
         .update({
           verification_document_url: fileName,
           verification_selfie_url: selfieName,
+          ...(empresaDocName && { verification_company_doc_url: empresaDocName }),
           verification_status: 'in_review',
           verification_submitted_at: new Date().toISOString()
         })
@@ -251,6 +297,7 @@ const Verification = () => {
       fetchProfile();
       setSelectedFile(null);
       setSelectedSelfie(null);
+      setSelectedEmpresaDoc(null);
     } catch (error: any) {
       toast.error(error.message || "Error al subir documentos");
     } finally {
@@ -312,9 +359,11 @@ const Verification = () => {
                   <Shield className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <CardTitle>Verificación de Identidad</CardTitle>
+                  <CardTitle>{empresa ? "Verificación de Empresa" : "Verificación de Identidad"}</CardTitle>
                   <CardDescription>
-                    Sube tu cédula de identidad para aumentar tu reputación
+                    {empresa
+                      ? `Verifica ${profile.full_name || "tu empresa"} con los documentos del representante legal`
+                      : "Sube tu cédula de identidad para aumentar tu reputación"}
                   </CardDescription>
                 </div>
               </div>
@@ -345,16 +394,26 @@ const Verification = () => {
                   <div>
                     <h3 className="font-semibold mb-2">Instrucciones:</h3>
                     <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                      <li>Sube una foto clara de la parte frontal de tu cédula de identidad</li>
-                      <li>Sube una selfie donde aparezcas sosteniendo tu carnet al lado de tu rostro</li>
+                      {empresa ? (
+                        <>
+                          <li>Sube una foto clara de la parte frontal del carnet del representante legal</li>
+                          <li>Sube una selfie del representante sosteniendo su carnet al lado de su rostro</li>
+                          <li>Sube el e-RUT o la carpeta tributaria de la empresa (se descargan en sii.cl), donde aparezca el representante</li>
+                        </>
+                      ) : (
+                        <>
+                          <li>Sube una foto clara de la parte frontal de tu cédula de identidad</li>
+                          <li>Sube una selfie donde aparezcas sosteniendo tu carnet al lado de tu rostro</li>
+                        </>
+                      )}
                       <li>Asegúrate de que toda la información sea legible</li>
                       <li>Cada archivo debe ser menor a 5MB</li>
-                      <li>Formatos aceptados: JPG, PNG, WEBP, HEIC (iPhone)</li>
+                      <li>Formatos aceptados: JPG, PNG, WEBP, HEIC (iPhone){empresa && "; el documento del SII también en PDF (hasta 10MB)"}</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="document">Documento de Identidad</Label>
+                    <Label htmlFor="document">{empresa ? "Carnet del representante legal" : "Documento de Identidad"}</Label>
                     {isNative() ? (
                       <button
                         type="button"
@@ -382,7 +441,7 @@ const Verification = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="selfie">Selfie con Carnet</Label>
+                    <Label htmlFor="selfie">{empresa ? "Selfie del representante con su carnet" : "Selfie con Carnet"}</Label>
                     {isNative() ? (
                       <button
                         type="button"
@@ -409,9 +468,27 @@ const Verification = () => {
                     )}
                   </div>
 
+                  {empresa && (
+                    <div className="space-y-2">
+                      <Label htmlFor="empresaDoc">e-RUT o carpeta tributaria (SII)</Label>
+                      <Input
+                        id="empresaDoc"
+                        type="file"
+                        accept="image/*,.heic,.heif,application/pdf,.pdf"
+                        onChange={handleEmpresaDocSelect}
+                        disabled={uploading || converting}
+                      />
+                      {selectedEmpresaDoc && (
+                        <p className="text-sm text-muted-foreground">
+                          Archivo seleccionado: {selectedEmpresaDoc.name}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <Button
                     onClick={handleUpload}
-                    disabled={!selectedFile || !selectedSelfie || uploading || converting}
+                    disabled={!selectedFile || !selectedSelfie || (empresa && !selectedEmpresaDoc) || uploading || converting}
                     className="w-full"
                   >
                     <Upload className="mr-2 h-4 w-4" />

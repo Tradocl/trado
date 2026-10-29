@@ -254,6 +254,22 @@ avisarse también en el flujo de pago**, no sólo ahí.
   bancaria debe coincidir con el del perfil, y **el RUT del perfil no se puede
   cambiar una vez ingresado** (si se pudiera, quien robe una cuenta pondría su
   RUT y su banco).
+- **Cuentas de empresa** (desde 2026-10-29, migración
+  `20261029000000_cuentas_empresa.sql`): no hay columna de tipo; una cuenta es de
+  empresa si su RUT es **≥ 50.000.000** (`esRutEmpresa` en
+  [`src/lib/validators.ts`](src/lib/validators.ts)). Es la convención chilena para
+  personas jurídicas, no una regla del SII: lo que confirma que es empresa es el
+  documento de la verificación. En una empresa `full_name` **es la razón social**
+  (es lo que se ve en las salas y lo que calza con la cuenta bancaria, que debe ir
+  al RUT de la empresa), y quien la maneja queda en `representante_nombre` /
+  `representante_rut` (persona, < 50M). Completar perfil los pide; la
+  verificación pide carnet y selfie **del representante** más el e-RUT o carpeta
+  tributaria del SII (`verification_company_doc_url`, el bucket acepta PDF). El
+  admin ve "Empresa", el RUT de la empresa con link al SII y el del representante
+  con el buscador de nombres. El trigger bloquea cambiar `representante_rut` una
+  vez puesto y `representante_nombre` una vez verificada. Límites y comisión son
+  los mismos que para personas. Persona natural con giro usa su RUT personal y
+  queda como persona (legalmente lo es); una EIRL entra como empresa.
 - **La plata de tarjeta no sale al banco** (desde 2026-09-24). Lo que entró por
   MercadoPago y no se gastó en una sala completada (`gateway_funded_balance`)
   sólo puede **volver a la tarjeta**: si no, una tarjeta robada se convierte en
