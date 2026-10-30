@@ -16,6 +16,7 @@ import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "
 import { Logo } from "@/components/Logo";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
+import { rutaInternaSegura } from "@/lib/redirect";
 
 interface PasswordRequirement {
   label: string;
@@ -99,7 +100,7 @@ const Auth = () => {
           return;
         }
         // All users (including Google) go directly to dashboard
-        const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+        const redirectUrl = rutaInternaSegura(sessionStorage.getItem('redirectAfterLogin'));
         if (redirectUrl) {
           sessionStorage.removeItem('redirectAfterLogin');
           navigate(redirectUrl);

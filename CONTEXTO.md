@@ -384,6 +384,18 @@ plata que no existía. Se corrigió con la migración
 - Cambiar la contraseña exige sesión reciente
   (`security_update_password_require_reauthentication`).
 - Encabezados de seguridad en `vercel.json` (anti-clickjacking, HSTS, nosniff).
+- **Volver después del login** sólo a rutas internas (`rutaInternaSegura` en
+  `src/lib/redirect.ts`): React Router 6 trata `//x.com` y `/\x.com` como otro
+  dominio (GHSA-wrjc-x8rr-h8h6) y la corrección oficial exige pasar a v7.
+- **Revisión del 2026-10-30:** anónimo no lee ninguna tabla ni bucket privado;
+  las 8 Edge Functions sin `verify_jwt` rechazan sin credenciales (401), salvo
+  `auth-email-hook`, que es un resto de Lovable sin uso (el hook de correo está
+  apagado, los correos salen por Resend) y responde 500 porque no tiene su clave.
+  Los ~44 avisos del Security Advisor de "SECURITY DEFINER ejecutable por anon"
+  son triggers (no se pueden llamar por RPC) o RPC que validan `auth.uid()`/admin
+  con 2FA por dentro. Pendientes de bajo riesgo: el bucket `avatars` lista las
+  carpetas (ids de usuario) a cualquiera; la protección contra contraseñas filtradas
+  (HaveIBeenPwned) está apagada; `zod` 3 tiene un aviso que exige pasar a v4.
 
 ### wallet_movements no tiene user_id
 

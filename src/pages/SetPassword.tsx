@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Eye, EyeOff, Check, X, Lock } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { rutaInternaSegura } from "@/lib/redirect";
 
 const requirements = [
   { label: "Mínimo 8 caracteres", test: (p: string) => p.length >= 8 },
@@ -54,7 +55,7 @@ const SetPassword = () => {
       return;
     }
     toast.success("Contraseña creada correctamente");
-    const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
+    const redirectUrl = rutaInternaSegura(sessionStorage.getItem("redirectAfterLogin"));
     if (redirectUrl) {
       sessionStorage.removeItem("redirectAfterLogin");
       navigate(redirectUrl, { replace: true });
