@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
+import { AbrirEnNavegador } from "@/components/AbrirEnNavegador";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 import { rutaInternaSegura } from "@/lib/redirect";
 
@@ -547,6 +548,7 @@ const Auth = () => {
                     </div>
                   </div>
                   
+                  <AbrirEnNavegador />
                   <GoogleSignInButton
                     modo="signin"
                     fallback={
@@ -586,6 +588,7 @@ const Auth = () => {
               <TabsContent value="signup">
                 {/* Google primero: es un toque y es como se registra la mayoría */}
                 <div className="space-y-2 mb-5">
+                  <AbrirEnNavegador />
                   <GoogleSignInButton
                     modo="signup"
                     fallback={

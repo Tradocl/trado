@@ -63,3 +63,40 @@ export async function guardarAtribucion(user: User) {
   // 23505 = ya estaba (otra pestaña o un reintento): está bien.
   if (error && error.code !== "23505") console.log("No se pudo guardar la atribución", error.message);
 }
+
+/**
+ * Navegador interno de Instagram o Facebook. Desde ahí llega casi todo lo de los anuncios,
+ * pero Google no siempre deja iniciar sesión dentro de una app, y si la persona copia el
+ * link a Safari o Chrome, el utm queda guardado en el navegador de Instagram y la cuenta
+ * se crea sin origen (7 de las 10 cuentas nuevas de fines de octubre 2026).
+ */
+export function esNavegadorInterno(ua: string = navigator.userAgent): boolean {
+  return /Instagram|FBAN|FBAV|FB_IAB/i.test(ua);
+}
+
+/** La misma página, con el utm guardado pegado en la URL para que el otro navegador lo recoja. */
+export function urlConAtribucion(href: string = window.location.href): string {
+  const url = new URL(href);
+  const a = leer();
+  if (a) {
+    for (const c of CAMPOS) {
+      if (a[c] && !url.searchParams.has(c)) url.searchParams.set(c, a[c]!);
+    }
+  }
+  return url.toString();
+}
+
+/**
+ * Link que saca la página del navegador interno: en Android abre el navegador del teléfono
+ * con un intent, en iPhone abre Safari (x-safari-https, iOS 17 o más nuevo). Si el sistema
+ * no lo reconoce no pasa nada: el botón además copia el link.
+ */
+export function urlNavegadorExterno(ua: string = navigator.userAgent, href?: string): string {
+  const destino = urlConAtribucion(href);
+  if (/Android/i.test(ua)) {
+    const u = new URL(destino);
+    return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=https;end`;
+  }
+  if (/iPhone|iPad|iPod/i.test(ua)) return destino.replace(/^https:\/\//, "x-safari-https://");
+  return destino;
+}
