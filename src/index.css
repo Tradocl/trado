@@ -189,3 +189,9 @@ All colors MUST be HSL.
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Sin animaciones si la persona las pidió apagadas: el contenido se ve igual */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .hero-badge, .hero-h1, .hero-sub, .hero-cta, .hero-hint, .hero-card, .animate-float { animation: none; }
+}

@@ -462,6 +462,15 @@ Si agregas una RPC en una migración y no regeneras, `tsc` falla. Ya pasó con
 
 Están acá para no repetirlos.
 
+0. **Afirmar en la portada cosas que no son ciertas.** Hasta el 2026-11-02 la
+   portada tenía tres testimonios inventados ("ya hice 5 transacciones" cuando
+   había 2 salas completadas en total), "la plataforma escrow más segura de
+   Chile", una app de iOS y Play Store que no existe y retiros "en 1-2 días
+   hábiles" cuando los aprueba un admin a mano. Se sacaron al rehacerla. **En la
+   portada no van testimonios ni cifras que no sean reales**, y los números
+   (comisión, plazos, límites) se leen del código: `src/components/landing/` los
+   importa de `utils.ts`, `escrow.ts` y `trado-bank.ts`.
+
 1. **Trabajar sobre un clon local atrasado.** El repo local estuvo 13 commits
    detrás de `origin/main` sin que nadie lo notara. Todo el análisis hecho sobre
    esa base fue inválido: se concluyó que producción tenía código no versionado
