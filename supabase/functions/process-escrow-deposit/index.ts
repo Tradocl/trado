@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { calculateBlendedFee } from "../_shared/pricing.ts";
+import { calculateBlendedFee, ESTADOS_FINANCIADOS, primeraSalaGratis } from "../_shared/pricing.ts";
 import { alertarCritico } from "../_shared/alertas.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -207,6 +207,24 @@ serve(async (req: Request): Promise<Response> => {
     if (pricingReady) {
       const blended = calculateBlendedFee(salaAmount, consumedMark);
       commission = blended.fee;
+
+      // Primera sala sin comisión. La paga quien creó la sala, así que se mira si esa persona
+      // ya tuvo otra sala con plata. Si la consulta falla, se cobra normal.
+      const pagaComision = (tx.initiator_role || "seller") === "buyer" ? tx.buyer_id : tx.seller_id;
+      if (pagaComision) {
+        const { count: otrasFinanciadas, error: promoErr } = await supabaseClient
+          .from("transactions")
+          .select("id", { count: "exact", head: true })
+          .or(`seller_id.eq.${pagaComision},buyer_id.eq.${pagaComision}`)
+          .in("state", [...ESTADOS_FINANCIADOS])
+          .neq("id", transactionId);
+        if (!promoErr && otrasFinanciadas !== null && primeraSalaGratis(salaAmount, otrasFinanciadas)) {
+          commission = 0;
+          console.log(`[process-escrow-deposit] Primera sala sin comisión: tx ${transactionId}, paga ${pagaComision}`);
+        } else if (promoErr) {
+          console.warn("[process-escrow-deposit] No se pudo revisar la primera sala, se cobra normal:", promoErr.message);
+        }
+      }
 
       const { error: feeErr } = await supabaseClient
         .from("transactions")

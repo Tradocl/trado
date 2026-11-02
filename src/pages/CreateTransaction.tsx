@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ArrowLeft, ArrowRight, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link, ShieldAlert, Shield, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount, MAX_TRANSACTION_AMOUNT } from "@/lib/utils";
+import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount, MAX_TRANSACTION_AMOUNT, ESTADOS_FINANCIADOS, PRIMERA_SALA_GRATIS_HASTA, primeraSalaGratis } from "@/lib/utils";
 import { FeeOptions, feeOptions } from "@/components/FeeOptions";
 import { UNVERIFIED_LIMITS, checkTransactionLimits, getUserVerificationStatus } from "@/lib/transaction-limits";
 import { nativeShare } from "@/lib/native/share";
@@ -53,6 +53,9 @@ const CreateTransaction = () => {
   const [pendingFormEvent, setPendingFormEvent] = useState<React.FormEvent<HTMLFormElement> | null>(null);
   const [buyerEmail, setBuyerEmail] = useState("");
   const [pendingTransactionsCount, setPendingTransactionsCount] = useState(0);
+  // Salas de esta cuenta que ya tuvieron plata: con 0, la primera va sin comisión. Lo que se
+  // cobra lo decide process-escrow-deposit; esto es sólo para mostrarlo. null = cargando.
+  const [salasFinanciadas, setSalasFinanciadas] = useState<number | null>(null);
 
   // Load user verification status
   useEffect(() => {
@@ -75,6 +78,19 @@ const CreateTransaction = () => {
       .eq("state", "created")
       .then(({ count }) => setPendingTransactionsCount(count ?? 0));
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("transactions")
+      .select("id", { count: "exact", head: true })
+      .or(`seller_id.eq.${user.id},buyer_id.eq.${user.id}`)
+      .in("state", [...ESTADOS_FINANCIADOS])
+      .then(({ count, error }) => setSalasFinanciadas(error ? 1 : (count ?? 0)));
+  }, [user]);
+
+  const sinComision = salasFinanciadas !== null && primeraSalaGratis(amount, salasFinanciadas);
+  const tienePrimeraGratis = salasFinanciadas === 0;
 
   // Dynamic labels based on type and role
   const isService = mainType === "servicio";
@@ -188,7 +204,7 @@ const CreateTransaction = () => {
         product_name: formData.productName,
         product_description: formData.productDescription,
         amount: formData.amount,
-        commission: orderDetails.appFee,
+        commission: sinComision ? 0 : orderDetails.appFee,
         state: "created" as const,
         invite_code: inviteCode,
         sale_type: formData.saleType,
@@ -288,7 +304,7 @@ const CreateTransaction = () => {
   // Calculate what the user will pay/receive
   const getSellerReceivesAmount = () => {
     if (!orderDetails) return 0;
-    return isBuyerInitiator
+    return isBuyerInitiator || sinComision
       ? orderDetails.buyerPays // Seller receives full price
       : orderDetails.sellerReceives; // Seller receives price - commission
   };
@@ -523,6 +539,11 @@ const CreateTransaction = () => {
                   <Info className="h-3 w-3" />
                   Comisión: 5% con tarjeta · desde 3,5% con transferencia · mínimo $1.000
                 </p>
+                {tienePrimeraGratis && (
+                  <p className="text-sm text-success font-medium">
+                    Tu primera sala va sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.
+                  </p>
+                )}
               </div>
 
               {/* Over-limit notice — shown instead of the commission breakdown */}
@@ -556,7 +577,20 @@ const CreateTransaction = () => {
                         </span>
                       </div>
                       
-                      {isBuyerInitiator ? (
+                      {sinComision ? (
+                        <>
+                          <div className="flex justify-between items-center py-2 bg-success/10 rounded px-2">
+                            <span className="text-muted-foreground">Comisión Trado:</span>
+                            <span className="font-bold text-success text-lg">$0 · tu primera sala</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 bg-success/10 rounded px-2">
+                            <span className="text-muted-foreground">{sellerLabel} recibirá:</span>
+                            <span className="font-bold text-success text-lg">
+                              ${formatCLP(getSellerReceivesAmount())}
+                            </span>
+                          </div>
+                        </>
+                      ) : isBuyerInitiator ? (
                         <>
                           <p className="text-xs text-muted-foreground">
                             Como {buyerLabel.toLowerCase()} que crea la sala, la comisión la pagas tú, sumada al precio.
@@ -592,7 +626,13 @@ const CreateTransaction = () => {
                         htmlFor="termsAccepted"
                         className="text-sm font-medium leading-relaxed cursor-pointer"
                       >
-                        {isBuyerInitiator ? (
+                        {sinComision ? (
+                          <>
+                            Entiendo que esta sala va sin comisión por ser mi primera sala en Trado, y que el{" "}
+                            {sellerLabel.toLowerCase()} recibirá{" "}
+                            <span className="font-bold text-success">${formatCLP(getSellerReceivesAmount())}</span>.
+                          </>
+                        ) : isBuyerInitiator ? (
                           <>
                             Acepto pagar el precio más la comisión de Trado:{" "}
                             <span className="font-bold text-info">

@@ -101,6 +101,16 @@ propio. Es traspasar el costo de pasarela que se ahorra, así que el usuario pag
 menos *y* Trado gana más (2,89% vs 1,40% en $2M). Por eso conviene empujar la
 transferencia en montos altos, y por eso es obligatoria sobre $1.150.000.
 
+- **Primera sala sin comisión** (desde 2026-11, decisión del dueño): la primera
+  sala que financia cada cuenta, hasta **$250.000** (= tope por sala sin
+  verificar), va con comisión $0. "Primera" es de quien paga la comisión, o sea
+  quien creó la sala (`initiator_role`): ninguna otra sala suya, como comprador
+  o vendedor, llegó a un estado con plata (`ESTADOS_FINANCIADOS`). Lo decide
+  `process-escrow-deposit` al depositar (`primeraSalaGratis` en
+  `_shared/pricing.ts`; si la consulta falla, cobra normal); `CreateTransaction`
+  sólo lo muestra con el espejo de `src/lib/utils.ts` (test
+  `src/lib/primera-sala.test.ts`). Con tarjeta Trado igual paga el 3,08 % de
+  pasarela. Las liberaciones usan la comisión guardada, así que no cambiaron.
 - **`MAX_TRANSACTION_AMOUNT` = $2.000.000.** Sobre eso no se puede crear una
   transacción solo; hay que cotizar.
 - **`CUSTOM_PRICING_FROM` = $1.000.000.** Desde ahí se *ofrece* precio a medida

@@ -124,6 +124,27 @@ export function calculateFee(
   return Math.max(Math.round(raw / 10) * 10, MIN_FEE);
 }
 
+/**
+ * Primera sala sin comisión: la primera que financia cada cuenta, hasta $250.000.
+ * ⚠️ ESPEJO de supabase/functions/_shared/pricing.ts, que es quien decide al depositar;
+ * acá sólo se usa para mostrarlo al crear la sala.
+ */
+export const PRIMERA_SALA_GRATIS_HASTA = 250_000;
+
+export const ESTADOS_FINANCIADOS = [
+  "funds_secured",
+  "in_delivery",
+  "awaiting_buyer_review",
+  "return_requested",
+  "return_in_progress",
+  "in_dispute",
+  "completed",
+] as const;
+
+export function primeraSalaGratis(amount: number, otrasSalasFinanciadas: number): boolean {
+  return amount > 0 && amount <= PRIMERA_SALA_GRATIS_HASTA && otrasSalasFinanciadas === 0;
+}
+
 /** Tasa efectiva (0-1) que termina pagando el usuario. */
 export function effectiveFeeRate(
   transactionAmount: number,

@@ -188,3 +188,26 @@ export function calculateBlendedFee(
     ifAllTransfer,
   };
 }
+
+/**
+ * Primera sala sin comisión (desde 2026-11): la primera sala que financia cada cuenta, hasta
+ * $250.000 (el tope sin verificar), no paga comisión. La paga quien creó la sala, así que
+ * "primera" es la de esa persona: ninguna otra sala suya, como compradora o vendedora, llegó
+ * a tener plata depositada. Si pagan con tarjeta, Trado igual absorbe la pasarela.
+ */
+export const PRIMERA_SALA_GRATIS_HASTA = 250_000;
+
+/** Estados de una sala que ya tuvo plata depositada. */
+export const ESTADOS_FINANCIADOS = [
+  "funds_secured",
+  "in_delivery",
+  "awaiting_buyer_review",
+  "return_requested",
+  "return_in_progress",
+  "in_dispute",
+  "completed",
+] as const;
+
+export function primeraSalaGratis(amount: number, otrasSalasFinanciadas: number): boolean {
+  return amount > 0 && amount <= PRIMERA_SALA_GRATIS_HASTA && otrasSalasFinanciadas === 0;
+}
