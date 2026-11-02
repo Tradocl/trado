@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Shield, Lock, Upload, Camera, Check, X, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -25,10 +24,10 @@ interface PasswordRequirement {
 }
 
 const passwordRequirements: PasswordRequirement[] = [
+  // Lo justo para que no sea trivial sin espantar: antes pedía mayúscula, minúscula y número,
+  // y además repetirla. La barra de fortaleza sigue mostrando cuánto mejora con más.
   { label: "Mínimo 8 caracteres", test: (p) => p.length >= 8 },
-  { label: "Al menos una mayúscula", test: (p) => /[A-Z]/.test(p) },
-  { label: "Al menos una minúscula", test: (p) => /[a-z]/.test(p) },
-  { label: "Al menos un número", test: (p) => /[0-9]/.test(p) },
+  { label: "Letras y números", test: (p) => /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(p) && /[0-9]/.test(p) },
 ];
 
 const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
@@ -67,10 +66,8 @@ const Auth = () => {
   const [previewSelfieUrl, setPreviewSelfieUrl] = useState<string>("");
   const [newUserId, setNewUserId] = useState<string>("");
   const [signupPassword, setSignupPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showSigninPassword, setShowSigninPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   // Los botones "Crear cuenta" / "Empezar gratis" llegan con ?tab=register: abrir directo en Registrarse
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(
@@ -80,8 +77,6 @@ const Auth = () => {
   // Field error states
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -184,15 +179,6 @@ const Auth = () => {
     // Reset all field errors
     setEmailError("");
     setPasswordError("");
-    setConfirmPasswordError("");
-
-    // Validar que las contraseñas coincidan
-    if (password !== confirmPassword) {
-      setConfirmPasswordError("Las contraseñas no coinciden");
-      toast.error("Las contraseñas no coinciden");
-      setLoading(false);
-      return;
-    }
 
     // Validar requisitos de contraseña
     const failedRequirements = passwordRequirements.filter(req => !req.test(password));
@@ -251,7 +237,6 @@ const Auth = () => {
       
       
       setSignupPassword("");
-      setConfirmPassword("");
       setLoading(false);
       sessionStorage.removeItem('blockRedirectAfterSignup');
       // Redirect to email verification pending page
@@ -469,6 +454,49 @@ const Auth = () => {
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
+                  {/* Google primero: es como entra la mayoría */}
+                  <AbrirEnNavegador />
+                  <GoogleSignInButton
+                    modo="signin"
+                    fallback={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleGoogleSignIn}
+                      disabled={loading}
+                    >
+                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                        <path
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                          fill="#4285F4"
+                        />
+                        <path
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                          fill="#34A853"
+                        />
+                        <path
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                          fill="#FBBC05"
+                        />
+                        <path
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                          fill="#EA4335"
+                        />
+                      </svg>
+                      Continuar con Google
+                    </Button>
+                    }
+                  />
+                  <div className="relative my-1">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">O con tu email</span>
+                    </div>
+                  </div>
+                  
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
                     <Input
@@ -486,7 +514,7 @@ const Auth = () => {
                         id="signin-password"
                         name="password"
                         type={showSigninPassword ? "text" : "password"}
-                        placeholder="••••••••"
+                        placeholder="Tu contraseña"
                         required
                         className="pr-10"
                       />
@@ -539,48 +567,6 @@ const Auth = () => {
                     {loading ? "Ingresando..." : "Iniciar Sesión"}
                   </Button>
                   
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-card px-2 text-muted-foreground">O continúa con</span>
-                    </div>
-                  </div>
-                  
-                  <AbrirEnNavegador />
-                  <GoogleSignInButton
-                    modo="signin"
-                    fallback={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={handleGoogleSignIn}
-                      disabled={loading}
-                    >
-                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                        <path
-                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                          fill="#4285F4"
-                        />
-                        <path
-                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                          fill="#34A853"
-                        />
-                        <path
-                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                          fill="#FBBC05"
-                        />
-                        <path
-                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                          fill="#EA4335"
-                        />
-                      </svg>
-                      Continuar con Google
-                    </Button>
-                    }
-                  />
                   
                 </form>
               </TabsContent>
@@ -623,9 +609,9 @@ const Auth = () => {
                   />
                   <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
                     Al continuar con Google aceptas los{" "}
-                    <button type="button" onClick={() => navigate("/terms")} className="text-primary hover:underline">Términos y Condiciones</button>
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Términos y Condiciones</a>
                     {" "}y la{" "}
-                    <button type="button" onClick={() => navigate("/privacy")} className="text-primary hover:underline">Política de Privacidad</button>.
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Política de Privacidad</a>.
                   </p>
                 </div>
                 <div className="relative my-4">
@@ -670,7 +656,7 @@ const Auth = () => {
                         id="signup-password"
                         name="password"
                         type={showSignupPassword ? "text" : "password"}
-                        placeholder="••••••••"
+                        placeholder="8+ caracteres, letras y números"
                         value={signupPassword}
                         onChange={(e) => {
                           setSignupPassword(e.target.value);
@@ -736,92 +722,23 @@ const Auth = () => {
                       </div>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm-password">Confirmar Contraseña</Label>
-                    <div className="relative">
-                      <Input
-                        id="signup-confirm-password"
-                        name="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={confirmPassword}
-                        onChange={(e) => {
-                          setConfirmPassword(e.target.value);
-                          setConfirmPasswordError("");
-                        }}
-                        required
-                        className={`pr-10 ${confirmPasswordError ? "border-destructive" : ""}`}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
-                    {confirmPassword && signupPassword && (
-                      <div className="flex items-center gap-2 text-xs mt-1">
-                        {confirmPassword === signupPassword ? (
-                          <>
-                            <Check className="h-3 w-3 text-success" />
-                            <span className="text-success">Las contraseñas coinciden</span>
-                          </>
-                        ) : (
-                          <>
-                            <X className="h-3 w-3 text-destructive" />
-                            <span className="text-destructive">Las contraseñas no coinciden</span>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Terms and Privacy Agreement Checkbox */}
-                  <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border">
-                    <Checkbox
-                      id="accept-terms"
-                      checked={acceptedTerms}
-                      onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
-                      className="mt-0.5"
-                    />
-                    <label htmlFor="accept-terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
-                      He leído y acepto los{" "}
-                      <button
-                        type="button"
-                        onClick={() => navigate("/terms")}
-                        className="text-primary hover:underline font-medium"
-                      >
-                        Términos y Condiciones
-                      </button>{" "}
-                      y la{" "}
-                      <button
-                        type="button"
-                        onClick={() => navigate("/privacy")}
-                        className="text-primary hover:underline font-medium"
-                      >
-                        Política de Privacidad
-                      </button>{" "}
-                      de Trado.
-                    </label>
-                  </div>
-                  
-                  <Button type="submit" className="w-full" disabled={loading || !acceptedTerms}>
+                  <Button type="submit" className="w-full" disabled={loading}>
                     <Shield className="mr-2 h-4 w-4" />
-                    {loading ? "Creando cuenta..." : "Crear Cuenta"}
+                    {loading ? "Creando cuenta..." : "Crear cuenta gratis"}
                   </Button>
-                  
-                  {!acceptedTerms && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      Debes aceptar los términos para continuar
-                    </p>
-                  )}
+
+                  {/* Igual que con Google: crear la cuenta es aceptar. Los links abren en otra pestaña
+                      para no perder lo que ya se escribió (antes navegaban y borraban el formulario). */}
+                  <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+                    Al crear tu cuenta aceptas los{" "}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      Términos y Condiciones
+                    </a>{" "}
+                    y la{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      Política de Privacidad
+                    </a>.
+                  </p>
 
                 </form>
               </TabsContent>

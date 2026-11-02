@@ -369,8 +369,8 @@ const WebLanding = () => {
       <Seccion id="precios" className="bg-gradient-to-b from-muted/40 to-white">
         <Titulo
           eyebrow="Sin letra chica"
-          titulo="Mueve el monto y mira cuánto cuesta"
-          bajada="Sin suscripciones ni costos fijos. Sólo se cobra si el trato se concreta."
+          titulo="Tu primera sala es gratis. Después, sin sorpresas"
+          bajada="Mueve el monto y mira cuánto cuesta. Sin suscripciones ni costos fijos, y sólo se cobra si el trato se concreta."
         />
         <Calculadora />
         <div className="flex flex-wrap justify-center gap-2 mt-8 max-w-3xl mx-auto">
