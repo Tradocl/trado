@@ -216,6 +216,8 @@ export interface RenderEmailOptions {
   baseUrl?: string;
   tone?: EmailTone;
   eyebrow?: string; // small label above headline, e.g. "Nueva transacción"
+  /** Texto del pie en vez de "Correo automático de Trado", para correos que esperan respuesta. */
+  footerBand?: string;
 }
 
 export function renderTransactionalEmail(o: RenderEmailOptions): string {
@@ -327,7 +329,7 @@ export function renderTransactionalEmail(o: RenderEmailOptions): string {
     <!-- Footer band -->
     <div style="background:${TRADO.bg};padding:18px 32px;text-align:center;border-top:1px solid ${TRADO.border};">
       <p style="margin:0;font-size:12px;color:${TRADO.muted};line-height:1.5;">
-        Correo automático de <a href="${baseUrl}" style="color:${TRADO.primary};text-decoration:none;font-weight:600;">Trado</a> · Transacciones P2P seguras en Chile 🇨🇱
+        ${o.footerBand ?? `Correo automático de <a href="${baseUrl}" style="color:${TRADO.primary};text-decoration:none;font-weight:600;">Trado</a>`} · Transacciones P2P seguras en Chile 🇨🇱
       </p>
     </div>
   </div>

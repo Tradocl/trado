@@ -430,7 +430,7 @@ Si agregas una RPC en una migración y no regeneras, `tsc` falla. Ya pasó con
 - Base de datos activa; **RLS correcta** — verificado que un anónimo no lee
   `transactions`, `wallets`, `wallet_movements`, `appeals`, `audit_logs`,
   `user_roles` ni `profiles`
-- 31 Edge Functions desplegadas
+- 33 Edge Functions desplegadas
 - Los 3 crons, arreglados el 2026-09-02 tras **75 días caídos**
   (1.963 corridas, 0 exitosas). Verificado: corridas programadas consecutivas
   en `succeeded`.
@@ -539,6 +539,17 @@ con IVA.
 **Decisiones:** sin mejoras de contenido con IA (Meta agrega texto y música que
 no controlamos) y sin coincidencias avanzadas automáticas (leerían los
 formularios de billetera y perfil).
+
+**Noviembre 2026 (datos 21-oct a 2-nov):** la ubicación pesa más que el video:
+Reels $53 por visita al perfil vs feed $114 (el reel 15 costó $966 en feed y $27
+en Reels). Android sale la mitad que iPhone. Desde el 2-nov: 09 en todas las
+ubicaciones, 16 y 15 sólo en Reels, Chile completo. El cuello de botella no es
+la publicidad sino la activación: ~1.000 visitas → 10 cuentas → **0 salas**.
+
+**Contacto a cuentas nuevas:** `send-feedback-request` (sólo service role o
+admin, mensaje fijo, respuestas a contacto@trado.cl) les pregunta cómo les fue y
+qué los frenó, y anuncia la primera sala sin comisión. Enviado el 2026-11-02 a
+las 10 cuentas creadas desde el 26-oct. Se le pasan `user_ids` (y `dry_run`).
 
 ## 8. Comandos útiles
 
