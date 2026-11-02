@@ -291,10 +291,16 @@ const WebLanding = () => {
                 y vendiendo donde ya lo haces.
               </p>
               <div className="hero-cta space-y-3">
-                <Button size="lg" onClick={empezar} className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-10 py-6 h-auto font-bold">
-                  Crear mi sala gratis
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button size="lg" onClick={empezar} className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-10 py-6 h-auto font-bold">
+                    Crear mi sala gratis
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  {/* Para quien llega porque la otra persona ya creó la sala y le pasó el código */}
+                  <Button size="lg" variant="outline" onClick={() => navigate("/join-transaction")} className="w-full sm:w-auto bg-transparent border-white/50 text-white hover:bg-white/10 hover:text-white text-lg px-8 py-6 h-auto font-semibold">
+                    Ya tengo un código
+                  </Button>
+                </div>
                 <p className="flex items-center gap-2 text-sm text-white/80">
                   <Gift className="h-4 w-4 text-emerald-300" />
                   Cuenta gratis · tu primera sala sin comisión
