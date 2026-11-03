@@ -8,7 +8,7 @@ import { Logo } from "@/components/Logo";
 import { Capacitor } from "@capacitor/core";
 import { SalaEnVivo } from "@/components/landing/SalaEnVivo";
 import { Casos } from "@/components/landing/Casos";
-import { Calculadora } from "@/components/landing/Calculadora";
+import { CuantoVale } from "@/components/landing/CuantoVale";
 import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
 import { OFFER_TRANSFER_AT } from "@/lib/trado-bank";
 import { APPEAL_NEGOTIATION_HOURS, REVIEW_HOURS, UNVERIFIED_LIMITS } from "@/lib/escrow";
@@ -368,14 +368,15 @@ const WebLanding = () => {
       {/* ── Comisión ── */}
       <Seccion id="precios" className="bg-gradient-to-b from-muted/40 to-white">
         <Titulo
-          eyebrow="Sin letra chica"
-          titulo="Tu primera sala es gratis. Después, sin sorpresas"
-          bajada="Mueve el monto y mira cuánto cuesta. Sin suscripciones ni costos fijos, y sólo se cobra si el trato se concreta."
+          eyebrow="Haz la cuenta"
+          titulo="¿Cuánto te cuesta que salga mal?"
+          bajada="Una estafa te cuesta el 100 %. Protegerte cuesta mucho menos, y tu primera sala no cuesta nada."
         />
-        <Calculadora />
+        <CuantoVale />
         <div className="flex flex-wrap justify-center gap-2 mt-8 max-w-3xl mx-auto">
           {[
             "Crear la cuenta es gratis",
+            "Sin mensualidad",
             "Tarjeta o transferencia",
             `Sin verificar: hasta $${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)} por sala`,
             "Retiro a tu cuenta bancaria",
