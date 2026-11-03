@@ -7,12 +7,28 @@ import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
 // Panel de quien todavía no usa Trado de verdad (ninguna sala con plata). Lo único que tiene que
 // hacer es crear su primera sala, así que va arriba: una lista de pasos con avance y, si aún no
 // creó ninguna, accesos por caso que abren "crear sala" con el tipo y el rol ya elegidos.
+// Cada caso con su color, para que se distingan de un vistazo (las clases van completas para Tailwind)
 const CASOS_SALA = [
-  { id: "compras", titulo: "Compro por redes", icon: ShoppingBag, tipo: "producto_envio", rol: "buyer" },
-  { id: "vendes", titulo: "Vendo y envío", icon: Truck, tipo: "producto_envio", rol: "seller" },
-  { id: "persona", titulo: "En persona", icon: Handshake, tipo: "producto_persona", rol: "seller" },
-  { id: "servicio", titulo: "Freelance", icon: Briefcase, tipo: "servicio", rol: "seller" },
-  { id: "digital", titulo: "Entradas", icon: Ticket, tipo: "producto_digital", rol: "seller" },
+  {
+    id: "compras", titulo: "Compro por redes", icon: ShoppingBag, tipo: "producto_envio", rol: "buyer",
+    caja: "from-sky-500/15 border-sky-500/25 hover:border-sky-500", icono: "bg-sky-500 text-white",
+  },
+  {
+    id: "vendes", titulo: "Vendo y envío", icon: Truck, tipo: "producto_envio", rol: "seller",
+    caja: "from-emerald-500/15 border-emerald-500/25 hover:border-emerald-500", icono: "bg-emerald-500 text-white",
+  },
+  {
+    id: "persona", titulo: "En persona", icon: Handshake, tipo: "producto_persona", rol: "seller",
+    caja: "from-amber-500/15 border-amber-500/25 hover:border-amber-500", icono: "bg-amber-500 text-white",
+  },
+  {
+    id: "servicio", titulo: "Freelance", icon: Briefcase, tipo: "servicio", rol: "seller",
+    caja: "from-violet-500/15 border-violet-500/25 hover:border-violet-500", icono: "bg-violet-500 text-white",
+  },
+  {
+    id: "digital", titulo: "Entradas", icon: Ticket, tipo: "producto_digital", rol: "seller",
+    caja: "from-rose-500/15 border-rose-500/25 hover:border-rose-500", icono: "bg-rose-500 text-white",
+  },
 ] as const;
 
 type Props = {
@@ -36,6 +52,7 @@ export const PrimerosPasos = ({ perfilCompleto, salaPendienteId, onCompletarPerf
 
   return (
     <Card className="border-0 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-primary/10 via-info/5 to-transparent">
+      <div className="h-1.5 bg-gradient-to-r from-primary via-info to-success" />
       <CardContent className="p-5 sm:p-6 space-y-5">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -97,14 +114,14 @@ export const PrimerosPasos = ({ perfilCompleto, salaPendienteId, onCompletarPerf
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">¿Qué vas a hacer?</p>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {CASOS_SALA.map(({ id, titulo, icon: Icon, tipo, rol }) => (
+              {CASOS_SALA.map(({ id, titulo, icon: Icon, tipo, rol, caja, icono }) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => navigate(`/create-transaction?tipo=${tipo}&rol=${rol}`)}
-                  className="group flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-background p-3 text-center hover:border-primary hover:shadow-md transition-all last:col-span-2 sm:last:col-span-1"
+                  className={`group flex flex-col items-center gap-2 rounded-2xl border bg-gradient-to-b ${caja} to-background p-3 sm:p-4 text-center hover:shadow-lg hover:-translate-y-0.5 transition-all last:col-span-2 sm:last:col-span-1`}
                 >
-                  <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <span className={`w-11 h-11 rounded-2xl ${icono} shadow-md flex items-center justify-center group-hover:scale-110 transition-transform`}>
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="text-xs sm:text-sm font-semibold leading-tight">{titulo}</span>

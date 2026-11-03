@@ -738,9 +738,11 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
-            <div className="flex justify-between items-center p-3 sm:p-4 bg-gradient-to-r from-primary/5 to-muted/50 rounded-lg sm:rounded-xl border border-primary/10 animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
-              <span className="text-xs sm:text-sm font-medium">Saldo disponible</span>
-              <span className="text-lg sm:text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
+            <div className="flex justify-between items-center p-4 sm:p-5 bg-gradient-to-r from-primary to-info text-white rounded-xl shadow-md animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
+              <span className="flex items-center gap-2 text-xs sm:text-sm font-medium text-white/85">
+                <Wallet className="h-4 w-4" /> Saldo disponible
+              </span>
+              <span className="text-xl sm:text-3xl font-bold">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.75s', animationFillMode: 'both' }}>
               <Button variant="outline" className="w-full h-10 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet")}>
