@@ -9,13 +9,14 @@ import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Se
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { formatCLP } from "@/lib/utils";
+import { formatCLP, ESTADOS_FINANCIADOS } from "@/lib/utils";
 import { Logo } from "@/components/Logo";
 import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { getStateLabel } from "@/lib/transaction-labels";
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
+import { PrimerosPasos } from "@/components/PrimerosPasos";
 
 interface Profile {
   full_name: string;
@@ -91,6 +92,10 @@ const Dashboard = () => {
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
   const [pendingRatingCount, setPendingRatingCount] = useState(0);
   const [firstPendingRatingId, setFirstPendingRatingId] = useState<string | null>(null);
+  // Hasta que alguna sala tenga plata, el panel muestra los primeros pasos arriba. Parte en
+  // true para no mostrarlos un instante a quien ya usa Trado mientras carga.
+  const [yaUsaTrado, setYaUsaTrado] = useState(true);
+  const [salaPendienteId, setSalaPendienteId] = useState<string | null>(null);
 
   const isProfileComplete = profile?.rut && profile?.phone && profile?.address &&
     profile.rut.trim() !== '' && profile.phone.trim() !== '' && profile.address.trim() !== '';
@@ -199,6 +204,11 @@ const Dashboard = () => {
         if (isBuyer) return true;
         return false;
       });
+      const todas = completedTransactionsRes.data || [];
+      setYaUsaTrado(todas.some(t => (ESTADOS_FINANCIADOS as readonly string[]).includes(t.state)));
+      // Sala creada que todavía no tiene a la otra persona: la de quien la creó
+      setSalaPendienteId(todas.find(t => ["created", "invited"].includes(t.state))?.id ?? null);
+
       setPendingRatingCount(pending.length);
       setFirstPendingRatingId(pending[0]?.id ?? null);
       
@@ -397,6 +407,14 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {!loading && !yaUsaTrado && (
+          <PrimerosPasos
+            perfilCompleto={!!isProfileComplete}
+            salaPendienteId={salaPendienteId}
+            onCompletarPerfil={() => setShowCompleteProfileModal(true)}
+          />
+        )}
+
         {/* Pending Ratings Banner */}
         {pendingRatingCount > 0 && (
           <Card
@@ -530,7 +548,7 @@ const Dashboard = () => {
         )}
 
         {/* Complete Profile Card - Show for users with incomplete profile */}
-        {!isProfileComplete && (
+        {!isProfileComplete && yaUsaTrado && (
           <Card className="border-2 border-primary/30 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-primary/5 to-transparent" 
             style={{ animationDelay: '0.22s', animationFillMode: 'both' }}>
             <CardContent className="py-4 sm:py-5">

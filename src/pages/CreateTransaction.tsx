@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,18 @@ const CreateTransaction = () => {
   // Salas de esta cuenta que ya tuvieron plata: con 0, la primera va sin comisión. Lo que se
   // cobra lo decide process-escrow-deposit; esto es sólo para mostrarlo. null = cargando.
   const [salasFinanciadas, setSalasFinanciadas] = useState<number | null>(null);
+
+  // Los accesos del panel ("Compro por redes", "Freelance"…) llegan con ?tipo=&rol= ya elegidos
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const tipo = searchParams.get("tipo") as SaleType | null;
+    if (tipo && ["servicio", "producto_persona", "producto_envio", "producto_digital"].includes(tipo)) {
+      setMainType(tipo === "servicio" ? "servicio" : "producto");
+      setSaleType(tipo);
+    }
+    const rol = searchParams.get("rol");
+    if (rol === "buyer" || rol === "seller") setInitiatorRole(rol);
+  }, [searchParams]);
 
   // Load user verification status
   useEffect(() => {
