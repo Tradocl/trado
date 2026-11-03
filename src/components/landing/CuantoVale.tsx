@@ -21,6 +21,9 @@ export const CuantoVale = () => {
   const tarjeta = calculateFee(monto, "gateway");
   const transferencia = monto >= OFFER_TRANSFER_AT ? calculateFee(monto, "transfer") : null;
   const mejor = transferencia ?? tarjeta;
+  // Lo que le queda al que vende: marketplace grande ~20 %; Trado, primera sala gratis o tarjeta
+  const enMarketplace = Math.round((monto * 0.8) / 10) * 10;
+  const conTrado = primeraGratis ? monto : monto - tarjeta;
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -72,38 +75,45 @@ export const CuantoVale = () => {
       {/* Para el que vende: su otra opción es publicar en un marketplace grande. No se nombra a
           ninguno. "Hasta cerca de un 20 %" = publicación premium (~18 %) más cargos, medido por el
           dueño vendiendo ahí y en línea con fuentes externas que dan 13-20 % (revisado 2026-11-03).
-          Trado con tarjeta es 5 %, y menos por transferencia. Las barras van en proporción: 5 de 20. */}
+          Con Trado se toma la tarjeta (5 %), el caso más caro, o $0 si es la primera sala. */}
       <div className="mt-5 rounded-3xl bg-gradient-to-br from-slate-900 to-[hsl(238,45%,22%)] text-white p-6 sm:p-7 shadow-xl">
         <p className="flex items-center gap-2 text-sm font-semibold text-white/70">
-          <Store className="h-4 w-4" /> ¿Vendes?
+          <Store className="h-4 w-4" /> ¿Vendes? Mira con cuánto te quedas
         </p>
-        <p className="text-xl sm:text-2xl font-bold mt-2 leading-snug">
-          En un marketplace grande, entre comisión y cargos se te puede ir hasta cerca de un 20 % de cada venta.
-          Vendiendo por tus redes con Trado, pagas el 5 % o menos, y tu primera sala nada.
-        </p>
-        <div className="mt-5 space-y-2.5">
+        <div className="mt-5 space-y-4">
           <div>
-            <div className="flex justify-between text-xs text-white/60 mb-1">
-              <span>Marketplace grande</span>
-              <span>hasta ~20 %</span>
+            <div className="flex justify-between items-baseline">
+              <span className="text-sm text-white/70">En un marketplace grande</span>
+              <span className="text-xl font-bold text-white/80">≈ ${formatCLP(enMarketplace)}</span>
             </div>
-            <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-              <div className="h-full w-full bg-red-400/80 rounded-full" />
+            <div className="mt-1.5 h-3 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full bg-red-400/80 rounded-full transition-all duration-500" style={{ width: "80%" }} />
             </div>
+            <p className="text-[11px] text-white/45 mt-1">Hasta cerca de un 20 % entre comisión y cargos</p>
           </div>
           <div>
-            <div className="flex justify-between text-xs text-white/60 mb-1">
-              <span>Trado</span>
-              <span>5 % o menos · primera sala $0</span>
+            <div className="flex justify-between items-baseline">
+              <span className="text-sm text-white/70">Por tus redes, con Trado</span>
+              <span className="text-2xl font-extrabold text-emerald-300">${formatCLP(conTrado)}</span>
             </div>
-            <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-              <div className="h-full w-1/4 bg-emerald-400 rounded-full" />
+            <div className="mt-1.5 h-3 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full bg-emerald-400 rounded-full transition-all duration-500"
+                style={{ width: `${(conTrado / monto) * 100}%` }}
+              />
             </div>
+            <p className="text-[11px] text-white/45 mt-1">
+              {primeraGratis ? "Tu primera sala, sin comisión" : "Con tarjeta, el caso más caro"}
+            </p>
           </div>
         </div>
-        <p className="text-xs text-white/50 mt-4">
-          Y sigues vendiendo donde ya te conocen: Instagram, WhatsApp o Facebook.
-        </p>
+        <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl bg-emerald-400/15 border border-emerald-300/30 px-4 py-3">
+          <span className="text-sm text-white/85">Te quedas con hasta</span>
+          <span className="text-right">
+            <span className="text-2xl font-extrabold text-emerald-300">${formatCLP(conTrado - enMarketplace)}</span>
+            <span className="text-sm text-white/85"> más</span>
+          </span>
+        </div>
       </div>
 
       <p className="text-xs text-muted-foreground text-center mt-4 leading-relaxed max-w-2xl mx-auto">
