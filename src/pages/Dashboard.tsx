@@ -9,7 +9,7 @@ import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Se
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { formatCLP, ESTADOS_FINANCIADOS } from "@/lib/utils";
+import { formatCLP, ESTADOS_FINANCIADOS, MAX_TRANSACTION_AMOUNT } from "@/lib/utils";
 import { Logo } from "@/components/Logo";
 import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
@@ -341,7 +341,11 @@ const Dashboard = () => {
                   )}
                 </CardTitle>
                 <CardDescription className="text-white/80 text-xs sm:text-sm">
-                  Panel de control seguro
+                  {transactions.length > 0
+                    ? `Tienes ${transactions.length} ${transactions.length === 1 ? "sala en curso" : "salas en curso"}`
+                    : !yaUsaTrado
+                      ? "Tu primera sala va sin comisión"
+                      : "Todo tranquilo: no tienes salas en curso"}
                 </CardDescription>
               </div>
               {profile?.verification_status === 'approved' && (
@@ -369,6 +373,8 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
+            {yaUsaTrado ? (
+            <>
             <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
               <Star className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               <div>
@@ -379,31 +385,19 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="animate-fade-in" style={{ animationDelay: '0.35s', animationFillMode: 'both' }}>
-              <p className="text-xs opacity-80">Transacciones</p>
+              <p className="text-xs opacity-80">Salas completadas</p>
               <p className="text-base sm:text-2xl font-bold">{profile?.total_transactions || 0}</p>
             </div>
-            
-            {/* Límites de transacción para usuarios no verificados */}
-            {!profile?.is_verified && (
-              <div className="col-span-2 w-full mt-2 animate-fade-in" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0 text-warning" />
-                  <div className="flex justify-between w-full text-xs opacity-80">
-                    <span>Límite acumulado</span>
-                    <span>${formatCLP(accumulatedTotal)} / ${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)}</span>
-                  </div>
-                </div>
-                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-warning rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, (accumulatedTotal / UNVERIFIED_LIMITS.TOTAL_ACCUMULATED) * 100)}%` }}
-                  />
-                </div>
-                <p className="text-xs opacity-70 mt-1">
-                  Disponible: <strong>${formatCLP(Math.max(0, UNVERIFIED_LIMITS.TOTAL_ACCUMULATED - accumulatedTotal))}</strong> • Máximo por transacción: ${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)}
+            </>
+            ) : (
+              <div className="col-span-2 sm:col-span-1 flex items-center gap-2.5 rounded-xl bg-white/15 px-3 py-2 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
+                <Star className="h-5 w-5 flex-shrink-0" />
+                <p className="text-xs sm:text-sm leading-snug">
+                  <b>Empieza a construir tu reputación.</b> Cada sala que completas suma confianza para tus próximos tratos.
                 </p>
               </div>
             )}
+            
           </CardContent>
         </Card>
 
@@ -431,8 +425,8 @@ const Dashboard = () => {
                   <div>
                     <p className="font-semibold text-sm">
                       {pendingRatingCount === 1
-                        ? "Tienes 1 transacción pendiente de calificar"
-                        : `Tienes ${pendingRatingCount} transacciones pendientes de calificar`}
+                        ? "Tienes 1 sala pendiente de calificar"
+                        : `Tienes ${pendingRatingCount} salas pendientes de calificar`}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Tu calificación ayuda a construir confianza en la comunidad
@@ -448,17 +442,17 @@ const Dashboard = () => {
         {/* Transactions in Progress */}
         {transactions.length > 0 && (
           <>
-          <h2 className="sr-only">Transacciones en curso</h2>
+          <h2 className="sr-only">Salas en curso</h2>
           <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
             <CardHeader className="border-b border-border/60">
               <CardTitle className="flex items-center gap-3 text-base">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <ShoppingBag className="h-5 w-5 text-primary" />
                 </div>
-                Transacciones en Curso
+                Salas en curso
               </CardTitle>
               <CardDescription>
-                Tus transacciones activas
+                Las salas que tienes abiertas
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -605,11 +599,25 @@ const Dashboard = () => {
                     </>
                   ) : (
                     <>
-                      <h4 className="font-semibold text-sm sm:text-base mb-1">¿Necesitas transaccionar montos mayores?</h4>
+                      <h4 className="font-semibold text-sm sm:text-base mb-1">¿Necesitas salas de montos mayores?</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-                        Ya puedes usar Trado para transacciones hasta <strong>${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)}</strong> (${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)} acumulado).
-                        Verifica tu identidad cuando quieras desbloquear montos sin límite.
+                        Sin verificar puedes usar salas de hasta <strong>${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)}</strong>.
+                        Verifica tu identidad con tu carnet para salas de hasta ${formatCLP(MAX_TRANSACTION_AMOUNT)}.
                       </p>
+                      {accumulatedTotal > 0 && (
+                        <div className="mb-3 max-w-sm">
+                          <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
+                            <span>Usado sin verificar</span>
+                            <span>${formatCLP(accumulatedTotal)} de ${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)}</span>
+                          </div>
+                          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-info rounded-full transition-all duration-500"
+                              style={{ width: `${Math.min(100, (accumulatedTotal / UNVERIFIED_LIMITS.TOTAL_ACCUMULATED) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
@@ -627,7 +635,8 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Action Cards */}
+        {/* Action Cards: quien recién parte ya las tiene en los primeros pasos */}
+        {yaUsaTrado && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           <Card 
             className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-success/20 hover:border-success hover:-translate-y-1 bg-gradient-to-br from-success/5 to-transparent animate-fade-in"
@@ -640,18 +649,18 @@ const Dashboard = () => {
                   <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base sm:text-xl">Crear Transacción</CardTitle>
-                  <CardDescription className="text-xs truncate">Nueva transacción segura</CardDescription>
+                  <CardTitle className="text-base sm:text-xl">Crear sala</CardTitle>
+                  <CardDescription className="text-xs truncate">Compra, vende o cobra un trabajo</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 pt-0">
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
-                Inicia una transacción protegida con escrow para intercambiar <span className="font-medium text-success">productos</span> o <span className="font-medium text-success">servicios</span> de forma segura
+                La plata queda retenida en Trado hasta que se entrega lo acordado: <span className="font-medium text-success">productos</span>, <span className="font-medium text-success">entradas</span> o <span className="font-medium text-success">trabajos</span>
               </p>
               <Button className="w-full bg-success hover:bg-success/90 group-hover:shadow-lg transition-shadow text-sm">
                 <Plus className="mr-2 h-4 w-4" />
-                Crear Transacción
+                Crear sala
               </Button>
             </CardContent>
           </Card>
@@ -667,18 +676,18 @@ const Dashboard = () => {
                   <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 text-info" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base sm:text-xl">Unirse a Transacción</CardTitle>
+                  <CardTitle className="text-base sm:text-xl">Unirme a una sala</CardTitle>
                   <CardDescription className="text-xs truncate">Ingresa con código</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 pt-0">
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
-                Ingresa el <span className="font-medium text-info">código de invitación</span> para unirte a una transacción existente
+                Si la otra persona ya creó la sala, ingresa el <span className="font-medium text-info">código</span> que te mandó
               </p>
               <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow text-sm">
                 <ShoppingBag className="mr-2 h-4 w-4" />
-                Unirse a Transacción
+                Unirme a una sala
               </Button>
             </CardContent>
           </Card>
@@ -694,22 +703,24 @@ const Dashboard = () => {
                   <History className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base sm:text-xl">Historial de Transacciones</CardTitle>
-                  <CardDescription className="text-xs truncate">Revisa tus transacciones</CardDescription>
+                  <CardTitle className="text-base sm:text-xl">Historial</CardTitle>
+                  <CardDescription className="text-xs truncate">Tus salas anteriores</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 pt-0">
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
-                Consulta todas tus <span className="font-medium text-primary">transacciones completadas</span> y su detalle
+                Revisa tus <span className="font-medium text-primary">salas completadas</span> y su detalle
               </p>
               <Button className="w-full group-hover:shadow-lg transition-shadow text-sm">
                 <History className="mr-2 h-4 w-4" />
-                Historial de Transacciones
+                Ver historial
               </Button>
             </CardContent>
           </Card>
         </div>
+
+        )}
 
         {/* Wallet Card */}
         <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
@@ -720,7 +731,11 @@ const Dashboard = () => {
               </div>
               Mi Billetera
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Administra tu saldo virtual</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              {(wallet?.balance || 0) > 0
+                ? "Lo que tienes disponible en Trado"
+                : "Cuando te paguen en una sala, la plata llega aquí y la retiras a tu cuenta bancaria"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
             <div className="flex justify-between items-center p-3 sm:p-4 bg-gradient-to-r from-primary/5 to-muted/50 rounded-lg sm:rounded-xl border border-primary/10 animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
@@ -728,7 +743,7 @@ const Dashboard = () => {
               <span className="text-lg sm:text-2xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.75s', animationFillMode: 'both' }}>
-              <Button className="w-full h-10 bg-gray-500 hover:bg-gray-600 text-white shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet")}>
+              <Button variant="outline" className="w-full h-10 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet")}>
                 <History className="h-4 w-4" />
                 <span className="text-[10px] sm:text-xs leading-none">Movimientos</span>
               </Button>
@@ -736,7 +751,7 @@ const Dashboard = () => {
                 <Plus className="h-4 w-4" />
                 <span className="text-[10px] sm:text-xs leading-none">Depositar</span>
               </Button>
-              <Button className="w-full h-10 bg-destructive hover:bg-destructive/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=withdraw")}>
+              <Button variant="outline" className="w-full h-10 border-primary/30 text-primary hover:bg-primary/5 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=withdraw")}>
                 <ArrowUpRight className="h-4 w-4" />
                 <span className="text-[10px] sm:text-xs leading-none">Retirar</span>
               </Button>
