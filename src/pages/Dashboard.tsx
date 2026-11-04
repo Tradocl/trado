@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, History, ArrowUpRight, User, Lock, AlertCircle, UserCheck } from "lucide-react";
+import { ShoppingBag, Store, Wallet, Star, LogOut, Plus, Shield, CheckCircle, Settings, ArrowRight, Gift, History, ArrowUpRight, User, Lock, AlertCircle, UserCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -79,6 +79,8 @@ const getCardGradient = (color: string): string => {
   return gradients[color] || gradients.primary;
 };
 
+const POPUP_PASOS_KEY = "trado_primeros_pasos_cerrado";
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useAdminRole();
@@ -96,6 +98,18 @@ const Dashboard = () => {
   // true para no mostrarlos un instante a quien ya usa Trado mientras carga.
   const [yaUsaTrado, setYaUsaTrado] = useState(true);
   const [salaPendienteId, setSalaPendienteId] = useState<string | null>(null);
+  // El popup de bienvenida sale solo una vez al día: si lo cierra, la franja lo vuelve a abrir
+  const [popupPasos, setPopupPasos] = useState(false);
+  const cerrarPopupPasos = () => {
+    setPopupPasos(false);
+    try { localStorage.setItem(POPUP_PASOS_KEY, String(Date.now())); } catch { /* sin storage: vuelve a salir */ }
+  };
+  useEffect(() => {
+    if (loading || yaUsaTrado) return;
+    let cerradoHace = Infinity;
+    try { cerradoHace = Date.now() - Number(localStorage.getItem(POPUP_PASOS_KEY) || 0); } catch { /* sin storage */ }
+    if (cerradoHace > 24 * 60 * 60 * 1000) setPopupPasos(true);
+  }, [loading, yaUsaTrado]);
 
   const isProfileComplete = profile?.rut && profile?.phone && profile?.address &&
     profile.rut.trim() !== '' && profile.phone.trim() !== '' && profile.address.trim() !== '';
@@ -402,12 +416,36 @@ const Dashboard = () => {
         </Card>
 
         {!loading && !yaUsaTrado && (
-          <PrimerosPasos
-            perfilCompleto={!!isProfileComplete}
-            salaPendienteId={salaPendienteId}
-            onCompletarPerfil={() => setShowCompleteProfileModal(true)}
-          />
+          <button
+            type="button"
+            onClick={() => setPopupPasos(true)}
+            className="w-full flex items-center justify-between gap-3 rounded-2xl border border-success/30 bg-gradient-to-r from-success/10 via-primary/5 to-transparent px-4 py-3 text-left hover:shadow-md transition-all animate-fade-in"
+          >
+            <span className="flex items-center gap-3 min-w-0">
+              <span className="shrink-0 w-9 h-9 rounded-xl bg-success text-white flex items-center justify-center">
+                <Gift className="h-4 w-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-semibold text-sm">
+                  {salaPendienteId ? "Tu sala está lista: compártela" : "Tu primera sala va sin comisión"}
+                </span>
+                <span className="block text-xs text-muted-foreground truncate">
+                  {salaPendienteId ? "Mándale el link a la otra persona" : "Mira cómo empezar según lo que vas a hacer"}
+                </span>
+              </span>
+            </span>
+            <span className="shrink-0 text-sm font-semibold text-primary flex items-center gap-1">
+              Empezar <ArrowRight className="h-4 w-4" />
+            </span>
+          </button>
         )}
+        <PrimerosPasos
+          abierto={popupPasos}
+          onCerrar={cerrarPopupPasos}
+          perfilCompleto={!!isProfileComplete}
+          salaPendienteId={salaPendienteId}
+          onCompletarPerfil={() => setShowCompleteProfileModal(true)}
+        />
 
         {/* Pending Ratings Banner */}
         {pendingRatingCount > 0 && (
@@ -542,7 +580,7 @@ const Dashboard = () => {
         )}
 
         {/* Complete Profile Card - Show for users with incomplete profile */}
-        {!isProfileComplete && yaUsaTrado && (
+        {!isProfileComplete && (
           <Card className="border-2 border-primary/30 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-primary/5 to-transparent" 
             style={{ animationDelay: '0.22s', animationFillMode: 'both' }}>
             <CardContent className="py-4 sm:py-5">
@@ -635,8 +673,7 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Action Cards: quien recién parte ya las tiene en los primeros pasos */}
-        {yaUsaTrado && (
+        {/* Action Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           <Card 
             className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-success/20 hover:border-success hover:-translate-y-1 bg-gradient-to-br from-success/5 to-transparent animate-fade-in"
@@ -720,7 +757,6 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        )}
 
         {/* Wallet Card */}
         <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
@@ -747,15 +783,15 @@ const Dashboard = () => {
             <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.75s', animationFillMode: 'both' }}>
               <Button variant="outline" className="w-full h-10 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet")}>
                 <History className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs leading-none">Movimientos</span>
+                <span className="text-xs leading-none">Movimientos</span>
               </Button>
               <Button className="w-full h-10 bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=deposit")}>
                 <Plus className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs leading-none">Depositar</span>
+                <span className="text-xs leading-none">Depositar</span>
               </Button>
               <Button variant="outline" className="w-full h-10 border-primary/30 text-primary hover:bg-primary/5 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=withdraw")}>
                 <ArrowUpRight className="h-4 w-4" />
-                <span className="text-[10px] sm:text-xs leading-none">Retirar</span>
+                <span className="text-xs leading-none">Retirar</span>
               </Button>
             </div>
             

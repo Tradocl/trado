@@ -353,7 +353,8 @@ const Verification = () => {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            {/* En pantallas chicas la etiqueta de estado va abajo: al lado le quitaba ancho al título */}
+            <div className="flex flex-col-reverse items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-primary/10 rounded-lg">
                   <Shield className="h-6 w-6 text-primary" />

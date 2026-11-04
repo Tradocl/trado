@@ -252,7 +252,7 @@ const WebLanding = () => {
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-border/50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Logo height={32} />
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+          <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <a href="#como-funciona" className="hover:text-primary transition-colors">¿Cómo funciona?</a>
             <a href="#si-algo-sale-mal" className="hover:text-primary transition-colors">Si algo sale mal</a>
             <a href="#precios" className="hover:text-primary transition-colors">Comisión</a>
@@ -272,21 +272,21 @@ const WebLanding = () => {
       </nav>
 
       {/* ── Hero: la promesa y la sala andando ── */}
-      <section className="bg-gradient-to-br from-[hsl(238,72%,30%)] via-primary to-info pt-14 pb-16 md:py-28 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-[hsl(238,72%,30%)] via-primary to-info pt-10 sm:pt-14 pb-16 md:py-28 relative overflow-hidden">
         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-success/25 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -top-24 -left-24 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="container mx-auto px-4 relative">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center max-w-6xl mx-auto">
-            <div className="text-white space-y-6">
-              <div className="hero-badge inline-flex items-center gap-2 bg-white/15 border border-white/20 rounded-full px-4 py-2 text-sm font-medium backdrop-blur">
+            <div className="text-white space-y-5 sm:space-y-6">
+              <div className="hero-badge inline-flex items-center gap-2 bg-white/15 border border-white/20 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium backdrop-blur">
                 <Lock className="h-4 w-4 text-emerald-300" />
                 Pago protegido entre personas, en Chile
               </div>
-              <h1 className="hero-h1 text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05]">
+              <h1 className="hero-h1 text-[2rem] min-[360px]:text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05]">
                 Compra y vende sin tener que{" "}
                 <span className="text-emerald-300">confiar en un desconocido.</span>
               </h1>
-              <p className="hero-sub text-lg md:text-xl text-white/85 max-w-lg leading-relaxed">
+              <p className="hero-sub text-base min-[360px]:text-lg md:text-xl text-white/85 max-w-lg leading-relaxed">
                 Pagas en Trado, la plata queda retenida y recién se libera cuando recibes lo acordado. Sigues comprando
                 y vendiendo donde ya lo haces.
               </p>

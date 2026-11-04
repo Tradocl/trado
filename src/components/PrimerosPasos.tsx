@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Briefcase, Check, Gift, Handshake, ShoppingBag, Ticket, Truck } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
 
-// Panel de quien todavía no usa Trado de verdad (ninguna sala con plata). Lo único que tiene que
-// hacer es crear su primera sala, así que va arriba: una lista de pasos con avance y, si aún no
-// creó ninguna, accesos por caso que abren "crear sala" con el tipo y el rol ya elegidos.
+// Bienvenida de quien todavía no usa Trado de verdad (ninguna sala con plata), en un popup: lo
+// único que tiene que hacer es crear su primera sala. Lista de pasos con avance y, si aún no creó
+// ninguna, accesos por caso que abren "crear sala" con el tipo y el rol ya elegidos.
 // Cada caso con su color, para que se distingan de un vistazo (las clases van completas para Tailwind)
 const CASOS_SALA = [
   {
@@ -32,41 +32,48 @@ const CASOS_SALA = [
 ] as const;
 
 type Props = {
+  abierto: boolean;
+  onCerrar: () => void;
   perfilCompleto: boolean;
   /** La sala que ya creó y todavía espera a la otra persona, si hay una. */
   salaPendienteId: string | null;
   onCompletarPerfil: () => void;
 };
 
-export const PrimerosPasos = ({ perfilCompleto, salaPendienteId, onCompletarPerfil }: Props) => {
+export const PrimerosPasos = ({ abierto, onCerrar, perfilCompleto, salaPendienteId, onCompletarPerfil }: Props) => {
   const navigate = useNavigate();
   const salaCreada = !!salaPendienteId;
 
   const pasos = [
     { texto: "Crea tu cuenta", hecho: true },
-    { texto: "Completa tu perfil", hecho: perfilCompleto, accion: perfilCompleto ? undefined : onCompletarPerfil },
+    {
+      texto: "Completa tu perfil",
+      hecho: perfilCompleto,
+      accion: perfilCompleto ? undefined : () => { onCerrar(); onCompletarPerfil(); },
+    },
     { texto: "Crea tu primera sala", hecho: salaCreada },
     { texto: "La otra persona se une y paga", hecho: false },
   ];
   const hechos = pasos.filter((p) => p.hecho).length;
 
   return (
-    <Card className="border-0 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-primary/10 via-info/5 to-transparent">
+    <Dialog open={abierto} onOpenChange={(o) => !o && onCerrar()}>
+    <DialogContent className="max-w-2xl sm:max-w-2xl w-[calc(100%-1.5rem)] p-0 gap-0 overflow-hidden rounded-3xl max-h-[92vh] overflow-y-auto">
       <div className="h-1.5 bg-gradient-to-r from-primary via-info to-success" />
-      <CardContent className="p-5 sm:p-6 space-y-5">
-        <div className="flex items-start justify-between gap-3">
+      <div className="p-5 sm:p-7 space-y-5 bg-gradient-to-br from-primary/10 via-info/5 to-background">
+        <div className="flex items-start justify-between gap-3 pr-6">
           <div>
             <p className="flex items-center gap-1.5 text-xs font-semibold text-success uppercase tracking-wider">
               <Gift className="h-3.5 w-3.5" /> Tu primera sala va sin comisión
             </p>
-            <h2 className="text-lg sm:text-xl font-bold mt-1">
-              {salaCreada ? "Tu sala está lista: compártela" : "Crea tu primera sala"}
-            </h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <DialogTitle className="text-xl sm:text-2xl font-bold mt-1">
+              {salaCreada ? "Tu sala está lista: compártela" : "Bienvenido a Trado: crea tu primera sala"}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
               {salaCreada
                 ? "Mándale el link a la otra persona. Cuando se una y pague, la plata queda retenida en Trado."
                 : `Elige qué vas a hacer. Sin comisión hasta $${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.`}
-            </p>
+            </DialogDescription>
           </div>
           <span className="shrink-0 text-xs font-semibold text-muted-foreground bg-background/80 rounded-full px-2.5 py-1">
             {hechos} de {pasos.length}
@@ -137,7 +144,11 @@ export const PrimerosPasos = ({ perfilCompleto, salaPendienteId, onCompletarPerf
             </button>
           </div>
         )}
-      </CardContent>
-    </Card>
+        <button type="button" onClick={onCerrar} className="block w-full text-center text-xs text-muted-foreground hover:text-foreground pt-1">
+          Ahora no, ver mi panel
+        </button>
+      </div>
+    </DialogContent>
+    </Dialog>
   );
 };
