@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { requireServiceRole } from "../_shared/auth.ts";
-import { ADMIN_ALERT_EMAIL, escapeHtml, renderTransactionalEmail, sendEmail } from "../_shared/email-templates/notification.ts";
+import { escapeHtml, OPS_ALERT_EMAIL, renderTransactionalEmail, sendEmail } from "../_shared/email-templates/notification.ts";
 
-// Avisa al dueño cada vez que se crea una cuenta. La llama el trigger notify_new_signup_trg al
+// Avisa a transacciones@trado.cl (OPS_ALERT_EMAIL: seguimiento, no exige acción) cada vez que se crea una cuenta. La llama el trigger notify_new_signup_trg al
 // insertarse el perfil (migración 20261104000000), así que llega también con las cuentas de
 // email que nunca confirman. Espera unos segundos porque signup_attribution (de qué anuncio
 // llegó) lo escribe el navegador justo después de crearse la cuenta.
@@ -70,7 +70,7 @@ serve(async (req) => {
 
   await sendEmail({
     from: "Trado <notificaciones@trado.cl>",
-    to: ADMIN_ALERT_EMAIL(),
+    to: OPS_ALERT_EMAIL(),
     subject: `Nueva cuenta: ${perfil?.full_name || email}`,
     html,
   });

@@ -304,12 +304,12 @@ El reparto es por si hace falta que alguien **haga** algo:
 | `contacto@trado.cl` | Requiere acción: escalamientos de disputas, verificaciones por revisar, depósitos por transferencia y retiros por aprobar. Es la cuenta principal de admin. | `ADMIN_ALERT_EMAIL()` |
 | `transacciones@trado.cl` | Flujo operativo, sólo seguimiento: salas que se abren, disputas que se abren. Volumen alto, no exige respuesta. | `OPS_ALERT_EMAIL()` |
 
-**Cuenta nueva → `contacto@trado.cl`** (desde 2026-11-04, a pedido del dueño, que
-quiere verlas todas mientras son pocas). Lo dispara el trigger `notify_new_signup_trg`
-al insertarse el perfil, que llama por `net.http_post` a `notify-new-signup`: llega
-también con quien se registra por email y no confirma, trae nombre, email, Google o
-email, si confirmó, el origen (`signup_attribution`, por eso la función espera 20 s) y
-el total de cuentas. Si el volumen crece, pasarlo a `OPS_ALERT_EMAIL()` (una línea).
+**Cuenta nueva → `transacciones@trado.cl`** (desde 2026-11-04). El dueño lo dejó
+claro: todo aviso informativo va a transacciones; contacto es sólo para lo que exige
+hacer algo. Lo dispara el trigger `notify_new_signup_trg` al insertarse el perfil, que
+llama por `net.http_post` a `notify-new-signup`: llega también con quien se registra
+por email y no confirma, trae nombre, email, Google o email, si confirmó, el origen
+(`signup_attribution`, por eso la función espera 20 s) y el total de cuentas.
 
 Ambas se sobreescriben con los secrets `ADMIN_ALERT_EMAIL` y `OPS_ALERT_EMAIL`
 sin tocar código. Están definidas en `_shared/email-templates/notification.ts`.
