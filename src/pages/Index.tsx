@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
@@ -232,7 +233,11 @@ const Titulo = ({ eyebrow, titulo, bajada }: { eyebrow: string; titulo: string; 
 
 const WebLanding = () => {
   const navigate = useNavigate();
-  const empezar = () => navigate("/auth?tab=register");
+  // Quien ya tiene sesión no tiene por qué volver a registrarse: los botones lo llevan a crear
+  // una sala y la barra a su panel. Sin sesión, los botones grandes van a registrarse (son para
+  // gente nueva) e "Iniciar sesión" queda siempre a la vista, también en el celular.
+  const { user } = useAuth();
+  const empezar = () => navigate(user ? "/create-transaction" : "/auth?tab=register");
   const verComo = () => document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth" });
 
   return (
@@ -258,16 +263,24 @@ const WebLanding = () => {
             <a href="#precios" className="hover:text-primary transition-colors">Comisión</a>
             <a href="#faq" className="hover:text-primary transition-colors">FAQ</a>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate("/auth")} className="hidden sm:flex text-primary font-semibold">
-              Iniciar Sesión
-            </Button>
-            <Button onClick={empezar} className="bg-gradient-to-r from-primary to-info text-white shadow-md hover:opacity-95 transition-opacity">
-              <span className="hidden sm:inline">Crear cuenta gratis</span>
-              <span className="sm:hidden">Comenzar</span>
+          {user ? (
+            <Button onClick={() => navigate("/dashboard")} className="bg-gradient-to-r from-primary to-info text-white shadow-md hover:opacity-95 transition-opacity">
+              Ir a mi panel
               <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
-          </div>
+          ) : (
+            <div className="flex items-center gap-1 sm:gap-3">
+              <Button variant="ghost" onClick={() => navigate("/auth")} className="px-3 text-primary font-semibold">
+                <span className="hidden sm:inline">Iniciar sesión</span>
+                <span className="sm:hidden">Entrar</span>
+              </Button>
+              <Button onClick={empezar} className="bg-gradient-to-r from-primary to-info text-white shadow-md hover:opacity-95 transition-opacity">
+                <span className="hidden sm:inline">Crear cuenta gratis</span>
+                <span className="sm:hidden">Crear cuenta</span>
+                <ArrowRight className="ml-1 h-4 w-4 hidden min-[360px]:block" />
+              </Button>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -301,9 +314,14 @@ const WebLanding = () => {
                     Ya tengo un código
                   </Button>
                 </div>
-                <p className="flex items-center gap-2 text-sm text-white/80">
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/80">
                   <Gift className="h-4 w-4 text-emerald-300" />
                   Cuenta gratis · tu primera sala sin comisión
+                  {!user && (
+                    <button onClick={() => navigate("/auth")} className="underline underline-offset-2 hover:text-white">
+                      ¿Ya tienes cuenta? Entra
+                    </button>
+                  )}
                 </p>
               </div>
               <button className="hero-hint flex items-center gap-2 text-white/60 text-sm hover:text-white transition-colors" onClick={verComo}>
