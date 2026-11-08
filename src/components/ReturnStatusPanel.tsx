@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ReturnSellerResponsePanel } from "@/components/return/ReturnSellerResponsePanel";
 import { ReturnMediationPanel } from "@/components/return/ReturnMediationPanel";
 import { translateError } from "@/lib/error-messages";
+import { TrackingPanel } from "@/components/TrackingPanel";
 
 interface ReturnRequest {
   id: string;
@@ -114,7 +115,7 @@ export const ReturnStatusPanel = ({
       const { error: returnError } = await supabase
         .from("return_requests")
         .update({
-          tracking_number: trackingNumber.trim(),
+          tracking_number: trackingNumber.replace(/\s+/g, "").toUpperCase(),
           carrier: finalCarrier,
           status: "shipped",
           shipped_at: new Date().toISOString(),
@@ -354,13 +355,11 @@ export const ReturnStatusPanel = ({
 
         {/* Tracking Info */}
         {returnRequest.tracking_number && (
-          <div className="p-3 bg-info/10 rounded-lg border border-info/20">
-            <p className="text-sm text-muted-foreground mb-1">Número de seguimiento:</p>
-            <p className="font-mono font-bold">{returnRequest.tracking_number}</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Courier: {carriers.find(c => c.value === returnRequest.carrier)?.label || returnRequest.carrier}
-            </p>
-          </div>
+          <TrackingPanel
+            trackingNumber={returnRequest.tracking_number}
+            carrier={returnRequest.carrier || ""}
+            titulo="Seguimiento de la devolución"
+          />
         )}
 
         {/* Buyer: Add tracking info */}

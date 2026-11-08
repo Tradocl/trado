@@ -458,32 +458,24 @@ const Transaction = () => {
     setMarkingShipped(true);
     try {
       const finalCarrier = shippingCarrier === "otro" ? shippingCustomCarrier.trim() : shippingCarrier;
+      // Sin espacios: así se copia y se pega limpio en la página del courier
+      const numeroSeguimiento = shippingTrackingNumber.replace(/\s+/g, "").toUpperCase();
 
-      // First update state (always required)
+      // Estado y seguimiento en el mismo update: si el seguimiento no se guarda, la sala no
+      // queda "enviada" sin número (es la prueba del vendedor si después hay un reclamo).
+      // shipped_at lo fija el servidor al pasar a in_delivery.
       const { error: stateError } = await supabase
         .from("transactions")
         .update({
           state: "in_delivery",
-          shipped_at: new Date().toISOString()
+          ...(transaction.sale_type === "producto_envio" && {
+            tracking_number: numeroSeguimiento,
+            carrier: finalCarrier,
+          }),
         })
         .eq("id", transaction.id);
 
       if (stateError) throw stateError;
-
-      // Then try to update tracking fields separately (non-blocking)
-      if (transaction.sale_type === "producto_envio" && shippingTrackingNumber.trim()) {
-        const { error: trackingError } = await supabase
-          .from("transactions")
-          .update({
-            tracking_number: shippingTrackingNumber.trim(),
-            carrier: finalCarrier
-          })
-          .eq("id", transaction.id);
-
-        if (trackingError) {
-          console.warn("[handleMarkAsShipped] Could not save tracking fields:", trackingError.message);
-        }
-      }
 
       // Notify the buyer that order was shipped
       try {
@@ -493,7 +485,7 @@ const Transaction = () => {
             actionType: "marked_shipped",
             actorId: user.id,
             additionalData: transaction.sale_type === "producto_envio" 
-              ? { trackingInfo: `${finalCarrier} - ${shippingTrackingNumber.trim()}` }
+              ? { trackingInfo: `${CARRIER_LABELS[finalCarrier] ?? finalCarrier} - ${numeroSeguimiento}` }
               : undefined,
           },
         });
