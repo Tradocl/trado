@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatCLP } from "@/lib/utils";
 import { CheckCircle, Lock, Package, ShieldCheck, User, Store } from "lucide-react";
 
 // La sala de la portada, andando sola: la plata sale del comprador, queda en Trado mientras
@@ -16,7 +17,7 @@ const POS = ["8%", "50%", "92%"];
 const usaMovimientoReducido = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-export const SalaEnVivo = () => {
+export const SalaEnVivo = ({ producto = "iPhone 13", monto = 200_000 }: { producto?: string; monto?: number }) => {
   const [paso, setPaso] = useState(usaMovimientoReducido() ? 1 : 0);
 
   useEffect(() => {
@@ -33,7 +34,7 @@ export const SalaEnVivo = () => {
         <div className="flex items-center justify-between mb-5">
           <div>
             <p className="text-[11px] uppercase tracking-wider text-white/60 font-semibold">Sala de ejemplo</p>
-            <p className="font-semibold">iPhone 13 · $200.000</p>
+            <p className="font-semibold truncate max-w-[220px] sm:max-w-[260px]">{producto} · ${formatCLP(monto)}</p>
           </div>
           <span className="flex items-center gap-1 text-[11px] font-semibold bg-emerald-400/20 text-emerald-200 px-2.5 py-1 rounded-full">
             <ShieldCheck className="h-3.5 w-3.5" /> Protegida
@@ -60,7 +61,7 @@ export const SalaEnVivo = () => {
             style={{ left: POS[p.plata] }}
           >
             <span className="block text-[11px] font-bold bg-emerald-400 text-emerald-950 px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap">
-              $200.000
+              ${formatCLP(monto)}
             </span>
           </div>
           {p.caja && (

@@ -180,6 +180,13 @@ All colors MUST be HSL.
 .hero-card   { animation: fadeInUp 0.7s ease 0.4s  both; }
 .animate-float { animation: floatY 4s ease-in-out infinite; }
 
+/* Mensajes del chat de la portada: aparecen con un pequeño salto */
+@keyframes chatPop {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chat-pop { animation: chatPop 0.35s ease-out both; }
+
 .reveal {
   opacity: 0;
   transform: translateY(28px);
@@ -193,5 +200,5 @@ All colors MUST be HSL.
 /* Sin animaciones si la persona las pidió apagadas: el contenido se ve igual */
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; transition: none; }
-  .hero-badge, .hero-h1, .hero-sub, .hero-cta, .hero-hint, .hero-card, .animate-float { animation: none; }
+  .hero-badge, .hero-h1, .hero-sub, .hero-cta, .hero-hint, .hero-card, .animate-float, .chat-pop { animation: none; }
 }

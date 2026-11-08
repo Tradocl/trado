@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { leerBorrador } from "@/components/landing/ArmaTuSala";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -109,6 +110,14 @@ const CreateTransaction = () => {
     const rol = searchParams.get("rol");
     if (rol === "buyer" || rol === "seller") setInitiatorRole(rol);
   }, [searchParams]);
+
+  // Lo que la persona escribió en la portada ("Arma tu sala") llega ya puesto
+  useEffect(() => {
+    const b = leerBorrador();
+    if (!b) return;
+    if (b.producto) setProductName(b.producto);
+    if (b.monto > 0) handleAmountChange({ target: { value: String(b.monto) } } as React.ChangeEvent<HTMLInputElement>);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load user verification status
   useEffect(() => {

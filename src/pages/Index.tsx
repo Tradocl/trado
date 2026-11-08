@@ -10,7 +10,11 @@ import { Capacitor } from "@capacitor/core";
 import { SalaEnVivo } from "@/components/landing/SalaEnVivo";
 import { Casos } from "@/components/landing/Casos";
 import { CuantoVale } from "@/components/landing/CuantoVale";
-import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
+import { ArmaTuSala, guardarBorrador } from "@/components/landing/ArmaTuSala";
+import { ChatTrato } from "@/components/landing/ChatTrato";
+import { Comparacion } from "@/components/landing/Comparacion";
+import { BarraMovil } from "@/components/landing/BarraMovil";
+import { formatCLP, MAX_TRANSACTION_AMOUNT, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
 import { OFFER_TRANSFER_AT } from "@/lib/trado-bank";
 import { APPEAL_NEGOTIATION_HOURS, REVIEW_HOURS, UNVERIFIED_LIMITS } from "@/lib/escrow";
 
@@ -238,6 +242,18 @@ const WebLanding = () => {
   // gente nueva) e "Iniciar sesión" queda siempre a la vista, también en el celular.
   const { user } = useAuth();
   const empezar = () => navigate(user ? "/create-transaction" : "/auth?tab=register");
+  // Lo que se escribe en el hero alimenta la sala de ejemplo, el chat y la comparación
+  const [producto, setProducto] = useState("");
+  const [monto, setMonto] = useState(0);
+  const productoDemo = producto.trim() || "iPhone 13";
+  const montoDemo = monto > 0 && monto <= MAX_TRANSACTION_AMOUNT ? monto : 200_000;
+  const crearConBorrador = () => {
+    if (producto.trim() || monto > 0) guardarBorrador(producto, monto);
+    if (!user) {
+      try { sessionStorage.setItem("redirectAfterLogin", "/create-transaction"); } catch { /* sin almacenamiento */ }
+    }
+    empezar();
+  };
   const verComo = () => document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth" });
 
   return (
@@ -304,19 +320,15 @@ const WebLanding = () => {
                 y vendiendo donde ya lo haces.
               </p>
               <div className="hero-cta space-y-3">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button size="lg" onClick={empezar} className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 shadow-2xl text-lg px-10 py-6 h-auto font-bold">
-                    Crear mi sala gratis
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                  {/* Para quien llega porque la otra persona ya creó la sala y le pasó el código */}
-                  <Button size="lg" variant="outline" onClick={() => navigate("/join-transaction")} className="w-full sm:w-auto bg-transparent border-white/50 text-white hover:bg-white/10 hover:text-white text-lg px-8 py-6 h-auto font-semibold">
-                    Ya tengo un código
-                  </Button>
-                </div>
+                <ArmaTuSala producto={producto} monto={monto} onProducto={setProducto} onMonto={setMonto} onCrear={crearConBorrador} />
                 <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/80">
                   <Gift className="h-4 w-4 text-emerald-300" />
-                  Cuenta gratis · tu primera sala sin comisión
+                  Cuenta gratis
+                  <span className="text-white/40">·</span>
+                  {/* Para quien llega porque la otra persona ya creó la sala y le pasó el código */}
+                  <button onClick={() => navigate("/join-transaction")} className="underline underline-offset-2 hover:text-white font-semibold">
+                    Ya tengo un código
+                  </button>
                   {!user && (
                     <button onClick={() => navigate("/auth")} className="underline underline-offset-2 hover:text-white">
                       ¿Ya tienes cuenta? Entra
@@ -330,7 +342,7 @@ const WebLanding = () => {
               </button>
             </div>
             <div className="hero-card">
-              <SalaEnVivo />
+              <SalaEnVivo producto={productoDemo} monto={montoDemo} />
             </div>
           </div>
         </div>
@@ -348,6 +360,32 @@ const WebLanding = () => {
         </div>
       </div>
 
+      {/* ── El chat: cómo se propone Trado ── */}
+      <section className="relative overflow-hidden py-16 md:py-24 bg-gradient-to-br from-[#eef0ff] via-white to-[#f3ecff]">
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-[#7C3AED]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-16 w-72 h-72 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="container mx-auto px-4 relative grid lg:grid-cols-2 gap-10 lg:gap-16 items-center max-w-6xl">
+          <div>
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider">Así se usa</span>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mt-2 tracking-tight leading-[1.08]">
+              Cuando te dicen <span className="text-[#FF6B4A]">«transfiéreme primero»</span>, respondes con un link.
+            </h2>
+            <p className="text-lg text-muted-foreground mt-4 max-w-lg">
+              Sigues conversando donde ya estás. Sólo cambias cómo se paga: la plata espera en Trado hasta que te llega lo acordado.
+            </p>
+            <ul className="mt-6 space-y-3">
+              {["Creas la sala con lo que se vende y el precio", "Le mandas el link por el mismo chat", "Se une, pagas y la plata queda retenida"].map((x, i) => (
+                <li key={x} className="flex items-center gap-3 font-medium">
+                  <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1F25C1] to-[#7C3AED] text-white text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                  {x}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <ChatTrato producto={productoDemo} monto={montoDemo} />
+        </div>
+      </section>
+
       {/* ── Casos ── */}
       <Seccion id="como-funciona" className="bg-gradient-to-b from-muted/50 to-background">
         <Titulo
@@ -358,8 +396,18 @@ const WebLanding = () => {
         <Casos onEmpezar={empezar} />
       </Seccion>
 
+      {/* ── Transferencia directa vs Trado ── */}
+      <Seccion className="bg-white">
+        <Titulo
+          eyebrow="La misma compra, dos finales"
+          titulo="¿Qué pasa si no llega?"
+          bajada="Transferir directo o pagar en Trado se ve igual hasta que algo sale mal."
+        />
+        <Comparacion monto={montoDemo} />
+      </Seccion>
+
       {/* ── Si algo sale mal ── */}
-      <Seccion id="si-algo-sale-mal" className="bg-white">
+      <Seccion id="si-algo-sale-mal" className="bg-gradient-to-b from-muted/40 to-white">
         <Titulo
           eyebrow="Si algo sale mal"
           titulo="La plata no se mueve hasta que se resuelva"
@@ -422,7 +470,7 @@ const WebLanding = () => {
       </Seccion>
 
       {/* ── CTA Final ── */}
-      <section className="relative overflow-hidden py-20 md:py-24">
+      <section id="cta-final" className="relative overflow-hidden py-20 md:py-24">
         <div className="absolute inset-0 bg-gradient-to-br from-[hsl(238,72%,30%)] via-primary to-info" />
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-success/25 rounded-full blur-3xl pointer-events-none" />
         <div className="container mx-auto px-4 text-center relative">
@@ -440,6 +488,8 @@ const WebLanding = () => {
           </div>
         </div>
       </section>
+
+      <BarraMovil onCrear={crearConBorrador} finalId="cta-final" />
 
       {/* ── Footer ── */}
       <footer className="bg-[hsl(235,25%,10%)] text-white py-12">
