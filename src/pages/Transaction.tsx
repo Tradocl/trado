@@ -33,6 +33,7 @@ import { checkTransactionLimits, getUserVerificationStatus, UNVERIFIED_LIMITS } 
 import confetti from "canvas-confetti";
 import { translateError } from "@/lib/error-messages";
 import { getStateLabel } from "@/lib/transaction-labels";
+import { reviewHoursFor } from "@/lib/escrow";
 
 interface Transaction {
   id: string;
@@ -205,7 +206,7 @@ const Transaction = () => {
   useEffect(() => {
     if (transaction?.state !== "awaiting_buyer_review" || !transaction.received_at) return;
 
-    const reviewHours = transaction.sale_type === "producto_envio" ? 72 : 24;
+    const reviewHours = reviewHoursFor(transaction.sale_type);
     const deadline = new Date(transaction.received_at).getTime() + reviewHours * 3600000;
 
     const update = () => {
@@ -460,6 +461,23 @@ const Transaction = () => {
       const finalCarrier = shippingCarrier === "otro" ? shippingCustomCarrier.trim() : shippingCarrier;
       // Sin espacios: así se copia y se pega limpio en la página del courier
       const numeroSeguimiento = shippingTrackingNumber.replace(/\s+/g, "").toUpperCase();
+
+      // Ya estaba enviado: es una corrección del número o del courier (el trigger se lo permite
+      // sólo al vendedor). No se vuelve a avisar al comprador como si recién saliera.
+      if (transaction.state === "in_delivery") {
+        const { error: fixError } = await supabase
+          .from("transactions")
+          .update({ tracking_number: numeroSeguimiento, carrier: finalCarrier })
+          .eq("id", transaction.id);
+        if (fixError) throw fixError;
+        toast.success("Seguimiento corregido");
+        setShippingDialogOpen(false);
+        setShippingTrackingNumber("");
+        setShippingCarrier("");
+        setShippingCustomCarrier("");
+        loadTransaction();
+        return;
+      }
 
       // Estado y seguimiento en el mismo update: si el seguimiento no se guarda, la sala no
       // queda "enviada" sin número (es la prueba del vendedor si después hay un reclamo).
@@ -1032,8 +1050,14 @@ const Transaction = () => {
                 <h4 className="font-bold text-lg">¿Recibiste el producto?</h4>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
-                Cuando recibas el producto físicamente, márcalo como recibido para iniciar tu período de revisión.
+                Cuando recibas el producto físicamente, márcalo como recibido: ahí empiezan tus{" "}
+                {reviewHoursFor("producto_envio")} horas para revisarlo. La plata sigue retenida hasta entonces.
               </p>
+              {transaction.tracking_number && transaction.carrier && (
+                <div className="mb-4">
+                  <TrackingPanel trackingNumber={transaction.tracking_number} carrier={transaction.carrier} />
+                </div>
+              )}
               <Button 
                 size="lg"
                 className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
@@ -1043,6 +1067,46 @@ const Transaction = () => {
                 <Package className="mr-2 h-6 w-6" />
                 {markingReceived ? "Procesando..." : "Marcar como Recibido"}
               </Button>
+              <p className="text-xs text-muted-foreground mt-3 text-center">
+                ¿No te llega? Revisa el seguimiento y, si no aparece, abre un reclamo más abajo: la plata no se mueve mientras se resuelve.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Vendedor con el paquete en camino: antes no tenía ninguna tarjeta, sólo el estado */}
+        {isSeller && transaction.state === "in_delivery" && transaction.sale_type === "producto_envio" && (
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <Truck className="h-6 w-6 text-info" />
+                <h4 className="font-bold text-lg">Enviado: esperando que llegue</h4>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Cuando el comprador lo reciba y lo marque como recibido, tendrá {reviewHoursFor("producto_envio")} horas para
+                revisarlo. Después se libera tu pago.
+              </p>
+              {transaction.tracking_number && transaction.carrier && (
+                <TrackingPanel trackingNumber={transaction.tracking_number} carrier={transaction.carrier} />
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!!activeAppeal}
+                onClick={() => {
+                  const conocido = ["starken", "chilexpress", "correos_chile", "blue_express"].includes(transaction.carrier || "");
+                  setShippingTrackingNumber(transaction.tracking_number || "");
+                  setShippingCarrier(conocido ? (transaction.carrier as string) : transaction.carrier ? "otro" : "");
+                  setShippingCustomCarrier(conocido ? "" : transaction.carrier || "");
+                  setShippingDialogOpen(true);
+                }}
+              >
+                Corregir número de seguimiento
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                ¿El seguimiento dice que ya se entregó y el comprador no lo marca? Abre un reclamo más abajo: con el
+                seguimiento, el equipo de Trado puede revisar el caso y liberar tu pago.
+              </p>
             </CardContent>
           </Card>
         )}
@@ -1690,18 +1754,9 @@ const Transaction = () => {
                       <ChevronDown className={`h-4 w-4 transition-transform ${progressOpen ? 'rotate-180' : ''}`} />
                     </div>
 
-                    {/* Tracking info shown inline when product is in delivery */}
-                    {transaction.state === 'in_delivery' &&
-                      transaction.sale_type === 'producto_envio' &&
-                      transaction.tracking_number &&
-                      transaction.carrier && (
-                        <div className="mt-3" onClick={(e) => e.stopPropagation()}>
-                          <TrackingPanel
-                            trackingNumber={transaction.tracking_number}
-                            carrier={transaction.carrier}
-                          />
-                        </div>
-                      )}
+                    {/* El seguimiento ya no va acá: esto es un <button> y el panel tiene botones y links
+                        (HTML inválido; en el celular tocarlos abría/cerraba el progreso). Comprador y
+                        vendedor lo ven en su tarjeta de "en camino". */}
                   </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -2137,6 +2192,7 @@ const Transaction = () => {
               transactionId={transaction.id}
               userId={user?.id || ""}
               saleType={transaction.sale_type || undefined}
+              esVendedor={isSeller}
             />
           </div>
         )}
@@ -2170,12 +2226,15 @@ const Transaction = () => {
                     <div className="flex-1 min-w-0 text-left">
                       <p className="font-semibold text-xs sm:text-sm">{sellerLabel}</p>
                       {realSellerProfile ? (
-                        <button
-                          className="text-xs sm:text-sm text-primary hover:underline truncate text-left"
+                        <span
+                          role="link"
+                          tabIndex={0}
+                          className="text-xs sm:text-sm text-primary hover:underline truncate text-left cursor-pointer"
                           onClick={(e) => { e.stopPropagation(); navigate(`/u/${realSellerProfile.id}`); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); navigate(`/u/${realSellerProfile.id}`); } }}
                         >
                           {realSellerProfile.full_name}
-                        </button>
+                        </span>
                       ) : (
                         <p className="text-xs sm:text-sm text-muted-foreground">Esperando...</p>
                       )}
@@ -2225,12 +2284,15 @@ const Transaction = () => {
                     <div className="flex-1 min-w-0 text-left">
                       <p className="font-semibold text-xs sm:text-sm">{buyerLabel}</p>
                       {realBuyerProfile ? (
-                        <button
-                          className="text-xs sm:text-sm text-primary hover:underline truncate text-left"
+                        <span
+                          role="link"
+                          tabIndex={0}
+                          className="text-xs sm:text-sm text-primary hover:underline truncate text-left cursor-pointer"
                           onClick={(e) => { e.stopPropagation(); navigate(`/u/${realBuyerProfile.id}`); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); navigate(`/u/${realBuyerProfile.id}`); } }}
                         >
                           {realBuyerProfile.full_name}
-                        </button>
+                        </span>
                       ) : (
                         <p className="text-xs sm:text-sm text-muted-foreground">Esperando...</p>
                       )}
@@ -2467,9 +2529,13 @@ const Transaction = () => {
                 <Truck className="w-8 h-8 text-white" />
               </div>
             </div>
-            <DialogTitle className="text-center text-xl">Información de Envío</DialogTitle>
+            <DialogTitle className="text-center text-xl">
+              {transaction?.state === "in_delivery" ? "Corregir seguimiento" : "Información de Envío"}
+            </DialogTitle>
             <DialogDescription className="text-center">
-              Ingresa los datos del envío para que el comprador pueda rastrear su pedido
+              {transaction?.state === "in_delivery"
+                ? "Cambia el número o el courier si te equivocaste. El comprador verá el nuevo seguimiento."
+                : "Ingresa los datos del envío para que el comprador pueda rastrear su pedido"}
             </DialogDescription>
           </DialogHeader>
           
@@ -2550,6 +2616,8 @@ const Transaction = () => {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                     Procesando...
                   </>
+                ) : transaction?.state === "in_delivery" ? (
+                  "Guardar seguimiento"
                 ) : (
                   "Confirmar Envío"
                 )}

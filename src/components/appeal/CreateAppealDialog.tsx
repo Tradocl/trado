@@ -14,9 +14,11 @@ interface CreateAppealDialogProps {
   transactionId: string;
   userId: string;
   saleType?: string;
+  /** El vendedor reclama por otras cosas (que no le confirman la entrega), no porque no le llegó. */
+  esVendedor?: boolean;
 }
 
-export function CreateAppealDialog({ transactionId, userId, saleType }: CreateAppealDialogProps) {
+export function CreateAppealDialog({ transactionId, userId, saleType, esVendedor = false }: CreateAppealDialogProps) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -25,7 +27,16 @@ export function CreateAppealDialog({ transactionId, userId, saleType }: CreateAp
 
   const isService = saleType === "servicio";
 
-  const reasons = isService
+  // Del lado del que entrega se usan los mismos valores del enum appeal_reason, con su texto
+  const reasons = esVendedor
+    ? [
+        {
+          value: "incumplimiento_acuerdo",
+          label: isService ? "El cliente no confirma el trabajo entregado" : "El comprador no confirma que lo recibió",
+        },
+        { value: "otro", label: "Otro" },
+      ]
+    : isService
     ? [
         { value: "producto_no_llego", label: "Servicio no realizado" },
         { value: "producto_diferente", label: "Servicio distinto al acordado" },

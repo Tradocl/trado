@@ -208,6 +208,15 @@ avisarse también en el flujo de pago**, no sólo ahí.
     `awaiting_buyer_review`, o sea **sólo después de que el comprador marca
     "recibido"** (received_at + 72h). Servicio y digital se auto-liberan desde
     `in_delivery` (shipped_at + 24h), porque no tienen paso de "recibido".
+  - **Envío sin "recibido" no se libera nunca solo:** si el comprador no marca
+    recibido, la plata queda retenida. La salida del vendedor es un reclamo
+    (motivo "El comprador no confirma que lo recibió", `incumplimiento_acuerdo`)
+    y el admin decide con el seguimiento, que desde 2026-11-07 se ve en
+    `AdminAppeal` junto con las fechas de envío y recepción. El seguimiento se
+    guarda en el mismo update que pasa a `in_delivery` y el vendedor puede
+    corregirlo mientras va en camino. Links de rastreo en `TrackingPanel.tsx`
+    (Blue y Starken con el número; Chilexpress y Correos abren su página y
+    copian el número: no lo aceptan en el link).
   - **Producto en persona NO se auto-libera:** su `shipped_at` es cuándo se
     aceptó la reunión, no la entrega, y el encuentro puede ser días después.
     Liberar por ese reloj pagaría antes del encuentro. Queda confirmación

@@ -17,6 +17,7 @@ import { TransactionChat } from "@/components/TransactionChat";
 import { AppealEvidence } from "@/components/appeal/AppealEvidence";
 import { AppealTimeline } from "@/components/appeal/AppealTimeline";
 import { formatCLP } from "@/lib/utils";
+import { TrackingPanel } from "@/components/TrackingPanel";
 
 export default function AdminAppeal() {
   const { appealId } = useParams();
@@ -362,6 +363,21 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                         <p className="font-semibold text-primary">{formatCLP(transaction.amount)}</p>
                       </div>
                     </div>
+                    {/* En un "no me llegó" la prueba es el seguimiento y las fechas */}
+                    {transaction.sale_type === "producto_envio" && (
+                      <div className="space-y-2 pt-2 border-t">
+                        <p className="text-sm font-medium text-muted-foreground">Envío</p>
+                        {transaction.tracking_number && transaction.carrier ? (
+                          <TrackingPanel trackingNumber={transaction.tracking_number} carrier={transaction.carrier} />
+                        ) : (
+                          <p className="text-sm text-warning">El vendedor no ha registrado seguimiento.</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Enviado: {transaction.shipped_at ? new Date(transaction.shipped_at).toLocaleString("es-CL") : "—"}
+                          {" · "}Marcado como recibido: {transaction.received_at ? new Date(transaction.received_at).toLocaleString("es-CL") : "no"}
+                        </p>
+                      </div>
+                    )}
                     {appeal.reason_description && (
                       <div className="space-y-1 pt-2 border-t">
                         <p className="text-sm font-medium text-muted-foreground">Descripción del problema</p>
