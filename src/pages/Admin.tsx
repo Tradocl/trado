@@ -14,7 +14,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, CheckCircle, XCircle, Users, Wallet, Shield, TrendingUp, ShoppingBag, Scale, Coins, ArrowDownCircle, ArrowUpCircle, Lock, Receipt, AlertTriangle, CheckCircle2, RotateCcw, Building, BadgeDollarSign, Copy, Clock, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { formatCLP } from "@/lib/utils";
+import { formatCLP, ESTADOS_FINANCIADOS } from "@/lib/utils";
+import { getStateLabel } from "@/lib/transaction-labels";
+import { Logo } from "@/components/Logo";
 import { AdminAppealsList } from "@/components/admin/AdminAppealsList";
 import { AdminReturnMediationList } from "@/components/admin/AdminReturnMediationList";
 import { MpReconciliation } from "@/components/admin/MpReconciliation";
@@ -24,6 +26,7 @@ import { esRutEmpresa } from "@/lib/validators";
 
 interface Profile {
   id: string;
+  created_at?: string | null;
   full_name: string;
   email: string;
   phone: string | null;
@@ -73,6 +76,10 @@ interface Transaction {
   id: string;
   product_name: string;
   amount: number;
+  commission?: number | null;
+  sale_type?: string | null;
+  initiator_role?: string | null;
+  invite_code?: string | null;
   state: string;
   seller_id: string;
   buyer_id: string | null;
@@ -110,6 +117,9 @@ export default function Admin() {
   const [selectedVerificationId, setSelectedVerificationId] = useState<string>("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [buscarSala, setBuscarSala] = useState("");
+  const [filtroSala, setFiltroSala] = useState<"todas" | "activas" | "custodia" | "terminadas">("activas");
+  const [buscarUsuario, setBuscarUsuario] = useState("");
   const [confirmWithdrawalId, setConfirmWithdrawalId] = useState<string | null>(null);
   const [depositSearch, setDepositSearch] = useState("");
   const [withdrawalSearch, setWithdrawalSearch] = useState("");
@@ -757,68 +767,49 @@ export default function Admin() {
     : null;
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
+    <div className="min-h-screen bg-gradient-to-br from-primary/[0.05] via-background to-info/[0.06]">
+      <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-md">
+        <div className="container mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center gap-1 sm:gap-3">
+          <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Mi panel</span>
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Panel de Administración</h1>
-            <p className="text-muted-foreground">Gestiona usuarios, verificaciones y transacciones</p>
-          </div>
+          <Logo height={26} />
+          <Badge className="ml-1 bg-gradient-to-r from-primary to-info text-white border-0">Admin</Badge>
         </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-5 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Usuarios</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verificaciones Pendientes</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingVerifications}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Depósitos (Mercado Pago)</CardTitle>
-            <Wallet className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${formatCLP(tokenStats.totalDeposits)}</div>
-            <p className="text-xs text-muted-foreground">Acreditados automáticamente</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Retiros Pendientes</CardTitle>
-            <Wallet className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingWithdrawals}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transacciones</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTransactions}</div>
-          </CardContent>
-        </Card>
-      </div>
+      </header>
+    <div className="container mx-auto px-3 sm:px-6 py-5 sm:py-6">
+      {(() => {
+        // Plata que hoy está retenida en salas (financiadas y sin terminar)
+        const vivas = transactions.filter((t) => (ESTADOS_FINANCIADOS as readonly string[]).includes(t.state) && t.state !== "completed");
+        const enCustodia = vivas.reduce((a, t) => a + (Number(t.amount) || 0), 0);
+        const hace7 = Date.now() - 7 * 864e5;
+        const nuevos7 = profiles.filter((p) => p.created_at && new Date(p.created_at).getTime() > hace7).length;
+        const completadas = transactions.filter((t) => t.state === "completed").length;
+        const porAtender = pendingTransfers.length + stats.pendingWithdrawals + stats.pendingVerifications + stats.pendingAppeals + stats.pendingReturns;
+        const tarjetas = [
+          { titulo: "Por atender", valor: String(porAtender), detalle: porAtender ? "Depósitos, retiros, verificaciones, reclamos" : "Todo al día", icon: AlertTriangle, color: porAtender ? "from-rose-500 to-orange-500" : "from-emerald-500 to-emerald-600" },
+          { titulo: "En custodia ahora", valor: `$${formatCLP(enCustodia)}`, detalle: `${vivas.length} ${vivas.length === 1 ? "sala" : "salas"} con plata retenida`, icon: Lock, color: "from-primary to-info" },
+          { titulo: "Usuarios", valor: String(stats.totalUsers), detalle: `+${nuevos7} en los últimos 7 días`, icon: Users, color: "from-violet-500 to-fuchsia-500" },
+          { titulo: "Salas", valor: String(stats.totalTransactions), detalle: `${completadas} completadas`, icon: TrendingUp, color: "from-emerald-500 to-teal-500" },
+          { titulo: "Depósitos Mercado Pago", valor: `$${formatCLP(tokenStats.totalDeposits)}`, detalle: "Acreditados automáticamente", icon: Wallet, color: "from-sky-500 to-blue-600" },
+        ];
+        return (
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-5 mb-5">
+            {tarjetas.map((t, i) => (
+              <div key={t.titulo} className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${t.color} text-white p-4 shadow-lg ${i === 0 ? "col-span-2 lg:col-span-1" : ""}`}>
+                <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/15 blur-xl" aria-hidden />
+                <div className="relative flex items-center justify-between">
+                  <p className="text-xs font-semibold text-white/85">{t.titulo}</p>
+                  <t.icon className="h-4 w-4 text-white/85" />
+                </div>
+                <p className="relative text-xl sm:text-2xl font-extrabold mt-1 truncate">{t.valor}</p>
+                <p className="relative text-[11px] text-white/80 truncate">{t.detalle}</p>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* QA: enviar todos los correos a contacto@trado.cl */}
       <div className="mb-6 flex items-center justify-end">
@@ -848,7 +839,7 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="deposits" className="space-y-4">
-        <TabsList>
+        <TabsList className="w-full justify-start overflow-x-auto overflow-y-hidden flex-nowrap h-auto p-1 [scrollbar-width:none]">
           <TabsTrigger value="deposits">
             Depósitos
             {pendingTransfers.length > 0 && (
@@ -866,7 +857,7 @@ export default function Admin() {
             )}
           </TabsTrigger>
           <TabsTrigger value="transactions">
-            Salas de Venta
+            Salas
           </TabsTrigger>
           <TabsTrigger value="verifications">
             Verificaciones
@@ -904,8 +895,12 @@ export default function Admin() {
         <TabsContent value="users" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Todos los Usuarios</CardTitle>
+              <CardTitle>Todos los usuarios</CardTitle>
               <CardDescription>Lista completa de usuarios registrados</CardDescription>
+              <div className="relative pt-2 max-w-sm">
+                <Search className="absolute left-3 top-1/2 mt-1 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input value={buscarUsuario} onChange={(e) => setBuscarUsuario(e.target.value)} placeholder="Buscar por nombre, email o RUT" className="pl-9" />
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -916,12 +911,19 @@ export default function Admin() {
                     <TableHead>RUT</TableHead>
                     <TableHead>Teléfono</TableHead>
                     <TableHead>Verificado</TableHead>
-                    <TableHead>Transacciones</TableHead>
+                    <TableHead>Salas completadas</TableHead>
                     <TableHead>Reputación</TableHead>
+                    <TableHead>Registro</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {profiles.map((profile) => (
+                  {profiles
+                    .filter((p) => {
+                      const q = buscarUsuario.trim().toLowerCase();
+                      if (!q) return true;
+                      return [p.full_name, p.email, p.rut].some((v) => (v || "").toLowerCase().includes(q));
+                    })
+                    .map((profile) => (
                     <TableRow key={profile.id}>
                       <TableCell className="font-medium">{profile.full_name}</TableCell>
                       <TableCell>{profile.email}</TableCell>
@@ -932,8 +934,10 @@ export default function Admin() {
                           {profile.is_verified ? "Verificado" : "No verificado"}
                         </Badge>
                       </TableCell>
-                      <TableCell>{profile.total_transactions || 0}</TableCell>
-                      <TableCell>{profile.reputation_score?.toFixed(1) || "0.0"}</TableCell>
+                      {/* profiles.total_transactions no lo mantiene nada: se cuenta de las salas */}
+                      <TableCell>{transactions.filter((t) => t.state === "completed" && (t.seller_id === profile.id || t.buyer_id === profile.id)).length}</TableCell>
+                      <TableCell>{Number(profile.reputation_score) > 0 ? Number(profile.reputation_score).toFixed(1) : "—"}</TableCell>
+                      <TableCell className="whitespace-nowrap text-muted-foreground">{profile.created_at ? new Date(profile.created_at).toLocaleDateString("es-CL") : "—"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -1402,12 +1406,23 @@ export default function Admin() {
               <CardTitle>
                 <div className="flex items-center gap-2">
                   <ShoppingBag className="h-5 w-5" />
-                  Salas de Venta - Modo Consulta
+                  Salas (solo consulta)
                 </div>
               </CardTitle>
               <CardDescription>
-                Vista de todas las transacciones. Los usuarios gestionan sus propias salas de venta.
+                Los usuarios gestionan sus salas. Al abrir una la ves en modo admin, sin poder unirte.
               </CardDescription>
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input value={buscarSala} onChange={(e) => setBuscarSala(e.target.value)} placeholder="Buscar producto, persona o código" className="pl-9" />
+                </div>
+                <div className="flex gap-1 flex-wrap">
+                  {([["activas", "En curso"], ["custodia", "Con plata retenida"], ["terminadas", "Terminadas"], ["todas", "Todas"]] as const).map(([v, l]) => (
+                    <Button key={v} size="sm" variant={filtroSala === v ? "default" : "outline"} className="rounded-full" onClick={() => setFiltroSala(v)}>{l}</Button>
+                  ))}
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -1417,42 +1432,61 @@ export default function Admin() {
                     <TableHead>Vendedor</TableHead>
                     <TableHead>Comprador</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
+                    <TableHead className="text-right">Comisión</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Fecha Creación</TableHead>
                     <TableHead>Ver</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell className="font-medium">{transaction.product_name}</TableCell>
-                      <TableCell>
+                  {transactions
+                    .filter((t) => {
+                      const terminada = t.state === "completed" || t.state === "cancelled" || t.state === "refunded";
+                      const custodia = (ESTADOS_FINANCIADOS as readonly string[]).includes(t.state) && t.state !== "completed";
+                      if (filtroSala === "activas" && terminada) return false;
+                      if (filtroSala === "custodia" && !custodia) return false;
+                      if (filtroSala === "terminadas" && !terminada) return false;
+                      const q = buscarSala.trim().toLowerCase();
+                      if (!q) return true;
+                      return [t.product_name, t.invite_code, t.seller?.full_name, t.seller?.email, t.buyer?.full_name, t.buyer?.email]
+                        .some((v) => (v || "").toLowerCase().includes(q));
+                    })
+                    .map((transaction) => {
+                    // Si la creó un comprador y nadie se ha unido, el comprador todavía ocupa seller_id
+                    const creadaPorCompradorSola = transaction.initiator_role === "buyer" && !transaction.buyer_id;
+                    const vendedor = creadaPorCompradorSola ? null : transaction.seller;
+                    const comprador = creadaPorCompradorSola ? transaction.seller : transaction.buyer;
+                    const estado = getStateLabel(transaction.state);
+                    const tipos: Record<string, string> = { producto_envio: "Envío", producto_persona: "En persona", producto_digital: "Digital", servicio: "Servicio" };
+                    const Persona = ({ p, vacio }: { p?: { full_name: string; email: string } | null; vacio: string }) =>
+                      p ? (
                         <div>
-                          <div className="font-medium">{transaction.seller?.full_name || "N/A"}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {transaction.seller?.email || ""}
-                          </div>
+                          <div className="font-medium">{p.full_name}</div>
+                          <div className="text-sm text-muted-foreground">{p.email}</div>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">{vacio}</span>
+                      );
+                    return (
+                    <TableRow key={transaction.id}>
+                      <TableCell className="font-medium">
+                        {transaction.product_name}
+                        <div className="text-xs text-muted-foreground font-normal">
+                          {tipos[transaction.sale_type || ""] ?? "—"}
+                          {transaction.invite_code ? ` · ${transaction.invite_code}` : ""}
+                          {transaction.initiator_role === "buyer" ? " · la creó el comprador" : ""}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {transaction.buyer ? (
-                          <div>
-                            <div className="font-medium">{transaction.buyer.full_name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {transaction.buyer.email}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">Sin comprador</span>
-                        )}
-                      </TableCell>
+                      <TableCell><Persona p={vendedor} vacio="Esperando vendedor" /></TableCell>
+                      <TableCell><Persona p={comprador} vacio="Esperando comprador" /></TableCell>
                       <TableCell className="font-bold text-right">
                         ${formatCLP(transaction.amount)}
                       </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {Number(transaction.commission) > 0 ? `$${formatCLP(Number(transaction.commission))}` : "$0"}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant={stateLabels[transaction.state]?.color as any || "secondary"}>
-                          {stateLabels[transaction.state]?.label || transaction.state}
-                        </Badge>
+                        <Badge className={`${estado.color} whitespace-nowrap`}>{estado.label}</Badge>
                       </TableCell>
                       <TableCell>
                         {new Date(transaction.created_at).toLocaleDateString("es-CL")}
@@ -1463,15 +1497,16 @@ export default function Admin() {
                           variant="outline"
                           onClick={() => window.open(`/transaction/${transaction.id}`, '_blank')}
                         >
-                          Ver Detalles
+                          Ver
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                   {transactions.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                        No hay transacciones registradas
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        No hay salas registradas
                       </TableCell>
                     </TableRow>
                   )}
@@ -1817,6 +1852,7 @@ export default function Admin() {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
 
       {/* Reject Verification Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>

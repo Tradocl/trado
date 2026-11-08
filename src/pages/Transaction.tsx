@@ -35,6 +35,7 @@ import { translateError } from "@/lib/error-messages";
 import { getStateLabel } from "@/lib/transaction-labels";
 import { reviewHoursFor } from "@/lib/escrow";
 import { Logo } from "@/components/Logo";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import { PasosSala } from "@/components/PasosSala";
 import { ConQuienTratas } from "@/components/sala/ConQuienTratas";
 import { AnilloRevision } from "@/components/sala/AnilloRevision";
@@ -77,6 +78,7 @@ interface Profile {
 const Transaction = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [sellerProfile, setSellerProfile] = useState<Profile | null>(null);
@@ -766,7 +768,9 @@ const Transaction = () => {
   // Can join: only when opposite role is missing
   const canJoinAsBuyer = initiatorRole === 'seller' && !transaction.buyer_id && user?.id !== transaction.seller_id;
   const canJoinAsSeller = initiatorRole === 'buyer' && !transaction.buyer_id && user?.id !== transaction.seller_id;
-  const canJoin = canJoinAsBuyer || canJoinAsSeller;
+  // El admin abre salas desde el panel para mirarlas: nunca se le ofrece unirse
+  const soloMirando = isAdmin && user?.id !== transaction.seller_id && user?.id !== transaction.buyer_id;
+  const canJoin = (canJoinAsBuyer || canJoinAsSeller) && !soloMirando;
   
   // Labels based on sale type
   const isService = transaction.sale_type === 'servicio';
@@ -961,6 +965,12 @@ const Transaction = () => {
         </button>
       )}
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6 animate-fade-in">
+        {soloMirando && (
+          <div className="flex items-center gap-2 rounded-xl border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm">
+            <Eye className="h-4 w-4 text-warning shrink-0" />
+            <span><b>Modo admin:</b> estás mirando esta sala. No eres parte de ella y no puedes unirte desde aquí.</span>
+          </div>
+        )}
         {transaction.sale_type && (
           <PasosSala
             saleType={transaction.sale_type}

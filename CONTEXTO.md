@@ -374,6 +374,12 @@ URL y la llave desde **Vault**, no desde `current_setting('app.*')`:
 Para diagnosticar: `SELECT * FROM cron.job_run_details ORDER BY start_time DESC`
 y las respuestas HTTP en `net._http_response`.
 
+`cron.job_run_details` dice `succeeded` apenas **encola** la llamada: que la
+función haya respondido se ve en `net._http_response`. `net.http_post` espera
+5 s por defecto; el 2026-11-08 `auto-release-escrow` marcó 2 de 24 corridas con
+`timed_out` (arranque en frío), sin escrow vivo, y la corrida siguiente salió
+bien. Si se repite con escrow vivo, subir `timeout_milliseconds` en el job.
+
 ### Modelo de seguridad de la base (desde 2026-09-24)
 
 Una auditoría encontró que un vendedor podía cobrarse el escrow sin entregar
@@ -429,6 +435,12 @@ plata que no existía. Se corrigió con la migración
   con 2FA por dentro. Pendientes de bajo riesgo: el bucket `avatars` lista las
   carpetas (ids de usuario) a cualquiera; la protección contra contraseñas filtradas
   (HaveIBeenPwned) está apagada; `zod` 3 tiene un aviso que exige pasar a v4.
+
+### profiles.total_transactions no se mantiene
+
+Ningún trigger ni función lo actualiza: vale 0 para todos. Las salas
+completadas se cuentan desde `transactions` (`state = 'completed'`), como
+hacen el panel, el perfil y el admin. No mostrar ese campo directo.
 
 ### wallet_movements no tiene user_id
 
