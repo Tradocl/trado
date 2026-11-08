@@ -18,6 +18,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const TIPOS: Record<string, string> = {
+  producto_envio: "Venta con envío",
+  producto_persona: "Venta en persona",
+  producto_digital: "Entrada o producto digital",
+  servicio: "Trabajo o servicio",
+};
+
 function isValidUuid(s: unknown): boolean {
   return typeof s === "string" &&
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -58,7 +65,7 @@ serve(async (req) => {
     const { data: tx, error: txError } = await supabase
       .from("transactions")
       .select(
-        "id, product_name, amount, commission, invite_code, sale_type, seller_id, profiles!transactions_seller_id_fkey(full_name,email)",
+        "id, product_name, amount, commission, invite_code, sale_type, initiator_role, seller_id, profiles!transactions_seller_id_fkey(full_name,email)",
       )
       .eq("id", transactionId)
       .single();
@@ -88,34 +95,54 @@ serve(async (req) => {
     const productName = escapeHtml(tx.product_name);
     const amount = Number(tx.amount) || 0;
     const commission = Number(tx.commission) || 0;
-    const sellerReceives = amount - commission;
     const referenceCode = tx.id.substring(0, 8).toUpperCase();
-    const inviteLink = `${Deno.env.get("SITE_URL") || "https://trado.cl"}/join/${tx.invite_code || ""}`;
-
+    const siteUrl = Deno.env.get("SITE_URL") || "https://trado.cl";
+    // El link de invitación es /invite/<id>: el viejo /join/<código> no existe y daba 404
+    const inviteLink = `${siteUrl}/invite/${tx.id}`;
+    // Quien crea la sala queda en seller_id; initiator_role dice si en verdad vende o compra
+    const creaComprador = tx.initiator_role === "buyer";
+    const sinComision = commission === 0;
+    const otraParte = tx.sale_type === "servicio"
+      ? (creaComprador ? "a quien hará el trabajo" : "a tu cliente")
+      : (creaComprador ? "al vendedor" : "a tu comprador");
+    const tipo = TIPOS[String(tx.sale_type)] ?? "Sala";
+    const mensajeWhatsApp =
+      `¡Hola! Creé una sala en Trado para *${tx.product_name}* (${formatCLP(amount)}). ` +
+      `La plata queda retenida hasta que se entrega lo acordado. Únete aquí: ${inviteLink}` +
+      (tx.invite_code ? `\n\nSi el link no abre, entra a ${siteUrl}/join-transaction y usa el código ${tx.invite_code}` : "");
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensajeWhatsApp)}`;
     const thread = await buildThreadHeaders(supabase, transactionId, referenceCode);
-
     const html = renderTransactionalEmail({
       recipientName: sellerName,
       referenceCode,
-      headline: `Sala creada: ${productName}`,
-      statusLine: "Sala lista · esperando al comprador",
-      intro: "tu sala de escrow está lista. Comparte el enlace con tu comprador para que se una y deposite el pago.",
-      summaryTitle: "Detalles de la venta",
-      summaryRows: [
-        { label: "Producto", value: productName },
-        { label: "Paga el comprador", value: formatCLP(amount) },
-        { label: "Comisión Trado", value: `−${formatCLP(commission)}` },
-        { label: "Recibes al completar", value: formatCLP(sellerReceives), emphasis: true },
-      ],
+      eyebrow: tipo,
+      headline: `Tu sala está lista: ${productName}`,
+      statusLine: creaComprador ? "Esperando que el vendedor se una" : "Esperando que el comprador se una y pague",
+      tone: "celebrate",
+      intro: `ya creaste tu sala. Ahora mándale el link ${otraParte}: cuando se una${creaComprador ? " podrás pagar y la plata quedará retenida" : " y pague, la plata queda retenida en Trado"} hasta que se entregue lo acordado.`,
+      summaryTitle: "Resumen de la sala",
+      summaryRows: creaComprador
+        ? [
+          { label: tx.sale_type === "servicio" ? "Trabajo" : "Producto", value: productName },
+          { label: "Precio", value: formatCLP(amount) },
+          { label: "Comisión Trado", value: sinComision ? "$0 · tu primera sala" : formatCLP(commission) },
+          { label: "Pagas en total", value: formatCLP(amount + commission), emphasis: true },
+        ]
+        : [
+          { label: tx.sale_type === "servicio" ? "Trabajo" : "Producto", value: productName },
+          { label: "Paga quien compra", value: formatCLP(amount) },
+          { label: "Comisión Trado", value: sinComision ? "$0 · tu primera sala" : `−${formatCLP(commission)}` },
+          { label: "Recibes al completar", value: formatCLP(amount - commission), emphasis: true },
+        ],
       nextStep:
-        `Comparte el enlace de invitación con el comprador. Cuando se una y deposite, te avisamos en este mismo hilo de correo.`,
+        `Lo más rápido: mándale el link por WhatsApp con el botón de abajo. ${tx.invite_code ? `Si no le abre, puede unirse con el código <strong>${escapeHtml(tx.invite_code)}</strong>.` : ""} Te avisamos en este mismo hilo cuando se una.`,
       timelineActive: "created",
-      ctaText: "Ir a la sala",
-      ctaUrl: txUrl(transactionId),
-      secondaryCtaText: "Copiar enlace de invitación",
-      secondaryCtaUrl: inviteLink,
+      ctaText: "Mandar por WhatsApp",
+      ctaUrl: whatsappUrl,
+      secondaryCtaText: "Ir a mi sala",
+      secondaryCtaUrl: txUrl(transactionId),
       footerNote:
-        "Te enviaremos un solo hilo de correo por esta transacción con cada paso importante: pago en custodia, envío, recepción y liberación.",
+        "Te enviaremos un solo hilo de correo por esta sala con cada paso importante: pago retenido, entrega, recepción y liberación.",
     });
 
     const emailResponse = await sendEmail({
@@ -147,7 +174,8 @@ serve(async (req) => {
             { label: "Producto", value: escapeHtml(tx.product_name) },
             { label: "Monto", value: formatCLP(Number(tx.amount)), emphasis: true },
             { label: "Creada por", value: escapeHtml(seller.full_name || seller.email || "—") },
-            { label: "Tipo", value: escapeHtml(String(tx.sale_type ?? "—")) },
+            { label: "Tipo", value: TIPOS[String(tx.sale_type)] ?? escapeHtml(String(tx.sale_type ?? "—")) },
+            { label: "Creada por el", value: tx.initiator_role === "buyer" ? "Comprador" : "Vendedor" },
           ],
           ctaText: "Ver la sala",
           ctaUrl: txUrl(transactionId),

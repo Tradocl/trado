@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Plus, ArrowUpRight, ArrowDownRight, Clock, History, Copy, Check, ShieldCheck, Lock, Wallet as WalletIcon } from "lucide-react";
 import { translateError } from "@/lib/error-messages";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ import { TradoBankContact } from "@/components/TradoBankContact";
 import { Badge } from "@/components/ui/badge";
 import { useRequireCompleteProfile } from "@/hooks/useRequireCompleteProfile";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
+import { Logo } from "@/components/Logo";
 
 interface Movement {
   id: string;
@@ -625,53 +626,31 @@ const Wallet = () => {
         <meta name="robots" content="noindex" />
       </Helmet>
       <h1 className="sr-only">Mi billetera Trado</h1>
-      <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
+      <header className="border-b bg-card/80 backdrop-blur-md">
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-1 sm:gap-3">
+          <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Volver al inicio</span>
+            <span className="hidden sm:inline">Mi panel</span>
           </Button>
+          <Logo height={26} />
         </div>
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
-        <div className="grid grid-cols-2 gap-2 sm:gap-4">
-          <Button
-            size="default"
-            className="bg-success hover:bg-success/90 h-12 sm:h-16 text-xs sm:text-base"
-            onClick={() => requireCompleteProfile(() => setDepositOpen(true))}
-          >
-            <Plus className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="truncate">Depositar</span>
-          </Button>
-          <Button
-            size="default"
-            variant="outline"
-            className="h-12 sm:h-16 border-2 text-xs sm:text-base"
-            onClick={() => requireCompleteProfile(() => {
-              loadBankDetails();
-              setWithdrawOpen(true);
-            })}
-          >
-            <ArrowUpRight className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="truncate">Retirar</span>
-          </Button>
-        </div>
-
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-primary to-primary-light text-primary-foreground">
-          <CardHeader className="pb-2 sm:pb-6">
-            <CardTitle className="text-xl sm:text-3xl">Mi Billetera</CardTitle>
-            <CardDescription className="text-primary-foreground/80 text-xs sm:text-sm">
-              Resumen de fondos
-            </CardDescription>
+        <Card className="relative overflow-hidden border-0 shadow-2xl rounded-3xl bg-gradient-to-br from-primary via-primary to-info text-white">
+          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10 blur-2xl pointer-events-none" aria-hidden />
+          <CardHeader className="relative pb-2 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2 text-white/90">
+              <WalletIcon className="h-5 w-5" /> Mi billetera
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 sm:space-y-4 pt-0">
+          <CardContent className="relative space-y-4 pt-0">
             <div>
-              <p className="text-xs sm:text-sm opacity-80 mb-1">Saldo disponible</p>
-              <p className="text-3xl sm:text-5xl font-bold">${formatCLP(balance)}</p>
+              <p className="text-xs sm:text-sm text-white/75 mb-1">Saldo disponible</p>
+              <p className="text-4xl sm:text-6xl font-extrabold tracking-tight">${formatCLP(balance)}</p>
             </div>
             {deTarjeta > 0 && (
-              <div className="pt-2 sm:pt-3 border-t border-primary-foreground/20">
+              <div className="rounded-2xl bg-white/15 px-4 py-3">
                 <p className="text-xs sm:text-sm opacity-80 mb-1">Depositado con tarjeta, sin usar</p>
                 <p className="text-lg sm:text-2xl font-semibold">${formatCLP(deTarjeta)}</p>
                 <p className="text-xs opacity-70 mt-1">
@@ -690,14 +669,38 @@ const Wallet = () => {
               </div>
             )}
             {blockedBalance > 0 && (
-              <div className="pt-2 sm:pt-3 border-t border-primary-foreground/20">
-                <p className="text-xs sm:text-sm opacity-80 mb-1">Escrow bloqueado</p>
-                <p className="text-lg sm:text-2xl font-semibold">${formatCLP(blockedBalance)}</p>
-                <p className="text-xs opacity-60 mt-1 hidden sm:block">Liberados al completar transacciones</p>
+              <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/15 px-4 py-3">
+                <span className="flex items-center gap-2 text-sm">
+                  <Lock className="h-4 w-4" /> Retenido en tus salas
+                </span>
+                <span className="text-lg sm:text-xl font-bold">${formatCLP(blockedBalance)}</span>
               </div>
             )}
           </CardContent>
         </Card>
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          <Button
+            size="default"
+            className="bg-success hover:bg-success/90 h-14 rounded-xl text-sm sm:text-base font-bold shadow-lg shadow-success/20"
+            onClick={() => requireCompleteProfile(() => setDepositOpen(true))}
+          >
+            <Plus className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="truncate">Depositar</span>
+          </Button>
+          <Button
+            size="default"
+            variant="outline"
+            className="h-14 rounded-xl border-2 text-sm sm:text-base font-bold"
+            onClick={() => requireCompleteProfile(() => {
+              loadBankDetails();
+              setWithdrawOpen(true);
+            })}
+          >
+            <ArrowUpRight className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="truncate">Retirar</span>
+          </Button>
+        </div>
+
 
         <TradoBankContact />
 
@@ -735,7 +738,7 @@ const Wallet = () => {
                               {new Date(movement.created_at).toLocaleDateString("es-CL")}
                             </p>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              {isDeposit ? "⏱ Se acredita en minutos tras aprobación" : "⏱ Procesado en 24-48 hrs hábiles"}
+                              {isDeposit ? "Se acredita apenas el equipo lo apruebe" : "El equipo lo transfiere en horario hábil"}
                             </p>
                           </div>
                         </div>
@@ -776,8 +779,8 @@ const Wallet = () => {
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="min-w-0">
-                <CardTitle>Movimientos Recientes</CardTitle>
-                <CardDescription>Historial de movimientos aprobados</CardDescription>
+                <CardTitle>Movimientos</CardTitle>
+                <CardDescription>Lo que entra y sale de tu billetera</CardDescription>
               </div>
               <Button
                 variant="outline"
@@ -794,9 +797,12 @@ const Wallet = () => {
           <CardContent>
             {movements.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground mb-2">No hay movimientos aprobados aún</p>
+                <div className="mx-auto mb-3 w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                  <WalletIcon className="h-7 w-7" />
+                </div>
+                <p className="font-medium mb-1">Todavía no hay movimientos</p>
                 <p className="text-sm text-muted-foreground">
-                  Los depósitos y retiros requieren aprobación del administrador
+                  Cuando te paguen en una sala, el pago aparece aquí.
                 </p>
               </div>
             ) : (
@@ -806,37 +812,44 @@ const Wallet = () => {
                   const isEscrowLock = movement.type === "escrow_lock";
                   const isPending = movement.status === "pending";
                   const isEscrowPending = isEscrowLock && isPending;
-                  
-                  // Determine styling based on movement type and status
+
+                  // Entra plata: verde. Retenida en una sala: ámbar. Pago de una sala: morado.
+                  // Retiro al banco: azul de la marca. Nada en rojo: no son errores.
                   let iconBgClass = "";
                   let textColorClass = "";
                   let amountPrefix = "";
-                  
+                  let etiqueta = "";
+
                   if (isEscrowPending) {
-                    // Pending escrow = blocked funds (yellow/warning)
-                    iconBgClass = "bg-warning/10 text-warning";
-                    textColorClass = "text-warning";
-                    amountPrefix = "";
+                    iconBgClass = "bg-amber-500 text-white";
+                    textColorClass = "text-amber-600";
+                    etiqueta = "Retenido";
                   } else if (isDeposit) {
-                    iconBgClass = "bg-success/10 text-success";
-                    textColorClass = "text-success";
+                    iconBgClass = "bg-emerald-500 text-white";
+                    textColorClass = "text-emerald-600";
                     amountPrefix = "+";
-                  } else {
-                    // Approved escrow_lock or withdrawal = expense (red)
-                    iconBgClass = "bg-destructive/10 text-destructive";
-                    textColorClass = "text-destructive";
+                    etiqueta = movement.type === "escrow_release" ? "Pago recibido" : "Depósito";
+                  } else if (isEscrowLock) {
+                    iconBgClass = "bg-violet-500 text-white";
+                    textColorClass = "text-foreground";
                     amountPrefix = "-";
+                    etiqueta = "Pago de sala";
+                  } else {
+                    iconBgClass = "bg-primary text-white";
+                    textColorClass = "text-foreground";
+                    amountPrefix = "-";
+                    etiqueta = "Retiro";
                   }
-                  
+                                    
                   return (
                     <div
                       key={movement.id}
-                      className={`flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
-                        isEscrowPending ? "border-warning/50 bg-warning/5" : ""
+                      className={`flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-2xl hover:bg-muted/40 hover:shadow-sm transition-all ${
+                        isEscrowPending ? "border-amber-500/40 bg-amber-500/5" : ""
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className={`p-2 rounded-full flex-shrink-0 ${iconBgClass}`}>
+                        <div className={`p-2.5 rounded-xl flex-shrink-0 shadow-sm ${iconBgClass}`}>
                           {isEscrowPending ? (
                             <Clock className="h-5 w-5" />
                           ) : isDeposit ? (
@@ -847,12 +860,10 @@ const Wallet = () => {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-sm sm:text-base truncate">{getShortDescription(movement)}</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            {new Date(movement.created_at).toLocaleDateString("es-CL")}
+                          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2">
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">{etiqueta}</span>
+                            {new Date(movement.created_at).toLocaleDateString("es-CL", { day: "numeric", month: "short" })}
                           </p>
-                          {isEscrowPending && (
-                            <p className="text-xs text-warning font-medium">Bloqueado en escrow</p>
-                          )}
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
@@ -860,7 +871,7 @@ const Wallet = () => {
                           {amountPrefix}${formatCLP(Math.abs(movement.amount))}
                         </p>
                         <p className="text-[11px] sm:text-sm text-muted-foreground whitespace-nowrap">
-                          {isEscrowPending ? "En transacción" : `Saldo: $${formatCLP(movement.balance_after)}`}
+                          {isEscrowPending ? "En una sala" : `Saldo: $${formatCLP(movement.balance_after)}`}
                         </p>
                       </div>
                     </div>
