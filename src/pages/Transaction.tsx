@@ -36,6 +36,10 @@ import { getStateLabel } from "@/lib/transaction-labels";
 import { reviewHoursFor } from "@/lib/escrow";
 import { Logo } from "@/components/Logo";
 import { PasosSala } from "@/components/PasosSala";
+import { ConQuienTratas } from "@/components/sala/ConQuienTratas";
+import { AnilloRevision } from "@/components/sala/AnilloRevision";
+import { FotoSala } from "@/components/sala/FotoSala";
+import type { EventoSala } from "@/components/TransactionChat";
 
 interface Transaction {
   id: string;
@@ -55,6 +59,9 @@ interface Transaction {
   tracking_number: string | null;
   carrier: string | null;
   received_at: string | null;
+  deposited_at?: string | null;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
 }
 
 interface Profile {
@@ -306,6 +313,19 @@ const Transaction = () => {
       toast.success("Código copiado al portapapeles");
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  // Mismo mensaje que el correo de "sala creada": link directo y el código de respaldo
+  const compartirWhatsApp = () => {
+    if (!transaction) return;
+    const origin = window.location.origin;
+    const appUrl = origin.includes("id-preview--") || origin.includes("localhost") ? "https://trado.cl" : origin;
+    const link = `${appUrl}/invite/${transaction.id}`;
+    const texto =
+      `¡Hola! Creé una sala en Trado para *${transaction.product_name}* ($${formatCLP(Number(transaction.amount))}). ` +
+      `La plata queda retenida hasta que se entrega lo acordado. Únete aquí: ${link}` +
+      (transaction.invite_code ? `\n\nSi el link no abre, entra a ${appUrl}/join-transaction y usa el código ${transaction.invite_code}` : "");
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
   };
 
   const copyInviteLink = () => {
@@ -735,6 +755,27 @@ const Transaction = () => {
   const creatorRoleLabel = initiatorRole === 'seller' ? sellerLabel : buyerLabel;
   const joinerRoleLabel = initiatorRole === 'seller' ? buyerLabel : sellerLabel;
 
+  // La contraparte, para la tarjeta "Con quién tratas"
+  const contraparte = isSeller ? realBuyerProfile : isBuyer ? realSellerProfile : null;
+  const rolContraparte = isSeller ? buyerLabel : sellerLabel;
+
+  // Hitos que aparecen en el chat con su hora, para que la conversación cuente la historia completa
+  const eventosSala: EventoSala[] = [];
+  if (transaction.created_at) eventosSala.push({ id: "creada", at: transaction.created_at, texto: "Sala creada", color: "primary" });
+  if (transaction.deposited_at) eventosSala.push({ id: "pago", at: transaction.deposited_at, texto: "Pago retenido en Trado", color: "success" });
+  if (transaction.shipped_at) {
+    const courier = transaction.carrier ? CARRIER_LABELS[transaction.carrier] || transaction.carrier : null;
+    eventosSala.push({
+      id: "envio",
+      at: transaction.shipped_at,
+      texto: transaction.sale_type === "producto_envio" ? (courier ? `Enviado por ${courier}` : "Enviado") : "Marcado como entregado",
+      color: "info",
+    });
+  }
+  if (transaction.received_at) eventosSala.push({ id: "recibido", at: transaction.received_at, texto: "Recibido: empieza la revisión", color: "warning" });
+  if (transaction.completed_at) eventosSala.push({ id: "liberado", at: transaction.completed_at, texto: "Pago liberado", color: "success" });
+  if (transaction.cancelled_at) eventosSala.push({ id: "cancelada", at: transaction.cancelled_at, texto: "Sala cancelada", color: "warning" });
+
   const handleJoin = async () => {
     if (!user || !transaction || joiningTransaction) return;
 
@@ -889,6 +930,7 @@ const Transaction = () => {
             conAmbos={!!transaction.seller_id && !!transaction.buyer_id}
           />
         )}
+        {contraparte && <ConQuienTratas perfil={contraparte} rol={rolContraparte} />}
         {/* === SECTION 1: REQUIRED ACTIONS (TOP PRIORITY) === */}
         
         {/* Join action - works for both buyer and seller joining */}
@@ -1214,13 +1256,10 @@ const Transaction = () => {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Eye className="h-6 w-6 text-warning" />
-                  <h4 className="font-bold text-lg">Período de Revisión</h4>
+                  <h4 className="font-bold text-lg">Tu tiempo para revisarlo</h4>
                 </div>
-                {reviewTimeLeft && (
-                  <div className="flex items-center gap-1.5 bg-warning/20 text-warning px-3 py-1 rounded-full text-sm font-semibold">
-                    <Clock className="h-4 w-4" />
-                    {reviewTimeLeft}
-                  </div>
+                {transaction.received_at && (
+                  <AnilloRevision desde={transaction.received_at} horas={reviewHoursFor(transaction.sale_type)} color="warning" />
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
@@ -1260,11 +1299,8 @@ const Transaction = () => {
                   <Eye className="h-6 w-6 text-info" />
                   <h4 className="font-bold text-lg">Comprador Revisando</h4>
                 </div>
-                {reviewTimeLeft && (
-                  <div className="flex items-center gap-1.5 bg-info/20 text-info px-3 py-1 rounded-full text-sm font-semibold">
-                    <Clock className="h-4 w-4" />
-                    {reviewTimeLeft}
-                  </div>
+                {transaction.received_at && (
+                  <AnilloRevision desde={transaction.received_at} horas={reviewHoursFor(transaction.sale_type)} color="info" />
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
@@ -1649,12 +1685,24 @@ const Transaction = () => {
                   <span className="ml-2">Copiar enlace de invitación</span>
                 </Button>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-3 text-center">
-                📱 Comparte el código o el enlace con {joinerRoleLabel.toLowerCase()}
+              <Button
+                onClick={compartirWhatsApp}
+                className="mt-3 w-full h-12 rounded-xl text-base font-bold text-white bg-[#25D366] hover:bg-[#1ebe5a] shadow-lg shadow-[#25D366]/25"
+              >
+                <MessageCircle className="h-5 w-5 mr-2" /> Mandar por WhatsApp
+              </Button>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-2 text-center">
+                Le llega el link de la sala; si no le abre, puede usar el código
               </p>
             </CardContent>
           </Card>
         )}
+
+        <FotoSala
+          transactionId={transaction.id}
+          nombre={transaction.product_name}
+          puedeEditar={isSeller && ["created", "funds_secured"].includes(transaction.state)}
+        />
 
         {/* === SECTION 3: PRODUCT DETAILS (compressed) === */}
         <Card className="border-2 border-primary/20 shadow-xl bg-gradient-to-br from-card to-card/80">
@@ -2235,6 +2283,7 @@ const Transaction = () => {
             buyerName={buyerProfile?.full_name}
             saleType={transaction.sale_type || undefined}
             soyVendedor={isSeller}
+            eventos={eventosSala}
           />
         )}
 

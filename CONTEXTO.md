@@ -406,6 +406,12 @@ plata que no existía. Se corrigió con la migración
   `get_profile_names` vía `src/lib/profile-names.ts`.
 - Bucket `chat-images` **privado**: el chat muestra adjuntos con URL firmada
   (`src/lib/chat-files.ts`).
+- Bucket `sala-fotos` **privado** + tabla `public.sala_fotos` (una foto opcional
+  por sala, `src/components/sala/FotoSala.tsx`). La ven las dos partes y el admin;
+  la pone/cambia solo quien vende y solo en `created` o `funds_secured` (después
+  queda como registro). Tabla aparte para no tocar `transactions` ni su trigger.
+  Migración `20261108000000_foto_sala.sql`: **pendiente de aplicar en producción**
+  hasta que se apruebe; mientras no exista la tabla, el componente no se muestra.
 - Calificaciones: una por persona y sala, sólo con la sala `completed`.
 - Cambiar la contraseña exige sesión reciente
   (`security_update_password_require_reauthentication`).

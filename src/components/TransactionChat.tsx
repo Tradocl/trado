@@ -32,7 +32,21 @@ interface TransactionChatProps {
   /** Para sugerir cómo partir la conversación según el tipo de venta y quién escribe. */
   saleType?: string;
   soyVendedor?: boolean;
+  /** Hitos de la sala (pagó, envió, recibió…) que se intercalan con los mensajes por hora. */
+  eventos?: EventoSala[];
 }
+
+export type EventoSala = { id: string; at: string; texto: string; color?: "success" | "info" | "warning" | "primary" };
+
+const COLOR_EVENTO: Record<string, string> = {
+  success: "bg-success/10 text-success border-success/25",
+  info: "bg-info/10 text-info border-info/25",
+  warning: "bg-warning/10 text-warning border-warning/25",
+  primary: "bg-primary/10 text-primary border-primary/25",
+};
+
+const horaEvento = (iso: string) =>
+  new Date(iso).toLocaleString("es-CL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 // Frases para romper el hielo dentro de la sala, donde la conversación queda como prueba.
 // Al tocarlas se escriben en el campo: la persona las edita antes de mandarlas.
@@ -55,7 +69,7 @@ const SUGERENCIAS: Record<string, { comprador: string[]; vendedor: string[] }> =
   },
 };
 
-export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName, isAdmin = false, adminName, hideHeader = false, saleType, soyVendedor = false }: TransactionChatProps) => {
+export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName, isAdmin = false, adminName, hideHeader = false, saleType, soyVendedor = false, eventos = [] }: TransactionChatProps) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   // URL guardada -> URL firmada temporal (el bucket del chat es privado).
@@ -306,7 +320,7 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
       <div className={hideHeader ? "" : "p-0"}>
         <ScrollArea ref={scrollRef} className="h-[280px] sm:h-[400px] p-2 sm:p-4">
           <div className="space-y-2 sm:space-y-3">
-            {messages.length === 0 ? (
+            {messages.length === 0 && eventos.length === 0 ? (
               <div className="text-center text-muted-foreground py-6 sm:py-8">
                 <MessageCircle className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 opacity-50" />
                 <p className="text-xs sm:text-sm font-medium">Conversen aquí: todo queda registrado en la sala</p>
@@ -328,7 +342,23 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
                 )}
               </div>
             ) : (
-              messages.map((msg) => {
+              [
+                ...messages.map((m) => ({ at: m.created_at, msg: m as Message | null, ev: null as EventoSala | null })),
+                ...eventos.map((e) => ({ at: e.at, msg: null as Message | null, ev: e as EventoSala | null })),
+              ]
+                .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime())
+                .map(({ msg, ev }) => {
+                if (ev) {
+                  return (
+                    <div key={`ev-${ev.id}`} className="flex justify-center my-1.5">
+                      <span className={`inline-flex flex-wrap items-center justify-center gap-x-1.5 rounded-full border px-3 py-1 text-[11px] sm:text-xs font-medium text-center ${COLOR_EVENTO[ev.color || "primary"]}`}>
+                        <span className="font-semibold">{ev.texto}</span>
+                        <span className="opacity-70">· {horaEvento(ev.at)}</span>
+                      </span>
+                    </div>
+                  );
+                }
+                if (!msg) return null;
                 const isOwn = msg.user_id === user?.id;
                 const isSystemMessage = msg.message.startsWith("[TRADO_SYSTEM]");
                 const displayMessage = isSystemMessage 
@@ -434,6 +464,20 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
                   </div>
                 );
               })
+            )}
+            {messages.length === 0 && eventos.length > 0 && !isAdmin && saleType && SUGERENCIAS[saleType] && (
+              <div className="pt-3 flex flex-wrap justify-center gap-2 px-2">
+                {SUGERENCIAS[saleType][soyVendedor ? "vendedor" : "comprador"].map((frase) => (
+                  <button
+                    key={frase}
+                    type="button"
+                    onClick={() => setNewMessage(frase)}
+                    className="rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5 text-xs text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    {frase}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         </ScrollArea>
