@@ -119,6 +119,11 @@ public/material/<reel>/
   oscura va en pastilla blanca (el "Mira cómo"), o no se lee.
 - **Una línea SVG de largo 0 con punta redonda igual dibuja un punto**: no la muestres
   hasta que empiece a crecer (pasó en `Esquema.tsx`).
+- **Mejor el archivo original, no el que pasa por WhatsApp.** En «En persona» llegaron 7 clips por
+  WhatsApp: 576×1024 (se ven blandos escalados a 1080), ya en SDR (no van por `convertir.py`, el
+  tonemap HDR los arruina) y con la rotación como metadato. Si igual hay que usarlos: unirlos con
+  `-noautorotate` + `transpose=1` y luego quitar la marca con `-display_rotation 0 ... -c copy`;
+  si no, OpenCV los lee acostados y `caras.py` dice "sin cara detectada". Pásalos por AirDrop o cable.
 - **loudnorm en una pasada satura** (pico de +2,7 dBFS). `final.py` hace dos pasadas lineales y un limitador.
 - **Todo lo que se dice de Trado se verifica contra el código** (plazos, estados, comisión)
   antes de publicar. Las cifras de comisión, solo desde `calculateFee` en `src/lib/utils.ts`.

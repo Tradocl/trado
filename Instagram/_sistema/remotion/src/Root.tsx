@@ -3,6 +3,7 @@ import { Composition, staticFile } from "remotion";
 import { loadFont } from "@remotion/fonts";
 import { FPS, FUENTE, H, W } from "./marca";
 import * as DesdeDondeQuieras from "./reels/DesdeDondeQuieras";
+import * as EnPersona from "./reels/EnPersona";
 
 loadFont({ family: FUENTE, url: staticFile("fuentes/PlusJakartaSans.ttf"), weight: "200 800" });
 
@@ -11,5 +12,7 @@ export const Root: React.FC = () => (
   <>
     <Composition id="DesdeDondeQuieras" component={DesdeDondeQuieras.DesdeDondeQuieras} defaultProps={{ musica: true }}
       durationInFrames={DesdeDondeQuieras.DURACION} fps={FPS} width={W} height={H} />
+    <Composition id="EnPersona" component={EnPersona.EnPersona} defaultProps={{ musica: true }}
+      durationInFrames={EnPersona.DURACION} fps={FPS} width={W} height={H} />
   </>
 );
