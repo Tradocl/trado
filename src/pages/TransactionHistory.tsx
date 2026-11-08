@@ -8,7 +8,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ShoppingBag, Store, Calendar, DollarSign, User, Package, Star, Check, ArrowUpDown } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Store, Calendar, User, Package, Star, Check, ArrowUpDown, Truck, Handshake, Ticket, Briefcase } from "lucide-react";
+
+// Mismos colores que los casos del panel y de crear sala, para reconocer el tipo de un vistazo
+const TIPO: Record<string, { icon: typeof Package; nombre: string; franja: string; icono: string }> = {
+  producto_envio: { icon: Truck, nombre: "Envío", franja: "bg-emerald-500", icono: "bg-emerald-500/15 text-emerald-600" },
+  producto_persona: { icon: Handshake, nombre: "En persona", franja: "bg-amber-500", icono: "bg-amber-500/15 text-amber-600" },
+  producto_digital: { icon: Ticket, nombre: "Digital", franja: "bg-rose-500", icono: "bg-rose-500/15 text-rose-600" },
+  servicio: { icon: Briefcase, nombre: "Servicio", franja: "bg-violet-500", icono: "bg-violet-500/15 text-violet-600" },
+};
+const TIPO_OTRO = { icon: Package, nombre: "Sala", franja: "bg-primary", icono: "bg-primary/10 text-primary" };
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -26,6 +35,7 @@ interface Transaction {
   completed_at: string | null;
   seller_id: string;
   buyer_id: string | null;
+  sale_type?: string | null;
   seller_profile?: {
     full_name: string;
     reputation_score: number;
@@ -195,18 +205,26 @@ export default function TransactionHistory() {
     const otherParty = isSale ? transaction.buyer_profile : transaction.seller_profile;
     const netAmount = isSale ? Number(transaction.amount) - Number(transaction.commission) : Number(transaction.amount);
     const hasRated = userRatings.has(transaction.id);
+    const tipo = TIPO[transaction.sale_type || ""] ?? TIPO_OTRO;
+    const TipoIcon = tipo.icon;
 
     return (
-      <Card 
-        className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-primary/30"
+      <Card
+        className="relative overflow-hidden hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer border"
         onClick={() => navigate(`/transaction/${transaction.id}`)}
       >
-        <CardContent className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Package className="h-5 w-5 text-primary" />
-                <h3 className="font-bold text-lg">{transaction.product_name}</h3>
+        <span className={`absolute left-0 top-0 bottom-0 w-1.5 ${tipo.franja}`} aria-hidden />
+        <CardContent className="p-5 sm:p-6 pl-6 sm:pl-7">
+          <div className="flex justify-between items-start gap-3 mb-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-2">
+                <span className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${tipo.icono}`}>
+                  <TipoIcon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-lg leading-tight truncate">{transaction.product_name}</h3>
+                  <p className="text-xs text-muted-foreground">{tipo.nombre}</p>
+                </div>
               </div>
               {transaction.product_description && (
                 <p className="text-sm text-muted-foreground line-clamp-2">
@@ -214,10 +232,9 @@ export default function TransactionHistory() {
                 </p>
               )}
             </div>
-            <Badge variant="default" className="ml-4">
-              <DollarSign className="h-3 w-3 mr-1" />
+            <span className="shrink-0 rounded-xl bg-gradient-to-r from-primary to-info text-white px-3 py-1.5 font-extrabold text-sm sm:text-base shadow">
               ${formatCLP(netAmount)}
-            </Badge>
+            </span>
           </div>
 
           <div className="space-y-2 text-sm">
@@ -227,9 +244,9 @@ export default function TransactionHistory() {
                 {isSale ? "Comprador:" : "Vendedor:"}
               </span>
               <span>{otherParty?.full_name || "Usuario"}</span>
-              {otherParty && (
-                <span className="ml-2 text-warning">
-                  ⭐ {otherParty.reputation_score?.toFixed(1) || "0.0"}
+              {otherParty && Number(otherParty.reputation_score) > 0 && (
+                <span className="ml-1 inline-flex items-center gap-0.5 text-warning">
+                  <Star className="h-3.5 w-3.5 fill-warning" /> {Number(otherParty.reputation_score).toFixed(1)}
                 </span>
               )}
             </div>
@@ -288,7 +305,7 @@ export default function TransactionHistory() {
       </Button>
 
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Historial de Transacciones</h1>
+        <h1 className="text-4xl font-bold mb-2">Historial de salas</h1>
         <p className="text-muted-foreground">
           Todas tus compras y ventas completadas
         </p>

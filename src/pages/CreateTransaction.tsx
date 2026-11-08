@@ -3,13 +3,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, ArrowRight, Info, AlertCircle, CheckCircle2, Wrench, Package, Users, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, Link, ShieldAlert, Shield, Mail } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Truck, ShoppingBag, Store, Handshake, Copy, Check, Share2, ShieldAlert, Shield, Mail, Gift, Ticket, Briefcase, MessageCircle } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { calculateOrderDetails, formatCLP, formatAmountInput, parseFormattedAmount, MAX_TRANSACTION_AMOUNT, ESTADOS_FINANCIADOS, PRIMERA_SALA_GRATIS_HASTA, primeraSalaGratis } from "@/lib/utils";
@@ -23,6 +23,42 @@ type SaleType = "servicio" | "producto_persona" | "producto_envio" | "producto_d
 type MainType = "servicio" | "producto";
 type InitiatorRole = "seller" | "buyer";
 
+// Paso 1 del asistente: cómo es el trato, con su color (mismos colores que los casos del panel).
+// Las clases van completas para que Tailwind las incluya.
+const CASOS_CREAR: {
+  tipo: SaleType; icon: typeof Truck; vendo: string; compro: string; ejemplo: string;
+  nombre: string; detalle: string; entrega: string; caja: string; sel: string; icono: string;
+}[] = [
+  {
+    tipo: "producto_envio", icon: Truck, vendo: "Vendo y lo envío", compro: "Compro y me lo envían",
+    ejemplo: "Por courier, a cualquier parte de Chile", nombre: "Ej: Zapatillas Nike talla 42",
+    detalle: "Estado, talla o modelo, qué incluye y cómo se envía. Ej: Nuevas, en caja, envío por Starken.",
+    entrega: "lo envía por courier con seguimiento",
+    caja: "from-emerald-500/15 border-emerald-500/20", sel: "border-emerald-500", icono: "bg-emerald-500 text-white",
+  },
+  {
+    tipo: "producto_persona", icon: Handshake, vendo: "Vendo en persona", compro: "Compro en persona",
+    ejemplo: "Se juntan y se revisa ahí mismo", nombre: "Ej: iPhone 13 128GB",
+    detalle: "Estado, accesorios y dónde se juntan. Ej: Batería al 89 %, con cargador, nos juntamos en Metro Baquedano.",
+    entrega: "se juntan y lo revisa ahí mismo",
+    caja: "from-amber-500/15 border-amber-500/20", sel: "border-amber-500", icono: "bg-amber-500 text-white",
+  },
+  {
+    tipo: "producto_digital", icon: Ticket, vendo: "Vendo una entrada o algo digital", compro: "Compro una entrada o algo digital",
+    ejemplo: "Entradas, links, archivos, cuentas", nombre: "Ej: 2 entradas cancha concierto",
+    detalle: "Qué es exactamente y cómo se entrega. Ej: 2 entradas cancha general, transferencia por la ticketera.",
+    entrega: "manda la entrada, el link o el archivo",
+    caja: "from-rose-500/15 border-rose-500/20", sel: "border-rose-500", icono: "bg-rose-500 text-white",
+  },
+  {
+    tipo: "servicio", icon: Briefcase, vendo: "Cobro un trabajo", compro: "Contrato un trabajo",
+    ejemplo: "Diseño, fotos, clases, arreglos…", nombre: "Ej: Diseño de logo para emprendimiento",
+    detalle: "Qué incluye, cuántas revisiones y para cuándo. Ej: Logo en 3 propuestas, 2 rondas de cambios, en 7 días.",
+    entrega: "hace el trabajo y lo marca como realizado",
+    caja: "from-violet-500/15 border-violet-500/20", sel: "border-violet-500", icono: "bg-violet-500 text-white",
+  },
+];
+
 const CreateTransaction = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -31,7 +67,6 @@ const CreateTransaction = () => {
   const [amountDisplay, setAmountDisplay] = useState("");
   const [orderDetails, setOrderDetails] = useState<ReturnType<typeof calculateOrderDetails> | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdTransactionId, setCreatedTransactionId] = useState<string | null>(null);
   const [createdInviteCode, setCreatedInviteCode] = useState<string | null>(null);
@@ -50,12 +85,17 @@ const CreateTransaction = () => {
     initiatorRole: InitiatorRole;
     buyerEmail: string;
   } | null>(null);
-  const [pendingFormEvent, setPendingFormEvent] = useState<React.FormEvent<HTMLFormElement> | null>(null);
+  const formDataTipo = formData;
   const [buyerEmail, setBuyerEmail] = useState("");
   const [pendingTransactionsCount, setPendingTransactionsCount] = useState(0);
   // Salas de esta cuenta que ya tuvieron plata: con 0, la primera va sin comisión. Lo que se
   // cobra lo decide process-escrow-deposit; esto es sólo para mostrarlo. null = cargando.
   const [salasFinanciadas, setSalasFinanciadas] = useState<number | null>(null);
+  // Asistente: el paso en que va y los datos (controlados: los pasos se desmontan)
+  const [paso, setPaso] = useState(1);
+  const [eligioTipo, setEligioTipo] = useState(false);
+  const [productName, setProductName] = useState("");
+  const [productDescription, setProductDescription] = useState("");
 
   // Los accesos del panel ("Compro por redes", "Freelance"…) llegan con ?tipo=&rol= ya elegidos
   const [searchParams] = useSearchParams();
@@ -64,6 +104,7 @@ const CreateTransaction = () => {
     if (tipo && ["servicio", "producto_persona", "producto_envio", "producto_digital"].includes(tipo)) {
       setMainType(tipo === "servicio" ? "servicio" : "producto");
       setSaleType(tipo);
+      setEligioTipo(true);
     }
     const rol = searchParams.get("rol");
     if (rol === "buyer" || rol === "seller") setInitiatorRole(rol);
@@ -140,17 +181,11 @@ const CreateTransaction = () => {
     setOrderDetails(calculateOrderDetails(value));
   };
 
-  const handleCreateTransaction = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleCreateTransaction = async () => {
     if (!user) return;
+    const parsedAmount = amount;
 
-    // Store form data before checking profile
-    const form = new FormData(e.currentTarget);
-    const productName = form.get("productName") as string;
-    const productDescription = form.get("productDescription") as string;
-    const parsedAmount = parseFormattedAmount(form.get("amount") as string);
-
-    if (!productName || !parsedAmount || parsedAmount <= 0) {
+    if (!productName.trim() || !parsedAmount || parsedAmount <= 0) {
       toast.error("Por favor completa todos los campos correctamente");
       return;
     }
@@ -186,22 +221,23 @@ const CreateTransaction = () => {
       }
     }
 
-    // Check profile completion before proceeding
+    // Perfil completo antes de crear; el paso 4 ya fue la revisión, así que se crea directo
     await requireCompleteProfile(() => {
-      setFormData({
-        productName,
-        productDescription,
+      const datos = {
+        productName: productName.trim(),
+        productDescription: productDescription.trim(),
         amount: parsedAmount,
         saleType,
         initiatorRole,
         buyerEmail,
-      });
-      setShowConfirmModal(true);
+      };
+      setFormData(datos);
+      void confirmCreateTransaction(datos);
     });
   };
 
-  const confirmCreateTransaction = async () => {
-    if (!user || !formData || !orderDetails) return;
+  const confirmCreateTransaction = async (formData: NonNullable<typeof formDataTipo>) => {
+    if (!user || !orderDetails) return;
 
     setLoading(true);
 
@@ -253,7 +289,6 @@ const CreateTransaction = () => {
         }
       }
 
-      setShowConfirmModal(false);
       setCreatedTransactionId(transaction.id);
       setCreatedInviteCode(inviteCode);
       setShowSuccessModal(true);
@@ -321,528 +356,360 @@ const CreateTransaction = () => {
       : orderDetails.sellerReceives; // Seller receives price - commission
   };
 
+  // ── Asistente por pasos ──────────────────────────────────────────────────────
+  const PASOS = ["¿Qué vas a hacer?", "¿Qué es?", "¿Cuánto?", "Revisar y crear"];
+  const puedeSeguir =
+    paso === 1 ? eligioTipo :
+    paso === 2 ? productName.trim().length >= 3 :
+    paso === 3 ? amount > 0 && !amountTooHigh :
+    termsAccepted;
+  const siguiente = () => {
+    if (!puedeSeguir) {
+      if (paso === 1) toast.error("Elige qué vas a hacer");
+      if (paso === 2) toast.error("Ponle un nombre de al menos 3 letras");
+      if (paso === 3) toast.error(amountTooHigh ? "Ese monto supera el máximo" : "Escribe el monto");
+      return;
+    }
+    setPaso((p) => Math.min(4, p + 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const atras = () => {
+    if (paso === 1) navigate("/dashboard");
+    else setPaso((p) => p - 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const caso = CASOS_CREAR.find((c) => c.tipo === saleType) ?? CASOS_CREAR[0];
+  const CasoIcon = caso.icon;
+  const vendo = !isBuyerInitiator;
+  const montoRapido = (v: number) => {
+    handleAmountChange({ target: { value: String(v) } } as React.ChangeEvent<HTMLInputElement>);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-info/5">
       <Helmet>
-        <title>Crear sala de transacción — Trado</title>
-        <meta name="description" content="Crea una sala de transacción protegida con escrow en Trado." />
+        <title>Crear sala — Trado</title>
+        <meta name="description" content="Crea una sala de Trado: la plata queda retenida hasta que se entrega lo acordado." />
         <meta name="robots" content="noindex" />
       </Helmet>
-      <h1 className="sr-only">Crear sala de transacción con escrow</h1>
-      <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Volver al inicio</span>
-          </Button>
+      <h1 className="sr-only">Crear una sala en Trado</h1>
+
+      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 max-w-3xl">
+          <div className="flex items-center gap-1 sm:gap-3">
+            <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={atras}>
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">{paso === 1 ? "Mi panel" : "Atrás"}</span>
+            </Button>
+            <Logo height={26} />
+          </div>
+          <span className="text-xs sm:text-sm text-muted-foreground font-medium">Nueva sala</span>
+        </div>
+        {/* Avance */}
+        <div className="h-1 bg-muted">
+          <div className="h-full bg-gradient-to-r from-primary via-info to-success transition-all duration-500" style={{ width: `${(paso / 4) * 100}%` }} />
         </div>
       </header>
 
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <Card className="max-w-2xl mx-auto shadow-xl">
-          <CardHeader className="pb-3 sm:pb-6">
-            <div className="flex items-center gap-2 sm:gap-3 mb-2">
-              <div className="p-2 sm:p-3 bg-primary/10 rounded-lg sm:rounded-xl">
-                <Handshake className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-2xl">Crear Sala</CardTitle>
-                <CardDescription className="text-xs sm:text-sm truncate">
-                  Transacción protegida con escrow
-                </CardDescription>
+      <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-10 max-w-3xl">
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary">Paso {paso} de 4</p>
+        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1 mb-6">{PASOS[paso - 1]}</h2>
+
+        {/* ── Paso 1: qué vas a hacer ── */}
+        {paso === 1 && (
+          <div className="space-y-6 animate-fade-in">
+            <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-muted">
+              {([
+                { rol: "seller", titulo: isService ? "Cobro" : "Vendo", sub: "Recibo la plata", icon: Store },
+                { rol: "buyer", titulo: isService ? "Contrato" : "Compro", sub: "Pago yo", icon: ShoppingBag },
+              ] as const).map(({ rol, titulo, sub, icon: Icon }) => (
+                <button
+                  key={rol}
+                  type="button"
+                  onClick={() => setInitiatorRole(rol)}
+                  className={`flex items-center justify-center gap-2.5 rounded-xl py-3 transition-all ${
+                    initiatorRole === rol ? "bg-card shadow-md" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Icon className={`h-5 w-5 ${initiatorRole === rol ? "text-primary" : ""}`} />
+                  <span className="text-left leading-tight">
+                    <span className="block font-bold">{titulo}</span>
+                    <span className="block text-xs text-muted-foreground">{sub}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground mb-3">¿Cómo es el trato?</p>
+              <div className="grid grid-cols-2 gap-3">
+                {CASOS_CREAR.map((c) => {
+                  const Icon = c.icon;
+                  const sel = eligioTipo && saleType === c.tipo;
+                  return (
+                    <button
+                      key={c.tipo}
+                      type="button"
+                      onClick={() => {
+                        setSaleType(c.tipo);
+                        setMainType(c.tipo === "servicio" ? "servicio" : "producto");
+                        setEligioTipo(true);
+                      }}
+                      className={`relative text-left rounded-2xl border-2 p-4 bg-gradient-to-b to-card transition-all hover:-translate-y-0.5 hover:shadow-lg ${c.caja} ${
+                        sel ? `${c.sel} shadow-lg` : "border-transparent"
+                      }`}
+                    >
+                      {sel && (
+                        <span className="absolute top-3 right-3 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center">
+                          <Check className="h-3.5 w-3.5" />
+                        </span>
+                      )}
+                      <span className={`w-11 h-11 rounded-2xl ${c.icono} shadow-md flex items-center justify-center mb-3`}>
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <span className="block font-bold">{vendo ? c.vendo : c.compro}</span>
+                      <span className="block text-xs text-muted-foreground mt-0.5">{c.ejemplo}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            {/* Unverified user warning banner */}
-            {isVerified === false && (
-              <div className="mb-6 p-4 bg-warning/10 border border-warning/30 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <ShieldAlert className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <h4 className="font-medium text-warning mb-1">Usuario no verificado</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Máximo <strong>${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)}</strong> por transacción</li>
-                      <li>• Máximo <strong>${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)}</strong> acumulado total</li>
-                    </ul>
-                    <Button 
-                      variant="link" 
-                      className="p-0 h-auto text-warning hover:text-warning/80 mt-2"
-                      onClick={() => navigate("/verification")}
-                    >
-                      <Shield className="h-4 w-4 mr-1" />
-                      Verificarme ahora
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Pending transactions warning */}
             {pendingTransactionsCount > 0 && (
-              <div className="mb-4 p-3 bg-muted/50 border border-border rounded-lg flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-muted-foreground">
-                  Tienes {pendingTransactionsCount} sala{pendingTransactionsCount > 1 ? "s" : ""} pendiente{pendingTransactionsCount > 1 ? "s" : ""} esperando comprador. Considera compartir el enlace antes de crear una nueva.
-                </p>
-              </div>
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                Tienes {pendingTransactionsCount} sala{pendingTransactionsCount > 1 ? "s" : ""} esperando a la otra persona.
+                Quizás te conviene compartir ese link antes de crear otra.
+              </p>
             )}
+          </div>
+        )}
 
-            <form onSubmit={handleCreateTransaction} className="space-y-4 sm:space-y-6">
-              {/* Step 1: Transaction Type */}
-              <div className="space-y-3 sm:space-y-4">
-                <Label className="text-sm sm:text-base font-semibold">1. ¿Qué tipo de transacción es?</Label>
-                <p className="text-xs sm:text-sm text-muted-foreground -mt-1">
-                  Regla simple: si <strong>entregas una cosa</strong> (objeto, entrada, archivo digital) es <strong>Producto</strong>. Si <strong>haces un trabajo</strong> (reparación, diseño, clases) es <strong>Servicio</strong>.
-                </p>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMainType("producto");
-                      setSaleType("producto_envio");
-                    }}
-                    className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all text-left ${
-                      mainType === "producto"
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <Package className={`h-6 w-6 sm:h-8 sm:w-8 mb-1 sm:mb-2 ${mainType === "producto" ? "text-primary" : "text-muted-foreground"}`} />
-                    <p className="font-semibold text-sm sm:text-base">Producto</p>
-                    <p className="text-xs text-muted-foreground">Objeto, entrada o digital</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMainType("servicio");
-                      setSaleType("servicio");
-                    }}
-                    className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all text-left ${
-                      mainType === "servicio"
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <Wrench className={`h-6 w-6 sm:h-8 sm:w-8 mb-1 sm:mb-2 ${mainType === "servicio" ? "text-primary" : "text-muted-foreground"}`} />
-                    <p className="font-semibold text-sm sm:text-base">Servicio</p>
-                    <p className="text-xs text-muted-foreground">Un trabajo que haces</p>
-                  </button>
-                </div>
-              </div>
+        {/* ── Paso 2: qué es ── */}
+        {paso === 2 && (
+          <div className="space-y-5 animate-fade-in">
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium bg-gradient-to-r ${caso.caja} to-card`}>
+              <CasoIcon className="h-4 w-4" /> {vendo ? caso.vendo : caso.compro}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="productName" className="text-base font-semibold">Nombre</Label>
+              <Input
+                id="productName"
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                placeholder={caso.nombre}
+                className="h-14 text-lg rounded-xl"
+                maxLength={120}
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="productDescription" className="text-base font-semibold">
+                Detalle <span className="text-muted-foreground font-normal text-sm">(recomendado)</span>
+              </Label>
+              <Textarea
+                id="productDescription"
+                value={productDescription}
+                onChange={(e) => setProductDescription(e.target.value)}
+                placeholder={caso.detalle}
+                rows={4}
+                className="rounded-xl text-base"
+              />
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <Shield className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
+                Esto es lo acordado: si hay un reclamo, el equipo lo compara con lo que se entregó.
+              </p>
+            </div>
+          </div>
+        )}
 
-              {/* Step 2: Role Selection */}
-              <div className="space-y-4">
-                <Label className="text-base font-semibold">2. ¿Cuál es tu rol en esta transacción?</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setInitiatorRole("seller")}
-                    className={`p-4 rounded-xl border-2 transition-all text-left ${
-                      initiatorRole === "seller"
-                        ? "border-success bg-success/10"
-                        : "border-border hover:border-success/50"
-                    }`}
-                  >
-                    <Store className={`h-8 w-8 mb-2 ${initiatorRole === "seller" ? "text-success" : "text-muted-foreground"}`} />
-                    <p className="font-semibold">{isService ? "Proveo el servicio" : "Vendo el producto"}</p>
-                    <p className="text-xs text-muted-foreground">Recibiré el dinero</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInitiatorRole("buyer")}
-                    className={`p-4 rounded-xl border-2 transition-all text-left ${
-                      initiatorRole === "buyer"
-                        ? "border-info bg-info/10"
-                        : "border-border hover:border-info/50"
-                    }`}
-                  >
-                    <ShoppingBag className={`h-8 w-8 mb-2 ${initiatorRole === "buyer" ? "text-info" : "text-muted-foreground"}`} />
-                    <p className="font-semibold">{isService ? "Contrato el servicio" : "Compro el producto"}</p>
-                    <p className="text-xs text-muted-foreground">Pagaré por esto</p>
-                  </button>
-                </div>
-              </div>
-
-              {/* Step 3: Product/Service Name */}
-              <div className="space-y-2">
-                <Label htmlFor="productName">3. Nombre del {itemLabel.toLowerCase()}</Label>
-                <Input
-                  id="productName"
-                  name="productName"
-                  placeholder={isService ? "Ej: Diseño de logo" : "Ej: iPhone 13 Pro"}
-                  required
-                />
-              </div>
-
-              {/* Step 4: Description */}
-              <div className="space-y-2">
-                <Label htmlFor="productDescription">4. Descripción</Label>
-                <Textarea
-                  id="productDescription"
-                  name="productDescription"
-                  placeholder={`Describe el ${itemLabel.toLowerCase()}...`}
-                  rows={4}
-                />
-              </div>
-
-              {/* Step 5: Delivery method for products */}
-              {mainType === "producto" && (
-                <div className="space-y-2 animate-fade-in">
-                  <Label className="text-base font-semibold">5. ¿Cómo se entregará el producto?</Label>
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setSaleType("producto_persona")}
-                      className={`p-3 rounded-lg border-2 transition-all text-left ${
-                        saleType === "producto_persona"
-                          ? "border-info bg-info/10"
-                          : "border-border hover:border-info/50"
-                      }`}
-                    >
-                      <Users className={`h-6 w-6 mb-1 ${saleType === "producto_persona" ? "text-info" : "text-muted-foreground"}`} />
-                      <p className="font-medium text-sm">En Persona</p>
-                      <p className="text-xs text-muted-foreground">Encuentro físico</p>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSaleType("producto_envio")}
-                      className={`p-3 rounded-lg border-2 transition-all text-left ${
-                        saleType === "producto_envio"
-                          ? "border-info bg-info/10"
-                          : "border-border hover:border-info/50"
-                      }`}
-                    >
-                      <Truck className={`h-6 w-6 mb-1 ${saleType === "producto_envio" ? "text-info" : "text-muted-foreground"}`} />
-                      <p className="font-medium text-sm">Por Envío</p>
-                      <p className="text-xs text-muted-foreground">Courier o despacho</p>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSaleType("producto_digital")}
-                      className={`p-3 rounded-lg border-2 transition-all text-left ${
-                        saleType === "producto_digital"
-                          ? "border-info bg-info/10"
-                          : "border-border hover:border-info/50"
-                      }`}
-                    >
-                      <Link className={`h-6 w-6 mb-1 ${saleType === "producto_digital" ? "text-info" : "text-muted-foreground"}`} />
-                      <p className="font-medium text-sm">Digital</p>
-                      <p className="text-xs text-muted-foreground">Entrada, link o archivo</p>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 6: Price */}
-              <div className="space-y-2">
-                <Label htmlFor="amount">{mainType === "producto" ? "6" : "5"}. Precio (CLP)</Label>
-                <Input
+        {/* ── Paso 3: cuánto ── */}
+        {paso === 3 && (
+          <div className="space-y-5 animate-fade-in">
+            <div className="rounded-3xl bg-card border shadow-xl p-5 sm:p-7">
+              <Label htmlFor="amount" className="text-sm font-semibold text-muted-foreground">Precio acordado</Label>
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-4xl sm:text-5xl font-extrabold text-muted-foreground">$</span>
+                <input
                   id="amount"
-                  name="amount"
                   type="text"
                   inputMode="numeric"
-                  placeholder="150.000"
-                  required
+                  placeholder="0"
                   value={amountDisplay}
                   onChange={handleAmountChange}
+                  autoFocus
+                  className="w-full bg-transparent text-4xl sm:text-5xl font-extrabold tracking-tight outline-none placeholder:text-muted-foreground/40"
                 />
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Info className="h-3 w-3" />
-                  Comisión: 5% con tarjeta · desde 3,5% con transferencia · mínimo $1.000
-                </p>
-                {tienePrimeraGratis && (
-                  <p className="text-sm text-success font-medium">
-                    Tu primera sala va sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.
-                  </p>
-                )}
+              </div>
+              <div className="flex flex-wrap gap-2 mt-4">
+                {[10_000, 30_000, 50_000, 100_000, 250_000].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => montoRapido(v)}
+                    className="rounded-full border px-3 py-1.5 text-sm hover:border-primary hover:text-primary transition-colors"
+                  >
+                    ${formatCLP(v)}
+                  </button>
+                ))}
               </div>
 
-              {/* Over-limit notice — shown instead of the commission breakdown */}
               {amountTooHigh && (
-                <div className="p-5 bg-info/10 rounded-lg border-2 border-info/30 space-y-2">
-                  <h4 className="font-semibold text-info flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5" />
-                    Monto sobre el máximo
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    Para transacciones sobre <strong>$2.000.000 CLP</strong> coordina las condiciones
-                    directamente con nuestro equipo escribiendo a{" "}
+                <div className="mt-5 p-4 bg-info/10 rounded-xl border border-info/30 text-sm">
+                  <p className="font-semibold text-info">Monto sobre el máximo</p>
+                  <p className="text-muted-foreground mt-1">
+                    Sobre ${formatCLP(MAX_TRANSACTION_AMOUNT)} coordinamos las condiciones contigo: escríbenos a{" "}
                     <a href="mailto:contacto@trado.cl" className="text-primary underline">contacto@trado.cl</a>.
                   </p>
                 </div>
               )}
 
-              {/* Commission Breakdown */}
               {orderDetails && (
-                <>
-                  <div className="p-5 bg-gradient-to-br from-warning/10 to-warning/5 rounded-lg border-2 border-warning/30 space-y-3">
-                    <h4 className="font-semibold text-warning mb-3 flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5" />
-                      Desglose de la Transacción
-                    </h4>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-muted-foreground">Precio del {itemLabel.toLowerCase()}:</span>
-                        <span className="font-bold text-foreground text-lg">
-                          ${formatCLP(orderDetails.buyerPays)}
-                        </span>
-                      </div>
-                      
-                      {sinComision ? (
-                        <>
-                          <div className="flex justify-between items-center py-2 bg-success/10 rounded px-2">
-                            <span className="text-muted-foreground">Comisión Trado:</span>
-                            <span className="font-bold text-success text-lg">$0 · tu primera sala</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 bg-success/10 rounded px-2">
-                            <span className="text-muted-foreground">{sellerLabel} recibirá:</span>
-                            <span className="font-bold text-success text-lg">
-                              ${formatCLP(getSellerReceivesAmount())}
-                            </span>
-                          </div>
-                        </>
-                      ) : isBuyerInitiator ? (
-                        <>
-                          <p className="text-xs text-muted-foreground">
-                            Como {buyerLabel.toLowerCase()} que crea la sala, la comisión la pagas tú, sumada al precio.
-                          </p>
-                          <FeeOptions amount={orderDetails.buyerPays} payer="buyer" />
-                          <div className="flex justify-between items-center py-2 bg-success/10 rounded px-2">
-                            <span className="text-muted-foreground">{sellerLabel} recibirá:</span>
-                            <span className="font-bold text-success text-lg">
-                              ${formatCLP(getSellerReceivesAmount())}
-                            </span>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-xs text-muted-foreground">
-                            La comisión se descuenta de lo que recibes.
-                          </p>
-                          <FeeOptions amount={orderDetails.buyerPays} payer="seller" />
-                        </>
-                      )}
-                    </div>
+                <div className="mt-5 space-y-3">
+                  <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-primary to-info text-white px-5 py-4 shadow-lg">
+                    <span className="text-sm font-medium text-white/85">
+                      {vendo ? "Recibirás" : sinComision ? "Pagarás" : "Pagarás con tarjeta"}
+                    </span>
+                    <span className="text-3xl font-extrabold">
+                      ${formatCLP(vendo ? getSellerReceivesAmount() : sinComision ? orderDetails.buyerPays : feeOptions(orderDetails.buyerPays, "buyer").conTarjeta)}
+                    </span>
                   </div>
-
-                  <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg border border-border">
-                    <Checkbox
-                      id="termsAccepted"
-                      checked={termsAccepted}
-                      onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <label
-                        htmlFor="termsAccepted"
-                        className="text-sm font-medium leading-relaxed cursor-pointer"
-                      >
-                        {sinComision ? (
-                          <>
-                            Entiendo que esta sala va sin comisión por ser mi primera sala en Trado, y que el{" "}
-                            {sellerLabel.toLowerCase()} recibirá{" "}
-                            <span className="font-bold text-success">${formatCLP(getSellerReceivesAmount())}</span>.
-                          </>
-                        ) : isBuyerInitiator ? (
-                          <>
-                            Acepto pagar el precio más la comisión de Trado:{" "}
-                            <span className="font-bold text-info">
-                              ${formatCLP(feeOptions(orderDetails.buyerPays, "buyer").conTarjeta)}
-                            </span>{" "}
-                            en total con tarjeta
-                            {feeOptions(orderDetails.buyerPays, "buyer").transferenciaDisponible && (
-                              <>
-                                {" "}o{" "}
-                                <span className="font-bold text-info">
-                                  ${formatCLP(feeOptions(orderDetails.buyerPays, "buyer").conTransferencia)}
-                                </span>{" "}
-                                por transferencia
-                              </>
-                            )}
-                            , y que el {sellerLabel.toLowerCase()} recibirá{" "}
-                            <span className="font-bold text-success">
-                              ${formatCLP(getSellerReceivesAmount())}
-                            </span>.
-                          </>
-                        ) : (
-                          <>
-                            Acepto la comisión de Trado:{" "}
-                            <span className="font-bold text-warning">
-                              ${formatCLP(feeOptions(orderDetails.buyerPays, "seller").tarjeta)}
-                            </span>{" "}
-                            si el comprador paga con tarjeta
-                            {feeOptions(orderDetails.buyerPays, "seller").transferenciaDisponible && (
-                              <>
-                                {" "}o{" "}
-                                <span className="font-bold text-warning">
-                                  ${formatCLP(feeOptions(orderDetails.buyerPays, "seller").transferencia)}
-                                </span>{" "}
-                                si paga por transferencia
-                              </>
-                            )}
-                            , descontada de lo que recibo al completarse la transacción.
-                          </>
-                        )}
-                      </label>
+                  {sinComision ? (
+                    <div className="flex items-center gap-3 rounded-2xl bg-success/10 border border-success/30 px-4 py-3">
+                      <Gift className="h-5 w-5 text-success shrink-0" />
+                      <p className="text-sm"><b>Tu primera sala va sin comisión.</b> No se descuenta nada.</p>
                     </div>
-                  </div>
-                </>
-              )}
-
-              {/* Optional direct buyer invite */}
-              <div className="space-y-2">
-                <Label htmlFor="buyerEmail" className="text-sm sm:text-base font-semibold">
-                  Invitar al comprador por correo <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="buyerEmail"
-                    type="email"
-                    placeholder="correo@ejemplo.com"
-                    value={buyerEmail}
-                    onChange={(e) => setBuyerEmail(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Si lo rellenas, le enviaremos un correo con el enlace de invitación. También podrás compartir el link manualmente.
-                </p>
-              </div>
-
-              {/* How it works info */}
-              <div className="p-4 bg-info/10 rounded-lg border border-info/20">
-                <h4 className="font-semibold text-info mb-2">¿Cómo funciona?</h4>
-                <ol className="text-sm space-y-1 text-muted-foreground list-decimal list-inside">
-                  {isBuyerInitiator ? (
-                    <>
-                      <li>Creas la sala y compartes el código con el {sellerLabel.toLowerCase()}</li>
-                      <li>El {sellerLabel.toLowerCase()} se une a la sala</li>
-                      <li>Tú depositas el dinero en Trado (escrow)</li>
-                      <li>Se coordina la entrega del {itemLabel.toLowerCase()}</li>
-                      <li>Confirmas que recibiste todo correctamente</li>
-                      <li>Trado libera el pago al {sellerLabel.toLowerCase()}</li>
-                    </>
                   ) : (
-                    <>
-                      <li>Creas la sala y compartes el código con el {buyerLabel.toLowerCase()}</li>
-                      <li>El {buyerLabel.toLowerCase()} deposita el dinero en Trado (escrow)</li>
-                      <li>Coordinas la entrega del {itemLabel.toLowerCase()}</li>
-                      <li>El {buyerLabel.toLowerCase()} confirma que recibió todo correctamente</li>
-                      <li>Trado libera el pago a tu billetera</li>
-                    </>
+                    <FeeOptions amount={orderDetails.buyerPays} payer={vendo ? "seller" : "buyer"} />
                   )}
+                </div>
+              )}
+              {!orderDetails && !amountTooHigh && tienePrimeraGratis && (
+                <p className="mt-4 text-sm text-success font-medium flex items-center gap-1.5">
+                  <Gift className="h-4 w-4" /> Tu primera sala va sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.
+                </p>
+              )}
+            </div>
+
+            {isVerified === false && (
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5 text-warning" />
+                Sin verificar puedes usar salas de hasta ${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)} (${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)} en
+                total).{" "}
+                <button type="button" onClick={() => navigate("/verification")} className="text-primary underline">Verificarme</button>
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* ── Paso 4: revisar y crear ── */}
+        {paso === 4 && orderDetails && (
+          <div className="space-y-5 animate-fade-in">
+            <div className="rounded-3xl overflow-hidden border shadow-xl bg-card">
+              <div className="bg-gradient-to-r from-primary to-info text-white p-5 sm:p-6">
+                <div className="flex items-center gap-2 text-sm text-white/80">
+                  <CasoIcon className="h-4 w-4" /> {vendo ? caso.vendo : caso.compro}
+                </div>
+                <p className="text-xl sm:text-2xl font-bold mt-1 break-words">{productName}</p>
+                <p className="text-3xl sm:text-4xl font-extrabold mt-2">${formatCLP(amount)}</p>
+              </div>
+              <div className="p-5 sm:p-6 space-y-4">
+                {productDescription.trim() && (
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{productDescription}</p>
+                )}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-xl bg-muted/50 p-3">
+                    <p className="text-xs text-muted-foreground">{vendo ? "Tú recibes" : "Tú pagas"}</p>
+                    <p className="font-bold text-lg">
+                      ${formatCLP(vendo ? getSellerReceivesAmount() : sinComision ? orderDetails.buyerPays : feeOptions(orderDetails.buyerPays, "buyer").conTarjeta)}
+                    </p>
+                    {!vendo && !sinComision && <p className="text-[11px] text-muted-foreground">con tarjeta</p>}
+                  </div>
+                  <div className="rounded-xl bg-muted/50 p-3">
+                    <p className="text-xs text-muted-foreground">Comisión Trado</p>
+                    <p className="font-bold text-lg">{sinComision ? <span className="text-success">$0</span> : `$${formatCLP(orderDetails.appFee)}`}</p>
+                    <p className="text-[11px] text-muted-foreground">{sinComision ? "tu primera sala" : "con tarjeta · menos por transferencia"}</p>
+                  </div>
+                </div>
+
+                <ol className="space-y-2">
+                  {(vendo
+                    ? ["Compartes el link con quien compra", "Paga en Trado y la plata queda retenida", `Entregas: ${caso.entrega}`, "Confirma y se libera tu pago"]
+                    : ["Compartes el link con quien vende", "Pagas en Trado y la plata queda retenida", `Te entrega: ${caso.entrega}`, "Revisas, confirmas y se libera el pago"]
+                  ).map((t, i) => (
+                    <li key={t} className="flex items-center gap-3 text-sm">
+                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                      {t}
+                    </li>
+                  ))}
                 </ol>
               </div>
-
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={loading || !termsAccepted || !orderDetails}
-              >
-                <Handshake className="mr-2 h-4 w-4" />
-                {loading ? "Creando..." : "Crear Sala de Transacción"}
-              </Button>
-              {!termsAccepted && orderDetails && (
-                <p className="text-sm text-muted-foreground text-center">
-                  Debes aceptar los términos para continuar
-                </p>
-              )}
-            </form>
-          </CardContent>
-        </Card>
-      </main>
-
-      {/* Confirmation Modal */}
-      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-        <DialogContent className="max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden">
-          <DialogHeader className="flex-shrink-0">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-success/10 rounded-xl">
-                <CheckCircle2 className="h-6 w-6 text-success" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl">Confirmar Creación</DialogTitle>
-                <DialogDescription>
-                  Revisa los detalles antes de continuar
-                </DialogDescription>
-              </div>
             </div>
-          </DialogHeader>
 
-          {formData && orderDetails && (
-            <div className="space-y-4 py-4 overflow-y-auto flex-1 min-h-0 overscroll-contain">
-              <div className="p-4 bg-muted/30 rounded-lg space-y-2">
-                <h4 className="font-semibold text-sm text-muted-foreground">{itemLabel}</h4>
-                <p className="font-bold text-lg">{formData.productName}</p>
-                {formData.productDescription && (
-                  <p className="text-sm text-muted-foreground">{formData.productDescription}</p>
-                )}
+            <div className="space-y-2">
+              <Label htmlFor="buyerEmail" className="text-sm font-semibold">
+                ¿Le mandamos la invitación por correo? <span className="text-muted-foreground font-normal">(opcional)</span>
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="buyerEmail"
+                  type="email"
+                  placeholder="correo de la otra persona"
+                  value={buyerEmail}
+                  onChange={(e) => setBuyerEmail(e.target.value)}
+                  className="pl-9 h-12 rounded-xl"
+                />
               </div>
-
-              <div className="p-4 bg-muted/30 rounded-lg">
-                <h4 className="font-semibold text-sm text-muted-foreground mb-2">Tu rol</h4>
-                <p className="font-bold">
-                  {isBuyerInitiator ? buyerLabel : sellerLabel}
-                </p>
-              </div>
-
-              {formData.buyerEmail && (
-                <div className="p-4 bg-info/10 rounded-lg border border-info/20 flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-info flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Se enviará invitación a</p>
-                    <p className="font-medium text-sm">{formData.buyerEmail}</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20 space-y-3">
-                <h4 className="font-semibold text-primary mb-3">Resumen Financiero</h4>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Precio:</span>
-                  <span className="font-bold">${formatCLP(formData.amount)}</span>
-                </div>
-                
-                <FeeOptions amount={Number(formData.amount)} payer={isBuyerInitiator ? "buyer" : "seller"} compact />
-
-                {isBuyerInitiator && (
-                  <div className="pt-2 border-t flex justify-between items-center">
-                    <span className="text-muted-foreground">{sellerLabel} recibirá:</span>
-                    <span className="font-bold text-success">${formatCLP(getSellerReceivesAmount())}</span>
-                  </div>
-                )}
-              </div>
-
-              {isBuyerInitiator && (
-                <div className="p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    <strong>Nota:</strong> No podrás depositar el dinero hasta que el {sellerLabel.toLowerCase()} se una a la sala.
-                  </p>
-                </div>
-              )}
+              <p className="text-xs text-muted-foreground">Igual vas a poder compartir el link por WhatsApp al crearla.</p>
             </div>
+
+            <label htmlFor="termsAccepted" className="flex items-start gap-3 p-4 rounded-2xl border bg-card cursor-pointer">
+              <Checkbox
+                id="termsAccepted"
+                checked={termsAccepted}
+                onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                className="mt-0.5"
+              />
+              <span className="text-sm leading-relaxed">
+                {sinComision
+                  ? "Entiendo que va sin comisión por ser mi primera sala, y que la plata queda retenida en Trado hasta que se confirme la entrega."
+                  : vendo
+                    ? "Acepto la comisión de Trado, que se descuenta de lo que recibo cuando se complete la sala."
+                    : "Acepto pagar el precio más la comisión de Trado, y que la plata quede retenida hasta que confirme la entrega."}
+              </span>
+            </label>
+          </div>
+        )}
+
+        {/* Navegación */}
+        <div className="mt-8 flex items-center gap-3">
+          {paso > 1 && (
+            <Button variant="outline" size="lg" className="rounded-xl" onClick={atras}>
+              <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
+            </Button>
           )}
-
-          <DialogFooter className="flex-shrink-0 gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowConfirmModal(false)}
-              disabled={loading}
+          {paso < 4 ? (
+            <Button
+              size="lg"
+              className={`flex-1 rounded-xl h-14 text-base font-bold bg-gradient-to-r from-primary to-info text-white shadow-lg ${puedeSeguir ? "" : "opacity-60"}`}
+              onClick={siguiente}
             >
-              Cancelar
+              Seguir <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
-            <Button 
-              onClick={confirmCreateTransaction}
-              disabled={loading}
+          ) : (
+            <Button
+              size="lg"
+              className="flex-1 rounded-xl h-14 text-base font-bold bg-gradient-to-r from-success to-emerald-600 text-white shadow-lg shadow-success/25"
+              disabled={loading || !termsAccepted || !orderDetails}
+              onClick={handleCreateTransaction}
             >
-              {loading ? "Creando..." : "Confirmar y Crear"}
+              <Handshake className="h-5 w-5 mr-2" />
+              {loading ? "Creando…" : "Crear sala"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          )}
+        </div>
+      </main>
 
       {/* Success Modal with Invite Link */}
       <Dialog open={showSuccessModal} onOpenChange={(open) => {
@@ -945,12 +812,15 @@ const CreateTransaction = () => {
               style={{ animationDelay: '0.5s', animationFillMode: 'backwards' }}
             >
               <Button
-                variant="default"
-                className={`w-full h-14 text-base font-semibold transition-all duration-300 ${
-                  copiedLink 
-                    ? 'bg-success hover:bg-success/90 shadow-lg shadow-success/25' 
-                    : 'shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02]'
-                }`}
+                className="w-full h-14 text-base font-semibold bg-[#25D366] hover:bg-[#1ebe5b] text-white shadow-lg shadow-[#25D366]/25"
+                onClick={shareViaWhatsApp}
+              >
+                <MessageCircle className="mr-2 h-5 w-5" />
+                Mandar por WhatsApp
+              </Button>
+              <Button
+                variant="outline"
+                className={`w-full h-12 font-semibold transition-all duration-300 ${copiedLink ? "border-success text-success" : ""}`}
                 onClick={copyInviteLink}
               >
                 {copiedLink ? (
@@ -988,7 +858,7 @@ const CreateTransaction = () => {
                 }}
                 className="w-full text-muted-foreground hover:text-foreground transition-colors"
               >
-                Ir a la Sala de Transacción
+                Ir a mi sala
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>

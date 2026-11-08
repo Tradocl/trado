@@ -1479,17 +1479,46 @@ const Transaction = () => {
 
         {/* Completed state */}
         {(transaction.state === "completed" || isAppealResolved) && (
-          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/20 to-success/5 animate-scale-in">
-            <CardContent className="p-8 text-center">
-              <div className="flex justify-center mb-4">
-                <div className="p-4 bg-success/20 rounded-full">
-                  <Check className="h-16 w-16 text-success" />
-                </div>
+          <Card className="relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-success via-emerald-600 to-primary text-white animate-scale-in">
+            {/* Confeti */}
+            <div className="absolute inset-0 pointer-events-none" aria-hidden>
+              {[
+                ["8%", "12%", "bg-amber-300", "0s"], ["22%", "70%", "bg-white", "0.3s"], ["38%", "20%", "bg-pink-300", "0.6s"],
+                ["55%", "78%", "bg-sky-300", "0.2s"], ["70%", "15%", "bg-white", "0.5s"], ["86%", "60%", "bg-amber-300", "0.4s"],
+                ["92%", "25%", "bg-pink-300", "0.1s"], ["15%", "45%", "bg-sky-300", "0.7s"],
+              ].map(([left, top, color, delay]) => (
+                <span
+                  key={left + top}
+                  className={`absolute w-2 h-3 rounded-sm ${color} opacity-80 animate-bounce`}
+                  style={{ left, top, animationDelay: delay, animationDuration: "2.4s" }}
+                />
+              ))}
+            </div>
+            <CardContent className="relative p-7 sm:p-10 text-center">
+              <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center ring-8 ring-white/10">
+                <Check className="h-11 w-11 text-white" />
               </div>
-              <p className="font-bold text-2xl text-success mb-2">🎉 ¡Sala completada!</p>
-              <p className="text-muted-foreground">
-                Gracias por usar Trado. Los fondos han sido liberados exitosamente.
-              </p>
+              <p className="font-extrabold text-2xl sm:text-3xl tracking-tight">¡Sala completada! 🎉</p>
+              {transaction.state === "completed" ? (
+                <>
+                  <p className="text-white/85 mt-2">
+                    {isSeller ? "Tu pago ya está en tu billetera Trado" : isBuyer ? "El vendedor ya recibió su pago. ¡Gracias por comprar seguro!" : "El pago fue liberado"}
+                  </p>
+                  {isSeller && (
+                    <p className="text-4xl sm:text-5xl font-extrabold mt-3">${formatCLP(sellerReceives)}</p>
+                  )}
+                  {isSeller && (
+                    <Button
+                      onClick={() => navigate("/wallet")}
+                      className="mt-5 bg-white text-success hover:bg-white/90 font-bold"
+                    >
+                      Ver mi billetera
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <p className="text-white/85 mt-2">El reclamo se resolvió y la plata se repartió según la decisión.</p>
+              )}
             </CardContent>
           </Card>
         )}
