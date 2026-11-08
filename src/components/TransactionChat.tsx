@@ -29,9 +29,33 @@ interface TransactionChatProps {
   isAdmin?: boolean;
   adminName?: string;
   hideHeader?: boolean;
+  /** Para sugerir cómo partir la conversación según el tipo de venta y quién escribe. */
+  saleType?: string;
+  soyVendedor?: boolean;
 }
 
-export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName, isAdmin = false, adminName, hideHeader = false }: TransactionChatProps) => {
+// Frases para romper el hielo dentro de la sala, donde la conversación queda como prueba.
+// Al tocarlas se escriben en el campo: la persona las edita antes de mandarlas.
+const SUGERENCIAS: Record<string, { comprador: string[]; vendedor: string[] }> = {
+  producto_envio: {
+    comprador: ["¡Hola! ¿Cuándo lo despachas?", "Mi dirección de envío es: ", "¿Por qué courier lo envías?"],
+    vendedor: ["¡Hola! ¿Me confirmas tu dirección de envío?", "Lo despacho y dejo el seguimiento en la sala", "¿Prefieres Chilexpress, Starken o Blue?"],
+  },
+  producto_persona: {
+    comprador: ["¡Hola! ¿Dónde y a qué hora nos juntamos?", "¿Me mandas una foto actual del producto?"],
+    vendedor: ["¡Hola! ¿Te acomoda juntarnos en un lugar público?", "Te mando una foto actual del producto"],
+  },
+  producto_digital: {
+    comprador: ["¡Hola! ¿Me la puedes transferir a mi cuenta?", "¿Cuándo me la envías?"],
+    vendedor: ["¡Hola! Te la envío apenas pagues en la sala", "¿A qué correo o cuenta te la transfiero?"],
+  },
+  servicio: {
+    comprador: ["¡Hola! ¿Para cuándo lo tendrías listo?", "Te dejo los detalles de lo que necesito: "],
+    vendedor: ["¡Hola! ¿Me confirmas los detalles del trabajo?", "Te aviso apenas lo termine"],
+  },
+};
+
+export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, buyerName, isAdmin = false, adminName, hideHeader = false, saleType, soyVendedor = false }: TransactionChatProps) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   // URL guardada -> URL firmada temporal (el bucket del chat es privado).
@@ -285,8 +309,23 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
             {messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-6 sm:py-8">
                 <MessageCircle className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 opacity-50" />
-                <p className="text-xs sm:text-sm">No hay mensajes aún</p>
-                <p className="text-xs">Envía el primer mensaje</p>
+                <p className="text-xs sm:text-sm font-medium">Conversen aquí: todo queda registrado en la sala</p>
+                {!isAdmin && saleType && SUGERENCIAS[saleType] ? (
+                  <div className="mt-4 flex flex-wrap justify-center gap-2 px-2">
+                    {SUGERENCIAS[saleType][soyVendedor ? "vendedor" : "comprador"].map((frase) => (
+                      <button
+                        key={frase}
+                        type="button"
+                        onClick={() => setNewMessage(frase)}
+                        className="rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5 text-xs text-primary hover:bg-primary/10 transition-colors"
+                      >
+                        {frase}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs">Envía el primer mensaje</p>
+                )}
               </div>
             ) : (
               messages.map((msg) => {

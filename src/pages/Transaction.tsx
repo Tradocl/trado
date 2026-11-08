@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Check, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle, Clock, ChevronDown, MessageCircle, User } from "lucide-react";
+import { ArrowLeft, Copy, Check, Wrench, Link2, AlertCircle, Package, DollarSign, Star, Truck, Users, Store, Eye, RotateCcw, MapPin, Handshake, Shield, Lock, ShieldCheck, AlertTriangle, Clock, ChevronDown, MessageCircle, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -35,6 +35,7 @@ import { translateError } from "@/lib/error-messages";
 import { getStateLabel } from "@/lib/transaction-labels";
 import { reviewHoursFor } from "@/lib/escrow";
 import { Logo } from "@/components/Logo";
+import { PasosSala } from "@/components/PasosSala";
 
 interface Transaction {
   id: string;
@@ -881,6 +882,13 @@ const Transaction = () => {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6 animate-fade-in">
+        {transaction.sale_type && (
+          <PasosSala
+            saleType={transaction.sale_type}
+            state={transaction.state}
+            conAmbos={!!transaction.seller_id && !!transaction.buyer_id}
+          />
+        )}
         {/* === SECTION 1: REQUIRED ACTIONS (TOP PRIORITY) === */}
         
         {/* Join action - works for both buyer and seller joining */}
@@ -1478,7 +1486,7 @@ const Transaction = () => {
                   <Check className="h-16 w-16 text-success" />
                 </div>
               </div>
-              <p className="font-bold text-2xl text-success mb-2">🎉 ¡Transacción Completada!</p>
+              <p className="font-bold text-2xl text-success mb-2">🎉 ¡Sala completada!</p>
               <p className="text-muted-foreground">
                 Gracias por usar Trado. Los fondos han sido liberados exitosamente.
               </p>
@@ -1572,7 +1580,7 @@ const Transaction = () => {
                   <Copy className="h-4 w-4 sm:h-5 sm:w-5 text-info-foreground" />
                 </div>
                 <h4 className="font-bold text-info text-base sm:text-lg">
-                  ⏳ Esperando {joinerRoleLabel}
+                  Esperando {joinerRoleLabel}
                 </h4>
               </div>
               <div className="flex flex-col gap-3">
@@ -1652,11 +1660,11 @@ const Transaction = () => {
               </div>
               <div className="flex flex-wrap gap-2 items-center sm:items-end shrink-0">
                 {transaction.sale_type && (
-                  <Badge variant="outline" className="text-xs px-2 py-1">
-                    {transaction.sale_type === "servicio" && "🛠️ Servicio"}
-                    {transaction.sale_type === "producto_persona" && "🤝 En Persona"}
-                    {transaction.sale_type === "producto_envio" && "📦 Envío"}
-                    {transaction.sale_type === "producto_digital" && "💾 Digital"}
+                  <Badge variant="outline" className="text-xs px-2 py-1 gap-1">
+                    {transaction.sale_type === "servicio" && <><Wrench className="h-3 w-3" /> Servicio</>}
+                    {transaction.sale_type === "producto_persona" && <><Handshake className="h-3 w-3" /> En persona</>}
+                    {transaction.sale_type === "producto_envio" && <><Truck className="h-3 w-3" /> Envío</>}
+                    {transaction.sale_type === "producto_digital" && <><Link2 className="h-3 w-3" /> Digital</>}
                   </Badge>
                 )}
                 {(() => {
@@ -1737,13 +1745,13 @@ const Transaction = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-success">
-                          {transaction.state === 'invited' && `⏳ Esperando depósito del ${buyerLabel.toLowerCase()}`}
-                          {transaction.state === 'funds_secured' && '✅ Fondos asegurados en escrow'}
-                          {transaction.state === 'in_delivery' && `📦 ${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : isDigital ? 'Producto digital entregado' : 'Producto en camino'}`}
-                          {transaction.state === 'awaiting_buyer_review' && '👁️ Período de revisión activo'}
-                          {transaction.state === 'return_requested' && '📦 Devolución solicitada'}
-                          {transaction.state === 'return_in_progress' && '📦 Devolución en progreso'}
-                          {transaction.state === 'created' && `✅ ${joinerRoleLabel} se ha unido`}
+                          {transaction.state === 'invited' && `Esperando el pago del ${buyerLabel.toLowerCase()}`}
+                          {transaction.state === 'funds_secured' && 'Pago retenido en Trado'}
+                          {transaction.state === 'in_delivery' && `${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : isDigital ? 'Producto digital entregado' : 'Producto en camino'}`}
+                          {transaction.state === 'awaiting_buyer_review' && 'Período de revisión activo'}
+                          {transaction.state === 'return_requested' && 'Devolución solicitada'}
+                          {transaction.state === 'return_in_progress' && 'Devolución en camino'}
+                          {transaction.state === 'created' && `${joinerRoleLabel} se unió a la sala`}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {transaction.state === 'invited' && `${joinerProfile?.full_name} se ha unido, falta depositar`}
@@ -1787,7 +1795,7 @@ const Transaction = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">Sala Creada</p>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      ✅ {creatorRoleLabel} ({creatorName}) creó la sala
+                      {creatorRoleLabel} ({creatorName}) creó la sala
                     </p>
                   </div>
                 </div>
@@ -1802,7 +1810,7 @@ const Transaction = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">{joinerRoleLabel} Unido</p>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      {joinerProfile ? `✅ ${joinerRoleLabel} (${joinerName}) confirmado` : `⏳ Esperando ${joinerRoleLabel.toLowerCase()}...`}
+                      {joinerProfile ? `${joinerRoleLabel} (${joinerName}) confirmado` : `Esperando ${joinerRoleLabel.toLowerCase()}...`}
                     </p>
                   </div>
                 </div>
@@ -1822,10 +1830,10 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">Pago en Escrow</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery || transaction.state === 'funds_secured'
-                        ? '✅ Fondos asegurados'
+                        ? 'Fondos asegurados'
                         : transaction.state === 'invited'
-                        ? `⏳ Esperando depósito...`
-                        : '⚪ Pendiente'}
+                        ? `Esperando depósito...`
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -1845,10 +1853,10 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">{isDigital ? 'Producto Entregado' : 'Servicio Realizado'}</p>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       {passedDelivery
-                        ? `✅ ${sellerLabel} ${isDigital ? 'entregó el producto' : 'completó el servicio'}`
+                        ? `${sellerLabel} ${isDigital ? 'entregó el producto' : 'completó el servicio'}`
                         : transaction.state === 'funds_secured'
-                        ? `⏳ Esperando...`
-                        : '⚪ Pendiente'}
+                        ? `Esperando...`
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -1868,10 +1876,10 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">{buyerLabel} Confirma</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted
-                        ? isDigital ? '✅ Recepción confirmada' : '✅ Servicio confirmado'
+                        ? isDigital ? 'Recepción confirmada' : 'Servicio confirmado'
                         : passedDelivery
-                        ? `⏳ Esperando confirmación...`
-                        : '⚪ Pendiente'}
+                        ? `Esperando confirmación...`
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -1890,9 +1898,9 @@ const Transaction = () => {
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted 
                         ? isAppealResolved 
-                          ? '✅ Resuelto' 
-                          : '✅ ¡Listo!' 
-                        : '⚪ Pendiente'}
+                          ? 'Resuelto' 
+                          : '¡Listo!' 
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -1910,7 +1918,7 @@ const Transaction = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">Sala Creada</p>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      ✅ {creatorRoleLabel} ({creatorName}) creó la sala
+                      {creatorRoleLabel} ({creatorName}) creó la sala
                     </p>
                   </div>
                 </div>
@@ -1925,7 +1933,7 @@ const Transaction = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">{joinerRoleLabel} Unido</p>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      {joinerProfile ? `✅ ${joinerName} confirmado` : `⏳ Esperando...`}
+                      {joinerProfile ? `${joinerName} confirmado` : `Esperando...`}
                     </p>
                   </div>
                 </div>
@@ -1945,10 +1953,10 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">Pago en Escrow</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery || transaction.state === 'funds_secured'
-                        ? '✅ Fondos asegurados'
+                        ? 'Fondos asegurados'
                         : transaction.state === 'invited'
-                        ? `⏳ Esperando depósito...`
-                        : '⚪ Pendiente'}
+                        ? `Esperando depósito...`
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -1968,10 +1976,10 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">Listo para Entregar</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery
-                        ? '✅ Encuentro coordinado'
+                        ? 'Encuentro coordinado'
                         : transaction.state === 'funds_secured'
                         ? '📍 Coordinen lugar y hora'
-                        : '⚪ Pendiente'}
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -1991,10 +1999,10 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">Confirmar Entrega</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted
-                        ? '✅ Entrega confirmada'
+                        ? 'Entrega confirmada'
                         : passedDelivery
-                        ? `🤝 Confirmar recepción`
-                        : '⚪ Pendiente'}
+                        ? `Confirmar recepción`
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -2013,9 +2021,9 @@ const Transaction = () => {
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted 
                         ? isAppealResolved 
-                          ? '✅ Resuelto' 
-                          : '✅ ¡Listo!' 
-                        : '⚪ Pendiente'}
+                          ? 'Resuelto' 
+                          : '¡Listo!' 
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -2033,7 +2041,7 @@ const Transaction = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">Sala Creada</p>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      ✅ {creatorRoleLabel} ({creatorName}) creó la sala
+                      {creatorRoleLabel} ({creatorName}) creó la sala
                     </p>
                   </div>
                 </div>
@@ -2048,7 +2056,7 @@ const Transaction = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">{joinerRoleLabel} Unido</p>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                      {joinerProfile ? `✅ ${joinerName} confirmado` : `⏳ Esperando...`}
+                      {joinerProfile ? `${joinerName} confirmado` : `Esperando...`}
                     </p>
                   </div>
                 </div>
@@ -2068,10 +2076,10 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">Pago en Escrow</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery || transaction.state === 'funds_secured'
-                        ? '✅ Fondos asegurados'
+                        ? 'Fondos asegurados'
                         : transaction.state === 'invited'
-                        ? `⏳ Esperando depósito...`
-                        : '⚪ Pendiente'}
+                        ? `Esperando depósito...`
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -2091,12 +2099,12 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">Producto Enviado</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedDelivery && transaction.carrier
-                        ? `✅ Enviado por ${CARRIER_LABELS[transaction.carrier.toLowerCase()] ?? transaction.carrier}`
+                        ? `Enviado por ${CARRIER_LABELS[transaction.carrier.toLowerCase()] ?? transaction.carrier}`
                         : passedDelivery
-                        ? `✅ Enviado`
+                        ? `Enviado`
                         : transaction.state === 'funds_secured'
-                        ? `⏳ Esperando envío...`
-                        : '⚪ Pendiente'}
+                        ? `Esperando envío...`
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -2126,10 +2134,10 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">Producto Recibido</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {passedReceived
-                        ? `✅ Recibido`
+                        ? `Recibido`
                         : transaction.state === 'in_delivery'
                         ? `🚚 En camino...`
-                        : '⚪ Pendiente'}
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -2149,12 +2157,12 @@ const Transaction = () => {
                     <p className="font-semibold text-sm sm:text-base">Período de Revisión</p>
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted
-                        ? '✅ Completado'
+                        ? 'Completado'
                         : ['return_requested', 'return_in_progress'].includes(transaction.state)
                         ? '🔄 Devolución en proceso'
                         : transaction.state === 'awaiting_buyer_review'
                         ? `🔍 Revisando...`
-                        : '⚪ Pendiente'}
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -2173,9 +2181,9 @@ const Transaction = () => {
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       {isCompleted 
                         ? isAppealResolved 
-                          ? '✅ Resuelto' 
-                          : '✅ ¡Listo!' 
-                        : '⚪ Pendiente'}
+                          ? 'Resuelto' 
+                          : '¡Listo!' 
+                        : 'Pendiente'}
                     </p>
                   </div>
                 </div>
@@ -2196,6 +2204,8 @@ const Transaction = () => {
             sellerName={sellerProfile?.full_name || "Vendedor"}
             buyerId={transaction.buyer_id || undefined}
             buyerName={buyerProfile?.full_name}
+            saleType={transaction.sale_type || undefined}
+            soyVendedor={isSeller}
           />
         )}
 
