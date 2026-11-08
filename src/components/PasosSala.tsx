@@ -2,14 +2,14 @@ import { Check } from "lucide-react";
 
 // En qué paso va la sala, arriba de todo, para que cada persona sepa dónde está. Los pasos dependen
 // del tipo de venta: en un envío el comprador además marca "recibido" antes de revisar.
-const PASOS: Record<string, string[]> = {
+export const PASOS: Record<string, string[]> = {
   producto_envio: ["Unirse", "Pagar", "Enviar", "Recibir", "Revisar y liberar"],
   producto_persona: ["Unirse", "Pagar", "Coordinar el encuentro", "Entregar y confirmar"],
   producto_digital: ["Unirse", "Pagar", "Entregar", "Revisar y liberar"],
   servicio: ["Unirse", "Pagar", "Hacer el trabajo", "Revisar y liberar"],
 };
 
-function pasoActual(saleType: string, state: string, conAmbos: boolean): number {
+export function pasoActual(saleType: string, state: string, conAmbos: boolean): number {
   const ultimo = (PASOS[saleType] ?? PASOS.producto_digital).length;
   if (state === "completed") return ultimo + 1; // todo hecho
   if (!conAmbos) return 1;
