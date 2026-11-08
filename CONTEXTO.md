@@ -378,7 +378,8 @@ y las respuestas HTTP en `net._http_response`.
 función haya respondido se ve en `net._http_response`. `net.http_post` espera
 5 s por defecto; el 2026-11-08 `auto-release-escrow` marcó 2 de 24 corridas con
 `timed_out` (arranque en frío), sin escrow vivo, y la corrida siguiente salió
-bien. Si se repite con escrow vivo, subir `timeout_milliseconds` en el job.
+bien. `20261108020000_cron_timeout.sql` sube la espera a 15 s en los cuatro
+jobs (**pendiente de aplicar**, esperando aprobación).
 
 ### Modelo de seguridad de la base (desde 2026-09-24)
 
@@ -417,8 +418,10 @@ plata que no existía. Se corrigió con la migración
   persona: en un trabajo no aplica y en una entrada la foto podría mostrar el QR. La ven las dos partes y el admin;
   la pone/cambia solo quien vende y solo en `created` o `funds_secured` (después
   queda como registro). Tabla aparte para no tocar `transactions` ni su trigger.
-  Migración `20261108000000_foto_sala.sql`: **pendiente de aplicar en producción**
-  hasta que se apruebe; mientras no exista la tabla, el componente no se muestra.
+  Migraciones `20261108000000_foto_sala.sql` y `20261108010000_foto_sala_permisos.sql`,
+  aplicadas el 2026-11-08 y simuladas como usuarios reales (vendedor sube, comprador
+  ve y no cambia, ajeno no ve nada). **Ojo con tablas nuevas:** no heredan grants;
+  sin `GRANT ... TO authenticated` todo da `permission denied` antes de llegar a RLS.
 - Calificaciones: una por persona y sala, sólo con la sala `completed`.
 - Cambiar la contraseña exige sesión reciente
   (`security_update_password_require_reauthentication`).
