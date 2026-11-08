@@ -407,7 +407,8 @@ plata que no existía. Se corrigió con la migración
 - Bucket `chat-images` **privado**: el chat muestra adjuntos con URL firmada
   (`src/lib/chat-files.ts`).
 - Bucket `sala-fotos` **privado** + tabla `public.sala_fotos` (una foto opcional
-  por sala, `src/components/sala/FotoSala.tsx`). La ven las dos partes y el admin;
+  por sala, `src/components/sala/FotoSala.tsx`), solo en ventas con envío o en
+  persona: en un trabajo no aplica y en una entrada la foto podría mostrar el QR. La ven las dos partes y el admin;
   la pone/cambia solo quien vende y solo en `created` o `funds_secured` (después
   queda como registro). Tabla aparte para no tocar `transactions` ni su trigger.
   Migración `20261108000000_foto_sala.sql`: **pendiente de aplicar en producción**

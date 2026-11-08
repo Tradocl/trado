@@ -155,10 +155,18 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
   };
 
   const scrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    const raiz = scrollRef.current;
+    if (!raiz) return;
+    // El que scrollea es el viewport interno de Radix, no la raíz
+    const vista = (raiz.querySelector("[data-radix-scroll-area-viewport]") as HTMLElement | null) ?? raiz;
+    vista.scrollTop = vista.scrollHeight;
   };
+
+  // También al llegar los hitos de la sala o cambiar la cantidad de mensajes
+  useEffect(() => {
+    const t = setTimeout(scrollToBottom, 60);
+    return () => clearTimeout(t);
+  }, [messages.length, eventos.length]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

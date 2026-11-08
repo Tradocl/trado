@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TradoBankContact } from "@/components/TradoBankContact";
 import { OFFER_TRANSFER_AT } from "@/lib/trado-bank";
 import { useParams, useNavigate } from "react-router-dom";
@@ -117,6 +117,10 @@ const Transaction = () => {
   const [markingShipped, setMarkingShipped] = useState(false);
   const [markingReceived, setMarkingReceived] = useState(false);
   const [cancellingTransaction, setCancellingTransaction] = useState(false);
+  const [confirmarCancelar, setConfirmarCancelar] = useState(false);
+  // Aviso animado cuando la sala avanza mientras la tienes abierta
+  const [hito, setHito] = useState<string | null>(null);
+  const estadoPrevio = useRef<{ state?: string; buyer?: string | null } | null>(null);
   const [openingDispute, setOpeningDispute] = useState(false);
   const [shippingDialogOpen, setShippingDialogOpen] = useState(false);
   const [shippingTrackingNumber, setShippingTrackingNumber] = useState("");
@@ -210,6 +214,26 @@ const Transaction = () => {
     };
     loadVerificationStatus();
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!transaction) return;
+    const antes = estadoPrevio.current;
+    estadoPrevio.current = { state: transaction.state, buyer: transaction.buyer_id };
+    if (!antes) return;
+    let texto: string | null = null;
+    if (!antes.buyer && transaction.buyer_id && transaction.state === "created") texto = "¡Se unió la otra persona a la sala!";
+    else if (antes.state !== transaction.state) {
+      texto = ({
+        funds_secured: "¡Pago retenido! La plata ya está segura en Trado",
+        in_delivery: transaction.sale_type === "producto_envio" ? "¡Enviado! Ya va en camino" : "¡Marcado como entregado!",
+        awaiting_buyer_review: "¡Llegó! Empieza el tiempo de revisión",
+      } as Record<string, string>)[transaction.state] ?? null;
+    }
+    if (!texto) return;
+    setHito(texto);
+    const t = setTimeout(() => setHito(null), 6000);
+    return () => clearTimeout(t);
+  }, [transaction?.state, transaction?.buyer_id]);
 
   // Review period countdown timer
   useEffect(() => {
@@ -922,6 +946,20 @@ const Transaction = () => {
         </div>
       </header>
 
+      {hito && (
+        <button
+          type="button"
+          onClick={() => setHito(null)}
+          className="fixed left-1/2 -translate-x-1/2 top-20 z-50 w-[calc(100%-2rem)] max-w-md animate-scale-in"
+        >
+          <span className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-success via-emerald-500 to-primary text-white px-4 py-3 shadow-2xl ring-4 ring-white/40 text-left">
+            <span className="w-9 h-9 rounded-full bg-white/25 flex items-center justify-center shrink-0 animate-bounce">
+              <Check className="h-5 w-5" />
+            </span>
+            <span className="font-bold text-sm sm:text-base">{hito}</span>
+          </span>
+        </button>
+      )}
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6 animate-fade-in">
         {transaction.sale_type && (
           <PasosSala
@@ -1664,16 +1702,7 @@ const Transaction = () => {
                       {copied ? <Check className="h-4 w-4 sm:h-5 sm:w-5 text-success mr-2" /> : <Copy className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />}
                       <span className="text-sm">Copiar código</span>
                     </Button>
-                    {isInitiator && (
-                      <Button
-                        variant="destructive"
-                        className="font-semibold text-sm"
-                        onClick={handleCancelTransaction}
-                        disabled={cancellingTransaction}
-                      >
-                        {cancellingTransaction ? "..." : "Cancelar"}
-                      </Button>
-                    )}
+
                   </div>
                 </div>
                 <Button 
@@ -1694,15 +1723,34 @@ const Transaction = () => {
               <p className="text-xs sm:text-sm text-muted-foreground mt-2 text-center">
                 Le llega el link de la sala; si no le abre, puede usar el código
               </p>
+              {isInitiator && (
+                <div className="mt-3 text-center text-xs">
+                  {!confirmarCancelar ? (
+                    <button type="button" onClick={() => setConfirmarCancelar(true)} className="text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                      Cancelar esta sala
+                    </button>
+                  ) : (
+                    <span className="inline-flex flex-wrap items-center justify-center gap-2">
+                      <span className="text-muted-foreground">¿Seguro? Nadie podrá unirse.</span>
+                      <button type="button" onClick={handleCancelTransaction} disabled={cancellingTransaction} className="font-semibold text-destructive hover:underline">
+                        {cancellingTransaction ? "Cancelando…" : "Sí, cancelar"}
+                      </button>
+                      <button type="button" onClick={() => setConfirmarCancelar(false)} className="text-muted-foreground hover:text-foreground">
+                        No
+                      </button>
+                    </span>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
 
-        <FotoSala
+        {(transaction.sale_type === "producto_envio" || transaction.sale_type === "producto_persona") && <FotoSala
           transactionId={transaction.id}
           nombre={transaction.product_name}
           puedeEditar={isSeller && ["created", "funds_secured"].includes(transaction.state)}
-        />
+        />}
 
         {/* === SECTION 3: PRODUCT DETAILS (compressed) === */}
         <Card className="border-2 border-primary/20 shadow-xl bg-gradient-to-br from-card to-card/80">
@@ -2301,13 +2349,18 @@ const Transaction = () => {
         )}
 
         {/* === SECTION 6: PARTICIPANTS WITH RATINGS === */}
+        <Collapsible defaultOpen={!contraparte}>
         <Card className="border border-muted">
+          <CollapsibleTrigger className="w-full group">
           <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
             <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              Participantes
+              Participantes y opiniones
+              <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
             </CardTitle>
           </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
           <CardContent className="px-2 sm:px-6">
             <Accordion type="single" collapsible className="w-full space-y-2">
               {/* Real Seller/Provider */}
@@ -2439,7 +2492,9 @@ const Transaction = () => {
               </AccordionItem>
             </Accordion>
           </CardContent>
+          </CollapsibleContent>
         </Card>
+        </Collapsible>
       </main>
 
       {/* Rating Dialog */}
