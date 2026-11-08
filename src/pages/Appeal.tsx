@@ -545,7 +545,7 @@ export default function Appeal() {
               <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
-                  Chat de la Transacción
+                  Chat de la sala
                 </CardTitle>
                 <CardDescription>
                   Historial de conversaciones entre las partes

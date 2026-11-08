@@ -275,7 +275,7 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
         <div className="border-b bg-gradient-to-r from-primary/5 to-accent/5 p-3 sm:p-6 rounded-t-lg">
           <h3 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
             <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            Chat de la Transacción
+            Chat de la sala
           </h3>
         </div>
       )}

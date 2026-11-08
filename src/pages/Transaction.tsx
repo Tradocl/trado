@@ -34,6 +34,7 @@ import confetti from "canvas-confetti";
 import { translateError } from "@/lib/error-messages";
 import { getStateLabel } from "@/lib/transaction-labels";
 import { reviewHoursFor } from "@/lib/escrow";
+import { Logo } from "@/components/Logo";
 
 interface Transaction {
   id: string;
@@ -855,12 +856,27 @@ const Transaction = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/10">
-      <header className="border-b bg-card/80 backdrop-blur-md shadow-sm">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <Button variant="ghost" size="sm" className="hover:bg-primary/10 px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Volver a Inicio</span>
-          </Button>
+      <header className="border-b bg-card/80 backdrop-blur-md shadow-sm sticky top-0 z-40">
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 min-w-0">
+            <Button variant="ghost" size="sm" className="hover:bg-primary/10 px-2 sm:px-3" onClick={() => navigate("/dashboard")}>
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Mi panel</span>
+            </Button>
+            <Logo height={26} />
+          </div>
+          {transaction.invite_code && (
+            <button
+              type="button"
+              onClick={copyInviteCode}
+              title="Copiar el código de la sala"
+              className="shrink-0 flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs sm:text-sm hover:bg-primary/10 transition-colors"
+            >
+              <span className="text-muted-foreground">Sala</span>
+              <span className="font-mono font-bold tracking-wider text-primary">{transaction.invite_code}</span>
+              {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+            </button>
+          )}
         </div>
       </header>
 
@@ -1669,26 +1685,25 @@ const Transaction = () => {
           </CardHeader>
           <CardContent className="pt-4 px-4 sm:px-6">
             <div className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg blur-xl"></div>
-              <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-3 sm:p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg border-2 border-primary/20">
+              <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-4 sm:p-5 bg-gradient-to-r from-primary to-info text-white rounded-xl shadow-lg">
                 {isBuyer ? (
                   <>
-                    <span className="text-sm sm:text-base font-semibold">{preDeposito && veoMiComision ? "Tu pago total (con tarjeta)" : "Tu pago total"}</span>
-                    <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    <span className="text-sm sm:text-base font-semibold text-white/85">{preDeposito && veoMiComision ? "Tu pago total (con tarjeta)" : "Tu pago total"}</span>
+                    <span className="text-3xl sm:text-4xl font-extrabold tracking-tight">
                       ${formatCLP(buyerPays)}
                     </span>
                   </>
                 ) : isSeller ? (
                   <>
-                    <span className="text-sm sm:text-base font-semibold">{preDeposito && veoMiComision ? "Recibirás (si paga con tarjeta)" : "Recibirás"}</span>
-                    <span className="text-2xl sm:text-3xl font-bold text-success">
+                    <span className="text-sm sm:text-base font-semibold text-white/85">{preDeposito && veoMiComision ? "Recibirás (si paga con tarjeta)" : "Recibirás"}</span>
+                    <span className="text-3xl sm:text-4xl font-extrabold tracking-tight">
                       ${formatCLP(sellerReceives)}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-sm sm:text-base font-semibold">Precio acordado</span>
-                    <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    <span className="text-sm sm:text-base font-semibold text-white/85">Precio acordado</span>
+                    <span className="text-3xl sm:text-4xl font-extrabold tracking-tight">
                       ${formatCLP(transaction.amount)}
                     </span>
                   </>
@@ -1749,8 +1764,8 @@ const Transaction = () => {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-success text-success-foreground font-semibold text-sm shadow-md hover:shadow-lg transition-all">
-                      <span>{progressOpen ? 'Ocultar progreso completo' : '👁️ Ver progreso completo'}</span>
+                    <div className="mt-3 flex items-center justify-center gap-1.5 py-1 text-sm font-semibold text-primary hover:underline underline-offset-4">
+                      <span>{progressOpen ? 'Ocultar el paso a paso' : 'Ver el paso a paso'}</span>
                       <ChevronDown className={`h-4 w-4 transition-transform ${progressOpen ? 'rotate-180' : ''}`} />
                     </div>
 
@@ -2246,14 +2261,20 @@ const Transaction = () => {
                             <ShieldCheck className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 bg-warning/10 text-warning border-warning/30">
-                            <AlertTriangle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 text-muted-foreground">
+                            Sin verificar
                           </Badge>
                         )}
-                        <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
-                          <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
-                          {realSellerProfile.reputation_score?.toFixed(1) || "0.0"}
-                        </Badge>
+                        {Number(realSellerProfile.reputation_score) > 0 ? (
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
+                            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
+                            {Number(realSellerProfile.reputation_score).toFixed(1)}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 bg-info/10 text-info border-info/30">
+                            Nuevo en Trado
+                          </Badge>
+                        )}
                       </div>
                     )}
                   </div>
@@ -2304,14 +2325,20 @@ const Transaction = () => {
                             <ShieldCheck className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 bg-warning/10 text-warning border-warning/30">
-                            <AlertTriangle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 text-muted-foreground">
+                            Sin verificar
                           </Badge>
                         )}
-                        <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
-                          <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
-                          {realBuyerProfile.reputation_score?.toFixed(1) || "0.0"}
-                        </Badge>
+                        {Number(realBuyerProfile.reputation_score) > 0 ? (
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
+                            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
+                            {Number(realBuyerProfile.reputation_score).toFixed(1)}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 bg-info/10 text-info border-info/30">
+                            Nuevo en Trado
+                          </Badge>
+                        )}
                       </div>
                     )}
                   </div>

@@ -125,9 +125,12 @@ export function CreateAppealDialog({ transactionId, userId, saleType, esVendedor
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" className="transition-all duration-200 hover:scale-[1.02]">
+        <Button
+          variant="outline"
+          className="border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive transition-all duration-200"
+        >
           <AlertCircle className="h-4 w-4 mr-2" />
-          Iniciar Apelación
+          ¿Algo salió mal? Abrir un reclamo
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
