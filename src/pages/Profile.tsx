@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Save, Building2, Camera, ChevronDown, ChevronUp, Mail, Phone, MapPin, CreditCard, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut, Download, FileText, UserRound } from "lucide-react";
+import { ArrowLeft, Save, Building2, Camera, ChevronDown, ChevronUp, Mail, Phone, MapPin, CreditCard, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut, Download, FileText, UserRound, Star, ExternalLink, ChevronRight } from "lucide-react";
 import { esRutEmpresa } from "@/lib/validators";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { PushNotificationCard } from "@/components/PushNotificationCard";
@@ -22,6 +22,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Logo } from "@/components/Logo";
+import { MAX_TRANSACTION_AMOUNT, formatCLP } from "@/lib/utils";
+import { UNVERIFIED_LIMITS } from "@/lib/escrow";
 import { isNative, takeNativePhoto, dataUrlToFile } from "@/lib/native/camera";
 
 interface PasswordRequirement {
@@ -194,6 +196,17 @@ const Profile = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [exportingData, setExportingData] = useState(false);
+  // profiles.total_transactions no lo mantiene nada en la base: se cuentan las salas completadas
+  const [salasCompletadas, setSalasCompletadas] = useState<number | null>(null);
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from("transactions")
+      .select("id", { count: "exact", head: true })
+      .or(`seller_id.eq.${user.id},buyer_id.eq.${user.id}`)
+      .eq("state", "completed")
+      .then(({ count }) => setSalasCompletadas(count ?? 0));
+  }, [user?.id]);
 
   const isProfileComplete = profileData?.rut && profileData?.phone && profileData?.address &&
     profileData.rut.trim() !== '' && profileData.phone.trim() !== '' && profileData.address.trim() !== '' &&
@@ -656,39 +669,45 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
-      <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Logo height={32} />
-            <h1 className="text-lg sm:text-2xl font-bold">Mi Perfil</h1>
-          </div>
-          <Button variant="ghost" size="sm" className="px-2 sm:px-4" onClick={() => navigate("/dashboard")}>
+    <div className="min-h-screen relative bg-gradient-to-br from-primary/[0.07] via-background to-info/[0.09]">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-primary/15 blur-3xl" />
+        <div className="absolute top-1/3 -right-32 w-[30rem] h-[30rem] rounded-full bg-info/15 blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-[26rem] h-[26rem] rounded-full bg-success/10 blur-3xl" />
+      </div>
+      <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-md">
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-1 sm:gap-3 max-w-2xl">
+          <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Volver al inicio</span>
+            <span className="hidden sm:inline">Mi panel</span>
           </Button>
+          <Logo height={26} />
+          <h1 className="ml-auto text-sm sm:text-base font-semibold text-muted-foreground">Mi perfil</h1>
         </div>
       </header>
 
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-2xl space-y-4 sm:space-y-6">
+      <main className="relative container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-2xl space-y-4 sm:space-y-5">
         {/* Encabezado: quién eres y en qué estado está tu cuenta */}
-        <Card className="border-0 shadow-xl overflow-hidden">
-          <div className="h-20 bg-gradient-to-r from-primary to-primary-light" />
+        <Card className="border-0 shadow-2xl overflow-hidden rounded-3xl bg-card/95 backdrop-blur">
+          <div className="relative h-28 sm:h-32 bg-gradient-to-br from-primary via-primary to-info overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/15 blur-2xl" aria-hidden />
+            <div className="absolute -bottom-16 left-10 w-40 h-40 rounded-full bg-success/30 blur-2xl" aria-hidden />
+          </div>
           <CardContent className="relative pt-0 pb-5">
             {/* Avatar */}
             <div className="flex flex-col items-center -mt-12 mb-3">
               <div className="relative">
-                <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+                <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-background shadow-xl ring-4 ring-primary/20">
                   <AvatarImage src={profileData?.avatar_url || undefined} />
-                  <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-info text-white font-bold">
                     {profileData?.full_name ? getInitials(profileData.full_name) : "U"}
                   </AvatarFallback>
                 </Avatar>
                 <label
-                  className="absolute bottom-0 right-0 p-1.5 bg-primary rounded-full cursor-pointer hover:bg-primary/90 transition-colors"
+                  className="absolute bottom-1 right-1 p-2 bg-success rounded-full cursor-pointer hover:bg-success/90 transition-colors shadow-lg ring-2 ring-background"
                   onClick={handleAvatarLabelClick}
                 >
-                  <Camera className="h-4 w-4 text-primary-foreground" />
+                  <Camera className="h-4 w-4 text-white" />
                   {!isNative() && (
                     <input
                       type="file"
@@ -735,56 +754,84 @@ const Profile = () => {
                   </Badge>
                 )}
               </div>
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-2xl bg-primary/5 border border-primary/10 px-2 py-2.5">
+                  <p className="text-lg sm:text-xl font-extrabold text-primary">{salasCompletadas ?? profileData?.total_transactions ?? 0}</p>
+                  <p className="text-[11px] text-muted-foreground leading-tight">Salas completadas</p>
+                </div>
+                <div className="rounded-2xl bg-warning/10 border border-warning/15 px-2 py-2.5">
+                  <p className="text-lg sm:text-xl font-extrabold text-warning flex items-center justify-center gap-1">
+                    <Star className="h-4 w-4 fill-warning" />
+                    {Number(profileData?.reputation_score) > 0 ? Number(profileData?.reputation_score).toFixed(1) : "—"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-tight">Tu nota</p>
+                </div>
+                <div className="rounded-2xl bg-success/10 border border-success/15 px-2 py-2.5">
+                  <p className="text-lg sm:text-xl font-extrabold text-success">
+                    ${formatCLP(profileData?.is_verified ? MAX_TRANSACTION_AMOUNT : UNVERIFIED_LIMITS.PER_TRANSACTION)}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-tight">Salas de hasta</p>
+                </div>
+              </div>
               {user?.id && (
                 <Button
-                  variant="link"
+                  variant="outline"
                   size="sm"
-                  className="mt-2 h-auto p-0 text-xs"
+                  className="mt-4 rounded-full border-primary/30 text-primary hover:bg-primary/5"
                   onClick={() => navigate(`/u/${user.id}`)}
                 >
-                  Ver mi perfil público
+                  <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                  Ver cómo me ven los demás
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Avisos: sólo aparecen si falta algo */}
-        {!isProfileComplete && (
-          <Card className="border border-warning/30 bg-warning/5 shadow-sm">
-            <CardContent className="p-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-warning shrink-0" />
-                <div>
-                  <p className="font-semibold text-sm">Completa tu perfil</p>
-                  <p className="text-xs text-muted-foreground">Necesitas RUT, teléfono y dirección para operar</p>
+        {/* Tu cuenta: lo que falta para operar sin límites, con progreso */}
+        {(() => {
+          const pasos = [
+            { hecho: !!isProfileComplete, titulo: "Perfil completo", detalle: "RUT, teléfono y dirección", accion: "Completar", alHacer: () => setShowCompleteProfileModal(true) },
+            { hecho: !!profileData?.is_verified, titulo: "Identidad verificada", detalle: `Salas de hasta $${formatCLP(MAX_TRANSACTION_AMOUNT)}`, accion: "Verificar", alHacer: () => navigate("/verification") },
+            { hecho: !!profileData?.bank_account_number, titulo: "Datos bancarios", detalle: "Para retirar más rápido", accion: "Agregar", alHacer: () => setBankSectionOpen(true) },
+          ];
+          const listos = pasos.filter((x) => x.hecho).length;
+          if (listos === pasos.length) return null;
+          return (
+            <Card className="border-0 shadow-md rounded-2xl bg-card/90 backdrop-blur">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <p className="font-bold text-sm sm:text-base">Tu cuenta</p>
+                  <p className="text-xs font-semibold text-primary">{listos} de {pasos.length} listos</p>
                 </div>
-              </div>
-              <Button size="sm" onClick={() => setShowCompleteProfileModal(true)} className="shrink-0">
-                Completar
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-        {!profileData?.is_verified && (
-          <Card className="border shadow-sm">
-            <CardContent className="p-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-primary shrink-0" />
-                <div>
-                  <p className="font-semibold text-sm">Verifica tu identidad</p>
-                  <p className="text-xs text-muted-foreground">Sube tus límites y genera más confianza</p>
+                <div className="h-2 rounded-full bg-muted overflow-hidden mb-3">
+                  <div className="h-full rounded-full bg-gradient-to-r from-success to-primary transition-all" style={{ width: `${(listos / pasos.length) * 100}%` }} />
                 </div>
-              </div>
-              <Button size="sm" variant="outline" onClick={() => navigate('/verification')} className="shrink-0">
-                Verificar
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+                <div className="divide-y">
+                  {pasos.map((x) => (
+                    <div key={x.titulo} className="flex items-center gap-3 py-2.5">
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${x.hecho ? "bg-success text-white" : "bg-muted text-muted-foreground"}`}>
+                        {x.hecho ? <Check className="h-4 w-4" /> : <span className="w-2 h-2 rounded-full bg-current" />}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${x.hecho ? "text-muted-foreground line-through decoration-1" : ""}`}>{x.titulo}</p>
+                        {!x.hecho && <p className="text-xs text-muted-foreground">{x.detalle}</p>}
+                      </div>
+                      {!x.hecho && (
+                        <Button size="sm" variant="ghost" className="shrink-0 text-primary font-semibold" onClick={x.alHacer}>
+                          {x.accion} <ChevronRight className="h-4 w-4 ml-0.5" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Datos personales */}
-        <Card className="border shadow-sm">
+        <Card className="border-0 shadow-md rounded-2xl bg-card/90 backdrop-blur overflow-hidden">
           <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base">{esRutEmpresa(profileData?.rut) ? "Datos de la empresa" : "Datos personales"}</CardTitle>
             {!editingProfile && (
@@ -813,7 +860,9 @@ const Profile = () => {
                     : []),
                 ].map(({ icon: Icon, label, value }) => (
                   <div key={label} className="flex items-center gap-3 py-2.5">
-                    <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Icon className="h-4 w-4" />
+                    </span>
                     <dt className="text-sm text-muted-foreground w-20 shrink-0">{label}</dt>
                     <dd className={`text-sm min-w-0 break-words ${value ? "font-medium" : "text-muted-foreground"}`}>
                       {value || "Sin registrar"}
@@ -879,18 +928,20 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        <h3 className="px-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pagos</h3>
+        <h3 className="px-1 pt-3 text-xs font-bold uppercase tracking-wider text-primary/80">Pagos</h3>
 
         {/* Bank Details Collapsible */}
         <Collapsible open={bankSectionOpen} onOpenChange={setBankSectionOpen}>
-          <Card className="border shadow-sm">
+          <Card className="border-0 shadow-md rounded-2xl bg-card/90 backdrop-blur overflow-hidden">
             <CollapsibleTrigger asChild>
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Building2 className="h-5 w-5 text-primary" />
+                    <span className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                      <Building2 className="h-5 w-5" />
+                    </span>
                     <div>
-                      <CardTitle className="text-base">Datos Bancarios</CardTitle>
+                      <CardTitle className="text-base">Datos bancarios</CardTitle>
                       <CardDescription className="text-xs">
                         Para retiros automáticos
                       </CardDescription>
@@ -1022,18 +1073,20 @@ const Profile = () => {
           </Card>
         </Collapsible>
 
-        <h3 className="px-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Seguridad</h3>
+        <h3 className="px-1 pt-3 text-xs font-bold uppercase tracking-wider text-primary/80">Seguridad</h3>
 
         {/* Password Change Collapsible */}
         <Collapsible open={passwordSectionOpen} onOpenChange={setPasswordSectionOpen}>
-          <Card className="border shadow-sm">
+          <Card className="border-0 shadow-md rounded-2xl bg-card/90 backdrop-blur overflow-hidden">
             <CollapsibleTrigger asChild>
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Lock className="h-5 w-5 text-primary" />
+                    <span className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                      <Lock className="h-5 w-5" />
+                    </span>
                     <div>
-                      <CardTitle className="text-base">Cambiar Contraseña</CardTitle>
+                      <CardTitle className="text-base">Cambiar contraseña</CardTitle>
                       <CardDescription className="text-xs">
                         Actualiza tu contraseña de acceso
                       </CardDescription>
@@ -1198,16 +1251,18 @@ const Profile = () => {
           </Card>
         </Collapsible>
 
-        <h3 className="px-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Preferencias</h3>
+        <h3 className="px-1 pt-3 text-xs font-bold uppercase tracking-wider text-primary/80">Preferencias</h3>
 
         {/* Dashboard Customization Collapsible */}
         <Collapsible open={dashboardSectionOpen} onOpenChange={setDashboardSectionOpen}>
-          <Card className="border shadow-sm">
+          <Card className="border-0 shadow-md rounded-2xl bg-card/90 backdrop-blur overflow-hidden">
             <CollapsibleTrigger asChild>
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Edit2 className="h-5 w-5 text-primary" />
+                    <span className="w-10 h-10 rounded-xl bg-violet-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                      <Edit2 className="h-5 w-5" />
+                    </span>
                     <div>
                       <CardTitle className="text-base">Personalizar panel de control</CardTitle>
                       <CardDescription className="text-xs">
@@ -1397,13 +1452,13 @@ const Profile = () => {
         {/* Push Notifications Card */}
         <PushNotificationCard />
 
-        <h3 className="px-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tus datos</h3>
+        <h3 className="px-1 pt-3 text-xs font-bold uppercase tracking-wider text-primary/80">Tus datos</h3>
 
         {/* Privacidad y Mis Datos — Ley 21.719.
             Discreto y cerrado por defecto: la ley exige que los derechos estén
             disponibles, no que ocupen la pantalla. Queda a un toque. */}
         <Collapsible open={privacySectionOpen} onOpenChange={setPrivacySectionOpen}>
-          <Card className="border shadow-sm">
+          <Card className="border-0 shadow-md rounded-2xl bg-card/90 backdrop-blur overflow-hidden">
             <CollapsibleTrigger asChild>
               <CardHeader className="py-3 cursor-pointer hover:bg-muted/50 transition-colors rounded-lg">
                 <div className="flex items-center justify-between">
