@@ -124,6 +124,18 @@ public/material/<reel>/
   tonemap HDR los arruina) y con la rotación como metadato. Si igual hay que usarlos: unirlos con
   `-noautorotate` + `transpose=1` y luego quitar la marca con `-display_rotation 0 ... -c copy`;
   si no, OpenCV los lee acostados y `caras.py` dice "sin cara detectada". Pásalos por AirDrop o cable.
+- **Audio comprimido o grabado afuera: `audio.py` ya usa RNNoise** (`arnndn`, gratis y local; el
+  modelo se baja solo a `scripts/modelos/`). En «En persona» bajó el ruido de fondo de -46 a -58 dB.
+  Si cambias el filtro, rehaz solo los .wav (`python scripts/audio.py ...`); los .webm no cambian.
+- **Revisa la toma con whisper sobre el .wav, no solo con `palabras.json`**: la transcripción del
+  video entero se "come" repeticiones (en «En persona» un "y en todos los casos pasa lo…" colgado
+  quedó dentro del corte y solo se notó al transcribir el render). Antes de dar por listo,
+  `python scripts/transcribir.py out/<Id>.mp4` y leer que no se repita nada.
+- **Noticias reales en el gancho**: cortes de ~0,4–0,8 s con golpe de zoom, el mismo video borroso
+  de fondo, su franja tal cual y el titular repetido grande abajo (la franja de TV en un celular
+  no se lee). Logos de canal sin tapar. El audio de cada corte picado no dice nada: mejor una sola
+  frase con sentido de una nota debajo de todos los cortes («400 mil pesos era el precio acordado»).
+  Descarga con `python -m yt_dlp`; cortes de 3 s en `material/<reel>/noticias/cortes/`.
 - **loudnorm en una pasada satura** (pico de +2,7 dBFS). `final.py` hace dos pasadas lineales y un limitador.
 - **Todo lo que se dice de Trado se verifica contra el código** (plazos, estados, comisión)
   antes de publicar. Las cifras de comisión, solo desde `calculateFee` en `src/lib/utils.ts`.

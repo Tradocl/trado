@@ -4,3 +4,5 @@ out/
 public/sfx/
 # Fotos, clips y voz en bruto: nunca al repo (es público).
 public/material
+# Modelo de RNNoise: lo baja scripts/audio.py la primera vez
+scripts/modelos/

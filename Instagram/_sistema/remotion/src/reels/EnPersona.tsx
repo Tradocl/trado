@@ -1,39 +1,52 @@
 import React from "react";
-import { AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { C, FUENTE, OSCURO, rebote, s, suave } from "../marca";
 import { Pildora, Sfx } from "../piezas/base";
-import { Confeti, Destello, Palabra } from "../piezas/efectos";
+import { Confeti, Destello, Palabra, Rayos, Salto } from "../piezas/efectos";
+import { Chat } from "../piezas/Chat";
 import { linea, Toma } from "../piezas/Toma";
 
-// Reel «En persona» (violencia en ventas cara a cara por Marketplace). BORRADOR: primer corte
-// con la grabación tal cual llegó por WhatsApp (7 clips unidos en video.mp4, 576×1024 escalado).
-// Noticias reales en public/material/nuevo-2026-11-08/noticias.md. Las tarjetas del inicio son
-// diseño nuestro (lugar, fecha, medio y el hecho en palabras nuestras) hasta tener las capturas.
+// Reel «En persona» (violencia en ventas cara a cara por Marketplace).
+// Grabación: 7 clips por WhatsApp unidos en video.mp4 (576×1024 escalado). Había varias tomas por
+// frase; se usa la mejor de cada una:
 //
-// OJO: la toma "trado" dice cosas que la app NO hace (todos verificados; ver RUT, teléfono y
-// carnet del otro). La verificación es opcional y la tarjeta "Con quién tratas" solo muestra
-// Verificado / Sin verificar, nota y salas (src/components/sala/ConQuienTratas.tsx).
-// Lleva un sello de BORRADOR en pantalla hasta que se regrabe esa frase.
+// toma      origen en video.mp4   cara        por qué esa
+// hook      0,5–4,8               540, 1015   la única
+// perfil    22,8–35,5 (2ª toma)   562, 958    la 1ª dice "que solo conoce" (le falta la s)
+// problema  37,8–41,9 (1ª toma)   527, 980    la 2ª tiene una pausa de 5,6 s al medio
+// trado     60,7–67,0 (2ª toma)   534, 986    solo "En Trado,": el resto (todos verificados, RUT,
+//                                               teléfono, carnet) la app NO lo hace
+// antes     80,6–85,5 (2ª toma)   537, 1033   la 1ª dice "sabe que estás verificado" (tampoco es así)
+// cierre    87,8–93,8             544, 1051   la única
 //
-// toma      origen en video.mp4   cara
-// hook      0,5–4,8               540, 1015
-// perfil    22,8–35,5 (2ª toma)   562, 958
-// problema  37,8–41,9 (1ª toma)   527, 980
-// trado     60,7–67,0 (2ª toma)   534, 986
-// antes     80,6–85,5 (2ª toma)   537, 1033
-// cierre    87,8–93,8             544, 1051
+// Lo que se muestra de Trado sale de src/components/sala/ConQuienTratas.tsx: nombre, Verificado /
+// Sin verificar, nota y salas en Trado. Nada de RUT ni teléfono.
+//
+// Noticias reales (T13, 24 Horas, Meganoticias, CHV), con su logo y su franja tal cual: cortes de
+// 3 s en public/material/nuevo-2026-11-08/noticias/cortes/ (fuera de git), fuentes en noticias.md.
 
 const CARPETA = "material/nuevo-2026-11-08";
 
 const L_HOOK = linea([[0.1, 4.2]]);
-// Entre 1,0 y 3,1 hay un "pasa lo…" que quedó colgando: se usa la repetición (3,1–4,8)
-const L_PERFIL = linea([[0.08, 1.0], [3.05, 12.55]]);
+// Hasta 3,05 hay un "Y en todos los casos pasa lo…" que quedó colgando: se usa la repetición
+// ("y en casi todos los casos…", que además es más exacta)
+const L_PERFIL = linea([[3.05, 9.3], [9.95, 12.55]]);
 const L_PROBLEMA = linea([[0.15, 1.6], [1.8, 4.0]]);
-const L_TRADO = linea([[0.1, 0.75], [0.95, 6.2]]);
+const L_TRADO = linea([[0.1, 0.78]]);
 const L_ANTES = linea([[0.12, 4.75]]);
 const L_CIERRE = linea([[0.15, 3.9], [4.28, 5.85]]);
 
-const NOTICIAS_DUR = s(3.4);
+type Corte = { src: string; desde: number; dur: number; lugar: string; titular?: string; medio: string; vertical?: boolean };
+// Titulares copiados de la franja de cada canal en ese momento.
+const CORTES: Corte[] = [
+  { src: "n1", desde: 0.3, dur: 0.8, lugar: "Rancagua · 2025", medio: "T13", titular: "Acompañó a su hijo a vender una consola y lo mataron" },
+  { src: "n2", desde: 0.7, dur: 0.43, lugar: "Rancagua · 2025", medio: "24 Horas", titular: "Hombre acompañó a su hijo a vender consola y fue asesinado" },
+  { src: "n3", desde: 1.85, dur: 0.43, lugar: "Rancagua · 2025", medio: "T13", titular: "Padre muere baleado y su hijo queda gravemente herido" },
+  { src: "n4", desde: 0.3, dur: 0.43, lugar: "Rancagua · 2025", medio: "Meganoticias", titular: "Asesinan a padre en venta de consola" },
+  { src: "n6", desde: 1.3, dur: 0.5, lugar: "Concepción · 2025", medio: "24 Horas", vertical: true },
+  { src: "n5", desde: 0.15, dur: 0.6, lugar: "Concepción · 2025", medio: "CHV", titular: "Viajó a comprar auto: lo asaltaron y mataron" },
+];
+const NOTICIAS_DUR = CORTES.reduce((t, c) => t + s(c.dur), 0);
 
 const ESCENAS: { id: string; dur: number; C: () => React.ReactElement }[] = [
   { id: "noticias", dur: NOTICIAS_DUR, C: () => <Noticias /> },
@@ -54,12 +67,12 @@ const inicioDe = (id: string) => {
   return t;
 };
 
-// Tono serio: nada de música sobre las noticias ni el problema. Entra suave con Trado.
+// Tono serio: nada de música sobre las noticias ni el problema. Entra con Trado.
 const Musica: React.FC = () => {
   const entra = inicioDe("trado");
   const ritmo = Math.ceil(inicioDe("antes") / COMPAS) * COMPAS;
   const sinVoz = DURACION - s(1.2);
-  const nivel = (f: number) => interpolate(f, [entra, entra + 20, sinVoz, sinVoz + 8, DURACION - 6, DURACION], [0, 1, 1, 1.5, 1.5, 0],
+  const nivel = (f: number) => interpolate(f, [entra, entra + 10, sinVoz, sinVoz + 8, DURACION - 6, DURACION], [0, 1, 1, 1.5, 1.5, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <>
@@ -81,22 +94,15 @@ export const EnPersona: React.FC<{ musica?: boolean }> = ({ musica = true }) => 
         desde += e.dur;
         return (
           <Sequence key={e.id} from={inicio} durationInFrames={e.dur}>
-            <Entrada>{e.C()}</Entrada>
+            {i > 0 ? <Entrada>{e.C()}</Entrada> : e.C()}
             {i > 1 && <Destello en={0} fuerza={0.25} />}
             {i > 1 && <Sfx nombre="whoosh_baja" en={0} vol={0.3} />}
           </Sequence>
         );
       })}
-      <Borrador />
     </AbsoluteFill>
   );
 };
-
-/** Sello para que este corte nunca se publique por error (ver la nota de la toma "trado"). */
-const Borrador: React.FC = () => (
-  <div style={{ position: "absolute", top: 150, right: 30, padding: "8px 20px", borderRadius: 12, background: C.rojo, color: C.blanco,
-    fontSize: 26, fontWeight: 800, letterSpacing: "0.04em", opacity: 0.85 }}>BORRADOR</div>
-);
 
 const Entrada: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const f = useCurrentFrame();
@@ -107,126 +113,269 @@ const Desde: React.FC<{ en: number; hasta?: number; children: React.ReactNode }>
   <Sequence from={en} durationInFrames={hasta === undefined ? undefined : hasta - en} layout="none">{children}</Sequence>
 );
 
-// ── Noticias ────────────────────────────────────────────────────────────────
+const corte = (src: string) => staticFile(`${CARPETA}/noticias/cortes/${src}.mp4`);
 
-type Nota = { lugar: string; fecha: string; medio: string; texto: string };
-// Hechos de noticias.md, contados con palabras nuestras (no son titulares citados).
-const NOTAS: Nota[] = [
-  { lugar: "Rancagua", fecha: "Jul 2025", medio: "T13 · Meganoticias", texto: "Matan a un padre que acompañó a su hijo a vender una consola" },
-  { lugar: "Concepción", fecha: "Ago 2025", medio: "Meganoticias · T13", texto: "Muere baleado tras viajar a comprar un auto visto en Marketplace" },
-  { lugar: "Valparaíso", fecha: "Oct 2024", medio: "Meganoticias", texto: "Falsos compradores de un auto matan a un padre y hieren a su hijo" },
-  { lugar: "Los Ángeles", fecha: "Mar 2026", medio: "La Tribuna", texto: "Asaltan con pistola y cuchillo a mujer que vendía un iPhone" },
-];
+// ── Noticias: cortes rápidos de TV real ─────────────────────────────────────
 
-const TarjetaNota: React.FC<{ n: Nota; en: number; y: number; giro: number }> = ({ n, en, y, giro }) => {
+const CorteTV: React.FC<{ c: Corte; largo: number }> = ({ c, largo }) => {
   const f = useCurrentFrame();
-  if (f < en) return null;
-  const k = rebote(f, en);
+  const zoom = 1 + 0.12 * (1 - suave(f, 0, 6)) + 0.03 * (f / largo); // golpe de zoom y sigue acercándose
+  const tb = Math.round(c.desde * 30);
   return (
-    <div style={{ position: "absolute", left: 70, right: 70, top: y, background: C.blanco, borderRadius: 28, padding: "28px 36px",
-      boxShadow: "0 30px 70px rgba(0,0,0,0.5)", transform: `translateY(${(1 - k) * 80}px) scale(${1.25 - 0.25 * k}) rotate(${giro}deg)`, opacity: Math.min(1, k * 2) }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 26, fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase" }}>
-        <span style={{ background: C.rojo, color: C.blanco, padding: "4px 14px", borderRadius: 8 }}>{n.lugar}</span>
-        <span style={{ color: C.gris }}>{n.fecha} · {n.medio}</span>
+    <AbsoluteFill style={{ background: "#000", overflow: "hidden" }}>
+      {c.vertical ? (
+        <OffthreadVideo muted src={corte(c.src)} trimBefore={tb}
+          style={{ position: "absolute", inset: 0, width: 1080, height: 1920, objectFit: "cover", transform: `scale(${zoom})` }} />
+      ) : (
+        <>
+          {/* El mismo video, gigante y borroso, llena lo que sobra arriba y abajo */}
+          <OffthreadVideo muted src={corte(c.src)} trimBefore={tb}
+            style={{ position: "absolute", top: 0, left: (1080 - 3414) / 2, width: 3414, height: 1920, filter: "blur(36px) brightness(0.45)" }} />
+          <OffthreadVideo muted src={corte(c.src)} trimBefore={tb}
+            style={{ position: "absolute", top: 640, left: 0, width: 1080, height: 608, transform: `scale(${zoom})`, boxShadow: "0 30px 80px rgba(0,0,0,0.6)" }} />
+          {c.titular && (
+            <div style={{ position: "absolute", top: 1290, left: 60, right: 60, textAlign: "center", transform: `scale(${0.9 + 0.1 * rebote(f, 1)})` }}>
+              <span style={{ fontSize: 58, fontWeight: 800, lineHeight: 1.22, letterSpacing: "-0.02em", color: C.blanco, background: C.rojo,
+                padding: "4px 18px", boxDecorationBreak: "clone", WebkitBoxDecorationBreak: "clone", borderRadius: 10 }}>
+                «{c.titular}»
+              </span>
+              <div style={{ marginTop: 18, fontSize: 32, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>{c.medio}</div>
+            </div>
+          )}
+        </>
+      )}
+      <div style={{ position: "absolute", top: c.vertical ? 1560 : 470, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
+        <span style={{ fontSize: 40, fontWeight: 800, color: C.tinta, background: C.blanco, padding: "12px 30px", borderRadius: 999, boxShadow: "0 10px 30px rgba(0,0,0,0.4)" }}>
+          📍 {c.lugar}
+        </span>
       </div>
-      <div style={{ marginTop: 14, fontSize: 46, fontWeight: 800, lineHeight: 1.12, letterSpacing: "-0.02em", color: C.tinta }}>{n.texto}</div>
+    </AbsoluteFill>
+  );
+};
+
+// Debajo de todos los cortes suena una sola frase de la nota de T13: «400 mil pesos era el precio
+// acordado» (n1, 0–2,8 s). Los audios de los otros cortes, picados, no decían nada.
+const Noticias: React.FC = () => {
+  let t = 0;
+  return (
+    <AbsoluteFill>
+      <Audio src={corte("n1")} volume={(x) => interpolate(x, [0, 2, NOTICIAS_DUR - 6, NOTICIAS_DUR], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })} />
+      {CORTES.map((c, i) => {
+        const en = t;
+        const largo = s(c.dur);
+        t += largo;
+        return (
+          <Sequence key={c.src} from={en} durationInFrames={largo} layout="none">
+            <CorteTV c={c} largo={largo} />
+            {i > 0 && <Destello en={0} fuerza={0.35} />}
+            <Sfx nombre="golpe" en={0} vol={i === 0 ? 0.5 : 0.35} />
+          </Sequence>
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+
+// ── Gancho ──────────────────────────────────────────────────────────────────
+
+/** Panel de TV chico que sigue pasando detrás tuyo. */
+const Panel: React.FC<{ src: string; desde: number; x: number; y: number; giro: number; en: number; apaga: number }> = ({ src, desde, x, y, giro, en, apaga }) => {
+  const f = useCurrentFrame();
+  const k = rebote(f, en);
+  const a = suave(f, apaga, 10);
+  return (
+    <div style={{ position: "absolute", left: x, top: y, width: 480, height: 270, borderRadius: 18, overflow: "hidden", border: "5px solid rgba(255,255,255,0.9)",
+      boxShadow: "0 20px 50px rgba(0,0,0,0.5)", transform: `scale(${k * (1 - 0.12 * a)}) rotate(${giro}deg)`, opacity: Math.min(1, k * 2) * (1 - 0.65 * a),
+      filter: `grayscale(${a})` }}>
+      <OffthreadVideo muted src={corte(src)} trimBefore={Math.round(desde * 30)} style={{ width: 480, height: 270 }} />
     </div>
   );
 };
 
-const Noticias: React.FC = () => {
-  const paso = s(0.62);
+/** Lo que se vendía en cada caso: cosas normales. */
+const Cosa: React.FC<{ emoji: string; texto: string; en: number; x: number; giro: number }> = ({ emoji, texto, en, x, giro }) => {
+  const f = useCurrentFrame();
+  if (f < en) return null;
+  const k = rebote(f, en);
   return (
-    <AbsoluteFill style={{ background: OSCURO }}>
-      <Palabra texto="Ventas por internet en Chile" en={0} y={250} size={50} giro={0} color={C.blanco} />
-      {NOTAS.map((n, i) => (
-        <React.Fragment key={n.lugar}>
-          <TarjetaNota n={n} en={6 + i * paso} y={380 + i * 250} giro={i % 2 ? 2 : -2} />
-          <Sfx nombre="golpe" en={6 + i * paso} vol={0.7} />
-        </React.Fragment>
-      ))}
-    </AbsoluteFill>
+    <div style={{ position: "absolute", left: x, top: 690, width: 290, padding: "26px 0 22px", background: C.blanco, borderRadius: 36, textAlign: "center",
+      boxShadow: "0 24px 60px rgba(0,0,0,0.45)", transform: `translateY(${(1 - k) * 120}px) scale(${k}) rotate(${giro}deg)` }}>
+      <div style={{ fontSize: 130, lineHeight: 1 }}>{emoji}</div>
+      <div style={{ marginTop: 10, fontSize: 44, fontWeight: 800, color: C.tinta }}>{texto}</div>
+    </div>
   );
 };
 
 // «Todas esas personas se juntaron a hacer algo normal: vender algo por internet»
 const Gancho: React.FC = () => {
   const L = L_HOOK;
+  const normal = L.en(2.2);
   return (
     <Toma carpeta={CARPETA} archivo="hook" origen={0.5} cara={{ x: 540, y: 1015 }} linea={L}
-      modos={[[0, "real"]]}
+      modos={[[0, "abajo"]]}
       palabras={[
         [["Todas", 0.22], ["esas", 0.8], ["personas", 1.02]],
         [["se", 1.28], ["juntaron", 1.48], ["a", 1.8], ["hacer", 1.96]],
         [["algo", 2.04], ["normal:", 2.2]],
         [["vender", 3.04], ["algo", 3.3], ["por", 3.5], ["internet.", 3.62]],
       ]}>
-      <Palabra texto="algo normal" en={L.en(2.2)} y={330} size={110} fondo={C.blanco} color={C.tinta} />
-      <Sfx nombre="pop_grave" en={L.en(2.2)} />
+      <AbsoluteFill style={{ background: OSCURO }} />
+      <Panel src="n1" desde={0.9} x={40} y={290} giro={-3} en={0} apaga={normal} />
+      <Panel src="n5" desde={0.9} x={560} y={330} giro={2.5} en={3} apaga={normal} />
+      <Panel src="n2" desde={1.3} x={60} y={620} giro={2} en={6} apaga={normal} />
+      <Panel src="n7" desde={0.2} x={545} y={650} giro={-2} en={9} apaga={normal} />
+      <Sfx nombre="pop_grave" en={0} vol={0.5} />
+      <Sfx nombre="pop" en={6} vol={0.5} />
+      <Desde en={normal} hasta={L.en(3.04)}>
+        <Palabra texto="algo normal" en={0} y={520} size={120} fondo={C.blanco} color={C.tinta} />
+      </Desde>
+      <Cosa emoji="🎮" texto="Consola" en={L.en(3.04)} x={40} giro={-4} />
+      <Cosa emoji="🚗" texto="Auto" en={L.en(3.3)} x={395} giro={2} />
+      <Cosa emoji="📱" texto="Celular" en={L.en(3.5)} x={750} giro={-2} />
+      <Desde en={L.en(3.04)}>
+        <Palabra texto="por internet" en={L.en(3.62) - L.en(3.04)} y={330} size={96} fondo={C.azul} giro={-2} />
+      </Desde>
+      <Sfx nombre="golpe" en={normal} vol={0.6} />
+      <Sfx nombre="pop_grave" en={L.en(3.04)} />
+      <Sfx nombre="pop" en={L.en(3.3)} />
+      <Sfx nombre="pop_agudo" en={L.en(3.5)} />
     </Toma>
   );
 };
 
-/** Un perfil cualquiera, como los que se crean en dos minutos: diseño nuestro, sin interfaz de ninguna app. */
-const PerfilFalso: React.FC<{ en: number; dudas: number }> = ({ en, dudas }) => {
+// ── Perfil ──────────────────────────────────────────────────────────────────
+
+/** Un perfil cualquiera que se arma pieza por pieza: diseño nuestro, sin interfaz de ninguna app. */
+const PerfilFalso: React.FC<{ en: number; perfil: number; foto: number; usuario: number; falso: number }> = ({ en, perfil, foto, usuario, falso }) => {
   const f = useCurrentFrame();
   if (f < en) return null;
   const k = rebote(f, en);
-  const d = suave(f, dudas, 10);
+  const nombre = "vendo_todo22";
+  const letras = Math.max(0, Math.min(nombre.length, Math.floor((f - usuario) / 1.3)));
+  const anillo = suave(f, perfil, 8) * (1 - suave(f, foto + 4, 8));
+  const conFoto = f >= foto;
+  const sello = f >= falso ? rebote(f, falso) : 0;
   return (
-    <div style={{ position: "absolute", top: 300, left: 110, right: 110, background: C.blanco, borderRadius: 40, padding: "36px 40px",
-      boxShadow: "0 30px 70px rgba(10,10,40,0.4)", transform: `scale(${k}) rotate(-2deg)`, display: "flex", gap: 30, alignItems: "center" }}>
-      <div style={{ width: 150, height: 150, borderRadius: 999, background: "#D7DAE5", flexShrink: 0, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", left: 45, top: 28, width: 60, height: 60, borderRadius: 999, background: "#A9AEC0" }} />
-        <div style={{ position: "absolute", left: 20, top: 100, width: 110, height: 90, borderRadius: 999, background: "#A9AEC0" }} />
-      </div>
-      <div>
-        <div style={{ fontSize: 50, fontWeight: 800, color: C.tinta, letterSpacing: "-0.02em" }}>vendo_todo22</div>
-        <div style={{ marginTop: 8, fontSize: 32, fontWeight: 600, color: C.gris }}>Se unió esta semana</div>
-        <div style={{ marginTop: 14, display: "inline-block", fontSize: 30, fontWeight: 800, color: C.blanco, background: C.rojo, padding: "6px 18px", borderRadius: 999, opacity: d }}>
-          ¿Quién es en verdad?
+    <div style={{ position: "absolute", top: 330, left: 90, right: 90, transform: `translateY(${(1 - k) * 150}px) scale(${0.8 + 0.2 * k}) rotate(-2deg)`, opacity: Math.min(1, k * 2) }}>
+      <div style={{ background: C.blanco, borderRadius: 44, padding: "40px 44px", boxShadow: `0 30px 70px rgba(10,10,40,0.45), 0 0 0 ${10 * anillo}px rgba(255,255,255,0.45)`,
+        display: "flex", gap: 34, alignItems: "center" }}>
+        <div style={{ width: 190, height: 190, borderRadius: 999, flexShrink: 0, position: "relative", overflow: "hidden",
+          background: conFoto ? "linear-gradient(135deg, #FFD7A8, #FF9F7A)" : "#D7DAE5", transform: `scale(${conFoto ? 0.85 + 0.15 * rebote(f, foto) : 1})` }}>
+          {conFoto ? (
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 130 }}>😎</div>
+          ) : (
+            <>
+              <div style={{ position: "absolute", left: 60, top: 36, width: 70, height: 70, borderRadius: 999, background: "#A9AEC0" }} />
+              <div style={{ position: "absolute", left: 28, top: 122, width: 134, height: 110, borderRadius: 999, background: "#A9AEC0" }} />
+            </>
+          )}
         </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ height: 66, fontSize: 56, fontWeight: 800, color: C.tinta, letterSpacing: "-0.02em" }}>
+            {f >= usuario ? (
+              <>@{nombre.slice(0, letras)}<span style={{ opacity: letras < nombre.length && f % 10 < 5 ? 1 : 0, color: C.medio }}>|</span></>
+            ) : (
+              <div style={{ width: 300, height: 40, marginTop: 12, borderRadius: 12, background: C.linea }} />
+            )}
+          </div>
+          <div style={{ marginTop: 12, fontSize: 34, fontWeight: 600, color: C.gris }}>Se unió hoy · 0 ventas</div>
+        </div>
+      </div>
+      {sello > 0 && (
+        <div style={{ position: "absolute", right: -10, top: -40, padding: "10px 34px", border: `8px solid ${C.rojo}`, borderRadius: 20, color: C.rojo, background: "rgba(255,255,255,0.92)",
+          fontSize: 76, fontWeight: 800, letterSpacing: "0.06em", transform: `rotate(12deg) scale(${1 + 1.5 * (1 - sello)})`, opacity: Math.min(1, sello * 2) }}>
+          FALSO
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** Cronómetro que da la vuelta: el perfil está listo en dos minutos. */
+const Reloj: React.FC<{ en: number }> = ({ en }) => {
+  const f = useCurrentFrame();
+  if (f < en) return null;
+  const k = rebote(f, en);
+  const p = suave(f, en, 14);
+  const r = 70, L = 2 * Math.PI * r;
+  return (
+    <div style={{ position: "absolute", top: 640, left: "50%", display: "flex", alignItems: "center", gap: 26, background: C.rojo, color: C.blanco, borderRadius: 999,
+      padding: "20px 46px 20px 22px", boxShadow: "0 20px 50px rgba(232,62,62,0.45)", transform: `translateX(-50%) scale(${k}) rotate(-3deg)` }}>
+      <svg width={170} height={170} viewBox="0 0 170 170">
+        <circle cx={85} cy={85} r={r} fill="rgba(255,255,255,0.18)" />
+        <circle cx={85} cy={85} r={r} fill="none" stroke={C.blanco} strokeWidth={14} strokeLinecap="round" strokeDasharray={L} strokeDashoffset={L * (1 - p)} transform="rotate(-90 85 85)" />
+        <line x1={85} y1={85} x2={85 + 46 * Math.sin(2 * Math.PI * p)} y2={85 - 46 * Math.cos(2 * Math.PI * p)} stroke={C.blanco} strokeWidth={9} strokeLinecap="round" />
+      </svg>
+      <div style={{ fontSize: 90, fontWeight: 800, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+        {Math.min(2, Math.floor(p * 2.999))}:00 min
       </div>
     </div>
   );
 };
 
-// «En todos los casos pasa lo mismo: te juntas con una persona y solo conoces su perfil,
+// «En casi todos los casos pasa lo mismo: te juntas con una persona y solo conoces su perfil,
 //  su foto y su usuario. Un perfil falso se puede crear en dos minutos»
 const Perfil: React.FC = () => {
   const L = L_PERFIL;
-  const f = useCurrentFrame();
+  const marca = L.en(4.95);
+  const r = (seg: number) => L.en(seg) - marca; // tiempos dentro de la parte con fondo de marca
   return (
     <Toma carpeta={CARPETA} archivo="perfil" origen={22.8} cara={{ x: 562, y: 958 }} linea={L}
-      modos={[[0, "real"], [5.03, "abajo"]]}
+      modos={[[0, "real"], [4.95, "abajo"]]}
       palabras={[
-        [["En", 0.15], ["todos", 0.31], ["los", 0.45], ["casos", 0.65]],
-        [["pasa", 3.12], ["lo", 3.8], ["mismo:", 4.2]],
-        [["te", 5.03], ["juntas", 5.11], ["con", 5.37], ["una", 5.51], ["persona", 5.71]],
-        [["y", 6.05], ["solo", 6.25], ["conoces", 6.45]],
-        [["su", 6.99], ["perfil,", 7.19], ["su", 7.91], ["foto", 8.01]],
-        [["y", 8.35], ["su", 8.79], ["usuario.", 8.95]],
-        [["Un", 10.07], ["perfil", 10.25], ["falso", 10.59]],
-        [["se", 10.99], ["puede", 11.13], ["crear", 11.29]],
-        [["en", 11.53], ["dos", 11.83], ["minutos.", 11.91]],
-      ]}
-      encima={f >= L.en(11.83) && (
-        <Pildora texto="⏱ 2 minutos" fondo={C.rojo} color={C.blanco}
-          style={{ top: 1150, left: "50%", fontSize: 64, whiteSpace: "nowrap", transform: `translateX(-50%) scale(${rebote(f, L.en(11.83))}) rotate(-4deg)` }} />
-      )}>
-      <Desde en={0} hasta={L.en(5.03)}>
-        <Palabra texto="lo mismo" en={L.en(4.2)} y={330} size={110} fondo={C.rojo} />
+        [["y", 3.1], ["en", 3.18], ["casi", 3.26], ["todos", 3.4], ["los", 3.6], ["casos", 3.74]],
+        [["pasa", 3.98], ["lo", 4.32], ["mismo:", 4.46]],
+        [["te", 4.98], ["juntas", 5.08], ["con", 5.34], ["una", 5.46], ["persona", 5.58]],
+        [["y", 5.96], ["solo", 6.2], ["conoces", 6.34]],
+        [["su", 6.86], ["perfil,", 7.18], ["su", 7.84], ["foto", 7.92]],
+        [["y", 8.22], ["su", 8.74], ["usuario.", 8.86]],
+        [["Un", 10.0], ["perfil", 10.18], ["falso", 10.52]],
+        [["se", 10.88], ["puede", 11.1], ["crear", 11.24]],
+        [["en", 11.48], ["dos", 11.76], ["minutos.", 11.94]],
+      ]}>
+      <Desde en={0} hasta={marca}>
+        <Palabra texto="en casi todos los casos" en={L.en(3.26)} y={300} size={72} fondo={C.blanco} color={C.tinta} giro={2} />
+        <Palabra texto="lo mismo" en={L.en(4.46)} y={440} size={120} fondo={C.rojo} />
       </Desde>
-      <Desde en={L.en(5.03)}>
-        <PerfilFalso en={L.en(7.19) - L.en(5.03)} dudas={L.en(10.59) - L.en(5.03)} />
+      <Desde en={marca} hasta={L.en(6.34)}>
+        <Chat y={330} mensajes={[
+          { de: "otro", texto: "Hola! ¿Sigue disponible? 👀", en: 2 },
+          { de: "otro", texto: "Te lo compro hoy. ¿Nos juntamos a las 21:00?", en: r(5.58) },
+        ]} />
       </Desde>
-      <Sfx nombre="golpe" en={L.en(4.2)} vol={0.6} />
-      <Sfx nombre="pop" en={L.en(7.19)} />
-      <Sfx nombre="pop_agudo" en={L.en(8.01)} />
-      <Sfx nombre="pop_agudo" en={L.en(8.95)} />
-      <Sfx nombre="pregunta" en={L.en(10.59)} />
-      <Sfx nombre="tic" en={L.en(11.83)} />
+      <Desde en={L.en(6.34)}>
+        <PerfilFalso en={0} perfil={r(7.18) - r(6.34)} foto={r(7.92) - r(6.34)} usuario={r(8.86) - r(6.34)} falso={r(10.52) - r(6.34)} />
+        <Reloj en={r(11.76) - r(6.34)} />
+      </Desde>
+      <Sfx nombre="pop_grave" en={L.en(3.26)} vol={0.6} />
+      <Sfx nombre="golpe" en={L.en(4.46)} vol={0.6} />
+      <Sfx nombre="burbuja" en={marca + 2} />
+      <Sfx nombre="burbuja" en={L.en(5.58)} />
+      <Sfx nombre="whoosh_sube" en={L.en(6.34)} vol={0.45} />
+      <Sfx nombre="pop" en={L.en(7.18)} />
+      <Sfx nombre="brillo" en={L.en(7.92)} vol={0.6} />
+      <Sfx nombre="tecleo" en={L.en(8.86)} vol={0.6} />
+      <Sfx nombre="tachon" en={L.en(10.52)} />
+      <Sfx nombre="tic" en={L.en(11.76)} />
     </Toma>
+  );
+};
+
+// ── Problema ────────────────────────────────────────────────────────────────
+
+/** Alguien sin cara: lo único que sabes de él es un perfil. */
+const Desconocido: React.FC<{ en: number }> = ({ en }) => {
+  const f = useCurrentFrame();
+  if (f < en) return null;
+  const k = rebote(f, en);
+  const late = 1 + 0.04 * Math.sin((f - en) / 4);
+  return (
+    <div style={{ position: "absolute", left: 560, top: 520, width: 440, height: 560, borderRadius: 48, background: "#1B2240", border: `6px solid ${C.rojo}`,
+      boxShadow: "0 30px 80px rgba(0,0,0,0.5)", overflow: "hidden", transform: `translateX(${(1 - k) * 500}px) rotate(3deg)` }}>
+      <div style={{ position: "absolute", left: 140, top: 90, width: 160, height: 160, borderRadius: 999, background: "#3A4266" }} />
+      <div style={{ position: "absolute", left: 70, top: 280, width: 300, height: 360, borderRadius: 150, background: "#3A4266" }} />
+      <div style={{ position: "absolute", left: 0, right: 0, top: 60, textAlign: "center", fontSize: 220, fontWeight: 800, color: C.rojo, transform: `scale(${late})` }}>?</div>
+    </div>
   );
 };
 
@@ -242,73 +391,80 @@ const Problema: React.FC = () => {
         [["es", 1.86], ["juntarse", 2.06], ["con", 2.48], ["una", 2.66], ["persona", 2.86]],
         [["que", 3.2], ["no", 3.44], ["conoces.", 3.62]],
       ]}>
-      <Desde en={0} hasta={L.en(3.3)}>
-        <Palabra texto="en persona" en={L.en(1.0)} y={330} size={100} fondo={C.blanco} color={C.tinta} giro={-3} />
+      <Desde en={0} hasta={L.en(1.86)}>
+        <Palabra texto="en persona" en={L.en(1.0)} y={330} size={110} fondo={C.blanco} color={C.tinta} giro={-3} />
+        <Salto emoji="🤝" en={L.en(1.16)} style={{ left: 120, top: 560 }} size={240} />
       </Desde>
-      <Palabra texto={"con alguien\nque no conoces"} en={L.en(3.44)} y={330} size={84} fondo={C.rojo} giro={3} />
+      <Desde en={L.en(1.16) + 4} hasta={L.en(1.86)}>
+        <Pildora texto="✓ Eso está bien" fondo={C.verde} color={C.blanco} style={{ top: 840, left: 70, fontSize: 48 }} />
+      </Desde>
+      <Desconocido en={L.en(2.48)} />
+      <Palabra texto={"con alguien\nque no conoces"} en={L.en(3.44)} y={300} size={88} fondo={C.rojo} giro={3} />
       <Sfx nombre="pop" en={L.en(1.0)} />
+      <Sfx nombre="pop_agudo" en={L.en(1.16)} />
+      <Sfx nombre="whoosh_sube" en={L.en(2.48)} vol={0.5} />
       <Sfx nombre="golpe" en={L.en(3.44)} />
     </Toma>
   );
 };
 
-/** Igual a la tarjeta "Con quién tratas" de la sala: verificado, nota y salas. Nada de RUT ni teléfono. */
-const ConQuienTratas: React.FC<{ en: number; y: number; nombre: string; rol: string; giro?: number; marcas: number[] }> = ({ en, y, nombre, rol, giro = 0, marcas }) => {
-  const f = useCurrentFrame();
-  if (f < en) return null;
-  const k = rebote(f, en);
-  const chip = (i: number, fondo: string, color: string, texto: string) => {
-    const c = rebote(f, marcas[i]);
-    return f < marcas[i] ? null : (
-      <span style={{ background: fondo, color, padding: "8px 20px", borderRadius: 999, fontSize: 32, fontWeight: 800, transform: `scale(${c})`, display: "inline-block" }}>{texto}</span>
-    );
-  };
-  return (
-    <div style={{ position: "absolute", top: y, left: 80, right: 80, background: C.blanco, borderRadius: 40, padding: "32px 36px",
-      boxShadow: "0 30px 70px rgba(10,10,40,0.4)", transform: `translateY(${(1 - k) * 200}px) rotate(${giro}deg)`, opacity: Math.min(1, k * 2) }}>
-      <div style={{ fontSize: 26, fontWeight: 700, color: C.gris, letterSpacing: "0.05em", textTransform: "uppercase" }}>Con quién tratas · {rol}</div>
-      <div style={{ marginTop: 6, fontSize: 54, fontWeight: 800, color: C.tinta, letterSpacing: "-0.02em" }}>{nombre}</div>
-      <div style={{ marginTop: 16, display: "flex", gap: 14, flexWrap: "wrap" }}>
-        {chip(0, "#DDF5EA", "#0B8A5F", "✓ Verificado")}
-        {chip(1, "#FFF1D6", "#B7791F", "★ 4,9")}
-        {chip(2, "#E6E8FB", C.azul, "12 salas en Trado")}
-      </div>
-    </div>
-  );
-};
+// ── Trado ───────────────────────────────────────────────────────────────────
 
-// «En Trado todos los perfiles están verificados: puedes conocer su RUT, su teléfono y su foto del carnet»
-// ⚠ Falso tal cual (ver arriba). La imagen muestra lo que la app sí muestra; hay que regrabar el audio.
+// «En Trado,» (el resto de esa toma se corta: describía cosas que la app no hace)
 const EnTrado: React.FC = () => {
   const L = L_TRADO;
+  const f = useCurrentFrame();
   return (
     <Toma carpeta={CARPETA} archivo="trado" origen={60.7} cara={{ x: 534, y: 986 }} linea={L}
-      modos={[[0, "fuera"], [0.95, "abajo"]]}
-      palabras={[
-        [["En", 0.2], ["Trado,", 0.35]],
-        [["todos", 1.02], ["los", 1.06], ["perfiles", 1.26]],
-        [["están", 1.5], ["verificados:", 1.7]],
-        [["puedes", 2.94], ["conocer", 3.08], ["su", 3.42], ["RUT,", 3.6]],
-        [["su", 3.98], ["teléfono", 4.3]],
-        [["y", 4.86], ["su", 5.08], ["foto", 5.2], ["del", 5.38], ["carnet.", 5.54]],
-      ]}>
-      <div style={{ position: "absolute", top: 220, width: "100%", textAlign: "center", color: C.blanco, fontWeight: 800, fontSize: 150, letterSpacing: "-0.04em" }}>trado</div>
-      <ConQuienTratas en={L.en(1.0)} y={450} nombre="Camila R." rol="Vendedora" marcas={[L.en(1.7), L.en(3.6), L.en(4.3)]} />
-      <Sfx nombre="golpe" en={0} />
-      <Sfx nombre="whoosh_sube" en={L.en(1.0)} vol={0.5} />
-      <Sfx nombre="pop_grave" en={L.en(1.7)} />
-      <Sfx nombre="pop" en={L.en(3.6)} />
-      <Sfx nombre="pop_agudo" en={L.en(4.3)} />
+      modos={[[0, "fuera"]]}
+      palabras={[[["En", 0.2], ["Trado,", 0.35]]]}>
+      <Rayos en={L.en(0.35)} x={540} y={760} />
+      <div style={{ position: "absolute", top: 640, width: "100%", textAlign: "center", color: C.blanco, fontWeight: 800, fontSize: 220, letterSpacing: "-0.04em",
+        transform: `scale(${f >= L.en(0.35) ? rebote(f, L.en(0.35)) : 0})` }}>trado</div>
+      <Sfx nombre="golpe" en={L.en(0.35)} />
     </Toma>
   );
 };
 
+/** Igual a la tarjeta "Con quién tratas" de la sala: nombre, verificado, nota y salas. Nada de RUT ni teléfono. */
+const ConQuienTratas: React.FC<{ en: number; y: number; nombre: string; rol: string; inicial: string; color: string; giro?: number; marcas: number[]; nota: string; salas: string }> =
+  ({ en, y, nombre, rol, inicial, color, giro = 0, marcas, nota, salas }) => {
+    const f = useCurrentFrame();
+    if (f < en) return null;
+    const k = rebote(f, en);
+    const chip = (i: number, fondo: string, col: string, texto: string) => {
+      if (f < marcas[i]) return null;
+      return (
+        <span style={{ background: fondo, color: col, padding: "8px 20px", borderRadius: 999, fontSize: 32, fontWeight: 800, transform: `scale(${rebote(f, marcas[i])})`, display: "inline-block" }}>{texto}</span>
+      );
+    };
+    return (
+      <div style={{ position: "absolute", top: y, left: 70, right: 70, background: C.blanco, borderRadius: 40, padding: "30px 34px",
+        boxShadow: "0 30px 70px rgba(10,10,40,0.4)", transform: `translateY(${(1 - k) * 200}px) rotate(${giro}deg)`, opacity: Math.min(1, k * 2), display: "flex", gap: 28, alignItems: "center" }}>
+        <div style={{ width: 130, height: 130, borderRadius: 999, background: color, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 64, fontWeight: 800, color: C.blanco }}>{inicial}</div>
+        <div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: C.gris, letterSpacing: "0.05em", textTransform: "uppercase" }}>Con quién tratas · {rol}</div>
+          <div style={{ marginTop: 2, fontSize: 52, fontWeight: 800, color: C.tinta, letterSpacing: "-0.02em" }}>{nombre}</div>
+          <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {chip(0, "#DDF5EA", "#0B8A5F", "✓ Verificado")}
+            {chip(1, "#FFF1D6", "#B7791F", `★ ${nota}`)}
+            {chip(2, "#E6E8FB", C.azul, salas)}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
 // «Antes de juntarte ya sabes quién es la otra persona, y ella también sabe quién eres tú»
 const Antes: React.FC = () => {
   const L = L_ANTES;
+  const f = useCurrentFrame();
+  const une = L.en(4.15);
+  const u = suave(f, une - 6, 10);
   return (
     <Toma carpeta={CARPETA} archivo="antes" origen={80.6} cara={{ x: 537, y: 1033 }} linea={L}
-      modos={[[0, "real"], [2.43, "abajo"]]}
+      modos={[[0, "abajo"]]}
       palabras={[
         [["Antes", 0.23], ["de", 0.29], ["juntarte,", 0.49]],
         [["ya", 1.25], ["sabes", 1.35], ["quién", 1.49], ["es", 1.65]],
@@ -316,17 +472,30 @@ const Antes: React.FC = () => {
         [["y", 2.43], ["ella", 2.95], ["también", 3.27]],
         [["sabe", 3.61], ["quién", 3.77], ["eres", 3.95], ["tú.", 4.15]],
       ]}>
-      <Desde en={0} hasta={L.en(2.43)}>
-        <ConQuienTratas en={L.en(1.25)} y={300} nombre="Camila R." rol="Vendedora" giro={-2} marcas={[L.en(1.4), L.en(1.6), L.en(1.8)]} />
+      <Desde en={0} hasta={L.en(1.25)}>
+        <Palabra texto="antes de juntarte" en={L.en(0.23)} y={420} size={92} fondo={C.blanco} color={C.azul} giro={-2} />
       </Desde>
-      <Desde en={L.en(2.43)}>
-        <ConQuienTratas en={0} y={250} nombre="Camila R." rol="Vendedora" giro={-2} marcas={[0, 0, 0]} />
-        <ConQuienTratas en={L.en(3.27) - L.en(2.43)} y={560} nombre="Tú" rol="Comprador" giro={2} marcas={[L.en(3.61) - L.en(2.43), L.en(3.77) - L.en(2.43), L.en(3.95) - L.en(2.43)]} />
-      </Desde>
-      <Sfx nombre="pop" en={L.en(1.25)} />
-      <Sfx nombre="whoosh_sube" en={L.en(3.27)} vol={0.5} />
-      <Sfx nombre="pop_agudo" en={L.en(3.61)} />
-      <Sfx nombre="brillo" en={L.en(4.15)} vol={0.6} />
+      <ConQuienTratas en={L.en(1.25)} y={270} nombre="Camila R." rol="Vendedora" inicial="C" color={C.naranjo} giro={-2}
+        marcas={[L.en(1.49), L.en(1.85), L.en(1.99)]} nota="4,9" salas="12 salas en Trado" />
+      {/* Las dos tarjetas se unen: las dos personas ya saben con quién van a tratar */}
+      {f >= une - 6 && (
+        <div style={{ position: "absolute", left: 540 - 50, top: 545, width: 100, height: 100, borderRadius: 999, background: C.verde, border: `6px solid ${C.blanco}`,
+          display: "flex", alignItems: "center", justifyContent: "center", transform: `scale(${rebote(f, une - 6)})`, zIndex: 2, boxShadow: "0 10px 30px rgba(16,185,129,0.6)" }}>
+          <svg width={52} height={52} viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="#fff" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={30} strokeDashoffset={30 * (1 - u)} /></svg>
+        </div>
+      )}
+      <ConQuienTratas en={L.en(2.95)} y={620} nombre="Tú" rol="Comprador" inicial="T" color={C.medio} giro={2}
+        marcas={[L.en(3.61), L.en(3.77), L.en(3.95)]} nota="5,0" salas="3 salas en Trado" />
+      <Sfx nombre="pop_grave" en={L.en(0.23)} vol={0.6} />
+      <Sfx nombre="whoosh_sube" en={L.en(1.25)} vol={0.5} />
+      <Sfx nombre="pop" en={L.en(1.49)} />
+      <Sfx nombre="pop" en={L.en(1.85)} />
+      <Sfx nombre="pop_agudo" en={L.en(1.99)} />
+      <Sfx nombre="whoosh_sube" en={L.en(2.95)} vol={0.5} />
+      <Sfx nombre="pop" en={L.en(3.61)} />
+      <Sfx nombre="pop" en={L.en(3.77)} />
+      <Sfx nombre="pop_agudo" en={L.en(3.95)} />
+      <Sfx nombre="brillo" en={une - 6} vol={0.7} />
     </Toma>
   );
 };
@@ -345,23 +514,28 @@ const Cierre: React.FC = () => {
         [["hazlo", 2.68], ["con", 2.82], ["una", 2.94], ["persona", 3.06], ["real.", 3.4]],
         [["Hazlo", 4.36], ["en", 4.74], ["trado.cl", 4.96]],
       ]}>
-      <Desde en={0} hasta={tr}>
-        <Palabra texto="comprar" en={L.en(0.7)} y={300} size={80} fondo={C.blanco} color={C.tinta} giro={-4} style={{ left: 40, right: 560 }} />
-        <Palabra texto="vender" en={L.en(1.14)} y={420} size={80} fondo={C.blanco} color={C.tinta} giro={3} style={{ left: 330, right: 330 }} />
-        <Palabra texto="trabajar" en={L.en(1.86)} y={300} size={80} fondo={C.blanco} color={C.tinta} giro={-2} style={{ left: 560, right: 40 }} />
-        <Palabra texto="persona real" en={L.en(3.4)} y={600} size={110} fondo={C.verde} giro={-3} />
+      <Desde en={0} hasta={L.en(2.68)}>
+        <Palabra texto="🛍️ comprar" en={L.en(0.7)} y={290} size={78} fondo={C.blanco} color={C.tinta} giro={-4} />
+        <Palabra texto="🏷️ vender" en={L.en(1.14)} y={420} size={78} fondo={C.blanco} color={C.tinta} giro={3} />
+        <Palabra texto="🛠️ trabajar" en={L.en(1.86)} y={550} size={78} fondo={C.blanco} color={C.tinta} giro={-2} />
+      </Desde>
+      <Desde en={L.en(2.68)} hasta={tr}>
+        <Palabra texto={"con una\npersona real"} en={L.en(3.06) - L.en(2.68)} y={360} size={100} fondo={C.verde} giro={-3} style={{ left: 40, right: 400 }} />
+        <Salto emoji="✅" en={L.en(3.4) - L.en(2.68)} style={{ left: 170, top: 700 }} size={200} />
       </Desde>
       <Desde en={tr}>
-        <div style={{ position: "absolute", top: 300, width: "100%", textAlign: "center", color: C.blanco, fontWeight: 800, fontSize: 190, letterSpacing: "-0.04em", transform: `scale(${rebote(f, tr)})` }}>trado</div>
-        <Pildora texto="trado.cl" style={{ top: 560, left: "50%", transform: `translateX(-50%) scale(${rebote(f, L.en(4.96))})`, fontSize: 64, color: C.azul, padding: "22px 70px" }} />
-        <Confeti en={L.en(4.96) - tr} x={540} y={420} n={50} semilla="final" />
+        <Rayos en={0} x={540} y={500} />
+        <div style={{ position: "absolute", top: 320, width: "100%", textAlign: "center", color: C.blanco, fontWeight: 800, fontSize: 200, letterSpacing: "-0.04em", transform: `scale(${rebote(f, tr)})` }}>trado</div>
+        <Pildora texto="trado.cl" style={{ top: 600, left: "50%", transform: `translateX(-50%) scale(${f >= L.en(4.96) ? rebote(f, L.en(4.96)) : 0})`, fontSize: 70, color: C.azul, padding: "22px 74px" }} />
+        <Confeti en={L.en(4.96) - tr} x={540} y={420} n={60} semilla="final" />
       </Desde>
       <Sfx nombre="pop_grave" en={L.en(0.7)} />
       <Sfx nombre="pop" en={L.en(1.14)} />
       <Sfx nombre="pop_agudo" en={L.en(1.86)} />
-      <Sfx nombre="golpe" en={L.en(3.4)} />
+      <Sfx nombre="whoosh_sube" en={L.en(3.06)} vol={0.4} />
+      <Sfx nombre="campanas" en={L.en(3.4)} vol={0.35} />
       <Sfx nombre="golpe" en={tr} />
-      <Sfx nombre="campanas" en={L.en(4.96)} vol={0.5} />
+      <Sfx nombre="brillo" en={L.en(4.96)} vol={0.6} />
     </Toma>
   );
 };
