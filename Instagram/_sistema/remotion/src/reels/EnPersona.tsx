@@ -23,9 +23,9 @@ import { linea, Toma } from "../piezas/Toma";
 // Sin verificar, nota y salas en Trado. Nada de RUT ni teléfono.
 //
 // Noticias reales (T13, 24 Horas, Meganoticias, CHV), con su logo y su franja tal cual: cortes de
-// 3 s en public/material/nuevo-2026-11-08/noticias/cortes/ (fuera de git), fuentes en noticias.md.
+// 3 s en public/material/en-persona/noticias/cortes/ (fuera de git), fuentes en noticias.md.
 
-const CARPETA = "material/nuevo-2026-11-08";
+const CARPETA = "material/en-persona";
 
 const L_HOOK = linea([[0.1, 4.2]]);
 // Hasta 3,05 hay un "Y en todos los casos pasa lo…" que quedó colgando: se usa la repetición
