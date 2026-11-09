@@ -26,7 +26,8 @@ import { linea, Toma } from "../piezas/Toma";
 const CARPETA = "material/nuevo-2026-11-08";
 
 const L_HOOK = linea([[0.1, 4.2]]);
-const L_PERFIL = linea([[0.08, 1.55], [4.45, 12.55]]);
+// Entre 1,0 y 3,1 hay un "pasa lo…" que quedó colgando: se usa la repetición (3,1–4,8)
+const L_PERFIL = linea([[0.08, 1.0], [3.05, 12.55]]);
 const L_PROBLEMA = linea([[0.15, 1.6], [1.8, 4.0]]);
 const L_TRADO = linea([[0.1, 0.75], [0.95, 6.2]]);
 const L_ANTES = linea([[0.12, 4.75]]);
@@ -197,10 +198,10 @@ const Perfil: React.FC = () => {
   const f = useCurrentFrame();
   return (
     <Toma carpeta={CARPETA} archivo="perfil" origen={22.8} cara={{ x: 562, y: 958 }} linea={L}
-      modos={[[0, "real"], [5.03, "abajo"], [10.07, "cerca"]]}
+      modos={[[0, "real"], [5.03, "abajo"]]}
       palabras={[
         [["En", 0.15], ["todos", 0.31], ["los", 0.45], ["casos", 0.65]],
-        [["pasa", 1.03], ["lo", 1.31], ["mismo:", 4.51]],
+        [["pasa", 3.12], ["lo", 3.8], ["mismo:", 4.2]],
         [["te", 5.03], ["juntas", 5.11], ["con", 5.37], ["una", 5.51], ["persona", 5.71]],
         [["y", 6.05], ["solo", 6.25], ["conoces", 6.45]],
         [["su", 6.99], ["perfil,", 7.19], ["su", 7.91], ["foto", 8.01]],
@@ -214,12 +215,12 @@ const Perfil: React.FC = () => {
           style={{ top: 1150, left: "50%", fontSize: 64, whiteSpace: "nowrap", transform: `translateX(-50%) scale(${rebote(f, L.en(11.83))}) rotate(-4deg)` }} />
       )}>
       <Desde en={0} hasta={L.en(5.03)}>
-        <Palabra texto="lo mismo" en={L.en(1.03)} y={330} size={110} fondo={C.rojo} />
+        <Palabra texto="lo mismo" en={L.en(4.2)} y={330} size={110} fondo={C.rojo} />
       </Desde>
       <Desde en={L.en(5.03)}>
         <PerfilFalso en={L.en(7.19) - L.en(5.03)} dudas={L.en(10.59) - L.en(5.03)} />
       </Desde>
-      <Sfx nombre="golpe" en={L.en(1.03)} vol={0.6} />
+      <Sfx nombre="golpe" en={L.en(4.2)} vol={0.6} />
       <Sfx nombre="pop" en={L.en(7.19)} />
       <Sfx nombre="pop_agudo" en={L.en(8.01)} />
       <Sfx nombre="pop_agudo" en={L.en(8.95)} />
@@ -241,8 +242,10 @@ const Problema: React.FC = () => {
         [["es", 1.86], ["juntarse", 2.06], ["con", 2.48], ["una", 2.66], ["persona", 2.86]],
         [["que", 3.2], ["no", 3.44], ["conoces.", 3.62]],
       ]}>
-      <Palabra texto="en persona" en={L.en(1.0)} y={330} size={100} fondo={C.blanco} color={C.tinta} giro={-3} style={{ left: 20, right: 420 }} />
-      <Palabra texto={"con alguien\nque no conoces"} en={L.en(3.44)} y={330} size={84} fondo={C.rojo} giro={3} style={{ left: 420, right: 20 }} />
+      <Desde en={0} hasta={L.en(3.3)}>
+        <Palabra texto="en persona" en={L.en(1.0)} y={330} size={100} fondo={C.blanco} color={C.tinta} giro={-3} />
+      </Desde>
+      <Palabra texto={"con alguien\nque no conoces"} en={L.en(3.44)} y={330} size={84} fondo={C.rojo} giro={3} />
       <Sfx nombre="pop" en={L.en(1.0)} />
       <Sfx nombre="golpe" en={L.en(3.44)} />
     </Toma>
