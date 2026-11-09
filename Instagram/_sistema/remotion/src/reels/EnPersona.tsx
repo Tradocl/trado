@@ -70,7 +70,20 @@ const inicioDe = (id: string) => {
   return t;
 };
 
-// Tono serio: nada de música sobre las noticias ni el problema. Entra con Trado.
+// Dos músicas: tensión de noticiero bajo las noticias y el problema (más fuerte en las noticias,
+// más baja cuando hablas), y se corta en seco con «En Trado», donde entra la de solución.
+const Tension: React.FC = () => {
+  const corta = inicioDe("trado");
+  const hablas = inicioDe("hook");
+  const vol = (f: number) =>
+    interpolate(f, [0, 6, hablas - 4, hablas + 8, corta - 3, corta], [0, 0.2, 0.2, 0.15, 0.15, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  return (
+    <Sequence from={0} durationInFrames={corta} layout="none">
+      <Audio src={staticFile("sfx/musica_tension.wav")} volume={vol} />
+    </Sequence>
+  );
+};
+
 const Musica: React.FC = () => {
   const entra = inicioDe("trado");
   const ritmo = Math.ceil(inicioDe("antes") / COMPAS) * COMPAS;
@@ -91,6 +104,7 @@ export const EnPersona: React.FC<{ musica?: boolean }> = ({ musica = true }) => 
   let desde = 0;
   return (
     <AbsoluteFill style={{ fontFamily: FUENTE, background: C.tinta }}>
+      {musica && <Tension />}
       {musica && <Musica />}
       {ESCENAS.map((e, i) => {
         const inicio = desde;

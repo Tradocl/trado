@@ -111,6 +111,13 @@ public/material/<reel>/
 - **Apps: solo el nombre**, nunca su logo ni su interfaz. El chat y la publicación son diseño nuestro.
 - **Varía los efectos**: el mismo "pop" para todo cansa. Tres cosas seguidas → tonos que suben.
 - **La música va ~11 dB bajo la voz** y el ritmo entra recién cuando aparece Trado.
+- **Reels de problema serio: dos músicas.** `musica_tension.wav` (dron grave, pulso de noticiero,
+  trémolo) bajo las noticias y el problema, y se corta en seco cuando aparece Trado, donde entra la
+  base. Es más suave que la base: para que suene al mismo nivel necesita ~2,5× el volumen (0,15 vs 0,06).
+- **Gancho de noticias: pocos cortes y largos** (1,5–3 s). Con cortes de 0,4 s no se entendía de
+  qué eran. Una frase del periodista por nota, también en subtítulo.
+- **Fondo azul solo cuando hace falta** (el logo, la tarjeta final). Con tu fondo real se ve más
+  profesional; las piezas van arriba de tu cabeza (y 220–570) para no taparte.
 - **Corta toda pausa de más de ~0,3 s**; la de antes de una enumeración también.
 - **Revisa el primer cuadro**: es la miniatura antes de que carguen. En el post 16 sale
   con los ojos cerrados (la toma empieza a 0,08 s); conviene empezar en uno con ojos abiertos.
@@ -131,10 +138,11 @@ public/material/<reel>/
   video entero se "come" repeticiones (en «En persona» un "y en todos los casos pasa lo…" colgado
   quedó dentro del corte y solo se notó al transcribir el render). Antes de dar por listo,
   `python scripts/transcribir.py out/<Id>.mp4` y leer que no se repita nada.
-- **Noticias reales en el gancho**: cortes de ~0,4–0,8 s con golpe de zoom, el mismo video borroso
+- **Noticias reales en el gancho**: cortes de 1,5–3 s con golpe de zoom, el mismo video borroso
   de fondo, su franja tal cual y el titular repetido grande abajo (la franja de TV en un celular
-  no se lee). Logos de canal sin tapar. El audio de cada corte picado no dice nada: mejor una sola
-  frase con sentido de una nota debajo de todos los cortes («400 mil pesos era el precio acordado»).
+  no se lee). Logos de canal sin tapar. El audio de cada corte picado no dice nada: mejor una
+  frase con sentido por nota, sacada de la nota original con loudnorm («400 mil pesos era el precio
+  acordado», T13; «…cuando fue interceptado por los asaltantes», CHV) en `cortes/voz-*.m4a`.
   Descarga con `python -m yt_dlp`; cortes de 3 s en `material/<reel>/noticias/cortes/`.
 - **loudnorm en una pasada satura** (pico de +2,7 dBFS). `final.py` hace dos pasadas lineales y un limitador.
 - **Todo lo que se dice de Trado se verifica contra el código** (plazos, estados, comisión)

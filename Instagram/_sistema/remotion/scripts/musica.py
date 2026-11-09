@@ -3,6 +3,9 @@
 Sale en dos capas que se mezclan en Remotion:
   public/sfx/musica_base.wav   acordes, bajo y un arpegio suave (desde el inicio)
   public/sfx/musica_ritmo.wav  batería liviana (entra cuando aparece la solución)
+  public/sfx/musica_tension.wav  tensión tipo noticiero (dron grave, pulso en corcheas, trémolo
+                               agudo y un tic de reloj) para el problema, antes de que aparezca
+                               la solución; se corta justo cuando entra la base
 
 Las dos van al mismo tempo; el ritmo debe empezar en un comienzo de compás
 (COMPAS segundos), y así calza con los acordes. Se corre con `npm run sfx`.
@@ -96,3 +99,36 @@ for c in range(compases):
 # El fade de entrada y salida lo hace Remotion; aquí solo el nivel.
 base.guardar("musica_base.wav", 0.8)
 ritmo.guardar("musica_ritmo.wav", 0.8)
+
+
+# ── Tensión (el problema): Re menor con una segunda menor que roza, pulso de noticiero ──
+tension = Estereo()
+t_dur = 32.0
+D2, A2, D3, EB3 = 73.42, 110.0, 146.83, 155.56
+cuerpo = int(t_dur * SR)
+
+
+def dron(f, d, sube=4.0):
+    s = fft_filter(saw(f, d, 3, 0.003), hi=600)
+    t = t_(d)
+    return s * np.minimum(1, t / sube)
+
+
+tension.add(dron(D2, t_dur), 0, 0.22, -0.2)
+tension.add(dron(A2, t_dur), 0, 0.14, 0.2)
+tension.add(dron(EB3, t_dur, 8.0), 2.0, 0.05, 0.3)   # la segunda menor: incomoda sin que se note
+for k in range(int(t_dur / (PULSO / 2))):           # pulso grave en corcheas, como cortina de noticias
+    tk = k * PULSO / 2
+    f = D2 if (k // 8) % 4 != 3 else 65.41          # cada cuatro compases baja a Do: no se vuelve loop
+    d = 0.18
+    tt = t_(d)
+    nota = fft_filter(saw(f * 2, d, 2, 0.004), hi=700) * np.exp(-tt * 14)
+    tension.add(nota, tk, 0.30 if k % 4 == 0 else 0.18)
+    if k % 2 == 0:
+        tension.add(fft_filter(kick(), hi=180), tk, 0.35 if k % 8 == 0 else 0.15)
+for k in range(int(t_dur / (PULSO / 4))):           # reloj muy bajo, en semicorcheas
+    tension.add(fft_filter(hat(), lo=2500), k * PULSO / 4, 0.05 if k % 4 else 0.08, 0.4)
+tt = t_(t_dur - 4)
+trem = (np.sin(2 * np.pi * 587.33 * tt) + 0.6 * np.sin(2 * np.pi * 622.25 * tt)) * (0.5 + 0.5 * np.sin(2 * np.pi * 7 * tt))
+tension.add(trem * np.minimum(1, tt / 6), 4.0, 0.025, 0.0)  # trémolo agudo que crece de a poco
+tension.guardar("musica_tension.wav", 0.8)
