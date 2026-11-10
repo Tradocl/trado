@@ -19,7 +19,7 @@ const Terms = () => {
         <meta property="og:url" content="https://trado.cl/terms" />
       </Helmet>
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary via-primary-light to-info py-12">
+      <div className="bg-gradient-to-br from-primary via-medio via-55% to-info py-12">
         <div className="container mx-auto px-4">
           <Button
             variant="ghost"

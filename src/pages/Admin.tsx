@@ -775,7 +775,7 @@ export default function Admin() {
             <span className="hidden sm:inline">Mi panel</span>
           </Button>
           <Logo height={26} />
-          <Badge className="ml-1 bg-gradient-to-r from-primary to-info text-white border-0">Admin</Badge>
+          <Badge className="ml-1 bg-gradient-to-r from-primary via-medio via-55% to-info text-white border-0">Admin</Badge>
         </div>
       </header>
     <div className="container mx-auto px-3 sm:px-6 py-5 sm:py-6">
@@ -789,7 +789,7 @@ export default function Admin() {
         const porAtender = pendingTransfers.length + stats.pendingWithdrawals + stats.pendingVerifications + stats.pendingAppeals + stats.pendingReturns;
         const tarjetas = [
           { titulo: "Por atender", valor: String(porAtender), detalle: porAtender ? "Depósitos, retiros, verificaciones, reclamos" : "Todo al día", icon: AlertTriangle, color: porAtender ? "from-rose-500 to-orange-500" : "from-emerald-500 to-emerald-600" },
-          { titulo: "En custodia ahora", valor: `$${formatCLP(enCustodia)}`, detalle: `${vivas.length} ${vivas.length === 1 ? "sala" : "salas"} con plata retenida`, icon: Lock, color: "from-primary to-info" },
+          { titulo: "En custodia ahora", valor: `$${formatCLP(enCustodia)}`, detalle: `${vivas.length} ${vivas.length === 1 ? "sala" : "salas"} con plata retenida`, icon: Lock, color: "from-primary via-medio via-55% to-info" },
           { titulo: "Usuarios", valor: String(stats.totalUsers), detalle: `+${nuevos7} en los últimos 7 días`, icon: Users, color: "from-violet-500 to-fuchsia-500" },
           { titulo: "Salas", valor: String(stats.totalTransactions), detalle: `${completadas} completadas`, icon: TrendingUp, color: "from-emerald-500 to-teal-500" },
           { titulo: "Depósitos Mercado Pago", valor: `$${formatCLP(tokenStats.totalDeposits)}`, detalle: "Acreditados automáticamente", icon: Wallet, color: "from-sky-500 to-blue-600" },

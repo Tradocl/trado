@@ -113,7 +113,7 @@ export const PrimerosPasos = ({ abierto, onCerrar, perfilCompleto, salaPendiente
         </ol>
 
         {salaCreada ? (
-          <Button onClick={() => navigate(`/transaction/${salaPendienteId}`)} className="w-full sm:w-auto bg-gradient-to-r from-primary to-info text-white font-bold">
+          <Button onClick={() => navigate(`/transaction/${salaPendienteId}`)} className="w-full sm:w-auto bg-gradient-to-r from-primary via-medio via-55% to-info text-white font-bold">
             Ir a mi sala y compartir el link
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>

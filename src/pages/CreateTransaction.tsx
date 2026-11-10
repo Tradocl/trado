@@ -575,7 +575,7 @@ const CreateTransaction = () => {
 
               {orderDetails && (
                 <div className="mt-5 space-y-3">
-                  <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-primary to-info text-white px-5 py-4 shadow-lg">
+                  <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-primary via-medio via-55% to-info text-white px-5 py-4 shadow-lg">
                     <span className="text-sm font-medium text-white/85">
                       {vendo ? "Recibirás" : sinComision ? "Pagarás" : "Pagarás con tarjeta"}
                     </span>
@@ -615,7 +615,7 @@ const CreateTransaction = () => {
         {paso === 4 && orderDetails && (
           <div className="space-y-5 animate-fade-in">
             <div className="rounded-3xl overflow-hidden border shadow-xl bg-card">
-              <div className="bg-gradient-to-r from-primary to-info text-white p-5 sm:p-6">
+              <div className="bg-gradient-to-r from-primary via-medio via-55% to-info text-white p-5 sm:p-6">
                 <div className="flex items-center gap-2 text-sm text-white/80">
                   <CasoIcon className="h-4 w-4" /> {vendo ? caso.vendo : caso.compro}
                 </div>
@@ -701,7 +701,7 @@ const CreateTransaction = () => {
           {paso < 4 ? (
             <Button
               size="lg"
-              className={`flex-1 rounded-xl h-14 text-base font-bold bg-gradient-to-r from-primary to-info text-white shadow-lg ${puedeSeguir ? "" : "opacity-60"}`}
+              className={`flex-1 rounded-xl h-14 text-base font-bold bg-gradient-to-r from-primary via-medio via-55% to-info text-white shadow-lg ${puedeSeguir ? "" : "opacity-60"}`}
               onClick={siguiente}
             >
               Seguir <ArrowRight className="h-5 w-5 ml-2" />

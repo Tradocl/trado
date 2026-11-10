@@ -157,7 +157,7 @@ export const Casos = ({ onEmpezar }: { onEmpezar: () => void }) => {
               </li>
             ))}
           </ol>
-          <Button onClick={onEmpezar} className="mt-6 w-full sm:w-auto bg-gradient-to-r from-primary to-info text-white font-bold">
+          <Button onClick={onEmpezar} className="mt-6 w-full sm:w-auto bg-gradient-to-r from-primary via-medio via-55% to-info text-white font-bold">
             Crear mi sala gratis
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>

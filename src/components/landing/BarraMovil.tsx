@@ -32,13 +32,13 @@ export const BarraMovil = ({ onCrear, finalId }: { onCrear: () => void; finalId:
       <button
         onClick={onCrear}
         tabIndex={ver ? 0 : -1}
-        className="w-full flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#1F25C1] to-[#7C3AED] text-white pl-5 pr-3 py-3 shadow-[0_12px_40px_-8px_rgba(31,37,193,0.7)]"
+        className="w-full flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#2230C2] via-[#4B35D6] via-55% to-[#7C3AED] text-white pl-5 pr-3 py-3 shadow-[0_12px_40px_-8px_rgba(31,37,193,0.7)]"
       >
         <span className="text-left leading-tight">
           <span className="block font-bold">Crear mi sala gratis</span>
           <span className="block text-xs text-white/75">Primera sala sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}</span>
         </span>
-        <span className="w-10 h-10 rounded-xl bg-white text-[#1F25C1] flex items-center justify-center shrink-0">
+        <span className="w-10 h-10 rounded-xl bg-white text-[#2230C2] flex items-center justify-center shrink-0">
           <ArrowRight className="h-5 w-5" />
         </span>
       </button>

@@ -33,6 +33,8 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        // Paso intermedio del degradado de marca: azul -> medio (55 %) -> morado
+        medio: "hsl(var(--medio))",
         info: {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",

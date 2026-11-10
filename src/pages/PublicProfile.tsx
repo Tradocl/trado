@@ -112,7 +112,7 @@ const PublicProfile = () => {
         <meta property="og:url" content={`https://trado.cl/u/${profile.id}`} />
       </Helmet>
       {/* Hero gradient banner */}
-      <div className="relative h-36 bg-gradient-to-br from-[#3340d8] via-[#4a3fd6] to-[#7147d4] overflow-hidden">
+      <div className="relative h-36 bg-gradient-to-br from-[#3340d8] via-[#4a3fd6] to-[#7C3AED] overflow-hidden">
         {/* Decorative circles */}
         <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
         <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-white/5" />
@@ -149,7 +149,7 @@ const PublicProfile = () => {
           <div className="relative">
             <Avatar className={`h-24 w-24 border-4 border-background shadow-xl ring-2 ${profile.is_verified ? "ring-emerald-400" : "ring-primary/20"}`}>
               <AvatarImage src={profile.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-primary to-[#7147d4] text-white font-bold text-2xl">
+              <AvatarFallback className="bg-gradient-to-br from-primary to-[#7C3AED] text-white font-bold text-2xl">
                 {initials}
               </AvatarFallback>
             </Avatar>

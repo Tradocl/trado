@@ -12,7 +12,7 @@ const MOCK_MOVEMENTS = [
 
 const MOCK_TRANSACTIONS = [
   { product: "MacBook Air M1", amount: "$620.000", status: "Completada", color: "#16A34A" },
-  { product: "PS5 Digital", amount: "$380.000", status: "En proceso", color: "#1F25C1" },
+  { product: "PS5 Digital", amount: "$380.000", status: "En proceso", color: "#2230C2" },
   { product: "iPhone 14 Pro", amount: "$550.000", status: "Completada", color: "#16A34A" },
 ];
 
@@ -22,7 +22,7 @@ export default function GuestPreview() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-[#1F25C1] px-4 pt-12 pb-6">
+      <div className="bg-[#2230C2] px-4 pt-12 pb-6">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-white/70 text-sm mb-4">
           <ArrowLeft size={16} /> Volver
         </button>
@@ -62,7 +62,7 @@ export default function GuestPreview() {
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-2">
               <p className="font-bold text-gray-800">PS5 Digital</p>
-              <span className="bg-blue-100 text-[#1F25C1] text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+              <span className="bg-blue-100 text-[#2230C2] text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
                 <Lock size={10} /> En proceso
               </span>
             </div>
@@ -70,11 +70,11 @@ export default function GuestPreview() {
             <div className="flex items-center gap-1 mt-3">
               {["Pago", "Envío", "Confirmar"].map((s, i) => (
                 <div key={s} className="flex items-center gap-1 flex-1">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${i === 0 ? "bg-[#1F25C1] text-white" : i === 1 ? "bg-[#1F25C1]/20 text-[#1F25C1] border border-[#1F25C1]/40 animate-pulse" : "bg-gray-100 text-gray-300"}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${i === 0 ? "bg-[#2230C2] text-white" : i === 1 ? "bg-[#2230C2]/20 text-[#2230C2] border border-[#2230C2]/40 animate-pulse" : "bg-gray-100 text-gray-300"}`}>
                     {i === 0 ? "✓" : i + 1}
                   </div>
                   <span className={`text-[10px] font-medium ${i < 2 ? "text-gray-600" : "text-gray-300"}`}>{s}</span>
-                  {i < 2 && <div className={`flex-1 h-px ${i === 0 ? "bg-[#1F25C1]/30" : "bg-gray-200"}`} />}
+                  {i < 2 && <div className={`flex-1 h-px ${i === 0 ? "bg-[#2230C2]/30" : "bg-gray-200"}`} />}
                 </div>
               ))}
             </div>
@@ -105,7 +105,7 @@ export default function GuestPreview() {
           <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">Tu reputación</p>
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-[#1F25C1] flex items-center justify-center text-white text-lg font-black">TU</div>
+              <div className="w-14 h-14 rounded-full bg-[#2230C2] flex items-center justify-center text-white text-lg font-black">TU</div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-bold text-gray-800">Tu perfil</p>
@@ -125,14 +125,14 @@ export default function GuestPreview() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-2">
         <Button
           onClick={() => navigate("/auth?tab=register")}
-          className="w-full bg-[#1F25C1] text-white h-13 rounded-2xl text-base font-bold shadow-lg"
+          className="w-full bg-[#2230C2] text-white h-13 rounded-2xl text-base font-bold shadow-lg"
           size="lg"
         >
           Crear cuenta gratis — Es rápido
         </Button>
         <button
           onClick={() => navigate("/auth")}
-          className="w-full text-[#1F25C1] text-sm font-semibold py-2"
+          className="w-full text-[#2230C2] text-sm font-semibold py-2"
         >
           Ya tengo cuenta
         </button>

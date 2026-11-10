@@ -690,7 +690,7 @@ const Profile = () => {
       <main className="relative container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-2xl space-y-4 sm:space-y-5">
         {/* Encabezado: quién eres y en qué estado está tu cuenta */}
         <Card className="border-0 shadow-2xl overflow-hidden rounded-3xl bg-card/95 backdrop-blur">
-          <div className="relative h-28 sm:h-32 bg-gradient-to-br from-primary via-primary to-info overflow-hidden">
+          <div className="relative h-28 sm:h-32 bg-gradient-to-br from-primary via-medio via-55% to-info overflow-hidden">
             <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/15 blur-2xl" aria-hidden />
             <div className="absolute -bottom-16 left-10 w-40 h-40 rounded-full bg-success/30 blur-2xl" aria-hidden />
           </div>
@@ -700,7 +700,7 @@ const Profile = () => {
               <div className="relative">
                 <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-background shadow-xl ring-4 ring-primary/20">
                   <AvatarImage src={profileData?.avatar_url || undefined} />
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-info text-white font-bold">
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white font-bold">
                     {profileData?.full_name ? getInitials(profileData.full_name) : "U"}
                   </AvatarFallback>
                 </Avatar>

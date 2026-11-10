@@ -637,7 +637,7 @@ const Wallet = () => {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
-        <Card className="relative overflow-hidden border-0 shadow-2xl rounded-3xl bg-gradient-to-br from-primary via-primary to-info text-white">
+        <Card className="relative overflow-hidden border-0 shadow-2xl rounded-3xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white">
           <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10 blur-2xl pointer-events-none" aria-hidden />
           <CardHeader className="relative pb-2 sm:pb-4">
             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2 text-white/90">

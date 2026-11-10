@@ -96,7 +96,7 @@ export const RecordatorioCuenta = ({ userId, perfilCompleto, estadoVerificacion,
       aria-label={contenido.titulo}
       className="fixed z-50 inset-x-3 bottom-20 sm:bottom-6 sm:left-auto sm:right-6 sm:w-[380px] animate-in slide-in-from-bottom-6 fade-in duration-500"
     >
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1F25C1] to-[#7C3AED] text-white shadow-[0_20px_60px_-15px_rgba(31,37,193,0.7)] p-5">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2230C2] via-[#4B35D6] via-55% to-[#7C3AED] text-white shadow-[0_20px_60px_-15px_rgba(31,37,193,0.7)] p-5">
         <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
         <button onClick={posponer} aria-label="Cerrar" className="absolute top-3 right-3 p-1.5 rounded-full text-white/70 hover:text-white hover:bg-white/10">
           <X className="h-4 w-4" />
@@ -117,7 +117,7 @@ export const RecordatorioCuenta = ({ userId, perfilCompleto, estadoVerificacion,
           ))}
         </div>
         <div className="flex items-center gap-2 mt-4">
-          <Button onClick={actuar} className="flex-1 bg-white text-[#1F25C1] hover:bg-white/90 font-bold">
+          <Button onClick={actuar} className="flex-1 bg-white text-[#2230C2] hover:bg-white/90 font-bold">
             {contenido.boton}
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>

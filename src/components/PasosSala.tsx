@@ -52,7 +52,7 @@ export const PasosSala = ({ saleType, state, conAmbos }: { saleType: string; sta
                     hecho
                       ? "bg-success text-white"
                       : ahora
-                        ? "bg-gradient-to-br from-primary to-info text-white ring-4 ring-primary/15"
+                        ? "bg-gradient-to-br from-primary via-medio via-55% to-info text-white ring-4 ring-primary/15"
                         : "bg-muted text-muted-foreground"
                   }`}
                 >

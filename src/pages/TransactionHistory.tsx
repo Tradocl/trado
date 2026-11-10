@@ -364,7 +364,7 @@ export default function TransactionHistory() {
       </header>
 
       <main className="relative container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-5xl space-y-5 sm:space-y-6">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-info text-white p-5 sm:p-7 shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white p-5 sm:p-7 shadow-2xl">
           <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10 blur-2xl pointer-events-none" aria-hidden />
           <div className="relative">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-2">

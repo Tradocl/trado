@@ -379,7 +379,8 @@ función haya respondido se ve en `net._http_response`. `net.http_post` espera
 5 s por defecto; el 2026-11-08 `auto-release-escrow` marcó 2 de 24 corridas con
 `timed_out` (arranque en frío), sin escrow vivo, y la corrida siguiente salió
 bien. `20261108020000_cron_timeout.sql` sube la espera a 15 s en los cuatro
-jobs (**pendiente de aplicar**, esperando aprobación).
+jobs (aplicada el 2026-11-10; los cuatro comandos llevan
+`timeout_milliseconds := 15000`).
 
 ### Modelo de seguridad de la base (desde 2026-09-24)
 
@@ -444,6 +445,22 @@ plata que no existía. Se corrigió con la migración
 Ningún trigger ni función lo actualiza: vale 0 para todos. Las salas
 completadas se cuentan desde `transactions` (`state = 'completed'`), como
 hacen el panel, el perfil y el admin. No mostrar ese campo directo.
+
+Excepción: `get_safe_profile` (perfil de **otra** persona: "Con quién tratas",
+participantes, perfil público) devuelve una columna llamada
+`total_transactions`, pero desde `20261110000000_salas_completadas_en_perfil.sql`
+la calcula contando sus salas completadas. Esa sí se puede mostrar. Sirve
+porque RLS no deja contar salas ajenas desde el navegador.
+
+### Colores de marca
+
+La app usa la paleta de los reels y carruseles
+(`Instagram/_sistema/remotion/src/marca.ts`): azul `#2230C2` (`--primary`),
+morado `#7C3AED` (`--info`) y el paso intermedio `#4B35D6` (`--medio`). El
+degradado de marca es `from-primary via-medio via-55% to-info`: el azul se
+sostiene hasta pasada la mitad, que es lo que lo hace ver "más azul". La guía
+de logos y `Instagram/_sistema/base.css` (posts del feed) siguen con
+`#1F25C1`/`#7B46D8`, la paleta anterior.
 
 ### wallet_movements no tiene user_id
 

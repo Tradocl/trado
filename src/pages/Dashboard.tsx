@@ -627,7 +627,7 @@ const Dashboard = () => {
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0" aria-hidden>
                 <span className="absolute left-0 top-2 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg -rotate-12"><Truck className="h-5 w-5" /></span>
                 <span className="absolute right-0 top-0 w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-violet-500 text-white flex items-center justify-center shadow-lg rotate-12"><Briefcase className="h-5 w-5" /></span>
-                <span className="absolute left-1/2 -translate-x-1/2 bottom-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-primary to-info text-white flex items-center justify-center shadow-xl"><Lock className="h-5 w-5" /></span>
+                <span className="absolute left-1/2 -translate-x-1/2 bottom-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white flex items-center justify-center shadow-xl"><Lock className="h-5 w-5" /></span>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-primary flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> No tienes salas en curso</p>
@@ -834,7 +834,7 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
-            <div className="flex justify-between items-center p-4 sm:p-5 bg-gradient-to-r from-primary to-info text-white rounded-xl shadow-md animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
+            <div className="flex justify-between items-center p-4 sm:p-5 bg-gradient-to-r from-primary via-medio via-55% to-info text-white rounded-xl shadow-md animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
               <span className="flex items-center gap-2 text-xs sm:text-sm font-medium text-white/85">
                 <Wallet className="h-4 w-4" /> Saldo disponible
               </span>

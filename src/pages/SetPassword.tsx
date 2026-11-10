@@ -70,7 +70,7 @@ const SetPassword = () => {
         <title>Crear contraseña — Trado</title>
         <meta name="robots" content="noindex" />
       </Helmet>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-light to-info p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-medio via-55% to-info p-4">
         <Card className="w-full max-w-md shadow-2xl border-0">
           <CardHeader className="space-y-3 text-center">
             <div className="flex justify-center">

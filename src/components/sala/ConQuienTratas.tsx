@@ -29,7 +29,7 @@ export function ConQuienTratas({ perfil, rol }: { perfil: Perfil; rol: string })
       <div className="relative shrink-0">
         <Avatar className={`h-12 w-12 sm:h-14 sm:w-14 ring-2 ${perfil.is_verified ? "ring-emerald-400" : "ring-primary/20"}`}>
           <AvatarImage src={perfil.avatar_url || undefined} />
-          <AvatarFallback className="bg-gradient-to-br from-primary to-info text-white font-bold">{iniciales}</AvatarFallback>
+          <AvatarFallback className="bg-gradient-to-br from-primary via-medio via-55% to-info text-white font-bold">{iniciales}</AvatarFallback>
         </Avatar>
         <CheckEnFoto verificado={perfil.is_verified} />
       </div>

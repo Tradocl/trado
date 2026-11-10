@@ -22,9 +22,9 @@ All colors MUST be HSL.
     --popover-foreground: 220 20% 10%;
 
     /* Primary: Indigo - Modern & Trustworthy */
-    --primary: 238 72% 44%;
+    --primary: 235 70% 45%;            /* #2230C2, el azul de las publicaciones */
     --primary-foreground: 0 0% 100%;
-    --primary-light: 238 62% 58%;
+    --primary-light: 235 62% 58%;
 
     /* Success: Emerald - Confirmations & Money */
     --success: 158 82% 36%;
@@ -38,7 +38,7 @@ All colors MUST be HSL.
     --muted: 235 16% 96%;
     --muted-foreground: 235 10% 46%;
 
-    --accent: 238 72% 44%;
+    --accent: 235 70% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -46,14 +46,15 @@ All colors MUST be HSL.
 
     --border: 235 16% 88%;
     --input: 235 14% 91%;
-    --ring: 238 72% 44%;
+    --ring: 235 70% 45%;
 
     /* Warning: Amber for pending states */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
     /* Info: Violet - gradient accent */
-    --info: 262 65% 56%;
+    --info: 262 83% 58%;               /* #7C3AED, el morado de las publicaciones */
+    --medio: 248 66% 52%;              /* #4B35D6, el paso intermedio del degradado */
     --info-foreground: 0 0% 100%;
 
     --radius: 0.75rem;
@@ -86,9 +87,9 @@ All colors MUST be HSL.
     --popover: 220 20% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 238 70% 64%;
+    --primary: 235 70% 64%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 238 60% 74%;
+    --primary-light: 235 60% 74%;
 
     --success: 158 72% 44%;
     --success-foreground: 0 0% 100%;
@@ -113,7 +114,8 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --info: 262 65% 65%;
+    --info: 262 80% 68%;
+    --medio: 248 66% 64%;
     --info-foreground: 0 0% 100%;
   }
 }

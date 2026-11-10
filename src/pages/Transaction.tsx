@@ -1848,7 +1848,7 @@ const Transaction = () => {
           </CardHeader>
           <CardContent className="pt-4 px-4 sm:px-6">
             <div className="relative overflow-hidden">
-              <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-4 sm:p-5 bg-gradient-to-r from-primary to-info text-white rounded-xl shadow-lg">
+              <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-4 sm:p-5 bg-gradient-to-r from-primary via-medio via-55% to-info text-white rounded-xl shadow-lg">
                 {isBuyer ? (
                   <>
                     <span className="text-sm sm:text-base font-semibold text-white/85">{preDeposito && veoMiComision ? "Tu pago total (con tarjeta)" : "Tu pago total"}</span>

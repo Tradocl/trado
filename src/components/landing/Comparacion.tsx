@@ -48,7 +48,7 @@ export const Comparacion = ({ monto }: { monto: number }) => {
       <div
         className={`relative rounded-3xl p-6 sm:p-7 overflow-hidden ${
           bueno
-            ? "bg-gradient-to-br from-[#1F25C1] to-[#7C3AED] text-white shadow-[0_25px_60px_-20px_rgba(31,37,193,0.6)]"
+            ? "bg-gradient-to-br from-[#2230C2] via-[#4B35D6] via-55% to-[#7C3AED] text-white shadow-[0_25px_60px_-20px_rgba(31,37,193,0.6)]"
             : "bg-white border border-border shadow-lg"
         }`}
       >

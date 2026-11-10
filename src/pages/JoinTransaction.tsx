@@ -153,7 +153,7 @@ const JoinTransaction = () => {
 
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-xl">
         <div className="text-center mb-7">
-          <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-info text-white flex items-center justify-center shadow-lg">
+          <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white flex items-center justify-center shadow-lg">
             <Handshake className="h-8 w-8" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Unirme a una sala</h1>
@@ -189,7 +189,7 @@ const JoinTransaction = () => {
             <Button
               type="submit"
               size="lg"
-              className="w-full h-14 rounded-xl text-base font-bold bg-gradient-to-r from-primary to-info text-white shadow-lg"
+              className="w-full h-14 rounded-xl text-base font-bold bg-gradient-to-r from-primary via-medio via-55% to-info text-white shadow-lg"
               disabled={loading || inviteCode.length < 4}
             >
               <Search className="mr-2 h-5 w-5" />
@@ -199,7 +199,7 @@ const JoinTransaction = () => {
         ) : (
           <div className="space-y-4 animate-scale-in">
             <div className="rounded-3xl overflow-hidden border shadow-xl bg-card">
-              <div className="bg-gradient-to-r from-primary to-info text-white p-5 sm:p-6">
+              <div className="bg-gradient-to-r from-primary via-medio via-55% to-info text-white p-5 sm:p-6">
                 <span className={`inline-flex items-center gap-1.5 rounded-full ${tipo.color} px-2.5 py-1 text-xs font-semibold`}>
                   <TipoIcon className="h-3.5 w-3.5" /> {tipo.nombre}
                 </span>

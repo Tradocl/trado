@@ -62,7 +62,7 @@ export const ChatTrato = ({ producto, monto }: { producto: string; monto: number
     <div ref={ref} className="mx-auto w-full max-w-[330px]" aria-label="Ejemplo de conversación usando Trado">
       <div className="rounded-[2.6rem] bg-[#0f1424] p-2.5 shadow-[0_30px_80px_-20px_rgba(31,37,193,0.55)] ring-1 ring-white/10">
         <div className="rounded-[2.1rem] overflow-hidden bg-[#ece5dd]">
-          <div className="bg-[#1F25C1] text-white px-4 pt-5 pb-3 flex items-center gap-3">
+          <div className="bg-[#2230C2] text-white px-4 pt-5 pb-3 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-white/25 flex items-center justify-center font-bold">M</div>
             <div className="leading-tight">
               <p className="font-semibold text-sm">Martina · vende</p>
@@ -87,13 +87,13 @@ export const ChatTrato = ({ producto, monto }: { producto: string; monto: number
                 >
                   {"link" in l ? (
                     <div className="rounded-xl bg-white overflow-hidden">
-                      <div className="bg-gradient-to-br from-[#1F25C1] to-[#7C3AED] text-white px-3 py-2.5">
+                      <div className="bg-gradient-to-br from-[#2230C2] via-[#4B35D6] via-55% to-[#7C3AED] text-white px-3 py-2.5">
                         <p className="text-[10px] uppercase tracking-wider text-white/70 font-bold flex items-center gap-1">
                           <ShieldCheck className="h-3 w-3" /> Sala protegida
                         </p>
                         <p className="font-bold truncate">{producto.trim() || "Tu trato"} · ${formatCLP(monto)}</p>
                       </div>
-                      <p className="px-3 py-2 text-[12px] text-[#1F25C1] font-semibold flex items-center gap-1">
+                      <p className="px-3 py-2 text-[12px] text-[#2230C2] font-semibold flex items-center gap-1">
                         <Link2 className="h-3.5 w-3.5" /> trado.cl · únete a la sala
                       </p>
                     </div>

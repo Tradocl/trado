@@ -115,7 +115,7 @@ const AppLanding = () => {
   return (
     <div className="min-h-screen flex flex-col bg-[#0f1035] overflow-hidden relative">
       {/* Background glow blobs */}
-      <div className="absolute top-[-80px] left-[-60px] w-72 h-72 bg-[#1F25C1]/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-[-80px] left-[-60px] w-72 h-72 bg-[#2230C2]/40 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-[30%] right-[-80px] w-64 h-64 bg-[#6366f1]/30 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-[20%] left-[-40px] w-56 h-56 bg-[#16A34A]/20 rounded-full blur-3xl pointer-events-none" />
 
@@ -135,7 +135,7 @@ const AppLanding = () => {
       <div className="flex-1 flex items-center justify-center px-10 py-6">
         <div className="w-full max-w-xs bg-white/5 border border-white/10 rounded-3xl p-4 backdrop-blur-sm shadow-2xl space-y-3">
           {/* Mock transaction card */}
-          <div className="bg-[#1F25C1]/80 rounded-2xl p-3.5 space-y-2">
+          <div className="bg-[#2230C2]/80 rounded-2xl p-3.5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-white/70 text-xs font-medium">MacBook Air M1</span>
               <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -147,8 +147,8 @@ const AppLanding = () => {
               {["Pago", "Envío", "Confirmar"].map((s, i) => (
                 <div key={s} className="flex items-center gap-1">
                   <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold transition-all duration-500 ${
-                    i < mockStep ? "bg-white text-[#1F25C1]" :
-                    i === mockStep ? "bg-white text-[#1F25C1] ring-2 ring-white/50 scale-110" :
+                    i < mockStep ? "bg-white text-[#2230C2]" :
+                    i === mockStep ? "bg-white text-[#2230C2] ring-2 ring-white/50 scale-110" :
                     "bg-white/10 text-white/40"
                   }`}>
                     {i < mockStep ? "✓" : i + 1}
@@ -183,14 +183,14 @@ const AppLanding = () => {
         <Button
           size="lg"
           onClick={() => navigate("/auth")}
-          className="bg-white text-[#1F25C1] hover:bg-white/90 shadow-2xl text-base font-bold h-14 w-full rounded-2xl"
+          className="bg-white text-[#2230C2] hover:bg-white/90 shadow-2xl text-base font-bold h-14 w-full rounded-2xl"
         >
           Iniciar Sesión
         </Button>
         <Button
           size="lg"
           onClick={() => navigate("/auth?tab=register")}
-          className="bg-[#1F25C1] text-white hover:bg-[#1F25C1]/80 border border-white/20 h-14 w-full rounded-2xl text-base font-bold"
+          className="bg-[#2230C2] text-white hover:bg-[#2230C2]/80 border border-white/20 h-14 w-full rounded-2xl text-base font-bold"
         >
           Crear Cuenta Gratis
         </Button>
@@ -280,7 +280,7 @@ const WebLanding = () => {
             <a href="#faq" className="hover:text-primary transition-colors">FAQ</a>
           </div>
           {user ? (
-            <Button onClick={() => navigate("/dashboard")} className="bg-gradient-to-r from-primary to-info text-white shadow-md hover:opacity-95 transition-opacity">
+            <Button onClick={() => navigate("/dashboard")} className="bg-gradient-to-r from-primary via-medio via-55% to-info text-white shadow-md hover:opacity-95 transition-opacity">
               Ir a mi panel
               <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
@@ -290,7 +290,7 @@ const WebLanding = () => {
                 <span className="hidden sm:inline">Iniciar sesión</span>
                 <span className="sm:hidden">Entrar</span>
               </Button>
-              <Button onClick={empezar} className="bg-gradient-to-r from-primary to-info text-white shadow-md hover:opacity-95 transition-opacity">
+              <Button onClick={empezar} className="bg-gradient-to-r from-primary via-medio via-55% to-info text-white shadow-md hover:opacity-95 transition-opacity">
                 <span className="hidden sm:inline">Crear cuenta gratis</span>
                 <span className="sm:hidden">Crear cuenta</span>
                 <ArrowRight className="ml-1 h-4 w-4 hidden min-[360px]:block" />
@@ -301,7 +301,7 @@ const WebLanding = () => {
       </nav>
 
       {/* ── Hero: la promesa y la sala andando ── */}
-      <section className="bg-gradient-to-br from-[hsl(238,72%,30%)] via-primary to-info pt-10 sm:pt-14 pb-16 md:py-28 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-primary via-medio via-55% to-info pt-10 sm:pt-14 pb-16 md:py-28 relative overflow-hidden">
         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-success/25 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -top-24 -left-24 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="container mx-auto px-4 relative">
@@ -376,7 +376,7 @@ const WebLanding = () => {
             <ul className="mt-6 space-y-3">
               {["Creas la sala con lo que se vende y el precio", "Le mandas el link por el mismo chat", "Se une, pagas y la plata queda retenida"].map((x, i) => (
                 <li key={x} className="flex items-center gap-3 font-medium">
-                  <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1F25C1] to-[#7C3AED] text-white text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                  <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#2230C2] via-[#4B35D6] via-55% to-[#7C3AED] text-white text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span>
                   {x}
                 </li>
               ))}
@@ -471,7 +471,7 @@ const WebLanding = () => {
 
       {/* ── CTA Final ── */}
       <section id="cta-final" className="relative overflow-hidden py-20 md:py-24">
-        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(238,72%,30%)] via-primary to-info" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-medio via-55% to-info" />
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-success/25 rounded-full blur-3xl pointer-events-none" />
         <div className="container mx-auto px-4 text-center relative">
           <div className="max-w-2xl mx-auto">
