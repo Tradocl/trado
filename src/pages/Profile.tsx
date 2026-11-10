@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Save, Building2, Camera, ChevronDown, ChevronUp, Mail, Phone, MapPin, CreditCard, Edit2, Check, X, Lock, Eye, EyeOff, Image, Sun, Moon, Monitor, Upload, Trash2, AlertCircle, CheckCircle2, Shield, AlertTriangle, LogOut, Download, FileText, UserRound, Star, ExternalLink, ChevronRight } from "lucide-react";
 import { esRutEmpresa } from "@/lib/validators";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
+import { InsigniaVerificacion, CheckEnFoto } from "@/components/InsigniaVerificacion";
 import { PushNotificationCard } from "@/components/PushNotificationCard";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
@@ -735,15 +736,7 @@ const Profile = () => {
                     <Building2 className="mr-1 h-3 w-3" /> Empresa
                   </Badge>
                 )}
-                {profileData?.is_verified ? (
-                  <Badge className="bg-success/10 text-success hover:bg-success/10 border-0">
-                    <Shield className="mr-1 h-3 w-3" /> Verificado
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary">
-                    <Shield className="mr-1 h-3 w-3" /> Sin verificar
-                  </Badge>
-                )}
+                <InsigniaVerificacion verificado={!!profileData?.is_verified} propia />
                 {isProfileComplete ? (
                   <Badge className="bg-success/10 text-success hover:bg-success/10 border-0">
                     <CheckCircle2 className="mr-1 h-3 w-3" /> Perfil completo

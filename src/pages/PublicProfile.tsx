@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { UserRatings } from "@/components/UserRatings";
 import { Logo } from "@/components/Logo";
+import { InsigniaVerificacion, CheckEnFoto } from "@/components/InsigniaVerificacion";
 import { ArrowLeft, Star, ShieldCheck, AlertTriangle, Package, Share2, CheckCircle2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
@@ -145,30 +146,22 @@ const PublicProfile = () => {
       {/* Avatar — overlaps banner */}
       <div className="max-w-lg mx-auto px-4">
         <div className="-mt-12 mb-4 flex items-end justify-between">
-          <Avatar className="h-24 w-24 border-4 border-background shadow-xl ring-2 ring-primary/20">
-            <AvatarImage src={profile.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-primary to-[#7147d4] text-white font-bold text-2xl">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          {profile.is_verified && (
-            <div className="mb-2 flex items-center gap-1.5 bg-success/10 border border-success/30 text-success text-xs font-medium px-3 py-1.5 rounded-full">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Verificado
-            </div>
-          )}
+          <div className="relative">
+            <Avatar className={`h-24 w-24 border-4 border-background shadow-xl ring-2 ${profile.is_verified ? "ring-emerald-400" : "ring-primary/20"}`}>
+              <AvatarImage src={profile.avatar_url || undefined} />
+              <AvatarFallback className="bg-gradient-to-br from-primary to-[#7147d4] text-white font-bold text-2xl">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <CheckEnFoto verificado={!!profile.is_verified} grande />
+          </div>
+          <InsigniaVerificacion verificado={!!profile.is_verified} tamano="md" className="mb-2" />
         </div>
 
         {/* Name & nickname */}
         <div className="mb-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl font-bold">{profile.full_name}</h1>
-            {!profile.is_verified && (
-              <Badge className="bg-warning/10 text-warning border-warning/30 text-xs" variant="outline">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                Sin verificar
-              </Badge>
-            )}
           </div>
           {profile.nickname && (
             <p className="text-sm text-muted-foreground mt-0.5">@{profile.nickname}</p>
@@ -264,7 +257,7 @@ const PublicProfile = () => {
         {/* Footer brand */}
         <div className="flex items-center justify-center gap-2 pb-8 text-muted-foreground/50">
           <Logo height={20} />
-          <span className="text-xs">Perfil verificado por Trado</span>
+          <span className="text-xs">{profile.is_verified ? "Perfil verificado por Trado" : "Perfil en Trado"}</span>
         </div>
       </div>
     </div>

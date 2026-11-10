@@ -187,6 +187,17 @@ All colors MUST be HSL.
 }
 .chat-pop { animation: chatPop 0.35s ease-out both; }
 
+/* Insignia "Verificado": un brillo que la cruza cada tanto, para que se note */
+@keyframes insigniaBrillo {
+  0%, 70% { transform: translateX(-120%) skewX(-20deg); }
+  100%    { transform: translateX(220%) skewX(-20deg); }
+}
+.insignia-brillo::after {
+  content: ""; position: absolute; inset: 0; width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+  animation: insigniaBrillo 4s ease-in-out infinite; pointer-events: none;
+}
+
 .reveal {
   opacity: 0;
   transform: translateY(28px);
@@ -201,4 +212,5 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; transition: none; }
   .hero-badge, .hero-h1, .hero-sub, .hero-cta, .hero-hint, .hero-card, .animate-float, .chat-pop { animation: none; }
+  .insignia-brillo::after { animation: none; display: none; }
 }

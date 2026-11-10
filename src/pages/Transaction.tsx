@@ -38,6 +38,7 @@ import { Logo } from "@/components/Logo";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { PasosSala } from "@/components/PasosSala";
 import { ConQuienTratas } from "@/components/sala/ConQuienTratas";
+import { InsigniaVerificacion, CheckEnFoto } from "@/components/InsigniaVerificacion";
 import { AnilloRevision } from "@/components/sala/AnilloRevision";
 import { FotoSala } from "@/components/sala/FotoSala";
 import type { EventoSala } from "@/components/TransactionChat";
@@ -2426,15 +2427,7 @@ const Transaction = () => {
                     </div>
                     {realSellerProfile && (
                       <div className="flex items-center gap-1 mr-1 sm:mr-2 shrink-0">
-                        {realSellerProfile.is_verified ? (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 bg-success/10 text-success border-success/30">
-                            <ShieldCheck className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 text-muted-foreground">
-                            Sin verificar
-                          </Badge>
-                        )}
+                        <InsigniaVerificacion verificado={!!realSellerProfile.is_verified} tamano="xs" />
                         {Number(realSellerProfile.reputation_score) > 0 ? (
                           <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
                             <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
@@ -2490,15 +2483,7 @@ const Transaction = () => {
                     </div>
                     {realBuyerProfile && (
                       <div className="flex items-center gap-1 mr-1 sm:mr-2 shrink-0">
-                        {realBuyerProfile.is_verified ? (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 bg-success/10 text-success border-success/30">
-                            <ShieldCheck className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 text-muted-foreground">
-                            Sin verificar
-                          </Badge>
-                        )}
+                        <InsigniaVerificacion verificado={!!realBuyerProfile.is_verified} tamano="xs" />
                         {Number(realBuyerProfile.reputation_score) > 0 ? (
                           <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
                             <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
@@ -2887,12 +2872,7 @@ const Transaction = () => {
                       ) : (
                         <p className="font-medium">Cargando...</p>
                       )}
-                      {creatorProfile?.is_verified && (
-                        <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
-                          <ShieldCheck className="h-3 w-3 mr-1" />
-                          Verificado
-                        </Badge>
-                      )}
+                      {creatorProfile && <InsigniaVerificacion verificado={!!creatorProfile.is_verified} />}
                     </div>
                   </div>
                 </div>

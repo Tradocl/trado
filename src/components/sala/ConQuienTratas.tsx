@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { ChevronRight, Sparkles, Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { InsigniaVerificacion, CheckEnFoto } from "@/components/InsigniaVerificacion";
 
 type Perfil = {
   id: string;
@@ -25,21 +26,18 @@ export function ConQuienTratas({ perfil, rol }: { perfil: Perfil; rol: string })
       onClick={() => navigate(`/u/${perfil.id}`)}
       className="w-full flex items-center gap-3 sm:gap-4 rounded-2xl border bg-card p-3 sm:p-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-left"
     >
-      <Avatar className="h-12 w-12 sm:h-14 sm:w-14 ring-2 ring-primary/20 shrink-0">
-        <AvatarImage src={perfil.avatar_url || undefined} />
-        <AvatarFallback className="bg-gradient-to-br from-primary to-info text-white font-bold">{iniciales}</AvatarFallback>
-      </Avatar>
+      <div className="relative shrink-0">
+        <Avatar className={`h-12 w-12 sm:h-14 sm:w-14 ring-2 ${perfil.is_verified ? "ring-emerald-400" : "ring-primary/20"}`}>
+          <AvatarImage src={perfil.avatar_url || undefined} />
+          <AvatarFallback className="bg-gradient-to-br from-primary to-info text-white font-bold">{iniciales}</AvatarFallback>
+        </Avatar>
+        <CheckEnFoto verificado={perfil.is_verified} />
+      </div>
       <div className="flex-1 min-w-0">
         <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground">Con quién tratas · {rol}</p>
         <p className="font-bold text-base sm:text-lg truncate">{perfil.full_name}</p>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
-          {perfil.is_verified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-success/15 text-success px-2 py-0.5 font-semibold">
-              <ShieldCheck className="h-3.5 w-3.5" /> Verificado
-            </span>
-          ) : (
-            <span className="rounded-full bg-muted text-muted-foreground px-2 py-0.5 font-medium">Sin verificar</span>
-          )}
+          <InsigniaVerificacion verificado={perfil.is_verified} />
           {reputacion > 0 && (
             <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning px-2 py-0.5 font-semibold">
               <Star className="h-3.5 w-3.5 fill-warning" /> {reputacion.toFixed(1)}

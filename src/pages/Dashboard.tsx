@@ -16,6 +16,7 @@ import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
 import { RecordatorioCuenta } from "@/components/RecordatorioCuenta";
+import { InsigniaVerificacion, CheckEnFoto } from "@/components/InsigniaVerificacion";
 import { getStateLabel } from "@/lib/transaction-labels";
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 import { PrimerosPasos } from "@/components/PrimerosPasos";
@@ -367,9 +368,6 @@ const Dashboard = () => {
               <div>
                 <CardTitle className="text-lg sm:text-2xl flex items-center gap-2 flex-wrap">
                   <span className="truncate max-w-[160px] xs:max-w-[220px] sm:max-w-none">¡Hola, {profile?.nickname || profile?.full_name?.split(' ')[0] || "Usuario"}!</span>
-                  {profile?.is_verified && (
-                    <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
-                  )}
                 </CardTitle>
                 <CardDescription className="text-white/80 text-xs sm:text-sm">
                   {transactions.length > 0
@@ -379,11 +377,13 @@ const Dashboard = () => {
                       : "Todo tranquilo: no tienes salas en curso"}
                 </CardDescription>
               </div>
-              {profile?.verification_status === 'approved' && (
-                <Badge className="bg-white/20 text-white border-white/30 w-fit text-xs animate-scale-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
-                  <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                  Verificado
-                </Badge>
+              {profile && profile.verification_status !== 'in_review' && (
+                <InsigniaVerificacion
+                  verificado={profile.verification_status === 'approved'}
+                  sobreColor
+                  propia
+                  className="w-fit animate-scale-in"
+                />
               )}
             </div>
           </CardHeader>
