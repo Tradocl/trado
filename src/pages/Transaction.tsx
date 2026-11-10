@@ -736,6 +736,7 @@ const Transaction = () => {
   // Determine if current user is REAL seller or buyer
   const isSeller = user?.id === realSellerId;
   const isBuyer = user?.id === realBuyerId;
+  const miPerfil = isSeller ? realSellerProfile : isBuyer ? realBuyerProfile : null;
   const isInitiator = user?.id === creatorId;
   
   // Calculate contextual amounts based on role
@@ -1598,6 +1599,24 @@ const Transaction = () => {
                     >
                       Ver mi billetera
                     </Button>
+                  )}
+                  {/* El mejor momento para pedir la verificación: justo cuando el trato salió bien */}
+                  {(isSeller || isBuyer) && miPerfil && !miPerfil.is_verified && (
+                    <div className="mt-6 mx-auto max-w-sm rounded-2xl bg-white/15 backdrop-blur border border-white/25 p-4 text-left">
+                      <p className="font-bold flex items-center gap-2">
+                        <ShieldCheck className="h-4 w-4 shrink-0" /> Para la próxima: verifícate
+                      </p>
+                      <p className="text-sm text-white/85 mt-1">
+                        La otra persona verá «Verificado» junto a tu nombre y confiará más en ti. Toma 2 minutos.
+                      </p>
+                      <Button
+                        size="sm"
+                        onClick={() => navigate("/verification")}
+                        className="mt-3 bg-white text-success hover:bg-white/90 font-bold"
+                      >
+                        Verificarme
+                      </Button>
+                    </div>
                   )}
                 </>
               ) : (

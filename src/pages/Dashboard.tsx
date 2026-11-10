@@ -15,6 +15,7 @@ import { Logo } from "@/components/Logo";
 import { useTheme } from "next-themes";
 import { calculateUserTotalTransactions, UNVERIFIED_LIMITS } from "@/lib/transaction-limits";
 import { CompleteProfileModal } from "@/components/CompleteProfileModal";
+import { RecordatorioCuenta } from "@/components/RecordatorioCuenta";
 import { getStateLabel } from "@/lib/transaction-labels";
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 import { PrimerosPasos } from "@/components/PrimerosPasos";
@@ -465,6 +466,15 @@ const Dashboard = () => {
           salaPendienteId={salaPendienteId}
           onCompletarPerfil={() => setShowCompleteProfileModal(true)}
         />
+        {user && profile && (
+          <RecordatorioCuenta
+            userId={user.id}
+            perfilCompleto={!!isProfileComplete}
+            estadoVerificacion={profile.verification_status}
+            bloqueado={popupPasos || showCompleteProfileModal}
+            onCompletarPerfil={() => setShowCompleteProfileModal(true)}
+          />
+        )}
 
         {/* Pending Ratings Banner */}
         {pendingRatingCount > 0 && (
