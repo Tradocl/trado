@@ -9,16 +9,27 @@ export type Mensaje =
   | { de: "ellos" | "yo"; texto: string }
   | { de: "ellos"; comprobante: Comprobante }
   | { de: "ellos"; foto: { emoji: string; titulo: string; detalle: string } }
+  /** Un link con vista previa, como los que se ven en WhatsApp */
+  | { de: "ellos"; link: { dominio: string; titulo: string; detalle: string } }
   /** Lo que pasa fuera del chat, contado en una línea */
   | { de: "narra"; texto: string };
 
 export type Caso = {
   slug: string;
   titulo: string;
+  /** Lo que se ve en la carta al darse vuelta */
+  emoji: string;
   /** La escena en una frase, en segunda persona */
   escena: string;
   contacto: { nombre: string; inicial: string; rol: string };
+  /**
+   * decidir: el chat termina y eliges qué harías.
+   * adivinar: el chat se corta justo antes del mensaje clave, adivinas cuál es y después
+   * llega de verdad (`revelado`).
+   */
+  formato?: "decidir" | "adivinar";
   chat: Mensaje[];
+  revelado?: Mensaje[];
   pregunta: string;
   opciones: { texto: string; correcta: boolean }[];
   /** Qué pasa si eligió bien / mal */
@@ -31,6 +42,7 @@ export type Caso = {
 export const CASOS: Caso[] = [
   {
     slug: "comprobante-falso",
+    emoji: "🧾",
     titulo: "El comprobante falso",
     escena: "Vendes tu bicicleta en $180.000 y te escribe alguien interesado.",
     contacto: { nombre: "Comprador", inicial: "C", rol: "quiere tu bicicleta" },
@@ -74,6 +86,7 @@ export const CASOS: Caso[] = [
   },
   {
     slug: "transfiere-primero",
+    emoji: "👟",
     titulo: "\"Transfiéreme primero\"",
     escena: "Viste en Instagram unas zapatillas que buscabas hace rato, a $65.000.",
     contacto: { nombre: "Tienda de zapatillas", inicial: "Z", rol: "cuenta de Instagram" },
@@ -109,6 +122,7 @@ export const CASOS: Caso[] = [
   },
   {
     slug: "pagar-por-fuera",
+    emoji: "🎮",
     titulo: "\"Te hago precio por fuera\"",
     escena: "Vas a comprar una consola usada en $320.000 y quedaron en pagar con Trado.",
     contacto: { nombre: "Vendedor", inicial: "V", rol: "vende una consola" },
@@ -142,6 +156,7 @@ export const CASOS: Caso[] = [
   },
   {
     slug: "llego-otra-cosa",
+    emoji: "📦",
     titulo: "Llegó otra cosa",
     escena: "Compras un iPhone 13 en $280.000 a alguien de otra región, que te lo manda por courier.",
     contacto: { nombre: "Vendedor", inicial: "V", rol: "vende un iPhone 13" },
@@ -175,6 +190,7 @@ export const CASOS: Caso[] = [
   },
   {
     slug: "trabajo-sin-pago",
+    emoji: "🎨",
     titulo: "El trabajo que no te pagan",
     escena: "Eres diseñador y un cliente nuevo te pide un logo por $80.000.",
     contacto: { nombre: "Cliente nuevo", inicial: "C", rol: "necesita un logo" },
@@ -206,6 +222,7 @@ export const CASOS: Caso[] = [
   },
   {
     slug: "venta-en-persona",
+    emoji: "🚇",
     titulo: "La venta en persona",
     escena: "Vendes tu celular en $250.000 y quedan de juntarse en una estación de metro.",
     contacto: { nombre: "Comprador", inicial: "C", rol: "quiere tu celular" },
@@ -240,6 +257,130 @@ export const CASOS: Caso[] = [
     ],
     conTrado:
       "El comprador deja la plata en Trado antes de juntarse. Revisa el celular ahí mismo, confirma desde su teléfono y se libera: nadie anda con efectivo ni depende de una pantalla.",
+  },
+  {
+    slug: "devolucion-de-mas",
+    emoji: "🛋️",
+    formato: "adivinar",
+    titulo: "La devolución de más",
+    escena: "Vendes tu sillón en $200.000 y un comprador quiere cerrar el trato hoy mismo.",
+    contacto: { nombre: "Comprador", inicial: "C", rol: "quiere tu sillón" },
+    chat: [
+      { de: "ellos", texto: "Hola! Me interesa el sillón, ¿lo puedo pasar a buscar hoy?" },
+      { de: "yo", texto: "Sí, está disponible" },
+      { de: "ellos", texto: "Perfecto, te transfiero ahora para asegurarlo 🙌" },
+      {
+        de: "ellos",
+        comprobante: {
+          titulo: "¡Transferencia exitosa!",
+          monto: 300_000,
+          filas: [["Para", "Tu cuenta"], ["Hora", "18:21"], ["N° operación", "0007712093"]],
+        },
+      },
+      { de: "ellos", texto: "Uy, espera 😳" },
+    ],
+    revelado: [
+      { de: "ellos", texto: "Me equivoqué y te transferí $300.000 😩 ¿Me devuelves los $100.000 de diferencia? Es la plata del arriendo 🙏" },
+    ],
+    pregunta: "¿Qué mensaje te van a mandar?",
+    opciones: [
+      { texto: "¿Me lo puedes guardar hasta mañana?", correcta: false },
+      { texto: "Me equivoqué y te transferí de más, ¿me devuelves la diferencia?", correcta: true },
+      { texto: "¿Me das la dirección para pasar a buscarlo?", correcta: false },
+    ],
+    bien: {
+      titulo: "¡Lo viste venir!",
+      texto: "La transferencia de $300.000 nunca existió. Si le devolvías los $100.000, los perdías de tu bolsillo.",
+    },
+    mal: {
+      titulo: "Te pilló",
+      texto: "Te pidió devolver la \"diferencia\". La transferencia de $300.000 nunca existió: quien devuelve, pierde de su bolsillo.",
+    },
+    senales: [
+      { titulo: "Paga de más \"por error\"", texto: "Nadie se equivoca justo a favor tuyo. Es la señal más clara de un comprobante falso." },
+      { titulo: "Te pide que le devuelvas plata", texto: "La estafa no es el sillón: son los $100.000 que le transfieres de vuelta." },
+      { titulo: "Apuro con drama", texto: "\"Es la plata del arriendo\": para que devuelvas antes de revisar tu cuenta." },
+    ],
+    conTrado:
+      "En Trado el comprador paga el monto exacto de la sala y la plata queda retenida. No hay transferencias entre ustedes, así que no hay nada que \"devolver\".",
+  },
+  {
+    slug: "te-pago-despues",
+    emoji: "🎂",
+    formato: "adivinar",
+    titulo: "\"Te pago después\"",
+    escena: "Haces tortas por encargo y te piden una para un cumpleaños de 30 personas, en $45.000.",
+    contacto: { nombre: "Cliente nueva", inicial: "C", rol: "pide una torta" },
+    chat: [
+      { de: "ellos", texto: "Hola! Vi tus tortas en Instagram, son preciosas 😍" },
+      { de: "ellos", texto: "Necesito una para el sábado, para 30 personas" },
+      { de: "yo", texto: "¡Gracias! Alcanzo. Son $45.000 y pido el pago antes, para comprar los ingredientes" },
+      { de: "ellos", texto: "Dale, súper" },
+      { de: "ellos", texto: "Oye, una cosa 😅" },
+    ],
+    revelado: [
+      { de: "ellos", texto: "¿Te puedo pagar cuando la retire? Este mes ando corta 🙏 Te juro que soy de confianza" },
+    ],
+    pregunta: "¿Qué mensaje te van a mandar?",
+    opciones: [
+      { texto: "¿Te pago cuando la retire? Ando corta, pero soy de confianza", correcta: true },
+      { texto: "¿Puede ser de chocolate con frambuesa?", correcta: false },
+      { texto: "¿Me mandas fotos de otras tortas que hayas hecho?", correcta: false },
+    ],
+    bien: {
+      titulo: "¡Lo viste venir!",
+      texto: "Si aceptabas, ponías los ingredientes y tu trabajo, y el sábado nadie llegaba a retirarla.",
+    },
+    mal: {
+      titulo: "Te pilló",
+      texto: "Pidió pagar al retirar. Si aceptabas, ponías los ingredientes y tu trabajo, y el sábado nadie llegaba.",
+    },
+    senales: [
+      { titulo: "\"Te pago después\"", texto: "Cuando el pago queda para el final, todo el riesgo es tuyo." },
+      { titulo: "Cambia las reglas después del sí", texto: "Primero acepta el precio y las condiciones, y recién ahí pide otra cosa." },
+      { titulo: "\"Soy de confianza\"", texto: "Lo dice alguien que conociste hace cinco minutos." },
+    ],
+    conTrado:
+      "La clienta deposita en Trado al encargar: tú ves «Pago retenido» antes de comprar los ingredientes, y la plata se libera cuando entregas la torta.",
+  },
+  {
+    slug: "link-de-pago-falso",
+    emoji: "🔗",
+    formato: "adivinar",
+    titulo: "El link de pago falso",
+    escena: "Vendes tu guitarra en $150.000 y el comprador dice que quiere pagar \"de forma segura\".",
+    contacto: { nombre: "Comprador", inicial: "C", rol: "quiere tu guitarra" },
+    chat: [
+      { de: "ellos", texto: "Hola! Me interesa la guitarra 🎸" },
+      { de: "ellos", texto: "Yo siempre compro con pago protegido, así los dos quedamos tranquilos" },
+      { de: "yo", texto: "¡Buenísimo! ¿Cómo lo hacemos?" },
+      { de: "ellos", texto: "Ya pagué. Te mando el link para que recibas la plata 👇" },
+    ],
+    revelado: [
+      { de: "ellos", link: { dominio: "trado-pagos-cl.com", titulo: "Recibe tu pago de $150.000", detalle: "Ingresa tu banco, RUT y clave para recibir la transferencia" } },
+      { de: "ellos", texto: "Es rapidito, solo pones tus datos y te llega altiro 😊" },
+    ],
+    pregunta: "¿Qué mensaje te van a mandar?",
+    opciones: [
+      { texto: "¿La guitarra viene con estuche?", correcta: false },
+      { texto: "¿Me mandas tu dirección para coordinar el retiro?", correcta: false },
+      { texto: "Un link para \"recibir tu pago\" que te pide la clave de tu banco", correcta: true },
+    ],
+    bien: {
+      titulo: "¡Lo viste venir!",
+      texto: "Era un link falso que imita a una plataforma de pagos: con tu clave del banco te vaciaban la cuenta.",
+    },
+    mal: {
+      titulo: "Te pilló",
+      texto: "Te mandó un link falso que imita a una plataforma de pagos. Con tu clave del banco te vaciaban la cuenta.",
+    },
+    senales: [
+      { titulo: "Mira la dirección", texto: "Los links de Trado son siempre trado.cl. Nada de \"trado-pagos\" ni otras variantes." },
+      { titulo: "Para recibir plata nunca das tu clave", texto: "Ninguna plataforma de pagos te pide la clave del banco ni códigos para pagarte." },
+      { titulo: "\"Ya pagué\" antes de que haya venta", texto: "El pago tiene que aparecer en la sala que se creó en trado.cl, no en un link que te mandan." },
+    ],
+    conTrado:
+      "En Trado la sala se crea en trado.cl y el pago aparece ahí. Trado nunca te va a pedir la clave de tu banco ni códigos por mensaje.",
   },
 ];
 
@@ -276,6 +417,18 @@ export const guardarRespuesta = (slug: string, acerto: boolean): Avance => {
   try { localStorage.setItem(CLAVE, JSON.stringify(a)); } catch { /* sin almacenamiento: no se recuerda */ }
   return a;
 };
+/** Un caso al azar entre los que todavía no jugó (si ya jugó todos, cualquiera) */
+export const casoAlAzar = (avance: Avance, excepto?: string): Caso => {
+  const pendientes = CASOS.filter((c) => !(c.slug in avance) && c.slug !== excepto);
+  const lista = pendientes.length ? pendientes : CASOS.filter((c) => c.slug !== excepto);
+  return lista[Math.floor(Math.random() * lista.length)];
+};
+
+// La introducción ("Pasa todos los días…") se ve una sola vez por celular
+const CLAVE_INTRO = "trado_etm_intro";
+export const introVista = () => { try { return !!localStorage.getItem(CLAVE_INTRO); } catch { return false; } };
+export const marcarIntroVista = () => { try { localStorage.setItem(CLAVE_INTRO, "1"); } catch { /* sin almacenamiento */ } };
+
 /** El siguiente caso que le falta, partiendo después del actual */
 export const siguientePendiente = (actual: Caso, avance: Avance): Caso | null => {
   const i = CASOS.indexOf(actual);
