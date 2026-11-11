@@ -41,6 +41,29 @@ const Foto = ({ f }: { f: { emoji: string; titulo: string; detalle: string } }) 
   </div>
 );
 
+const Resenas = ({ r }: { r: { autor: string; texto: string }[] }) => (
+  <div className="w-60 rounded-xl bg-white border border-black/5 p-3 space-y-2.5">
+    <p className="text-[11px] font-bold uppercase tracking-wider text-black/45">Lo que dicen los clientes ⭐</p>
+    {r.map((x) => (
+      <div key={x.autor} className="flex gap-2">
+        <span className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-400 to-amber-300 shrink-0" />
+        <p className="text-[13px] leading-snug"><b>{x.autor}</b> {x.texto}</p>
+      </div>
+    ))}
+  </div>
+);
+
+const Datos = ({ d }: { d: { titulo: string; filas: [string, string][] } }) => (
+  <div className="w-56 rounded-xl bg-white border border-black/5 overflow-hidden">
+    <p className="bg-slate-100 px-3 py-2 text-[12px] font-bold text-[#0F1424]">🏦 {d.titulo}</p>
+    <div className="px-3 py-2 space-y-1 text-[12px] text-[#0F1424]">
+      {d.filas.map(([k, v]) => (
+        <div key={k} className="flex justify-between gap-2"><span className="text-black/50">{k}</span><span className="font-semibold">{v}</span></div>
+      ))}
+    </div>
+  </div>
+);
+
 const VistaLink = ({ l }: { l: { dominio: string; titulo: string; detalle: string } }) => (
   <div className="w-60 rounded-xl overflow-hidden bg-white border border-black/5">
     <div className="h-20 bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center">
@@ -105,7 +128,7 @@ const Chat = ({ caso, mensajes, onTermino }: { caso: Caso; mensajes: Mensaje[]; 
               </p>
             );
           const mio = m.de === "yo";
-          const adjunto = "comprobante" in m || "foto" in m || "link" in m;
+          const adjunto = "comprobante" in m || "foto" in m || "link" in m || "resenas" in m || "datos" in m;
           return (
             <div
               key={i}
@@ -119,6 +142,10 @@ const Chat = ({ caso, mensajes, onTermino }: { caso: Caso; mensajes: Mensaje[]; 
                 <Foto f={m.foto} />
               ) : "link" in m ? (
                 <VistaLink l={m.link} />
+              ) : "resenas" in m ? (
+                <Resenas r={m.resenas} />
+              ) : "datos" in m ? (
+                <Datos d={m.datos} />
               ) : (
                 <span>
                   {m.texto}

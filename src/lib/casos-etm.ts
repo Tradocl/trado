@@ -9,6 +9,10 @@ export type Mensaje =
   | { de: "ellos" | "yo"; texto: string }
   | { de: "ellos"; comprobante: Comprobante }
   | { de: "ellos"; foto: { emoji: string; titulo: string; detalle: string } }
+  /** Captura de "reseñas de clientes" */
+  | { de: "ellos"; resenas: { autor: string; texto: string }[] }
+  /** Datos bancarios para transferir */
+  | { de: "ellos"; datos: { titulo: string; filas: [string, string][] } }
   /** Un link con vista previa, como los que se ven en WhatsApp */
   | { de: "ellos"; link: { dominio: string; titulo: string; detalle: string } }
   /** Lo que pasa fuera del chat, contado en una línea */
@@ -85,40 +89,50 @@ export const CASOS: Caso[] = [
       "El comprador paga en Trado y tú ves «Pago retenido» en la sala antes de enviar. Ninguna captura reemplaza eso.",
   },
   {
-    slug: "transfiere-primero",
+    slug: "zapatillas-baratas",
     emoji: "👟",
-    titulo: "\"Transfiéreme primero\"",
-    escena: "Viste en Instagram unas zapatillas que buscabas hace rato, a $65.000.",
-    contacto: { nombre: "Tienda de zapatillas", inicial: "Z", rol: "cuenta de Instagram" },
+    titulo: "Las zapatillas a mitad de precio",
+    escena: "Buscas unas zapatillas edición limitada que en tienda cuestan $180.000. Una cuenta de Instagram las tiene a $90.000.",
+    contacto: { nombre: "Sneakers Outlet CL", inicial: "S", rol: "cuenta de Instagram" },
     chat: [
-      { de: "yo", texto: "Hola! ¿Tienes talla 42?" },
-      { de: "ellos", texto: "Sí! Me quedan las últimas 2 😍 originales y nuevas en caja" },
-      { de: "ellos", foto: { emoji: "👟", titulo: "Zapatillas talla 42", detalle: "Nuevas, en caja · $65.000" } },
-      { de: "yo", texto: "¿Y cómo lo hacemos?" },
-      { de: "ellos", texto: "Me transfieres y te las mando altiro por Starken, llegan mañana 📦" },
-      { de: "yo", texto: "¿Y si nos juntamos y te pago ahí?" },
-      { de: "ellos", texto: "No puedo, estoy en Concepción 😕 Pero tengo muchas ventas, mira mis historias destacadas ⭐" },
+      { de: "yo", texto: "Hola! ¿Siguen las zapatillas a $90.000? 😮" },
+      { de: "ellos", texto: "Sí! Son originales, de un lote que trajimos de EE.UU. Quedan 2 pares 🔥" },
+      { de: "ellos", foto: { emoji: "👟", titulo: "Edición limitada · talla 42", detalle: "Nuevas, con caja · $90.000" } },
+      { de: "yo", texto: "¿Por qué tan baratas?" },
+      { de: "ellos", texto: "Estamos liquidando stock. Mira lo que dicen los clientes 👇" },
+      {
+        de: "ellos",
+        resenas: [
+          { autor: "@cami.rz", texto: "Llegaron al otro día, originales 💯" },
+          { autor: "@nico_92", texto: "Segunda vez que les compro, 10/10" },
+          { autor: "@vale.store", texto: "Súper confiables 🙌" },
+        ],
+      },
+      { de: "ellos", texto: "Me transfieres y te las mando hoy por Starken 📦" },
+      { de: "ellos", datos: { titulo: "Datos para transferir", filas: [["Nombre", "Jorge Muñoz P."], ["Cuenta", "Cuenta RUT"], ["Monto", "$90.000"]] } },
+      { de: "yo", texto: "¿Jorge? ¿No era una tienda?" },
+      { de: "ellos", texto: "Es la cuenta de mi primo, la de la tienda está con un problema 😅 Apúrate que hay otra persona preguntando" },
     ],
     pregunta: "¿Qué haces?",
     opciones: [
-      { texto: "Le propongo pagar con la plata retenida hasta que me lleguen", correcta: true },
-      { texto: "Le transfiero, tiene muchas ventas", correcta: false },
+      { texto: "Le propongo pagar con la plata retenida hasta recibirlas", correcta: true },
+      { texto: "Transfiero rápido, tiene buenas reseñas", correcta: false },
     ],
     bien: {
       titulo: "¡Bien detectado!",
-      texto: "Le propusiste que la plata quedara retenida hasta recibirlas y dejó de responder. La cuenta era falsa.",
+      texto: "Le propusiste pagar con la plata retenida y te bloqueó. La cuenta tenía 3 días y las reseñas eran inventadas.",
     },
     mal: {
       titulo: "Te estafaron",
-      texto: "Transferiste $65.000 y te bloqueó. Las \"ventas\" de sus historias eran capturas de otras cuentas.",
+      texto: "Transferiste $90.000 a la cuenta del \"primo\" y te bloqueó. La cuenta tenía 3 días y las reseñas eran inventadas.",
     },
     senales: [
-      { titulo: "La plata sale antes que el producto", texto: "Si pagas primero, te quedas sin nada con qué reclamar." },
-      { titulo: "Nunca se puede juntar", texto: "Lejos a propósito: así no puedes ver que el producto exista." },
-      { titulo: "Pruebas que no puedes comprobar", texto: "Historias destacadas, comentarios y capturas de ventas se copian de otras cuentas." },
+      { titulo: "La mitad de precio", texto: "Si es demasiado barato para ser cierto, es la carnada." },
+      { titulo: "La cuenta está a nombre de otro", texto: "Si el nombre no calza con quien te vende, no transfieras. \"Es de mi primo\" es la excusa más vieja." },
+      { titulo: "Reseñas que no puedes comprobar", texto: "Una captura de comentarios se inventa en un minuto, igual que las cuentas que los escriben." },
     ],
     conTrado:
-      "Pagas en Trado y la plata queda retenida hasta que te llegan las zapatillas. Si no llegan, lo reportas y la plata no se mueve.",
+      "Pagas en Trado y la plata queda retenida hasta que te llegan las zapatillas. Si no llegan o no son lo acordado, lo reportas y la plata no se mueve.",
   },
   {
     slug: "pagar-por-fuera",
@@ -386,7 +400,23 @@ export const CASOS: Caso[] = [
 
 export const TOTAL_CASOS = CASOS.length;
 
-export const casoPorSlug = (slug: string | undefined) => CASOS.find((c) => c.slug === slug);
+/** Qué caso abre cada carta del panel. La carta N tiene grabado trado.cl/etm/N */
+export const CARTAS = [
+  "comprobante-falso",
+  "link-de-pago-falso",
+  "zapatillas-baratas",
+  "devolucion-de-mas",
+  "venta-en-persona",
+  "te-pago-despues",
+  "pagar-por-fuera",
+  "trabajo-sin-pago",
+  "llego-otra-cosa",
+];
+
+export const casoPorSlug = (slug: string | undefined) => {
+  if (slug && /^[1-9]$/.test(slug)) return CASOS.find((c) => c.slug === CARTAS[Number(slug) - 1]);
+  return CASOS.find((c) => c.slug === slug);
+};
 export const numeroDe = (caso: Caso) => CASOS.indexOf(caso) + 1;
 
 // Días del evento (hora de Chile): ahí se muestra lo del premio en el stand

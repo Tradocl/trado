@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <title>Panel NFC · Trado EtMday 2026</title>
 <!-- Panel de mesa del stand: 9 cartas boca abajo, cada una con una tarjeta NFC pegada
-     detrás. Todas abren trado.cl/etm/sorpresa, que le da a cada celular un caso al azar
-     que todavía no jugó: la gente no sabe qué le va a tocar. Un solo QR de respaldo.
+     detrás. La carta N tiene grabado trado.cl/etm/N y abre siempre el mismo caso
+     (orden en CARTAS, src/lib/casos-etm.ts); el link no delata de qué se trata.
+     El QR de respaldo abre trado.cl/etm/sorpresa (un caso al azar).
      Tamaño A3 vertical (297 × 420 mm); al ser vectorial se puede imprimir en A2.
      Se genera a PDF con EtMday/panel/generar.mjs. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">

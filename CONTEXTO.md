@@ -455,9 +455,9 @@ porque RLS no deja contar salas ajenas desde el navegador.
 ### Casos del EtMday 2026 (/etm)
 
 Stand del 19-21 nov: un panel con 9 cartas boca abajo (`EtMday/panel/`), cada
-una con una tarjeta NFC que abre `/etm/sorpresa`: a cada celular le toca un caso
-al azar que no haya jugado (9 casos en `src/lib/casos-etm.ts`, formatos
-"decidir" y "adivinar"). La primera vez se ve una intro; al terminar un caso se
+una con una tarjeta NFC: la carta N abre `/etm/N`, siempre el mismo caso (orden
+en `CARTAS`, `src/lib/casos-etm.ts`; 9 casos, formatos "decidir" y "adivinar").
+El QR de respaldo y "Juega otro aquí" usan `/etm/sorpresa` (al azar). La primera vez se ve una intro; al terminar un caso se
 invita a volver al panel, no a seguir con un botón. `/etm/pantalla` es para la laptop
 del stand y muestra en vivo cuántos jugaron, leyendo `etm_resumen()`. Las
 respuestas se guardan anónimas en `etm_respuestas`
