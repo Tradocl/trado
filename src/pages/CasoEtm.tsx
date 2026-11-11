@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, CheckCheck, CheckCircle2, Clock, Flag, Globe, Lock, RotateCcw, Share2, ShieldCheck, Smartphone, Trophy, XCircle } from "lucide-react";
+import { ArrowRight, CheckCheck, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, Plus, RotateCcw, Share2, ShieldCheck, Smartphone, Trophy, XCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { casoAlAzar, casoPorSlug, CASOS, TOTAL_CASOS, esDiaDelEvento, guardarRespuesta, introVista, marcarIntroVista, sesionEtm, leerAvance, type Avance, type Caso, type Comprobante as DatosComprobante, type Mensaje } from "@/lib/casos-etm";
 import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
@@ -256,6 +256,11 @@ const CasoEtm = () => {
     setAvance({});
     navigate(`/etm/${casoAlAzar({}, caso.slug).slug}`);
   };
+  // Lo que más nos importa al final: que cree su sala y que siga la cuenta de Instagram
+  const crearSala = () => {
+    try { sessionStorage.setItem("redirectAfterLogin", "/create-transaction"); } catch { /* sin almacenamiento */ }
+    navigate(`/auth?tab=register&utm_source=etm&utm_medium=nfc&utm_campaign=${caso.slug}`);
+  };
   const compartir = () => {
     const url = `${window.location.origin}/etm/sorpresa`;
     const texto = jugados >= TOTAL_CASOS
@@ -366,7 +371,29 @@ const CasoEtm = () => {
             </div>
 
             <div className="relative z-10 px-5 -mt-8 space-y-4">
-              {/* Lo primero: qué hacer ahora */}
+              {/* Lo primero y más grande: crear la sala y seguir en Instagram */}
+              <div className="bg-white rounded-3xl shadow-xl p-5 space-y-3">
+                <button
+                  onClick={crearSala}
+                  className={`w-full h-16 rounded-2xl ${DEGRADADO} text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition`}
+                >
+                  <Plus className="h-5 w-5" /> Crear mi sala gratis
+                </button>
+                <p className="text-center text-sm text-[#0F1424]/60 -mt-1">
+                  Tu primera sala va sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.
+                </p>
+                <a
+                  href="https://www.instagram.com/trado_cl/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-16 rounded-2xl bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition"
+                >
+                  <Instagram className="h-6 w-6" /> Seguir a @trado_cl
+                </a>
+                <p className="text-center text-sm text-[#0F1424]/60 -mt-1">Más casos y tips para que no te estafen.</p>
+              </div>
+
+              {/* Después: el avance y volver al panel */}
               <div className="bg-white rounded-3xl shadow-xl p-5">
                 {quedan ? (
                   <>
@@ -452,14 +479,11 @@ const CasoEtm = () => {
                 </p>
                 <p className="text-xl font-extrabold leading-snug mt-2 relative">{caso.conTrado}</p>
                 <button
-                  onClick={() => navigate(`/auth?tab=register&utm_source=etm&utm_medium=nfc&utm_campaign=${caso.slug}`)}
+                  onClick={crearSala}
                   className="relative mt-5 w-full h-14 rounded-2xl bg-white text-[#2230C2] font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition"
                 >
-                  Crear mi cuenta gratis <ArrowRight className="h-5 w-5" />
+                  Crear mi sala gratis <ArrowRight className="h-5 w-5" />
                 </button>
-                <p className="relative text-center text-sm text-white/80 mt-2.5">
-                  Tu primera sala va sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.
-                </p>
               </div>
 
               <button
