@@ -3,8 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, CheckCheck, CheckCircle2, Clock, Flag, Lock, RotateCcw, Share2, ShieldCheck, Trophy, XCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { casoPorSlug, CASOS, TOTAL_CASOS, guardarRespuesta, leerAvance, numeroDe, siguientePendiente, type Avance, type Caso, type Comprobante as DatosComprobante } from "@/lib/casos-etm";
+import { casoPorSlug, CASOS, TOTAL_CASOS, esDiaDelEvento, guardarRespuesta, sesionEtm, leerAvance, numeroDe, siguientePendiente, type Avance, type Caso, type Comprobante as DatosComprobante } from "@/lib/casos-etm";
 import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { Confeti } from "@/components/Confeti";
 
 // Lo que se abre al acercar el celular a una tarjeta NFC del stand del EtMday: una escena,
 // el chat de la estafa andando, una decisión y la revelación con las señales y cómo lo evita Trado.
@@ -140,6 +142,10 @@ const CasoEtm = () => {
   const elegir = (correcta: boolean) => {
     setAcerto(correcta);
     setAvance(guardarRespuesta(caso.slug, correcta));
+    // Para la pantalla del stand. Anónimo y sin esperar: si falla, el juego sigue igual.
+    // (La tabla no está en los tipos generados de Supabase.)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from("etm_respuestas").insert({ caso: caso.slug, acerto: correcta, sesion: sesionEtm() }).then(() => {}, () => {});
     setEtapa("final");
     try { navigator.vibrate?.(correcta ? [40, 60, 40] : [180]); } catch { /* sin vibración */ }
   };
@@ -226,6 +232,7 @@ const CasoEtm = () => {
         {/* ── Revelación ── */}
         {etapa === "final" && acerto !== null && (
           <div className="flex-1 bg-[#f5f5fa] pb-10">
+            {acerto && <Confeti key={caso.slug} mucho={!siguiente && aciertos === TOTAL_CASOS} />}
             <div className={`chat-pop px-6 pt-8 pb-14 text-center ${acerto ? "bg-emerald-500" : "bg-[#FF6B4A]"} ${acerto ? "text-white" : "text-[#0F1424]"}`}>
               {acerto ? <ShieldCheck className="h-16 w-16 mx-auto" /> : <XCircle className="h-16 w-16 mx-auto" />}
               <p className="text-4xl font-black tracking-tight mt-3">{acerto ? caso.bien.titulo : caso.mal.titulo}</p>
@@ -275,6 +282,12 @@ const CasoEtm = () => {
                     >
                       <Share2 className="h-5 w-5" /> Desafía a alguien
                     </button>
+                    {esDiaDelEvento() && (
+                      <div className="mt-4 rounded-2xl bg-amber-50 border-2 border-dashed border-amber-400 p-3.5 text-[#0F1424]">
+                        <p className="font-extrabold">🎁 ¿Estás en el EtMday?</p>
+                        <p className="text-sm mt-0.5">Muéstrale esta pantalla al equipo de Trado en el stand y llévate tu premio.</p>
+                      </div>
+                    )}
                     <button onClick={reiniciar} className="mt-2 text-sm font-semibold text-[#2230C2] inline-flex items-center gap-1.5">
                       <RotateCcw className="h-4 w-4" /> Jugar de nuevo
                     </button>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Panel NFC · Trado EtMday 2026</title>
+<!-- Panel de mesa del stand: 6 casos con una tarjeta NFC pegada detrás de cada zona
+     "Acerca tu celular" y un QR de respaldo. Tamaño A3 vertical (297 × 420 mm); al ser
+     vectorial se puede imprimir en A2 sin perder calidad. Se genera a PDF con
+     EtMday/panel/generar.mjs. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: 297mm 420mm; margin: 0; }
+  :root { --azul: #2230C2; --medio: #4B35D6; --violeta: #7C3AED; --verde: #10B981; --naranjo: #FF6B4A; --tinta: #0F1424; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 297mm; height: 420mm; }
+  body {
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif; color: #fff;
+    background: linear-gradient(150deg, var(--azul) 0%, var(--medio) 55%, var(--violeta) 100%);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    position: relative; overflow: hidden;
+  }
+  .brillo { position: absolute; border-radius: 50%; filter: blur(30mm); pointer-events: none; }
+  .b1 { width: 160mm; height: 160mm; background: rgba(255,255,255,.12); top: -60mm; right: -50mm; }
+  .b2 { width: 170mm; height: 170mm; background: rgba(16,185,129,.22); bottom: -70mm; left: -60mm; }
+  .hoja { position: relative; height: 100%; padding: 16mm 15mm 12mm; display: flex; flex-direction: column; }
+
+  header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .logo { height: 15mm; }
+  .pill { font-size: 4.2mm; font-weight: 800; letter-spacing: .4mm; text-transform: uppercase;
+          border: .5mm solid rgba(255,255,255,.55); border-radius: 99mm; padding: 2.2mm 5mm; }
+  h1 { font-size: 26mm; font-weight: 800; line-height: .98; letter-spacing: -.9mm; margin-top: 9mm; }
+  h1 u { text-decoration: none; background: linear-gradient(transparent 82%, var(--verde) 82%, var(--verde) 94%, transparent 94%); }
+  .bajada { font-size: 7.4mm; font-weight: 500; margin-top: 4mm; opacity: .92; display: flex; align-items: center; gap: 3mm; }
+  .bajada svg { width: 9mm; height: 9mm; flex: none; }
+
+  .grilla { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 6mm; margin-top: 9mm; }
+  .caso { background: #fff; color: var(--tinta); border-radius: 7mm; padding: 5mm; display: flex; flex-direction: column;
+          box-shadow: 0 3mm 9mm rgba(10,15,60,.28); }
+  .tit { display: flex; align-items: center; gap: 3mm; }
+  .num { width: 9mm; height: 9mm; border-radius: 3mm; background: var(--naranjo); font-weight: 800; font-size: 5.2mm;
+         display: flex; align-items: center; justify-content: center; flex: none; }
+  .tit b { font-size: 5.6mm; font-weight: 800; line-height: 1.1; }
+  .cuerpo { display: flex; gap: 4mm; margin-top: 3.5mm; flex: 1; }
+  /* Zona donde va pegada la tarjeta NFC por detrás (tarjeta: 85,6 × 54 mm) */
+  .nfc { flex: 1; border: .7mm dashed rgba(34,48,194,.45); border-radius: 5mm; background: #F2F3FF;
+         display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1.5mm; min-height: 56mm; }
+  .nfc .emoji { font-size: 13mm; line-height: 1; }
+  .nfc svg { width: 9mm; height: 9mm; color: var(--azul); }
+  .nfc span { font-size: 4.1mm; font-weight: 800; color: var(--azul); }
+  .qr { width: 30mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5mm; }
+  .qr img { width: 30mm; height: 30mm; }
+  .qr small { font-size: 2.9mm; font-weight: 700; color: rgba(15,20,36,.55); text-align: center; line-height: 1.2; }
+  .escena { font-size: 3.7mm; color: rgba(15,20,36,.7); margin-top: 3mm; line-height: 1.3; }
+
+  footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8mm; font-size: 5mm; }
+  footer .lema { font-weight: 700; max-width: 190mm; line-height: 1.25; }
+  footer .web { font-weight: 800; background: #fff; color: var(--azul); border-radius: 99mm; padding: 2.6mm 7mm; font-size: 6mm; }
+</style>
+</head>
+<body>
+  <div class="brillo b1"></div><div class="brillo b2"></div>
+  <div class="hoja">
+    <header>
+      <img class="logo" src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado">
+      <span class="pill">6 estafas reales</span>
+    </header>
+    <h1>¿Lo <u>detectarías</u>?</h1>
+    <p class="bajada">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+      Acerca tu celular a un caso, mira el chat y decide qué harías.
+    </p>
+
+    <div class="grilla" id="grilla"></div>
+
+    <footer>
+      <p class="lema">Con Trado, la plata queda retenida hasta que se cumple el trato.</p>
+      <span class="web">trado.cl</span>
+    </footer>
+  </div>
+
+<script>
+  // Mismos casos y orden que src/lib/casos-etm.ts
+  const CASOS = [
+    ["comprobante-falso", "🧾", "El comprobante falso", "Vendes tu bici y te mandan una captura de \"transferencia exitosa\"."],
+    ["transfiere-primero", "👟", "\"Transfiéreme primero\"", "Unas zapatillas por Instagram, de alguien que no se puede juntar."],
+    ["pagar-por-fuera", "🎮", "\"Te hago precio por fuera\"", "Te ofrecen descuento si pagas sin protección."],
+    ["llego-otra-cosa", "📦", "Llegó otra cosa", "Compras un iPhone por courier a alguien de otra región."],
+    ["trabajo-sin-pago", "🎨", "El trabajo que no te pagan", "Un cliente nuevo te pide un logo y \"paga al final\"."],
+    ["venta-en-persona", "🚇", "La venta en persona", "Vendes tu celular en el metro y te muestran una pantalla."],
+  ];
+  const ondas = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/><path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/><path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/><path d="M16.37 2a20.16 20.16 0 0 1 0 20"/></svg>';
+  document.getElementById("grilla").innerHTML = CASOS.map(([slug, emoji, titulo, escena], i) => `
+    <div class="caso">
+      <div class="tit"><span class="num">${i + 1}</span><b>${titulo}</b></div>
+      <div class="cuerpo">
+        <div class="nfc"><div class="emoji">${emoji}</div>${ondas}<span>Acerca tu celular aquí</span></div>
+        <div class="qr"><img src="../../public/etm/qr-${slug}.svg" alt=""><small>¿Sin NFC?<br>Escanea</small></div>
+      </div>
+      <p class="escena">${escena}</p>
+    </div>`).join("");
+</script>
+</body>
+</html>

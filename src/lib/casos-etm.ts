@@ -248,6 +248,22 @@ export const TOTAL_CASOS = CASOS.length;
 export const casoPorSlug = (slug: string | undefined) => CASOS.find((c) => c.slug === slug);
 export const numeroDe = (caso: Caso) => CASOS.indexOf(caso) + 1;
 
+// Días del evento (hora de Chile): ahí se muestra lo del premio en el stand
+const INICIO_EVENTO = Date.parse("2026-11-19T00:00:00-03:00");
+const FIN_EVENTO = Date.parse("2026-11-21T23:59:59-03:00");
+export const esDiaDelEvento = () => { const t = Date.now(); return t >= INICIO_EVENTO && t <= FIN_EVENTO; };
+
+// Un identificador al azar por celular, para contar personas en la pantalla del stand
+export const sesionEtm = (): string => {
+  try {
+    let s = localStorage.getItem("trado_etm_sesion");
+    if (!s) { s = crypto.randomUUID(); localStorage.setItem("trado_etm_sesion", s); }
+    return s;
+  } catch {
+    return crypto.randomUUID();
+  }
+};
+
 // Avance de cada persona, guardado en su celular: qué casos jugó y si acertó.
 const CLAVE = "trado_etm_avance";
 export type Avance = Record<string, boolean>;

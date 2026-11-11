@@ -452,6 +452,17 @@ participantes, perfil público) devuelve una columna llamada
 la calcula contando sus salas completadas. Esa sí se puede mostrar. Sirve
 porque RLS no deja contar salas ajenas desde el navegador.
 
+### Casos del EtMday 2026 (/etm)
+
+Stand del 19-21 nov: un panel con 6 tarjetas NFC (`EtMday/panel/`) que abren
+`/etm/<caso>` (casos en `src/lib/casos-etm.ts`). `/etm/pantalla` es para la laptop
+del stand y muestra en vivo cuántos jugaron, leyendo `etm_resumen()`. Las
+respuestas se guardan anónimas en `etm_respuestas`
+(`20261111000000_etm_respuestas.sql`, **pendiente de aplicar**, esperando
+aprobación: sin ella el juego anda igual pero la pantalla queda en
+"Conectando…"). En `/etm` no se muestran la barra inferior, el botón de soporte
+ni el aviso de cookies.
+
 ### Colores de marca
 
 La app usa la paleta de los reels y carruseles
