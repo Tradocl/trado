@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, CheckCheck, CheckCircle2, Flag, Lock, Nfc, Share2, ShieldCheck, XCircle } from "lucide-react";
+import { ArrowRight, CheckCheck, CheckCircle2, Clock, Flag, Lock, RotateCcw, Share2, ShieldCheck, Trophy, XCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { casoPorSlug, CASOS, TOTAL_CASOS, type Caso, type Mensaje } from "@/lib/casos-etm";
+import { casoPorSlug, CASOS, TOTAL_CASOS, guardarRespuesta, leerAvance, numeroDe, siguientePendiente, type Avance, type Caso, type Comprobante as DatosComprobante } from "@/lib/casos-etm";
 import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
 
 // Lo que se abre al acercar el celular a una tarjeta NFC del stand del EtMday: una escena,
@@ -14,17 +14,27 @@ type Etapa = "intro" | "chat" | "decision" | "final";
 const reducido = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const DEGRADADO = "bg-gradient-to-br from-[#2230C2] via-[#4B35D6] via-55% to-[#7C3AED]";
 
-const Comprobante = ({ c }: { c: Extract<Mensaje, { comprobante: unknown }>["comprobante"] }) => (
+const Comprobante = ({ c }: { c: DatosComprobante }) => (
   <div className="w-56 rounded-xl bg-white overflow-hidden border border-black/5">
-    <div className="bg-emerald-500 text-white px-3 py-3 text-center">
-      <CheckCircle2 className="h-7 w-7 mx-auto" />
-      <p className="font-bold text-sm mt-1">¡Transferencia exitosa!</p>
+    <div className={`${c.enProceso ? "bg-sky-500" : "bg-emerald-500"} text-white px-3 py-3 text-center`}>
+      {c.enProceso ? <Clock className="h-7 w-7 mx-auto" /> : <CheckCircle2 className="h-7 w-7 mx-auto" />}
+      <p className="font-bold text-sm mt-1">{c.titulo}</p>
     </div>
     <div className="px-3 py-2.5 text-[11px] text-[#0F1424] space-y-1">
       <p className="text-center text-2xl font-extrabold tracking-tight">${formatCLP(c.monto)}</p>
-      <div className="flex justify-between"><span className="text-black/50">Desde</span><span>{c.banco}</span></div>
-      <div className="flex justify-between"><span className="text-black/50">Hora</span><span>{c.hora}</span></div>
-      <div className="flex justify-between"><span className="text-black/50">N° operación</span><span>{c.operacion}</span></div>
+      {c.filas.map(([k, v]) => (
+        <div key={k} className="flex justify-between gap-2"><span className="text-black/50">{k}</span><span>{v}</span></div>
+      ))}
+    </div>
+  </div>
+);
+
+const Foto = ({ f }: { f: { emoji: string; titulo: string; detalle: string } }) => (
+  <div className="w-52 rounded-xl overflow-hidden bg-white border border-black/5">
+    <div className="h-32 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-6xl">{f.emoji}</div>
+    <div className="px-3 py-2">
+      <p className="text-sm font-bold text-[#0F1424]">{f.titulo}</p>
+      <p className="text-xs text-black/50">{f.detalle}</p>
     </div>
   </div>
 );
@@ -40,10 +50,11 @@ const Chat = ({ caso, onTermino }: { caso: Caso; onTermino: () => void }) => {
       t = setTimeout(onTermino, 900);
     } else if (caso.chat[n].de === "ellos") {
       setEscribiendo(true);
-      const largo = "texto" in caso.chat[n] ? (caso.chat[n] as { texto: string }).texto.length : 40;
+      const m = caso.chat[n];
+      const largo = "texto" in m ? m.texto.length : 40;
       t = setTimeout(() => { setEscribiendo(false); setN((x) => x + 1); }, Math.min(2200, 700 + largo * 22));
     } else {
-      t = setTimeout(() => setN((x) => x + 1), 1100);
+      t = setTimeout(() => setN((x) => x + 1), caso.chat[n].de === "narra" ? 1500 : 1100);
     }
     return () => clearTimeout(t);
   }, [n, caso, onTermino]);
@@ -72,16 +83,25 @@ const Chat = ({ caso, onTermino }: { caso: Caso; onTermino: () => void }) => {
       </div>
       <div ref={fondo} className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-2">
         {caso.chat.slice(0, n).map((m, i) => {
+          if (m.de === "narra")
+            return (
+              <p key={i} className="chat-pop self-center my-1 max-w-[85%] text-center text-[13px] font-semibold text-[#0F1424]/70 bg-white/70 rounded-full px-4 py-1.5">
+                {m.texto}
+              </p>
+            );
           const mio = m.de === "yo";
+          const adjunto = "comprobante" in m || "foto" in m;
           return (
             <div
               key={i}
               className={`chat-pop max-w-[82%] shadow-sm text-[15px] leading-snug text-[#0F1424] ${
                 mio ? "self-end bg-[#dcf8c6] rounded-2xl rounded-br-md" : "self-start bg-white rounded-2xl rounded-bl-md"
-              } ${"comprobante" in m ? "p-1.5" : "px-3.5 py-2"}`}
+              } ${adjunto ? "p-1.5" : "px-3.5 py-2"}`}
             >
               {"comprobante" in m ? (
                 <Comprobante c={m.comprobante} />
+              ) : "foto" in m ? (
+                <Foto f={m.foto} />
               ) : (
                 <span>
                   {m.texto}
@@ -109,14 +129,33 @@ const CasoEtm = () => {
   const caso = casoPorSlug(slug) ?? CASOS[0];
   const [etapa, setEtapa] = useState<Etapa>("intro");
   const [acerto, setAcerto] = useState<boolean | null>(null);
+  const [avance, setAvance] = useState<Avance>(() => leerAvance());
+  const numero = numeroDe(caso);
 
   useEffect(() => { window.scrollTo(0, 0); }, [etapa]);
+  // "Siguiente caso" reutiliza esta misma página: al cambiar de caso, parte de cero
+  useEffect(() => { setEtapa("intro"); setAcerto(null); }, [caso.slug]);
 
   const alTerminarChat = useCallback(() => setEtapa("decision"), []);
-  const elegir = (correcta: boolean) => { setAcerto(correcta); setEtapa("final"); };
+  const elegir = (correcta: boolean) => {
+    setAcerto(correcta);
+    setAvance(guardarRespuesta(caso.slug, correcta));
+    setEtapa("final");
+    try { navigator.vibrate?.(correcta ? [40, 60, 40] : [180]); } catch { /* sin vibración */ }
+  };
+  const jugados = CASOS.filter((c) => c.slug in avance).length;
+  const aciertos = CASOS.filter((c) => avance[c.slug]).length;
+  const siguiente = siguientePendiente(caso, avance);
+  const reiniciar = () => {
+    try { localStorage.removeItem("trado_etm_avance"); } catch { /* sin almacenamiento */ }
+    setAvance({});
+    navigate(`/etm/${CASOS[0].slug}`);
+  };
   const compartir = () => {
     const url = `${window.location.origin}/etm/${caso.slug}`;
-    const texto = `¿Lo detectarías? Caso: ${caso.titulo} 👀 ${url}`;
+    const texto = jugados >= TOTAL_CASOS
+      ? `Detecté ${aciertos} de ${TOTAL_CASOS} estafas en Trado. ¿Tú cuántas detectas? 👀 ${url}`
+      : `¿Lo detectarías? Caso: ${caso.titulo} 👀 ${url}`;
     if (navigator.share) navigator.share({ title: "¿Lo detectarías?", text: texto, url }).catch(() => {});
     else window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
   };
@@ -136,7 +175,7 @@ const CasoEtm = () => {
             <div className="flex items-center justify-between relative">
               <Logo variant="white" height={28} />
               <span className="text-xs font-bold bg-white/15 border border-white/25 rounded-full px-3 py-1">
-                Caso {caso.numero} de {TOTAL_CASOS}
+                Caso {numero} de {TOTAL_CASOS}
               </span>
             </div>
             <div className="flex-1 flex flex-col justify-center relative">
@@ -162,7 +201,7 @@ const CasoEtm = () => {
         {(etapa === "chat" || etapa === "decision") && (
           <div className="fixed inset-0 flex justify-center bg-[#0F1424]">
            <div className="w-full max-w-md h-full flex flex-col">
-            <Chat caso={caso} onTermino={alTerminarChat} />
+            <Chat key={caso.slug} caso={caso} onTermino={alTerminarChat} />
             {etapa === "decision" && (
             <div className="shrink-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.25)] px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] animate-in slide-in-from-bottom duration-500">
               <p className="text-xs font-bold uppercase tracking-wider text-[#FF6B4A]">Tu turno</p>
@@ -194,6 +233,55 @@ const CasoEtm = () => {
             </div>
 
             <div className="relative z-10 px-5 -mt-8 space-y-4">
+              {/* Lo primero: qué hacer ahora */}
+              <div className="bg-white rounded-3xl shadow-xl p-5">
+                {siguiente ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <p className="font-extrabold text-[#0F1424] text-lg">Llevas {jugados} de {TOTAL_CASOS}</p>
+                      <p className="text-sm font-semibold text-[#0F1424]/60">{aciertos} detectado{aciertos === 1 ? "" : "s"}</p>
+                    </div>
+                    <div className="flex gap-1.5 mt-3">
+                      {CASOS.map((c) => (
+                        <span
+                          key={c.slug}
+                          className={`h-2.5 flex-1 rounded-full ${!(c.slug in avance) ? "bg-[#0F1424]/10" : avance[c.slug] ? "bg-emerald-500" : "bg-[#FF6B4A]"} ${c.slug === caso.slug ? "ring-2 ring-offset-2 ring-[#2230C2]/40" : ""}`}
+                        />
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => navigate(`/etm/${siguiente.slug}`)}
+                      className={`mt-4 w-full h-16 rounded-2xl ${DEGRADADO} text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition`}
+                    >
+                      Siguiente caso <ArrowRight className="h-5 w-5" />
+                    </button>
+                    <p className="text-center text-xs text-[#0F1424]/55 mt-2">o acerca tu celular a otra tarjeta del panel</p>
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <Trophy className="h-12 w-12 mx-auto text-amber-500" />
+                    <p className="font-black text-2xl text-[#0F1424] mt-2">Detectaste {aciertos} de {TOTAL_CASOS}</p>
+                    <p className="text-sm text-[#0F1424]/65 mt-1">
+                      {aciertos === TOTAL_CASOS ? "No te pasan gato por liebre 😎" : aciertos >= TOTAL_CASOS / 2 ? "Bien, pero alguno se te pasó 👀" : "Mejor que te pase acá y no con tu plata 😅"}
+                    </p>
+                    <div className="flex gap-1.5 mt-4">
+                      {CASOS.map((c) => (
+                        <span key={c.slug} className={`h-2.5 flex-1 rounded-full ${avance[c.slug] ? "bg-emerald-500" : "bg-[#FF6B4A]"}`} />
+                      ))}
+                    </div>
+                    <button
+                      onClick={compartir}
+                      className={`mt-4 w-full h-16 rounded-2xl ${DEGRADADO} text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition`}
+                    >
+                      <Share2 className="h-5 w-5" /> Desafía a alguien
+                    </button>
+                    <button onClick={reiniciar} className="mt-2 text-sm font-semibold text-[#2230C2] inline-flex items-center gap-1.5">
+                      <RotateCcw className="h-4 w-4" /> Jugar de nuevo
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="bg-white rounded-3xl shadow-xl p-5">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#FF6B4A] flex items-center gap-1.5">
                   <Flag className="h-3.5 w-3.5" /> Las {caso.senales.length} señales de alerta
@@ -235,12 +323,6 @@ const CasoEtm = () => {
                 <Share2 className="h-5 w-5" /> Desafía a alguien con este caso
               </button>
 
-              <div className="flex items-center gap-3 rounded-2xl border-2 border-dashed border-[#2230C2]/25 p-4 text-[#0F1424]">
-                <Nfc className="h-8 w-8 text-[#2230C2] shrink-0" />
-                <p className="text-sm leading-snug">
-                  <b>Quedan {TOTAL_CASOS - 1} casos.</b> Acerca tu celular a otra tarjeta del panel para ver si los detectas.
-                </p>
-              </div>
             </div>
           </div>
         )}
