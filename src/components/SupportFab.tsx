@@ -3,7 +3,7 @@ import { LifeBuoy } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
-const HIDE_ON = ["/auth", "/terms", "/privacy", "/reset-password", "/verificar-email", "/invite", "/support"];
+const HIDE_ON = ["/etm", "/auth", "/terms", "/privacy", "/reset-password", "/verificar-email", "/invite", "/support"];
 
 export const SupportFab = () => {
   const { user } = useAuth();

@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 const PUBLIC_PREFIXES = [
+  "/etm",
   "/auth",
   "/terms",
   "/privacy",

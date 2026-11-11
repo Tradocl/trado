@@ -16,6 +16,9 @@ export const CookieBanner = () => {
   useEffect(() => {
     if (!localStorage.getItem(COOKIE_KEY)) setVisible(true);
   }, []);
+  // Los casos del EtMday (/etm) se abren desde una tarjeta NFC y ocupan toda la pantalla: el aviso
+  // los taparía. Ahí no se carga nada que necesite consentimiento, así que no hace falta pedirlo.
+  const enCasoEtm = pathname.startsWith("/etm");
 
   const acceptEssential = () => {
     localStorage.setItem(COOKIE_KEY, "essential");
@@ -28,7 +31,7 @@ export const CookieBanner = () => {
     window.dispatchEvent(new Event(CONSENT_EVENT));
   };
 
-  if (!visible) return null;
+  if (!visible || enCasoEtm) return null;
 
   // En el celular va compacto: antes tapaba media pantalla en la portada, justo donde está el botón
   // para crear la cuenta.
