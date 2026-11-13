@@ -1,11 +1,11 @@
 # Reel «En persona» (violencia en ventas por Marketplace): guion tal como quedó dicho
 
 Código: `src/reels/EnPersona.tsx` (id `EnPersona`). Material, fuera de git:
-`public/material/en-persona/` (`originales/` = los 7 clips de WhatsApp, `noticias/` = notas
-descargadas y `cortes/` de 3 s, `noticias.md` = fuentes verificadas). Render en
+`public/material/en-persona/` (`originales/` = los 7 clips de WhatsApp; en `noticias/`:
+`fuentes.md` = fuentes verificadas, `descargas/` = notas completas y `cortes/` = los de 3 s). Render en
 `Instagram/2 Reels/17 En persona/` (número provisorio hasta confirmar la grilla).
 
-No es el mismo guion que `en-persona-compras.md` / `en-persona-vendes.md` (serie segmentada,
+No es el mismo guion que `serie-segmentada/en-persona-compras.md` / `en-persona-vendes.md` (serie segmentada,
 sobre el comprobante falso): este va del riesgo de juntarse con alguien que no conoces.
 
 | # | Toma | Lo que se dice | En pantalla |

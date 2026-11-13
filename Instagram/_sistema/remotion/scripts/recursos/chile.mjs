@@ -1,4 +1,4 @@
-// Genera src/chile.ts: el contorno de Chile continental como path SVG y las
+// Genera src/piezas/chile.ts (lo usa Mapa.tsx): el contorno de Chile continental como path SVG y las
 // ciudades ya proyectadas al mismo lienzo. Fuente: Natural Earth (dominio
 // público) vía world-atlas. Se corre una vez con `npm run mapa`.
 import { readFileSync, writeFileSync } from "node:fs";
@@ -38,11 +38,11 @@ const ciudades = Object.fromEntries(
 );
 
 writeFileSync(
-  new URL("../src/chile.ts", import.meta.url),
-  `// Generado por scripts/chile.mjs (Natural Earth, dominio público). No editar a mano.\n` +
+  new URL("../../src/piezas/chile.ts", import.meta.url),
+  `// Generado por scripts/recursos/chile.mjs (Natural Earth, dominio público). No editar a mano.\n` +
     `export const CHILE_ANCHO = ${ANCHO};\nexport const CHILE_ALTO = ${ALTO};\n` +
     `export const CHILE_PATH = ${JSON.stringify(d.replace(/(\d+\.\d)\d+/g, "$1"))};\n` +
     `export const CIUDADES = ${JSON.stringify(ciudades)} as const;\n` +
     `export type Ciudad = keyof typeof CIUDADES;\n`,
 );
-console.log("src/chile.ts listo:", polys.length, "polígonos,", d.length, "caracteres");
+console.log("src/piezas/chile.ts listo:", polys.length, "polígonos,", d.length, "caracteres");

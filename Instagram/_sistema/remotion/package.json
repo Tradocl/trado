@@ -4,11 +4,9 @@
   "type": "module",
   "scripts": {
     "studio": "remotion studio",
-    "mapa": "node scripts/chile.mjs",
-    "sfx": "python scripts/efectos.py && python scripts/musica.py",
-    "vista": "remotion still DesdeDondeQuieras out/vista.png --frame=0",
-    "render": "remotion render DesdeDondeQuieras out/DesdeDondeQuieras-crudo.mp4",
-    "final": "python scripts/final.py DesdeDondeQuieras"
+    "final": "python scripts/final.py",
+    "sfx": "python scripts/recursos/efectos.py && python scripts/recursos/musica.py",
+    "mapa": "node scripts/recursos/chile.mjs"
   },
   "dependencies": {
     "@remotion/cli": "4.0.533",

@@ -1,10 +1,10 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { C, FUENTE, rebote, s, suave } from "../marca";
-import { Pildora, Sfx } from "../piezas/base";
-import { Confeti, Destello, Palabra, Rayos, Salto } from "../piezas/efectos";
+import { Pildora } from "../piezas/Pildora";
+import { Confeti, Destello, Palabra, Rayos, Salto, Sfx } from "../piezas/efectos";
 import { Chat } from "../piezas/Chat";
-import { linea, Toma } from "../piezas/Toma";
+import { linea, Toma } from "../toma/Toma";
 
 // Reel «En persona» (violencia en ventas cara a cara por Marketplace).
 // Grabación: 7 clips por WhatsApp unidos en video.mp4 (576×1024 escalado). Había varias tomas por
@@ -23,7 +23,7 @@ import { linea, Toma } from "../piezas/Toma";
 // Sin verificar, nota y salas en Trado. Nada de RUT ni teléfono.
 //
 // Noticias reales (T13, 24 Horas, Meganoticias, CHV), con su logo y su franja tal cual: cortes de
-// 3 s en public/material/en-persona/noticias/cortes/ (fuera de git), fuentes en noticias.md.
+// 3 s en public/material/en-persona/noticias/cortes/ (fuera de git), fuentes en noticias/fuentes.md.
 
 const CARPETA = "material/en-persona";
 

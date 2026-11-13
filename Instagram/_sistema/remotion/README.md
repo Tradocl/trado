@@ -5,8 +5,42 @@ animación de marca. Los reels 100 % animados siguen en `../reels/` (Pillow).
 Usa la misma marca (colores, Plus Jakarta Sans, zona segura) y los mismos
 efectos de sonido que ese motor.
 
-El primero hecho así es «Desde donde quieras» (post 16): `src/reels/DesdeDondeQuieras.tsx`,
-guion en `guion/desde-donde-quieras.md`. Para uno nuevo, copia ese archivo y cámbiale las escenas.
+Hechos así: «Desde donde quieras» (post 16) y «En persona». Para uno nuevo, copia el más
+parecido de `src/reels/` y cámbiale las escenas; «En persona» es el más completo (noticias
+reales en el gancho, dos músicas).
+
+## Qué hay en cada carpeta
+
+```
+remotion/
+  guion/                  qué se dice en cada reel
+    desde-donde-quieras.md  guion final de cada reel hecho, tal como quedó dicho
+    en-persona.md
+    serie-segmentada/       la próxima serie: plan (README.md) y 8 borradores sin grabar
+  src/                    el video
+    Root.tsx                la lista de reels; el id de cada uno es el que recibe final.py
+    marca.ts                colores, fuente, 1080×1920 a 30 fps, curvas de animación
+    reels/                  un archivo por reel: sus escenas, efectos y música
+    toma/                   tu grabación: Toma.tsx (recorte, círculo, modos, linea) y Subtitulos.tsx
+    piezas/                 lo que aparece en pantalla: Chat, Esquema, Mapa (+ chile.ts), Pildora,
+                            Postal, Publicacion, Sala, y efectos.tsx (Salto, Palabra, Piedra,
+                            Confeti, Rayos, Destello y Sfx, el de los sonidos)
+    index.ts                entrada de Remotion, no se toca
+  scripts/                lo que se corre para cada reel, en este orden:
+                            convertir → transcribir → hoja → caras → tomas → final
+                            (tomas = audio.py + recorte.py, que también sirven sueltos)
+    recursos/               se corren una vez y sirven a todos los reels:
+                            efectos.py y musica.py (npm run sfx), chile.mjs (npm run mapa)
+  public/
+    fuentes/                Plus Jakarta Sans
+    sfx/                    efectos y música              ┐
+    material/<reel>/        tu grabación y tus tomas      │ fuera de git: solo existen en el
+  out/<Id>/                 renders y hojas de revisión   │ computador donde se hicieron
+  scripts/modelos/          modelo de RNNoise             ┘
+```
+
+`sfx/` se rehace con `npm run sfx` y el modelo se baja solo. `material/` y `out/` no se
+recuperan: llevan tu cara y tu voz, y el repo es público, así que nunca van a git.
 
 ## El estilo
 
@@ -22,8 +56,8 @@ guion en `guion/desde-donde-quieras.md`. Para uno nuevo, copia ese archivo y cá
 
 ```bash
 npm install
-npm run sfx     # efectos de ../reels/sonido.py y música de fondo (scripts/musica.py) a public/sfx/
-npm run mapa    # solo si cambias ciudades: regenera src/chile.ts
+npm run sfx     # efectos de ../reels/sonido.py y música (scripts/recursos/musica.py) a public/sfx/
+npm run mapa    # solo si cambias ciudades: regenera src/piezas/chile.ts
 pip install faster-whisper opencv-python rembg imageio-ffmpeg numpy pillow
 ```
 
@@ -38,6 +72,7 @@ public/material/<reel>/
   video.mp4        la grabación convertida, la única que se usa
   palabras.json    transcripción palabra por palabra
   generado/        <toma>.wav (voz limpia) y <toma>.webm (tu recorte sin fondo)
+  noticias/        solo si el gancho usa noticias: fuentes.md, descargas/ y cortes/
 ```
 
 1. **Grabar** (ver consejos abajo) y copiar el .MOV a `originales/`.
@@ -46,30 +81,31 @@ public/material/<reel>/
 3. **Transcribir**: `python scripts/transcribir.py public/material/<reel>/video.mp4`.
    Imprime cada frase con su segundo y marca las pausas (⏸). Con eso eliges la mejor
    toma de cada frase (si repetiste, casi siempre la última completa).
-4. **Revisar a ojo** las tomas candidatas: `python scripts/hoja.py public/material/<reel>/video.mp4 out/hoja.jpg 6.8,11.8,19.2`
+4. **Revisar a ojo** las tomas candidatas: `python scripts/hoja.py public/material/<reel>/video.mp4 out/<Id>/hoja.jpg 6.8,11.8,19.2`
    (o `cada=0.7`). Una sola imagen con los cuadros: ojos abiertos, sin manos tapando, etc.
 5. **Medir la cara** de cada toma: `python scripts/caras.py public/material/<reel>/video.mp4 hook:6.8:11.8 duda:19.2:29.7 ...`
 6. **Preparar las tomas** (voz limpia + recorte; ~1 s por cuadro, un reel de 40 s tarda ~20 min):
    `python scripts/tomas.py <reel> hook:6.8:11.8 duda:19.2:29.7 ...`
-7. **Armar las escenas** en `src/reels/<Reel>.tsx` y registrarlo en `src/Root.tsx`:
-   - `<Toma carpeta archivo origen cara linea palabras modos>`: una por frase.
+7. **Armar las escenas** en `src/reels/<Id>.tsx` y registrarlo en `src/Root.tsx`:
+   - `<Toma carpeta archivo origen cara linea palabras modos>` (de `src/toma/`): una por frase.
    - `linea([[a, b], [c, d]])`: qué tramos de la toma se usan; lo que queda entre medio
      (pausas, muletillas) se corta. `L.en(seg)` pasa un segundo de la toma al cuadro del reel.
    - `palabras`: el subtítulo con el segundo de cada palabra (sale de palabras.json, restando el inicio de la toma).
    - `modos`: `[[seg, "real" | "abajo" | "cerca" | "izq" | "der" | "fuera"], ...]`.
    - `children` va entre tu fondo y tú; `encima`, sobre ti (lo que te cae en la cabeza).
    - `<Desde en hasta>` para que una pieza viva solo en un tramo de la escena.
-   - Piezas listas en `src/piezas/`: Publicacion, Chat, Mapa, Esquema, Sala, Postal,
-     Pildora, Palabra, Salto, Confeti, Rayos, Destello, Sfx.
-8. **Mirar** con `npm run studio`, y antes de dar por listo, una hoja del render cada 0,7 s
-   (`python scripts/hoja.py out/<Id>.mp4 out/hoja.jpg cada=0.7`).
+   - Piezas listas en `src/piezas/`: Publicacion, Chat, Mapa, Esquema, Sala, Postal, Pildora;
+     y en `piezas/efectos.tsx`: Palabra, Salto, Piedra, Confeti, Rayos, Destello, Sfx.
+8. **Mirar** con `npm run studio`. Antes de dar por listo, renderiza con `npm run final -- <Id>`
+   (queda en `out/<Id>/reel.mp4`) y revisa una hoja cada 0,7 s
+   (`python scripts/hoja.py out/<Id>/reel.mp4 out/<Id>/hoja.jpg cada=0.7`).
 9. **Número en la grilla (NN)**: es el puesto donde va a salir, contando también lo que ya está
    hecho y todavía no se publica. No basta con mirar `2 Reels/`: pregunta cuál es el último
    (este iba a ser el 15, pero el 15 ya lo tenía otro video sin publicar, así que es el 16).
    XX es el número de reel (`16-reel09-portada` = noveno reel).
 10. **Render final**: `python scripts/final.py <Id> --a "NN Nombre"` y lo mismo con `--sin-musica`
     (uno después del otro, nunca a la vez: escriben el mismo archivo intermedio).
-    Deja `reel.mp4` y `reel-sin-musica.mp4` en `Instagram/2 Reels/NN Nombre/`; agrega esa carpeta
+    Quedan en `out/<Id>/` y se copian como `reel.mp4` y `reel-sin-musica.mp4` a `Instagram/2 Reels/NN Nombre/`; agrega esa carpeta
     al `.gitignore` de la raíz (los mp4 pesan ~50 MB y llevan tu cara y tu voz).
 11. **Portada** en `../feed/NN-reelXX-portada/portada.html` (1080×1920; la grilla muestra
     el centro 3:4, de y 240 a 1680). El color sigue la X de la grilla: **par = gris**
@@ -137,24 +173,14 @@ public/material/<reel>/
 - **Revisa la toma con whisper sobre el .wav, no solo con `palabras.json`**: la transcripción del
   video entero se "come" repeticiones (en «En persona» un "y en todos los casos pasa lo…" colgado
   quedó dentro del corte y solo se notó al transcribir el render). Antes de dar por listo,
-  `python scripts/transcribir.py out/<Id>.mp4` y leer que no se repita nada.
+  `python scripts/transcribir.py out/<Id>/reel.mp4` y leer que no se repita nada.
 - **Noticias reales en el gancho**: cortes de 1,5–3 s con golpe de zoom, el mismo video borroso
   de fondo, su franja tal cual y el titular repetido grande abajo (la franja de TV en un celular
   no se lee). Logos de canal sin tapar. El audio de cada corte picado no dice nada: mejor una
   frase con sentido por nota, sacada de la nota original con loudnorm («400 mil pesos era el precio
   acordado», T13; «…cuando fue interceptado por los asaltantes», CHV) en `cortes/voz-*.m4a`.
-  Descarga con `python -m yt_dlp`; cortes de 3 s en `material/<reel>/noticias/cortes/`.
+  Descarga con `python -m yt_dlp` a `material/<reel>/noticias/descargas/`, cortes de 3 s en
+  `noticias/cortes/` y las fuentes verificadas en `noticias/fuentes.md`.
 - **loudnorm en una pasada satura** (pico de +2,7 dBFS). `final.py` hace dos pasadas lineales y un limitador.
 - **Todo lo que se dice de Trado se verifica contra el código** (plazos, estados, comisión)
   antes de publicar. Las cifras de comisión, solo desde `calculateFee` en `src/lib/utils.ts`.
-
-## Archivos
-
-- `src/Root.tsx`: un reel por composición; el id es el que se le pasa a `final.py`.
-- `src/reels/`: un archivo por reel.
-- `src/piezas/`: piezas reutilizables; `Toma.tsx` es tu toma (recorte, círculo, modos, subtítulos).
-- `src/marca.ts`: colores, fuente y curvas de animación.
-- `scripts/`: convertir, transcribir, hoja, caras, tomas (= audio + recorte), final,
-  efectos y música (`npm run sfx`), chile (mapa).
-- `guion/`: el guion final de cada reel, tal como quedó dicho.
-- `out/`: renders (fuera de git).

@@ -17,7 +17,7 @@ import wave
 import numpy as np
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(AQUI, "..", "..", "reels"))
+sys.path.insert(0, os.path.join(AQUI, "..", "..", "..", "reels"))
 from sonido import SR, clap, env, fft_filter, hat, kick, saw, t_  # noqa: E402
 
 BPM = 96
@@ -48,7 +48,7 @@ class Estereo:
     def guardar(self, nombre, pico):
         mix = np.stack([self.L, self.R], axis=1)
         mix *= pico / max(1e-9, np.max(np.abs(mix)))
-        with wave.open(os.path.join(AQUI, "..", "public", "sfx", nombre), "wb") as w:
+        with wave.open(os.path.join(AQUI, "..", "..", "public", "sfx", nombre), "wb") as w:
             w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
             w.writeframes((mix * 32767).astype(np.int16).tobytes())
         print(nombre)

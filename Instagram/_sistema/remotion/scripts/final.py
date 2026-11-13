@@ -1,9 +1,12 @@
 """Render final de un reel: video + volumen parejo, listo para Instagram.
 
-    python scripts/final.py DesdeDondeQuieras                 out/DesdeDondeQuieras.mp4
-    python scripts/final.py DesdeDondeQuieras --sin-musica    out/DesdeDondeQuieras-sin-musica.mp4
+    python scripts/final.py DesdeDondeQuieras                 out/DesdeDondeQuieras/reel.mp4
+    python scripts/final.py DesdeDondeQuieras --sin-musica    out/DesdeDondeQuieras/reel-sin-musica.mp4
     python scripts/final.py DesdeDondeQuieras --a "16 Desde donde quieras"
-        además lo copia a Instagram/2 Reels/<carpeta>/ como reel.mp4 (o reel-sin-musica.mp4)
+        además lo copia a Instagram/2 Reels/<carpeta>/ con el mismo nombre
+
+Cada reel tiene su carpeta en out/ (con el id de la composición): ahí quedan el render
+crudo, el final, y conviene dejar también la hoja y la transcripción de revisión.
 
 El volumen va igual que en los reels de Pillow (../reels/motor.py): -15 LUFS con el pico
 real bajo -3 dBFS, en dos pasadas y lineal, así no cambia la mezcla. Si el pico no deja
@@ -57,13 +60,14 @@ def main():
     ap.add_argument("--a", metavar="CARPETA", help="carpeta en Instagram/2 Reels/ donde dejar el entregable")
     a = ap.parse_args()
 
-    nombre = a.reel + ("-sin-musica" if a.sin_musica else "")
-    crudo = os.path.join(AQUI, "out", nombre + "-crudo.mp4")
-    final = os.path.join(AQUI, "out", nombre + ".mp4")
+    carpeta = os.path.join(AQUI, "out", a.reel)
+    os.makedirs(carpeta, exist_ok=True)
+    sufijo = "-sin-musica" if a.sin_musica else ""
+    crudo = os.path.join(carpeta, "crudo" + sufijo + ".mp4")
+    final = os.path.join(carpeta, "reel" + sufijo + ".mp4")
     props = json.dumps({"musica": not a.sin_musica})
     # En Windows npx es un .cmd: necesita shell. Las props van en un archivo para no pelear con las comillas.
-    pp = os.path.join(AQUI, "out", nombre + "-props.json")
-    os.makedirs(os.path.dirname(pp), exist_ok=True)
+    pp = os.path.join(carpeta, "props" + sufijo + ".json")
     open(pp, "w").write(props)
     subprocess.run(f'npx remotion render {a.reel} "{crudo}" --props="{pp}"', shell=True, check=True, cwd=AQUI)
     os.remove(pp)
@@ -72,7 +76,7 @@ def main():
     if a.a:
         destino = os.path.join(REELS, a.a)
         os.makedirs(destino, exist_ok=True)
-        shutil.copy(final, os.path.join(destino, "reel-sin-musica.mp4" if a.sin_musica else "reel.mp4"))
+        shutil.copy(final, os.path.join(destino, os.path.basename(final)))
         print("copiado a", destino)
 
 

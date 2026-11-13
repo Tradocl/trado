@@ -1,6 +1,6 @@
 import React from "react";
 import { interpolate, useCurrentFrame } from "remotion";
-import { CHILE_ALTO, CHILE_ANCHO, CHILE_PATH, CIUDADES, Ciudad } from "../chile";
+import { CHILE_ALTO, CHILE_ANCHO, CHILE_PATH, CIUDADES, Ciudad } from "./chile";
 import { C, FUENTE, suave } from "../marca";
 
 type Ruta = { de: Ciudad; a: Ciudad; desde: number; dur: number; color?: string; dudosa?: boolean };

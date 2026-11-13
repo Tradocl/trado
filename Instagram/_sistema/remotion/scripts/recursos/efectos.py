@@ -10,10 +10,10 @@ import wave
 import numpy as np
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(AQUI, "..", "..", "reels"))
+sys.path.insert(0, os.path.join(AQUI, "..", "..", "..", "reels"))
 from sonido import EFECTOS, SR  # noqa: E402
 
-SALIDA = os.path.join(AQUI, "..", "public", "sfx")
+SALIDA = os.path.join(AQUI, "..", "..", "public", "sfx")
 os.makedirs(SALIDA, exist_ok=True)
 
 for nombre, (fn, vol) in EFECTOS.items():

@@ -1,7 +1,12 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, OffthreadVideo, Sequence, spring, staticFile, useCurrentFrame } from "remotion";
-import { FPS, FUENTE, suave } from "../marca";
-import { Fondo, SubtituloVoz } from "./base";
+import { DEGRADADO, FPS, FUENTE, OSCURO, suave } from "../marca";
+import { SubtituloVoz } from "./Subtitulos";
+
+/** Fondo de marca detrás de tu recorte cuando no estás en "real". */
+const Fondo: React.FC<{ tipo: "oscuro" | "marca" }> = ({ tipo }) => (
+  <AbsoluteFill style={{ background: tipo === "oscuro" ? OSCURO : DEGRADADO }} />
+);
 
 // Cada reel tiene su carpeta en public/material/<reel>/ (fuera del repo):
 //   video.mp4           la grabación completa, 1080×1920 y ya pasada a SDR (scripts/convertir.py)

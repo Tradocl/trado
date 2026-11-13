@@ -1,6 +1,13 @@
 import React from "react";
-import { AbsoluteFill, interpolate, random, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, interpolate, random, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { C, FUENTE, rebote } from "../marca";
+
+/** Efecto de sonido de public/sfx/ (se generan con `npm run sfx`) en el cuadro `en`. */
+export const Sfx: React.FC<{ nombre: string; en: number; vol?: number }> = ({ nombre, en, vol = 1 }) => (
+  <Sequence from={en} layout="none">
+    <Audio src={staticFile(`sfx/${nombre}.wav`)} volume={vol} />
+  </Sequence>
+);
 
 /** Emoji grande que salta con rebote. */
 export const Salto: React.FC<{ emoji: string; en: number; style: React.CSSProperties; giro?: number; size?: number }> = ({ emoji, en, style, giro = -10, size = 220 }) => {

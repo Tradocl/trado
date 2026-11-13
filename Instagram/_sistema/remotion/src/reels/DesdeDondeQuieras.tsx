@@ -1,13 +1,13 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { C, FUENTE, rebote, s, suave } from "../marca";
-import { Pildora, Sfx } from "../piezas/base";
+import { Pildora } from "../piezas/Pildora";
 import { Chat } from "../piezas/Chat";
-import { Confeti, Destello, Palabra, Piedra, Rayos, Salto } from "../piezas/efectos";
+import { Confeti, Destello, Palabra, Piedra, Rayos, Salto, Sfx } from "../piezas/efectos";
 import { Esquema } from "../piezas/Esquema";
 import { Mapa } from "../piezas/Mapa";
 import { Publicacion } from "../piezas/Publicacion";
-import { linea, Toma } from "../piezas/Toma";
+import { linea, Toma } from "../toma/Toma";
 
 // Reel «Desde donde quieras» (post 16), armado con la segunda grabación (prueba-2).
 // Se alterna lo orgánico (tu video tal cual, con las animaciones entre tu fondo y tú)
@@ -47,9 +47,9 @@ const ESCENAS: { id: string; dur: number; C: () => React.ReactElement }[] = [
 
 export const DURACION = ESCENAS.reduce((t, e) => t + e.dur, 0);
 
-// Música de fondo sintetizada (scripts/musica.py). Con la prop musica = false sale sin ella
+// Música de fondo sintetizada (scripts/recursos/musica.py). Con la prop musica = false sale sin ella
 // (`python scripts/final.py DesdeDondeQuieras --sin-musica`), para usar una canción de Instagram.
-const COMPAS = s(2.5); // un compás a 96 BPM, igual que en scripts/musica.py
+const COMPAS = s(2.5); // un compás a 96 BPM, igual que en scripts/recursos/musica.py
 
 const inicioDe = (id: string) => {
   let t = 0;

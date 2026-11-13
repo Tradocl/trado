@@ -66,4 +66,4 @@ Instagram/2 Reels/15 Venta en el metro/*.mp4
 # remotion/scripts/final.py. Caption y portada sí se suben, como en los demás.
 [Ii]nstagram/2 Reels/16 Desde donde quieras/*.mp4
 [Ii]nstagram/2 Reels/17 En persona/*.mp4
-[Ii]nstagram/_sistema/remotion/scripts/__pycache__/
+[Ii]nstagram/_sistema/remotion/**/__pycache__/

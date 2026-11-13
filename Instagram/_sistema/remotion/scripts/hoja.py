@@ -1,11 +1,12 @@
 """Hoja de revisión: cuadros del video en los segundos que digas, en una sola imagen.
 
-    python scripts/hoja.py out/DesdeDondeQuieras.mp4 out/hoja.jpg 1,3.5,6,10.2
-    python scripts/hoja.py out/DesdeDondeQuieras.mp4 out/hoja.jpg cada=0.7
+    python scripts/hoja.py out/DesdeDondeQuieras/reel.mp4 out/DesdeDondeQuieras/hoja.jpg 1,3.5,6,10.2
+    python scripts/hoja.py out/DesdeDondeQuieras/reel.mp4 out/DesdeDondeQuieras/hoja.jpg cada=0.7
 
 Sirve para revisar sin ver el video entero: el paso del círculo, que las animaciones
 calcen con lo que dices, que nada tape la cara ni quede cortado en los bordes.
 """
+import os
 import sys
 
 import cv2
@@ -32,6 +33,7 @@ def main(video, salida, cuando):
     while len(cuadros) % 5:
         cuadros.append(np.zeros_like(cuadros[0]))
     filas = [np.hstack(cuadros[i:i + 5]) for i in range(0, len(cuadros), 5)]
+    os.makedirs(os.path.dirname(os.path.abspath(salida)), exist_ok=True)
     cv2.imencode(".jpg", np.vstack(filas))[1].tofile(salida)
     print(salida)
 
