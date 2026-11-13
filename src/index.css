@@ -151,12 +151,11 @@ All colors MUST be HSL.
   .page-subtitle {
     @apply text-sm text-muted-foreground mt-1;
   }
-  /* Tarjetas de la app: azul muy pálido, sin borde ni sombra (estilo simple, una sola línea de color) */
   .section-card {
-    @apply rounded-3xl border-0 bg-primary/[0.04] shadow-none;
+    @apply rounded-2xl border bg-card shadow-sm hover:shadow-md transition-shadow;
   }
   .stat-tile {
-    @apply rounded-3xl border-0 bg-primary/[0.04] p-5 shadow-none;
+    @apply rounded-2xl border bg-card p-5 shadow-sm;
   }
 }
 
