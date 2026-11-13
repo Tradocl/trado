@@ -13,9 +13,9 @@ import { Logo } from "@/components/Logo";
 
 // Mismos colores que los casos del panel y de crear sala, para reconocer el tipo de un vistazo
 const TIPO: Record<string, { icon: typeof Package; nombre: string; franja: string; icono: string }> = {
-  producto_envio: { icon: Truck, nombre: "Envío", franja: "bg-emerald-500", icono: "bg-emerald-500 text-white" },
+  producto_envio: { icon: Truck, nombre: "Envío", franja: "bg-primary", icono: "bg-primary text-white" },
   producto_persona: { icon: Handshake, nombre: "En persona", franja: "bg-amber-500", icono: "bg-amber-500 text-white" },
-  producto_digital: { icon: Ticket, nombre: "Digital", franja: "bg-rose-500", icono: "bg-rose-500 text-white" },
+  producto_digital: { icon: Ticket, nombre: "Digital", franja: "bg-info", icono: "bg-info text-white" },
   servicio: { icon: Briefcase, nombre: "Servicio", franja: "bg-violet-500", icono: "bg-violet-500 text-white" },
 };
 const TIPO_OTRO = { icon: Package, nombre: "Sala", franja: "bg-primary", icono: "bg-primary text-white" };
@@ -313,7 +313,7 @@ export default function TransactionHistory() {
 
   const Vacio = ({ venta }: { venta: boolean }) => (
     <div className="rounded-3xl bg-card/90 backdrop-blur shadow-md p-8 sm:p-10 text-center">
-      <div className={`mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg ${venta ? "bg-gradient-to-br from-success to-emerald-600" : "bg-gradient-to-br from-info to-violet-600"}`}>
+      <div className={`mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg ${venta ? "bg-gradient-to-br from-success to-primary" : "bg-gradient-to-br from-info to-violet-600"}`}>
         {venta ? <Store className="h-8 w-8" /> : <ShoppingBag className="h-8 w-8" />}
       </div>
       <h3 className="text-lg sm:text-xl font-bold mb-1">{venta ? "Todavía no completas una venta" : "Todavía no completas una compra"}</h3>

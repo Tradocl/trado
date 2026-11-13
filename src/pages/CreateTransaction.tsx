@@ -35,7 +35,7 @@ const CASOS_CREAR: {
     ejemplo: "Por courier, a cualquier parte de Chile", nombre: "Ej: Zapatillas Nike talla 42",
     detalle: "Estado, talla o modelo, qué incluye y cómo se envía. Ej: Nuevas, en caja, envío por Starken.",
     entrega: "lo envía por courier con seguimiento",
-    caja: "from-emerald-500/15 border-emerald-500/20", sel: "border-emerald-500", icono: "bg-emerald-500 text-white",
+    caja: "from-primary/15 border-primary/20", sel: "border-primary", icono: "bg-primary text-white",
   },
   {
     tipo: "producto_persona", icon: Handshake, vendo: "Vendo en persona", compro: "Compro en persona",
@@ -49,7 +49,7 @@ const CASOS_CREAR: {
     ejemplo: "Entradas, links, archivos, cuentas", nombre: "Ej: 2 entradas cancha concierto",
     detalle: "Qué es exactamente y cómo se entrega. Ej: 2 entradas cancha general, transferencia por la ticketera.",
     entrega: "manda la entrada, el link o el archivo",
-    caja: "from-rose-500/15 border-rose-500/20", sel: "border-rose-500", icono: "bg-rose-500 text-white",
+    caja: "from-info/15 border-info/20", sel: "border-info", icono: "bg-info text-white",
   },
   {
     tipo: "servicio", icon: Briefcase, vendo: "Cobro un trabajo", compro: "Contrato un trabajo",
@@ -709,7 +709,7 @@ const CreateTransaction = () => {
           ) : (
             <Button
               size="lg"
-              className="flex-1 rounded-xl h-14 text-base font-bold bg-gradient-to-r from-success to-emerald-600 text-white shadow-lg shadow-success/25"
+              className="flex-1 rounded-xl h-14 text-base font-bold bg-gradient-to-r from-success to-primary text-white shadow-lg shadow-success/25"
               disabled={loading || !termsAccepted || !orderDetails}
               onClick={handleCreateTransaction}
             >
@@ -821,7 +821,7 @@ const CreateTransaction = () => {
               style={{ animationDelay: '0.5s', animationFillMode: 'backwards' }}
             >
               <Button
-                className="w-full h-14 text-base font-semibold bg-[#25D366] hover:bg-[#1ebe5b] text-white shadow-lg shadow-[#25D366]/25"
+                className="w-full h-14 text-base font-semibold bg-[#2230C2] hover:bg-[#1B27A0] text-white shadow-lg shadow-[#2230C2]/25"
                 onClick={shareViaWhatsApp}
               >
                 <MessageCircle className="mr-2 h-5 w-5" />

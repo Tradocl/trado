@@ -15,9 +15,9 @@ import { Logo } from "@/components/Logo";
 // Unirse con el código que mandó la otra persona: un campo grande, "Pegar" (sirve también si
 // pegan el link entero) y una vista previa de la sala antes de entrar, para que sepa a qué se une.
 const TIPOS: Record<string, { icon: typeof Package; nombre: string; color: string }> = {
-  producto_envio: { icon: Truck, nombre: "Envío", color: "bg-emerald-500" },
+  producto_envio: { icon: Truck, nombre: "Envío", color: "bg-primary" },
   producto_persona: { icon: Handshake, nombre: "En persona", color: "bg-amber-500" },
-  producto_digital: { icon: Ticket, nombre: "Digital", color: "bg-rose-500" },
+  producto_digital: { icon: Ticket, nombre: "Digital", color: "bg-info" },
   servicio: { icon: Briefcase, nombre: "Servicio", color: "bg-violet-500" },
 };
 
@@ -225,7 +225,7 @@ const JoinTransaction = () => {
 
             <Button
               size="lg"
-              className="w-full h-14 rounded-xl text-base font-bold bg-gradient-to-r from-success to-emerald-600 text-white shadow-lg"
+              className="w-full h-14 rounded-xl text-base font-bold bg-gradient-to-r from-success to-primary text-white shadow-lg"
               onClick={() => navigate(`/transaction/${vista.id}`)}
             >
               Unirme a esta sala <ArrowRight className="ml-2 h-5 w-5" />

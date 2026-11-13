@@ -307,10 +307,10 @@ export function MutualResolutionPanel({
   }
 
   return (
-    <Card className="border-2 shadow-lg border-green-200 dark:border-green-800">
-      <CardHeader className="bg-gradient-to-r from-green-500/10 to-emerald-500/10">
+    <Card className="border-2 shadow-lg border-primary/20 dark:border-primary">
+      <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/10">
         <CardTitle className="flex items-center gap-2">
-          <Handshake className="h-5 w-5 text-green-600 dark:text-green-400" />
+          <Handshake className="h-5 w-5 text-primary dark:text-primary" />
           Resolución por Acuerdo Mutuo
         </CardTitle>
         <CardDescription>
@@ -355,7 +355,7 @@ export function MutualResolutionPanel({
 
             <div className="flex gap-3">
               <Button 
-                className="flex-1 bg-green-600 hover:bg-green-700" 
+                className="flex-1 bg-primary hover:bg-primary" 
                 onClick={handleAcceptProposal}
                 disabled={submitting}
               >
@@ -402,7 +402,7 @@ export function MutualResolutionPanel({
                   size="sm"
                   onClick={handleCancelProposal}
                   disabled={cancelling}
-                  className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/20"
+                  className="border-info/30 text-info hover:bg-info/5 dark:border-info dark:text-info dark:hover:bg-info/20"
                 >
                   {cancelling ? (
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />

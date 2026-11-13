@@ -113,7 +113,7 @@ export const RecordatorioCuenta = ({ userId, perfilCompleto, estadoVerificacion,
         <p className="text-sm text-white/85 mt-3 leading-relaxed">{contenido.texto}</p>
         <div className="flex gap-1.5 mt-4">
           {[1, 2].map((n) => (
-            <span key={n} className={`h-1.5 flex-1 rounded-full ${n < contenido.paso ? "bg-emerald-300" : n === contenido.paso ? "bg-white" : "bg-white/25"}`} />
+            <span key={n} className={`h-1.5 flex-1 rounded-full ${n < contenido.paso ? "bg-primary/30" : n === contenido.paso ? "bg-white" : "bg-white/25"}`} />
           ))}
         </div>
         <div className="flex items-center gap-2 mt-4">

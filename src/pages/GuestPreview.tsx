@@ -11,9 +11,9 @@ const MOCK_MOVEMENTS = [
 ];
 
 const MOCK_TRANSACTIONS = [
-  { product: "MacBook Air M1", amount: "$620.000", status: "Completada", color: "#16A34A" },
+  { product: "MacBook Air M1", amount: "$620.000", status: "Completada", color: "#2230C2" },
   { product: "PS5 Digital", amount: "$380.000", status: "En proceso", color: "#2230C2" },
-  { product: "iPhone 14 Pro", amount: "$550.000", status: "Completada", color: "#16A34A" },
+  { product: "iPhone 14 Pro", amount: "$550.000", status: "Completada", color: "#2230C2" },
 ];
 
 export default function GuestPreview() {
@@ -87,14 +87,14 @@ export default function GuestPreview() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50">
             {MOCK_MOVEMENTS.map((m, i) => (
               <div key={i} className="flex items-center gap-3 px-4 py-3">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${m.type === "credit" ? "bg-green-100" : m.type === "fee" ? "bg-gray-100" : "bg-red-50"}`}>
-                  {m.type === "credit" ? <TrendingUp size={15} className="text-green-600" /> : m.type === "fee" ? <CheckCircle size={15} className="text-gray-400" /> : <ArrowLeft size={15} className="text-red-400" />}
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${m.type === "credit" ? "bg-primary/10" : m.type === "fee" ? "bg-gray-100" : "bg-info/5"}`}>
+                  {m.type === "credit" ? <TrendingUp size={15} className="text-primary" /> : m.type === "fee" ? <CheckCircle size={15} className="text-gray-400" /> : <ArrowLeft size={15} className="text-info" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-gray-800 text-sm font-medium truncate">{m.label}</p>
                   <p className="text-gray-400 text-xs">{m.date} · {m.status}</p>
                 </div>
-                <span className={`text-sm font-bold flex-shrink-0 ${m.type === "credit" ? "text-green-600" : "text-gray-500"}`}>{m.amount}</span>
+                <span className={`text-sm font-bold flex-shrink-0 ${m.type === "credit" ? "text-primary" : "text-gray-500"}`}>{m.amount}</span>
               </div>
             ))}
           </div>
@@ -109,7 +109,7 @@ export default function GuestPreview() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-bold text-gray-800">Tu perfil</p>
-                  <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full">✓ Verificado</span>
+                  <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">✓ Verificado</span>
                 </div>
                 <div className="flex items-center gap-1">
                   {[1,2,3,4,5].map(s => <Star key={s} size={14} className={s <= 5 ? "text-yellow-400 fill-yellow-400" : "text-gray-200"} />)}

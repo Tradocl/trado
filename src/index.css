@@ -27,9 +27,9 @@ All colors MUST be HSL.
     --primary-light: 235 62% 58%;
 
     /* Success: Emerald - Confirmations & Money */
-    --success: 158 82% 36%;
+    --success: 235 70% 45%;            /* sin verde: el éxito va en el azul de marca */
     --success-foreground: 0 0% 100%;
-    --success-light: 158 68% 48%;
+    --success-light: 235 62% 58%;
 
     /* Secondary: Light Gray with indigo tint */
     --secondary: 235 16% 95%;
@@ -41,7 +41,7 @@ All colors MUST be HSL.
     --accent: 235 70% 45%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 280 65% 45%;        /* sin rojo: errores y cancelar en un violeta oscuro de la gama */
     --destructive-foreground: 0 0% 100%;
 
     --border: 235 16% 88%;
@@ -91,9 +91,9 @@ All colors MUST be HSL.
     --primary-foreground: 0 0% 100%;
     --primary-light: 235 60% 74%;
 
-    --success: 158 72% 44%;
+    --success: 235 70% 64%;
     --success-foreground: 0 0% 100%;
-    --success-light: 158 60% 56%;
+    --success-light: 235 60% 74%;
 
     --secondary: 235 20% 16%;
     --secondary-foreground: 0 0% 98%;
@@ -104,7 +104,7 @@ All colors MUST be HSL.
     --accent: 238 70% 64%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 280 60% 62%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 235 20% 20%;

@@ -56,9 +56,9 @@ interface Transaction {
 
 // Mismos colores por tipo de venta que en crear sala y el historial
 const TIPO_SALA: Record<string, { icon: typeof Store; nombre: string; franja: string; icono: string; barra: string }> = {
-  producto_envio: { icon: Truck, nombre: "Envío", franja: "bg-emerald-500", icono: "bg-emerald-500 text-white", barra: "bg-emerald-500" },
+  producto_envio: { icon: Truck, nombre: "Envío", franja: "bg-primary", icono: "bg-primary text-white", barra: "bg-primary" },
   producto_persona: { icon: Handshake, nombre: "En persona", franja: "bg-amber-500", icono: "bg-amber-500 text-white", barra: "bg-amber-500" },
-  producto_digital: { icon: Ticket, nombre: "Digital", franja: "bg-rose-500", icono: "bg-rose-500 text-white", barra: "bg-rose-500" },
+  producto_digital: { icon: Ticket, nombre: "Digital", franja: "bg-info", icono: "bg-info text-white", barra: "bg-info" },
   servicio: { icon: Briefcase, nombre: "Servicio", franja: "bg-violet-500", icono: "bg-violet-500 text-white", barra: "bg-violet-500" },
 };
 const TIPO_SALA_OTRO = { icon: ShoppingBag, nombre: "Sala", franja: "bg-primary", icono: "bg-primary text-white", barra: "bg-primary" };
@@ -74,17 +74,17 @@ const resolvedAppealStatuses = [
 const appealStatusLabels: Record<string, { label: string; color: string }> = {
   apelacion_abierta: { label: "En Apelación", color: "bg-orange-500" },
   en_negociacion: { label: "En Negociación", color: "bg-amber-500" },
-  pendiente_intervencion_plataforma: { label: "Esperando Intervención", color: "bg-red-500" },
+  pendiente_intervencion_plataforma: { label: "Esperando Intervención", color: "bg-info" },
   en_revision_plataforma: { label: "En Revisión Admin", color: "bg-purple-500" },
 };
 
 const getCardGradient = (color: string): string => {
   const gradients: Record<string, string> = {
     primary: "bg-gradient-to-br from-primary to-primary-light",
-    emerald: "bg-gradient-to-br from-emerald-600 to-emerald-400",
+    emerald: "bg-gradient-to-br from-primary to-primary/80",
     purple: "bg-gradient-to-br from-purple-600 to-purple-400",
     orange: "bg-gradient-to-br from-orange-600 to-orange-400",
-    rose: "bg-gradient-to-br from-rose-600 to-rose-400",
+    rose: "bg-gradient-to-br from-info to-info/80",
     cyan: "bg-gradient-to-br from-cyan-600 to-cyan-400",
     amber: "bg-gradient-to-br from-amber-600 to-amber-400",
     slate: "bg-gradient-to-br from-slate-700 to-slate-500",
@@ -574,7 +574,7 @@ const Dashboard = () => {
                               <span className="font-semibold text-foreground">${formatCLP(transaction.amount)}</span>
                               <span className={`text-[11px] px-2 py-0.5 rounded-full ${
                                 isRealSeller
-                                  ? 'bg-emerald-500/10 text-emerald-600'
+                                  ? 'bg-primary/10 text-primary'
                                   : 'bg-info/10 text-info'
                               }`}>
                                 {isRealSeller ? "Vendiendo" : "Comprando"}
@@ -625,7 +625,7 @@ const Dashboard = () => {
           >
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0" aria-hidden>
-                <span className="absolute left-0 top-2 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg -rotate-12"><Truck className="h-5 w-5" /></span>
+                <span className="absolute left-0 top-2 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg -rotate-12"><Truck className="h-5 w-5" /></span>
                 <span className="absolute right-0 top-0 w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-violet-500 text-white flex items-center justify-center shadow-lg rotate-12"><Briefcase className="h-5 w-5" /></span>
                 <span className="absolute left-1/2 -translate-x-1/2 bottom-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white flex items-center justify-center shadow-xl"><Lock className="h-5 w-5" /></span>
               </div>
@@ -740,7 +740,7 @@ const Dashboard = () => {
             style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
             onClick={() => navigate("/create-transaction")}
           >
-            <CardHeader className="py-4 sm:pb-5 bg-gradient-to-br from-success to-emerald-600 text-white">
+            <CardHeader className="py-4 sm:pb-5 bg-gradient-to-br from-success to-primary text-white">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-3 sm:p-3.5 bg-white/20 ring-1 ring-white/30 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300">
                   <Plus className="h-6 w-6 sm:h-7 sm:w-7 text-white" />

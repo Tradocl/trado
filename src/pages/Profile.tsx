@@ -83,10 +83,10 @@ interface ProfileData {
 
 const colorOptions = [
   { value: "primary", label: "Azul", gradient: "from-primary to-primary-light" },
-  { value: "emerald", label: "Verde", gradient: "from-emerald-600 to-emerald-400" },
+  { value: "emerald", label: "Verde", gradient: "from-primary to-primary/80" },
   { value: "purple", label: "Púrpura", gradient: "from-purple-600 to-purple-400" },
   { value: "orange", label: "Naranja", gradient: "from-orange-600 to-orange-400" },
-  { value: "rose", label: "Rosa", gradient: "from-rose-600 to-rose-400" },
+  { value: "rose", label: "Rosa", gradient: "from-info to-info/80" },
   { value: "cyan", label: "Cian", gradient: "from-cyan-600 to-cyan-400" },
   { value: "amber", label: "Ámbar", gradient: "from-amber-600 to-amber-400" },
   { value: "slate", label: "Gris", gradient: "from-slate-700 to-slate-500" },
@@ -930,7 +930,7 @@ const Profile = () => {
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <span className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm shrink-0">
                       <Building2 className="h-5 w-5" />
                     </span>
                     <div>

@@ -147,7 +147,7 @@ const PublicProfile = () => {
       <div className="max-w-lg mx-auto px-4">
         <div className="-mt-12 mb-4 flex items-end justify-between">
           <div className="relative">
-            <Avatar className={`h-24 w-24 border-4 border-background shadow-xl ring-2 ${profile.is_verified ? "ring-emerald-400" : "ring-primary/20"}`}>
+            <Avatar className={`h-24 w-24 border-4 border-background shadow-xl ring-2 ${profile.is_verified ? "ring-primary/80" : "ring-primary/20"}`}>
               <AvatarImage src={profile.avatar_url || undefined} />
               <AvatarFallback className="bg-gradient-to-br from-primary to-[#7C3AED] text-white font-bold text-2xl">
                 {initials}

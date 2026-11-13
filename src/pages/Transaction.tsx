@@ -864,13 +864,13 @@ const Transaction = () => {
           ...defaults,
           particleCount,
           origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-          colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6']
+          colors: ['#2230C2', '#3b82f6', '#f59e0b', '#7C3AED', '#8b5cf6']
         });
         confetti({
           ...defaults,
           particleCount,
           origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-          colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6']
+          colors: ['#2230C2', '#3b82f6', '#f59e0b', '#7C3AED', '#8b5cf6']
         });
       }, 250);
 
@@ -958,7 +958,7 @@ const Transaction = () => {
           onClick={() => setHito(null)}
           className="fixed left-1/2 -translate-x-1/2 top-20 z-50 w-[calc(100%-2rem)] max-w-md animate-scale-in"
         >
-          <span className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-success via-emerald-500 to-primary text-white px-4 py-3 shadow-2xl ring-4 ring-white/40 text-left">
+          <span className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-success via-primary to-primary text-white px-4 py-3 shadow-2xl ring-4 ring-white/40 text-left">
             <span className="w-9 h-9 rounded-full bg-white/25 flex items-center justify-center shrink-0 animate-bounce">
               <Check className="h-5 w-5" />
             </span>
@@ -1375,21 +1375,21 @@ const Transaction = () => {
 
         {/* Resolved Appeal Alert */}
         {isAppealResolved && !activeAppeal && (
-          <Card className="border-2 border-green-200 dark:border-green-800 shadow-xl bg-green-50 dark:bg-green-950 animate-scale-in">
+          <Card className="border-2 border-primary/20 dark:border-primary shadow-xl bg-primary/5 dark:bg-primary animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-start gap-3 mb-4">
-                <Check className="h-6 w-6 text-green-600 dark:text-green-400 shrink-0 mt-1" />
+                <Check className="h-6 w-6 text-primary dark:text-primary shrink-0 mt-1" />
                 <div className="flex-1">
-                  <h4 className="font-bold text-lg text-green-900 dark:text-green-100 mb-1">
+                  <h4 className="font-bold text-lg text-primary dark:text-primary/70 mb-1">
                     Apelación Resuelta
                   </h4>
-                  <p className="text-sm text-green-700 dark:text-green-300 mb-1">
+                  <p className="text-sm text-primary dark:text-primary/70 mb-1">
                     {transaction.appeal_status === 'resuelta_a_favor_comprador' && 'El caso fue resuelto a favor del comprador.'}
                     {transaction.appeal_status === 'resuelta_a_favor_vendedor' && 'El caso fue resuelto a favor del vendedor.'}
                     {transaction.appeal_status === 'resuelta_parcial' && 'El caso fue resuelto con una distribución parcial de fondos.'}
                     {transaction.appeal_status === 'cerrada' && 'El caso ha sido cerrado.'}
                   </p>
-                  <p className="text-xs text-green-600 dark:text-green-400">
+                  <p className="text-xs text-primary dark:text-primary">
                     Los fondos han sido distribuidos según la resolución.
                   </p>
                 </div>
@@ -1500,18 +1500,18 @@ const Transaction = () => {
 
         {/* Appeal Resolution Result Panel */}
         {isAppealResolved && appealDecision && (
-          <Card className="border-2 border-emerald-200 dark:border-emerald-800 shadow-xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 animate-scale-in">
+          <Card className="border-2 border-primary/20 dark:border-primary shadow-xl bg-gradient-to-br from-primary/5 to-primary/5 dark:from-primary/30 dark:to-primary/30 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                <div className="h-12 w-12 rounded-full bg-primary/10 dark:bg-primary flex items-center justify-center shrink-0">
+                  <ShieldCheck className="h-6 w-6 text-primary dark:text-primary" />
                 </div>
                 <div className="flex-1 space-y-4">
                   <div>
-                    <p className="font-bold text-lg text-emerald-900 dark:text-emerald-100">
+                    <p className="font-bold text-lg text-primary dark:text-primary/70">
                       {appealDecision.is_mutual_agreement ? "Acuerdo Mutuo Alcanzado" : "Apelación Resuelta"}
                     </p>
-                    <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                    <p className="text-sm text-primary dark:text-primary/70">
                       {appealDecision.is_mutual_agreement && "Las partes llegaron a un acuerdo sin intervención del administrador"}
                       {!appealDecision.is_mutual_agreement && transaction.appeal_status === "resuelta_a_favor_comprador" && "Decisión a favor del comprador"}
                       {!appealDecision.is_mutual_agreement && transaction.appeal_status === "resuelta_a_favor_vendedor" && "Decisión a favor del vendedor"}
@@ -1524,31 +1524,31 @@ const Transaction = () => {
                   {(appealDecision.buyer_refund_amount > 0 || appealDecision.seller_payment_amount > 0) && (
                     <div className="grid grid-cols-2 gap-3">
                       {appealDecision.buyer_refund_amount > 0 && (
-                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
-                          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">Reembolso al Comprador</p>
-                          <p className="text-lg font-bold text-emerald-900 dark:text-emerald-100">${formatCLP(appealDecision.buyer_refund_amount)}</p>
+                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-primary/20 dark:border-primary">
+                          <p className="text-xs text-primary dark:text-primary font-medium mb-1">Reembolso al Comprador</p>
+                          <p className="text-lg font-bold text-primary dark:text-primary/70">${formatCLP(appealDecision.buyer_refund_amount)}</p>
                         </div>
                       )}
                       {appealDecision.seller_payment_amount > 0 && (
-                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
-                          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">Pago al Vendedor</p>
-                          <p className="text-lg font-bold text-emerald-900 dark:text-emerald-100">${formatCLP(appealDecision.seller_payment_amount)}</p>
+                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-primary/20 dark:border-primary">
+                          <p className="text-xs text-primary dark:text-primary font-medium mb-1">Pago al Vendedor</p>
+                          <p className="text-lg font-bold text-primary dark:text-primary/70">${formatCLP(appealDecision.seller_payment_amount)}</p>
                         </div>
                       )}
                     </div>
                   )}
                   
                   {/* Resolution notes */}
-                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
-                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">
+                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-primary/20 dark:border-primary">
+                    <p className="text-xs font-medium text-primary dark:text-primary mb-1">
                       {appealDecision.is_mutual_agreement ? "Detalle del acuerdo:" : "Notas del administrador:"}
                     </p>
-                    <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                    <p className="text-sm text-primary dark:text-primary/70">
                       {appealDecision.resolution_notes}
                     </p>
                   </div>
                   
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                  <p className="text-xs text-primary dark:text-primary">
                     Resuelto el {new Date(appealDecision.created_at).toLocaleDateString("es-CL", { 
                       day: "numeric", 
                       month: "long", 
@@ -1565,13 +1565,13 @@ const Transaction = () => {
 
         {/* Completed state */}
         {(transaction.state === "completed" || isAppealResolved) && (
-          <Card className="relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-success via-emerald-600 to-primary text-white animate-scale-in">
+          <Card className="relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-success via-primary to-primary text-white animate-scale-in">
             {/* Confeti */}
             <div className="absolute inset-0 pointer-events-none" aria-hidden>
               {[
-                ["8%", "12%", "bg-amber-300", "0s"], ["22%", "70%", "bg-white", "0.3s"], ["38%", "20%", "bg-pink-300", "0.6s"],
+                ["8%", "12%", "bg-amber-300", "0s"], ["22%", "70%", "bg-white", "0.3s"], ["38%", "20%", "bg-info/30", "0.6s"],
                 ["55%", "78%", "bg-sky-300", "0.2s"], ["70%", "15%", "bg-white", "0.5s"], ["86%", "60%", "bg-amber-300", "0.4s"],
-                ["92%", "25%", "bg-pink-300", "0.1s"], ["15%", "45%", "bg-sky-300", "0.7s"],
+                ["92%", "25%", "bg-info/30", "0.1s"], ["15%", "45%", "bg-sky-300", "0.7s"],
               ].map(([left, top, color, delay]) => (
                 <span
                   key={left + top}
@@ -1746,7 +1746,7 @@ const Transaction = () => {
               </div>
               <Button
                 onClick={compartirWhatsApp}
-                className="mt-3 w-full h-12 rounded-xl text-base font-bold text-white bg-[#25D366] hover:bg-[#1ebe5a] shadow-lg shadow-[#25D366]/25"
+                className="mt-3 w-full h-12 rounded-xl text-base font-bold text-white bg-[#2230C2] hover:bg-[#1B27A0] shadow-lg shadow-[#2230C2]/25"
               >
                 <MessageCircle className="h-5 w-5 mr-2" /> Mandar por WhatsApp
               </Button>

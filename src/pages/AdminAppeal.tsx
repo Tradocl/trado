@@ -533,7 +533,7 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                                 </div>
                               </div>
                               {buyerRefund && sellerPayment && (
-                                <p className={`text-sm ${parseFloat(buyerRefund) + parseFloat(sellerPayment) === transaction.amount ? 'text-green-600' : 'text-destructive'}`}>
+                                <p className={`text-sm ${parseFloat(buyerRefund) + parseFloat(sellerPayment) === transaction.amount ? 'text-primary' : 'text-destructive'}`}>
                                   Suma: {formatCLP(parseFloat(buyerRefund || "0") + parseFloat(sellerPayment || "0"))} 
                                   {parseFloat(buyerRefund) + parseFloat(sellerPayment) !== transaction.amount && 
                                     ` (debe ser ${formatCLP(transaction.amount)})`
@@ -567,8 +567,8 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                   )}
 
                   {isResolved && (
-                    <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4 rounded-lg">
-                      <p className="text-green-900 dark:text-green-100 font-medium">
+                    <div className="bg-primary/5 dark:bg-primary border border-primary/20 dark:border-primary p-4 rounded-lg">
+                      <p className="text-primary dark:text-primary/70 font-medium">
                         Esta apelación ya ha sido resuelta
                       </p>
                     </div>

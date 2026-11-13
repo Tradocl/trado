@@ -825,8 +825,8 @@ const Wallet = () => {
                     textColorClass = "text-amber-600";
                     etiqueta = "Retenido";
                   } else if (isDeposit) {
-                    iconBgClass = "bg-emerald-500 text-white";
-                    textColorClass = "text-emerald-600";
+                    iconBgClass = "bg-primary text-white";
+                    textColorClass = "text-primary";
                     amountPrefix = "+";
                     etiqueta = movement.type === "escrow_release" ? "Pago recibido" : "Depósito";
                   } else if (isEscrowLock) {

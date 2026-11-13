@@ -35,8 +35,8 @@ export const InsigniaVerificacion = ({ verificado, tamano = "sm", sobreColor, pr
         className={cn(
           "insignia-brillo relative inline-flex items-center rounded-full font-bold overflow-hidden whitespace-nowrap",
           sobreColor
-            ? "bg-white text-emerald-700 shadow-md"
-            : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_4px_14px_-4px_rgba(16,185,129,0.7)]",
+            ? "bg-white text-primary shadow-md"
+            : "bg-gradient-to-r from-primary to-primary text-white shadow-[0_4px_14px_-4px_rgba(16,185,129,0.7)]",
           t.caja,
           soloIcono && "px-1",
           className,
@@ -88,7 +88,7 @@ export const CheckEnFoto = ({ verificado, grande }: { verificado: boolean; grand
     <span
       title="Verificado"
       className={cn(
-        "absolute -bottom-0.5 -right-0.5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white ring-2 ring-background flex items-center justify-center shadow",
+        "absolute -bottom-0.5 -right-0.5 rounded-full bg-gradient-to-br from-primary to-primary text-white ring-2 ring-background flex items-center justify-center shadow",
         grande ? "h-8 w-8" : "h-5 w-5",
       )}
     >

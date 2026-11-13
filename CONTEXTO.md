@@ -468,6 +468,12 @@ ni el aviso de cookies.
 
 ### Colores de marca
 
+**En la app no se usa verde ni rojo** (decisión del equipo, 2026-11-13): el
+verde pasó al azul de marca (también `--success`) y el rojo/rosado al violeta
+(`--destructive` es un violeta oscuro). El resto del diseño original con
+colores (azul, violeta, ámbar) se mantiene. La landing, el blog y el EtMday no
+entran en esta regla.
+
 La app usa la paleta de los reels y carruseles
 (`Instagram/_sistema/remotion/src/marca.ts`): azul `#2230C2` (`--primary`),
 morado `#7C3AED` (`--info`) y el paso intermedio `#4B35D6` (`--medio`). El

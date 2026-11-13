@@ -130,8 +130,8 @@ const VerifyEmail = () => {
           </div>
           {verified ? (
             <>
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="h-8 w-8 text-primary" />
               </div>
               <h1 className="text-xl font-semibold">¡Correo verificado!</h1>
             </>

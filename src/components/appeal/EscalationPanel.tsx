@@ -412,7 +412,7 @@ export function EscalationPanel({
         {evidence.length > 0 && (
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-2 text-sm font-medium">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-primary" />
               Evidencia subida ({evidence.length} archivo{evidence.length > 1 ? "s" : ""})
             </div>
             
@@ -526,14 +526,14 @@ export function EscalationPanel({
 
         {/* Already escalated info */}
         {isAlreadyEscalated && (
-          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+          <div className="bg-primary/5 dark:bg-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+              <CheckCircle2 className="h-5 w-5 text-primary dark:text-primary shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-green-900 dark:text-green-100">
+                <p className="font-medium text-primary dark:text-primary/70">
                   Intervención solicitada
                 </p>
-                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                <p className="text-sm text-primary dark:text-primary/70 mt-1">
                   Un administrador revisará tu caso pronto. Puedes seguir subiendo evidencia que apoye tu reclamo.
                 </p>
               </div>

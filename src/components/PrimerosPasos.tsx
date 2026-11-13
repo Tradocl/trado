@@ -15,7 +15,7 @@ const CASOS_SALA = [
   },
   {
     id: "vendes", titulo: "Vendo y envío", icon: Truck, tipo: "producto_envio", rol: "seller",
-    caja: "from-emerald-500/15 border-emerald-500/25 hover:border-emerald-500", icono: "bg-emerald-500 text-white",
+    caja: "from-primary/15 border-primary/25 hover:border-primary", icono: "bg-primary text-white",
   },
   {
     id: "persona", titulo: "En persona", icon: Handshake, tipo: "producto_persona", rol: "seller",
@@ -27,7 +27,7 @@ const CASOS_SALA = [
   },
   {
     id: "digital", titulo: "Entradas", icon: Ticket, tipo: "producto_digital", rol: "seller",
-    caja: "from-rose-500/15 border-rose-500/25 hover:border-rose-500", icono: "bg-rose-500 text-white",
+    caja: "from-info/15 border-info/25 hover:border-info", icono: "bg-info text-white",
   },
 ] as const;
 

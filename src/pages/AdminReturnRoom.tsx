@@ -275,7 +275,7 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                     {returnRequest.admin_notes && (
                       <div className="space-y-1 pt-2 border-t">
                         <p className="text-sm font-medium text-muted-foreground">Razón del rechazo (vendedor)</p>
-                        <p className="text-sm bg-red-50 dark:bg-red-950/30 p-3 rounded-md border border-red-200 dark:border-red-800">
+                        <p className="text-sm bg-info/5 dark:bg-info/30 p-3 rounded-md border border-info/20 dark:border-info">
                           {returnRequest.admin_notes}
                         </p>
                       </div>
@@ -366,11 +366,11 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
 
                   {/* Resolution Result */}
                   {isResolved && (
-                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                      <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">
+                    <div className="bg-primary/5 dark:bg-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
+                      <h3 className="font-semibold text-primary dark:text-primary/70 mb-2">
                         ✅ Mediación Resuelta
                       </h3>
-                      <p className="text-sm text-green-700 dark:text-green-300 mb-2">
+                      <p className="text-sm text-primary dark:text-primary/70 mb-2">
                         {returnRequest.shipping_paid_by === "seller" 
                           ? "El vendedor pagará el costo del envío de retorno."
                           : "El comprador pagará el costo del envío de retorno."}

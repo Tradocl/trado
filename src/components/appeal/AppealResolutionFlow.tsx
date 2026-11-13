@@ -280,8 +280,8 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
           className={`w-full text-left border-2 rounded-xl p-5 hover:border-primary hover:bg-primary/5 transition-all group ${hasPendingProposalForMe ? 'border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20' : ''}`}
         >
           <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shrink-0 group-hover:from-green-500/30 group-hover:to-emerald-500/30 transition-colors relative">
-              <Handshake className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/20 flex items-center justify-center shrink-0 group-hover:from-primary/30 group-hover:to-primary/30 transition-colors relative">
+              <Handshake className="h-6 w-6 text-primary dark:text-primary" />
               {hasPendingProposalForMe && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-amber-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
                   1
@@ -298,10 +298,10 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
                 los fondos se distribuyen automáticamente sin intervención de administradores.
               </p>
               <div className="flex gap-2 mt-3">
-                <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                <span className="text-xs bg-primary/10 dark:bg-primary/30 text-primary dark:text-primary/70 px-2 py-1 rounded-full">
                   Más rápido
                 </span>
-                <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                <span className="text-xs bg-primary/10 dark:bg-primary/30 text-primary dark:text-primary/70 px-2 py-1 rounded-full">
                   Sin esperas
                 </span>
               </div>
