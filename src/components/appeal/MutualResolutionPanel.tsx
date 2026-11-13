@@ -307,10 +307,10 @@ export function MutualResolutionPanel({
   }
 
   return (
-    <Card className="border-2 shadow-lg border-primary/20 dark:border-primary">
-      <CardHeader className="bg-primary/10">
+    <Card className="border-2 shadow-lg border-green-200 dark:border-green-800">
+      <CardHeader className="bg-gradient-to-r from-green-500/10 to-emerald-500/10">
         <CardTitle className="flex items-center gap-2">
-          <Handshake className="h-5 w-5 text-primary dark:text-primary" />
+          <Handshake className="h-5 w-5 text-green-600 dark:text-green-400" />
           Resolución por Acuerdo Mutuo
         </CardTitle>
         <CardDescription>
@@ -320,16 +320,16 @@ export function MutualResolutionPanel({
       <CardContent className="pt-6 space-y-6">
         {/* Pending Proposal to Review */}
         {isProposalForMe && pendingProposal && (
-          <div className="bg-primary/5 dark:from-primary/30 dark:to-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
             <div className="flex items-start gap-3 mb-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary flex items-center justify-center shrink-0">
-                <MessageSquare className="h-5 w-5 text-primary dark:text-primary" />
+              <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center shrink-0">
+                <MessageSquare className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="font-semibold text-primary dark:text-primary/70">
+                <p className="font-semibold text-amber-900 dark:text-amber-100">
                   Propuesta Recibida
                 </p>
-                <p className="text-sm text-primary dark:text-primary/70">
+                <p className="text-sm text-amber-700 dark:text-amber-300">
                   {getProposerName(pendingProposal.proposer_id)} propone la siguiente distribución:
                 </p>
               </div>
@@ -355,7 +355,7 @@ export function MutualResolutionPanel({
 
             <div className="flex gap-3">
               <Button 
-                className="flex-1 bg-primary hover:bg-primary" 
+                className="flex-1 bg-green-600 hover:bg-green-700" 
                 onClick={handleAcceptProposal}
                 disabled={submitting}
               >
@@ -381,16 +381,16 @@ export function MutualResolutionPanel({
 
         {/* My Pending Proposal */}
         {!isProposalForMe && pendingProposal && (
-          <div className="bg-primary/5 dark:from-primary/30 dark:to-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary flex items-center justify-center shrink-0">
-                <Send className="h-5 w-5 text-primary dark:text-primary" />
+              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
+                <Send className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-primary dark:text-primary/70">
+                <p className="font-semibold text-blue-900 dark:text-blue-100">
                   Tu Propuesta Enviada
                 </p>
-                <p className="text-sm text-primary dark:text-primary/70 mb-3">
+                <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
                   Esperando respuesta de {pendingProposal.proposer_id === buyerId ? getSellerDisplayName() : getBuyerDisplayName()}
                 </p>
                 <div className="flex gap-4 text-sm mb-4">
@@ -495,7 +495,7 @@ export function MutualResolutionPanel({
           <Button
             variant="outline"
             onClick={onSwitchToEscalate}
-            className="border-primary/30 dark:border-primary hover:bg-primary/5 dark:hover:bg-primary/20"
+            className="border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/20"
           >
             <ShieldAlert className="h-4 w-4 mr-2" />
             Enviar Pruebas a Administradores

@@ -33,12 +33,12 @@ export const ReturnMediationPanel = ({
   const navigate = useNavigate();
 
   return (
-    <Card className="border-2 border-primary/20 dark:border-primary bg-primary/5 dark:from-primary/30 dark:to-primary/30">
+    <Card className="border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Scale className="h-5 w-5 text-primary dark:text-primary" />
+          <Scale className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           Devolución en Mediación
-          <Badge variant="outline" className="ml-auto bg-primary/10 dark:bg-primary text-primary dark:text-primary/70 border-primary/30 dark:border-primary">
+          <Badge variant="outline" className="ml-auto bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700">
             <Clock className="h-3 w-3 mr-1" />
             Esperando decisión
           </Badge>
@@ -59,19 +59,19 @@ export const ReturnMediationPanel = ({
         </div>
 
         {/* Info */}
-        <div className="p-4 bg-primary/10 dark:bg-primary/50 rounded-lg border border-primary/20 dark:border-primary">
+        <div className="p-4 bg-blue-100 dark:bg-blue-900/50 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-2">
-            <Scale className="h-5 w-5 text-primary dark:text-primary shrink-0 mt-0.5" />
+            <Scale className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-semibold text-primary dark:text-primary/70 mb-2">
+              <p className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
                 Mediación sobre el costo de envío de retorno
               </p>
-              <p className="text-primary dark:text-primary/70 mb-3">
+              <p className="text-blue-700 dark:text-blue-300 mb-3">
                 El vendedor rechazó la solicitud de devolución. Un administrador decidirá quién debe pagar el costo del envío de retorno.
               </p>
-              <div className="bg-primary/5 dark:bg-primary/50 rounded-md p-3 mt-2">
-                <p className="font-medium text-primary dark:text-primary/70 mb-2">📋 ¿Qué pasará después?</p>
-                <ol className="list-decimal ml-4 space-y-1 text-primary dark:text-primary/70">
+              <div className="bg-blue-50 dark:bg-blue-950/50 rounded-md p-3 mt-2">
+                <p className="font-medium text-blue-800 dark:text-blue-200 mb-2">📋 ¿Qué pasará después?</p>
+                <ol className="list-decimal ml-4 space-y-1 text-blue-700 dark:text-blue-300">
                   <li>El admin decidirá quién paga el envío de retorno</li>
                   <li>El comprador enviará el producto de vuelta</li>
                   <li>El vendedor confirmará la recepción</li>

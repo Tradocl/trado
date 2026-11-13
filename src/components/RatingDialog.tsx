@@ -82,15 +82,15 @@ export const RatingDialog = ({
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-contain">
         {/* Decorative background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/10 rounded-full blur-xl animate-pulse" />
+          <div className="absolute -top-4 -right-4 w-24 h-24 bg-warning/10 rounded-full blur-xl animate-pulse" />
           <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
         </div>
         
         <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
           {/* Animated icon */}
           <div className="mx-auto mb-4 relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
-            <div className="relative w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+            <div className="absolute inset-0 bg-warning/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+            <div className="relative w-16 h-16 bg-gradient-to-br from-warning to-warning/80 rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               <Star className="w-8 h-8 text-white fill-white" />
             </div>
           </div>
@@ -124,7 +124,7 @@ export const RatingDialog = ({
                   <Star
                     className={`h-10 w-10 transition-colors duration-200 ${
                       star <= (hoveredStars || stars)
-                        ? "fill-primary text-primary"
+                        ? "fill-warning text-warning"
                         : "text-muted-foreground"
                     }`}
                   />
@@ -154,7 +154,7 @@ export const RatingDialog = ({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Describe tu experiencia con este usuario (opcional)..."
-              className="min-h-[100px] resize-none transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+              className="min-h-[100px] resize-none transition-all duration-200 focus:ring-2 focus:ring-warning/20"
               maxLength={500}
             />
             <p className="text-xs text-muted-foreground text-right">
@@ -178,7 +178,7 @@ export const RatingDialog = ({
           <Button
             onClick={handleSubmit}
             disabled={submitting || stars === 0}
-            className="flex-1 bg-primary transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/25"
+            className="flex-1 bg-gradient-to-r from-warning to-warning/80 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-warning/25"
           >
             {submitting ? (
               <>

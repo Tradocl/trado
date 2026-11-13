@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 // Una sola insignia para todo Trado, con sus dos caras:
 // - Verificado: llamativa (degradado, brillo que cruza) para que se note y den ganas de tenerla.
-// - Sin verificar: visible pero sin acusar (borde punteado gris). Si es la cuenta de quien
+// - Sin verificar: visible pero sin acusar (borde punteado ámbar). Si es la cuenta de quien
 //   mira, es un botón que lleva a verificarse.
 type Props = {
   verificado: boolean;
@@ -33,10 +33,10 @@ export const InsigniaVerificacion = ({ verificado, tamano = "sm", sobreColor, pr
       <span
         title="Identidad verificada por Trado con carnet y selfie"
         className={cn(
-          "relative inline-flex items-center rounded-full font-bold overflow-hidden whitespace-nowrap",
+          "insignia-brillo relative inline-flex items-center rounded-full font-bold overflow-hidden whitespace-nowrap",
           sobreColor
-            ? "bg-white text-primary shadow-md"
-            : "bg-primary text-white",
+            ? "bg-white text-emerald-700 shadow-md"
+            : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_4px_14px_-4px_rgba(16,185,129,0.7)]",
           t.caja,
           soloIcono && "px-1",
           className,
@@ -50,7 +50,7 @@ export const InsigniaVerificacion = ({ verificado, tamano = "sm", sobreColor, pr
 
   const clases = cn(
     "inline-flex items-center rounded-full font-semibold border border-dashed whitespace-nowrap",
-    sobreColor ? "bg-white/10 border-white/60 text-white" : "bg-muted border-muted-foreground/40 text-muted-foreground",
+    sobreColor ? "bg-white/10 border-white/60 text-white" : "bg-amber-50 border-amber-400 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
     t.caja,
     soloIcono && "px-1",
     className,
@@ -88,7 +88,7 @@ export const CheckEnFoto = ({ verificado, grande }: { verificado: boolean; grand
     <span
       title="Verificado"
       className={cn(
-        "absolute -bottom-0.5 -right-0.5 rounded-full bg-primary text-white ring-2 ring-background flex items-center justify-center shadow",
+        "absolute -bottom-0.5 -right-0.5 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white ring-2 ring-background flex items-center justify-center shadow",
         grande ? "h-8 w-8" : "h-5 w-5",
       )}
     >

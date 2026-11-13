@@ -151,7 +151,7 @@ export function AppealTimeline({ appeal, transaction }: AppealTimelineProps) {
             {decision.buyer_refund_amount && (
               <div>
                 <p className="text-sm text-muted-foreground">Monto reembolsado al comprador</p>
-                <p className="font-medium text-primary">
+                <p className="font-medium text-green-600">
                   {formatCLP(decision.buyer_refund_amount)}
                 </p>
               </div>
@@ -160,7 +160,7 @@ export function AppealTimeline({ appeal, transaction }: AppealTimelineProps) {
             {decision.seller_payment_amount && (
               <div>
                 <p className="text-sm text-muted-foreground">Monto liberado al vendedor</p>
-                <p className="font-medium text-primary">
+                <p className="font-medium text-green-600">
                   {formatCLP(decision.seller_payment_amount)}
                 </p>
               </div>

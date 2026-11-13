@@ -767,7 +767,7 @@ export default function Admin() {
     : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-primary/[0.05] via-background to-info/[0.06]">
       <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-md">
         <div className="container mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center gap-1 sm:gap-3">
           <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/dashboard")}>
@@ -775,7 +775,7 @@ export default function Admin() {
             <span className="hidden sm:inline">Mi panel</span>
           </Button>
           <Logo height={26} />
-          <Badge className="ml-1 bg-primary text-white border-0">Admin</Badge>
+          <Badge className="ml-1 bg-gradient-to-r from-primary via-medio via-55% to-info text-white border-0">Admin</Badge>
         </div>
       </header>
     <div className="container mx-auto px-3 sm:px-6 py-5 sm:py-6">
@@ -788,11 +788,11 @@ export default function Admin() {
         const completadas = transactions.filter((t) => t.state === "completed").length;
         const porAtender = pendingTransfers.length + stats.pendingWithdrawals + stats.pendingVerifications + stats.pendingAppeals + stats.pendingReturns;
         const tarjetas = [
-          { titulo: "Por atender", valor: String(porAtender), detalle: porAtender ? "Depósitos, retiros, verificaciones, reclamos" : "Todo al día", icon: AlertTriangle, color: porAtender ? "from-primary to-primary" : "from-primary to-primary" },
-          { titulo: "En custodia ahora", valor: `$${formatCLP(enCustodia)}`, detalle: `${vivas.length} ${vivas.length === 1 ? "sala" : "salas"} con plata retenida`, icon: Lock, color: "from-primary via-primary via-55% to-primary" },
-          { titulo: "Usuarios", valor: String(stats.totalUsers), detalle: `+${nuevos7} en los últimos 7 días`, icon: Users, color: "from-primary to-primary" },
-          { titulo: "Salas", valor: String(stats.totalTransactions), detalle: `${completadas} completadas`, icon: TrendingUp, color: "from-primary to-primary" },
-          { titulo: "Depósitos Mercado Pago", valor: `$${formatCLP(tokenStats.totalDeposits)}`, detalle: "Acreditados automáticamente", icon: Wallet, color: "from-primary to-primary" },
+          { titulo: "Por atender", valor: String(porAtender), detalle: porAtender ? "Depósitos, retiros, verificaciones, reclamos" : "Todo al día", icon: AlertTriangle, color: porAtender ? "from-rose-500 to-orange-500" : "from-emerald-500 to-emerald-600" },
+          { titulo: "En custodia ahora", valor: `$${formatCLP(enCustodia)}`, detalle: `${vivas.length} ${vivas.length === 1 ? "sala" : "salas"} con plata retenida`, icon: Lock, color: "from-primary via-medio via-55% to-info" },
+          { titulo: "Usuarios", valor: String(stats.totalUsers), detalle: `+${nuevos7} en los últimos 7 días`, icon: Users, color: "from-violet-500 to-fuchsia-500" },
+          { titulo: "Salas", valor: String(stats.totalTransactions), detalle: `${completadas} completadas`, icon: TrendingUp, color: "from-emerald-500 to-teal-500" },
+          { titulo: "Depósitos Mercado Pago", valor: `$${formatCLP(tokenStats.totalDeposits)}`, detalle: "Acreditados automáticamente", icon: Wallet, color: "from-sky-500 to-blue-600" },
         ];
         return (
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-5 mb-5">
@@ -987,14 +987,14 @@ export default function Admin() {
                                   etiqueta={`Representante: ${verification.representante_nombre || "sin nombre"}`}
                                 />
                               ) : (
-                                <Badge variant="outline" className="text-primary">Sin representante legal</Badge>
+                                <Badge variant="outline" className="text-warning">Sin representante legal</Badge>
                               )}
                             </div>
                           ) : (
                             <RutConBusqueda rut={verification.rut} buscador="persona" />
                           )
                         ) : (
-                          <Badge variant="outline" className="text-primary">Sin RUT en el perfil</Badge>
+                          <Badge variant="outline" className="text-warning">Sin RUT en el perfil</Badge>
                         )}
                       </TableCell>
                       <TableCell>
@@ -1051,7 +1051,7 @@ export default function Admin() {
         </TabsContent>
 
         <TabsContent value="deposits" className="space-y-4">
-          <Card className={pendingTransfers.length > 0 ? "border-2 border-primary/40" : ""}>
+          <Card className={pendingTransfers.length > 0 ? "border-2 border-warning/40" : ""}>
             <CardHeader>
               <CardTitle>Transferencias por verificar</CardTitle>
               <CardDescription>
@@ -1162,7 +1162,7 @@ export default function Admin() {
                     <TableRow key={deposit.id}>
                       <TableCell className="font-medium">{deposit.user_name}</TableCell>
                       <TableCell>{deposit.user_email}</TableCell>
-                      <TableCell className="font-bold text-primary">
+                      <TableCell className="font-bold text-success">
                         +${formatCLP(deposit.amount)}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
@@ -1262,7 +1262,7 @@ export default function Admin() {
                           <TableCell className="font-medium">{withdrawal.user_name}</TableCell>
                           <TableCell className="text-sm">{withdrawal.user_email}</TableCell>
                           <TableCell>
-                            <span className={`font-bold ${withdrawal.amount >= 100000 ? "text-destructive" : "text-primary"}`}>
+                            <span className={`font-bold ${withdrawal.amount >= 100000 ? "text-destructive" : "text-warning"}`}>
                               -${formatCLP(withdrawal.amount)}
                             </span>
                             {withdrawal.amount >= 100000 && (
@@ -1362,7 +1362,7 @@ export default function Admin() {
                         <TableRow key={withdrawal.id}>
                           <TableCell className="font-medium">{withdrawal.user_name}</TableCell>
                           <TableCell>{withdrawal.user_email}</TableCell>
-                          <TableCell className="font-bold text-primary">
+                          <TableCell className="font-bold text-warning">
                             -${formatCLP(withdrawal.amount)}
                           </TableCell>
                           <TableCell>
@@ -1550,47 +1550,47 @@ export default function Admin() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Pertenece a Usuarios</CardTitle>
-                <Coins className="h-4 w-4 text-primary" />
+                <Coins className="h-4 w-4 text-info" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.totalCirculating)}</div>
+                <div className="text-2xl font-bold text-info">${formatCLP(tokenStats.totalCirculating)}</div>
                 <p className="text-xs text-muted-foreground">Balance actual en wallets</p>
               </CardContent>
             </Card>
-            <Card className="border-2 border-primary/30 bg-primary/5">
+            <Card className="border-2 border-warning/30 bg-warning/5">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Reservar en MercadoPago</CardTitle>
-                <Coins className="h-4 w-4 text-primary" />
+                <Coins className="h-4 w-4 text-warning" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.reembolsableATarjeta)}</div>
+                <div className="text-2xl font-bold text-warning">${formatCLP(tokenStats.reembolsableATarjeta)}</div>
                 <p className="text-xs text-muted-foreground">
                   Plata de tarjeta que se puede tener que reembolsar. Mantén al menos esto de saldo
                   disponible en MercadoPago: sin saldo, el reembolso falla.
                 </p>
               </CardContent>
             </Card>
-            <Card className="border-2 border-primary/30 bg-primary/5">
+            <Card className="border-2 border-success/30 bg-success/5">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Pertenece a Trado</CardTitle>
-                <BadgeDollarSign className="h-4 w-4 text-primary" />
+                <BadgeDollarSign className="h-4 w-4 text-success" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.tradoNetProfit)}</div>
+                <div className="text-2xl font-bold text-success">${formatCLP(tokenStats.tradoNetProfit)}</div>
                 <p className="text-xs text-muted-foreground">Comisiones - fees MP (ganancia neta)</p>
               </CardContent>
             </Card>
-            <Card className={tokenStats.discrepancy === 0 ? "border-2 border-primary/50 bg-primary/5" : "border-2 border-destructive/50 bg-destructive/5"}>
+            <Card className={tokenStats.discrepancy === 0 ? "border-2 border-success/50 bg-success/5" : "border-2 border-destructive/50 bg-destructive/5"}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Estado Sistema</CardTitle>
                 {tokenStats.discrepancy === 0 ? (
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                 ) : (
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                 )}
               </CardHeader>
               <CardContent>
-                <div className={`text-2xl font-bold ${tokenStats.discrepancy === 0 ? "text-primary" : "text-destructive"}`}>
+                <div className={`text-2xl font-bold ${tokenStats.discrepancy === 0 ? "text-success" : "text-destructive"}`}>
                   {tokenStats.discrepancy === 0 ? "✓ Cuadra" : `$${formatCLP(Math.abs(tokenStats.discrepancy))}`}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -1605,20 +1605,20 @@ export default function Admin() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Depósitos Históricos</CardTitle>
-                <ArrowDownCircle className="h-4 w-4 text-primary" />
+                <ArrowDownCircle className="h-4 w-4 text-success" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.totalDeposits)}</div>
+                <div className="text-2xl font-bold text-success">${formatCLP(tokenStats.totalDeposits)}</div>
                 <p className="text-xs text-muted-foreground">Total entrado al sistema</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Retiros Históricos</CardTitle>
-                <ArrowUpCircle className="h-4 w-4 text-primary" />
+                <ArrowUpCircle className="h-4 w-4 text-warning" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-primary">${formatCLP(tokenStats.totalWithdrawals)}</div>
+                <div className="text-2xl font-bold text-warning">${formatCLP(tokenStats.totalWithdrawals)}</div>
                 <p className="text-xs text-muted-foreground">Total salido del sistema</p>
               </CardContent>
             </Card>
@@ -1669,19 +1669,19 @@ export default function Admin() {
                 <div className="p-4 rounded-lg bg-muted/50 border">
                   <h4 className="font-semibold mb-3">Ecuación de Balance:</h4>
                   <div className="grid grid-cols-2 md:grid-cols-7 gap-3 items-center text-center">
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="p-3 rounded-lg bg-success/10 border border-success/20">
                       <div className="text-xs text-muted-foreground">Depósitos</div>
-                      <div className="text-lg font-bold text-primary">${formatCLP(tokenStats.totalDeposits)}</div>
+                      <div className="text-lg font-bold text-success">${formatCLP(tokenStats.totalDeposits)}</div>
                     </div>
                     <div className="text-xl font-bold hidden md:block">−</div>
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
                       <div className="text-xs text-muted-foreground">Retiros</div>
-                      <div className="text-lg font-bold text-primary">${formatCLP(tokenStats.totalWithdrawals)}</div>
+                      <div className="text-lg font-bold text-warning">${formatCLP(tokenStats.totalWithdrawals)}</div>
                     </div>
                     <div className="text-xl font-bold hidden md:block">−</div>
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
                       <div className="text-xs text-muted-foreground">Reembolsos a tarjeta</div>
-                      <div className="text-lg font-bold text-primary">${formatCLP(tokenStats.totalCardRefunds)}</div>
+                      <div className="text-lg font-bold text-warning">${formatCLP(tokenStats.totalCardRefunds)}</div>
                     </div>
                     <div className="text-xl font-bold hidden md:block">−</div>
                     <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
@@ -1696,9 +1696,9 @@ export default function Admin() {
                       <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.theoreticalWalletBalance)}</div>
                     </div>
                     <div className="text-xl">vs</div>
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="p-3 rounded-lg bg-info/10 border border-info/20">
                       <div className="text-xs text-muted-foreground">Balance Real en Wallets</div>
-                      <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.totalCirculating)}</div>
+                      <div className="text-xl font-bold text-info">${formatCLP(tokenStats.totalCirculating)}</div>
                     </div>
                   </div>
                 </div>
@@ -1712,14 +1712,14 @@ export default function Admin() {
                       <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.expectedBankBalance)}</div>
                       <div className="text-xs text-muted-foreground mt-1">Depósitos − retiros − reembolsos − fees MP</div>
                     </div>
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="p-3 rounded-lg bg-info/10 border border-info/20">
                       <div className="text-sm text-muted-foreground">De eso, es de usuarios</div>
-                      <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.totalCirculating)}</div>
+                      <div className="text-xl font-bold text-info">${formatCLP(tokenStats.totalCirculating)}</div>
                       <div className="text-xs text-muted-foreground mt-1">Obligación con usuarios</div>
                     </div>
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="p-3 rounded-lg bg-success/10 border border-success/20">
                       <div className="text-sm text-muted-foreground">De eso, es de Trado</div>
-                      <div className="text-xl font-bold text-primary">${formatCLP(tokenStats.tradoNetProfit)}</div>
+                      <div className="text-xl font-bold text-success">${formatCLP(tokenStats.tradoNetProfit)}</div>
                       <div className="text-xs text-muted-foreground mt-1">Comisiones - fees MP</div>
                     </div>
                     <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
@@ -1747,8 +1747,8 @@ export default function Admin() {
                 )}
 
                 {tokenStats.discrepancy === 0 && (
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                    <div className="flex items-center gap-2 text-primary">
+                  <div className="p-4 rounded-lg bg-success/10 border border-success/30">
+                    <div className="flex items-center gap-2 text-success">
                       <CheckCircle2 className="h-5 w-5" />
                       <span className="font-semibold">Sistema Reconciliado</span>
                     </div>

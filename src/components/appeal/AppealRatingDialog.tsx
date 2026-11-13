@@ -86,14 +86,14 @@ export function AppealRatingDialog({ appealId, userId, isResolved }: AppealRatin
         {/* Decorative background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/10 rounded-full blur-xl animate-pulse" />
-          <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-warning/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
         </div>
         
         <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
           {/* Animated icon */}
           <div className="mx-auto mb-4 relative">
             <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
-            <div className="relative w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+            <div className="relative w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               <Scale className="w-8 h-8 text-white" />
             </div>
           </div>
@@ -120,7 +120,7 @@ export function AppealRatingDialog({ appealId, userId, isResolved }: AppealRatin
                   <Star
                     className={`h-10 w-10 transition-colors duration-200 ${
                       value <= (hoveredStars || stars)
-                        ? "fill-primary text-primary"
+                        ? "fill-warning text-warning"
                         : "text-muted-foreground"
                     }`}
                   />

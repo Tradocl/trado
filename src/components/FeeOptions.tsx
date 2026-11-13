@@ -52,7 +52,7 @@ export function FeeOptions({
   ) => (
     <div
       className={`flex items-center justify-between gap-3 rounded-lg px-3 ${compact ? "py-2" : "py-2.5"} ${
-        destacada ? "bg-primary/10 border border-primary/30" : "bg-muted/40 border border-transparent"
+        destacada ? "bg-success/10 border border-success/30" : "bg-muted/40 border border-transparent"
       }`}
     >
       <div className="flex items-center gap-2 min-w-0">
@@ -66,7 +66,7 @@ export function FeeOptions({
       </div>
       <div className="text-right shrink-0">
         <p className="text-[11px] text-muted-foreground">{etiqueta}</p>
-        <p className={`font-bold tabular-nums ${destacada ? "text-primary" : ""}`}>${formatCLP(total)}</p>
+        <p className={`font-bold tabular-nums ${destacada ? "text-success" : ""}`}>${formatCLP(total)}</p>
       </div>
     </div>
   );
@@ -81,7 +81,7 @@ export function FeeOptions({
         <>
           {fila(Landmark, `Con transferencia · ${pct(o.transferencia)}`, o.transferencia, o.conTransferencia, true)}
           {o.ahorro > 0 && (
-            <p className="text-xs text-primary">
+            <p className="text-xs text-success">
               {payer === "seller"
                 ? `Pagando por transferencia recibes $${formatCLP(o.ahorro)} más.`
                 : `Pagando por transferencia ahorras $${formatCLP(o.ahorro)}.`}

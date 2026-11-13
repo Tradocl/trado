@@ -56,12 +56,12 @@ interface Transaction {
 
 // Mismos colores por tipo de venta que en crear sala y el historial
 const TIPO_SALA: Record<string, { icon: typeof Store; nombre: string; franja: string; icono: string; barra: string }> = {
-  producto_envio: { icon: Truck, nombre: "Envío", franja: "bg-primary", icono: "bg-primary/10 text-primary", barra: "bg-primary" },
-  producto_persona: { icon: Handshake, nombre: "En persona", franja: "bg-primary", icono: "bg-primary/10 text-primary", barra: "bg-primary" },
-  producto_digital: { icon: Ticket, nombre: "Digital", franja: "bg-primary", icono: "bg-primary/10 text-primary", barra: "bg-primary" },
-  servicio: { icon: Briefcase, nombre: "Servicio", franja: "bg-primary", icono: "bg-primary/10 text-primary", barra: "bg-primary" },
+  producto_envio: { icon: Truck, nombre: "Envío", franja: "bg-emerald-500", icono: "bg-emerald-500 text-white", barra: "bg-emerald-500" },
+  producto_persona: { icon: Handshake, nombre: "En persona", franja: "bg-amber-500", icono: "bg-amber-500 text-white", barra: "bg-amber-500" },
+  producto_digital: { icon: Ticket, nombre: "Digital", franja: "bg-rose-500", icono: "bg-rose-500 text-white", barra: "bg-rose-500" },
+  servicio: { icon: Briefcase, nombre: "Servicio", franja: "bg-violet-500", icono: "bg-violet-500 text-white", barra: "bg-violet-500" },
 };
-const TIPO_SALA_OTRO = { icon: ShoppingBag, nombre: "Sala", franja: "bg-primary", icono: "bg-primary/10 text-primary", barra: "bg-primary" };
+const TIPO_SALA_OTRO = { icon: ShoppingBag, nombre: "Sala", franja: "bg-primary", icono: "bg-primary text-white", barra: "bg-primary" };
 
 const resolvedAppealStatuses = [
   "resuelta_a_favor_comprador",
@@ -72,14 +72,25 @@ const resolvedAppealStatuses = [
 
 
 const appealStatusLabels: Record<string, { label: string; color: string }> = {
-  apelacion_abierta: { label: "En Apelación", color: "bg-primary" },
-  en_negociacion: { label: "En Negociación", color: "bg-primary" },
+  apelacion_abierta: { label: "En Apelación", color: "bg-orange-500" },
+  en_negociacion: { label: "En Negociación", color: "bg-amber-500" },
   pendiente_intervencion_plataforma: { label: "Esperando Intervención", color: "bg-red-500" },
-  en_revision_plataforma: { label: "En Revisión Admin", color: "bg-primary" },
+  en_revision_plataforma: { label: "En Revisión Admin", color: "bg-purple-500" },
 };
 
-// La tarjeta de bienvenida va siempre en el azul de marca (la app usa una sola línea de color)
-const getCardGradient = (_color: string): string => "bg-primary";
+const getCardGradient = (color: string): string => {
+  const gradients: Record<string, string> = {
+    primary: "bg-gradient-to-br from-primary to-primary-light",
+    emerald: "bg-gradient-to-br from-emerald-600 to-emerald-400",
+    purple: "bg-gradient-to-br from-purple-600 to-purple-400",
+    orange: "bg-gradient-to-br from-orange-600 to-orange-400",
+    rose: "bg-gradient-to-br from-rose-600 to-rose-400",
+    cyan: "bg-gradient-to-br from-cyan-600 to-cyan-400",
+    amber: "bg-gradient-to-br from-amber-600 to-amber-400",
+    slate: "bg-gradient-to-br from-slate-700 to-slate-500",
+  };
+  return gradients[color] || gradients.primary;
+};
 
 const POPUP_PASOS_KEY = "trado_primeros_pasos_cerrado";
 
@@ -302,7 +313,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="app-shell relative bg-background">
+    <div className="app-shell relative bg-gradient-to-br from-primary/[0.07] via-background to-info/[0.09]">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-primary/15 blur-3xl" />
+        <div className="absolute top-1/3 -right-32 w-[30rem] h-[30rem] rounded-full bg-info/15 blur-3xl" />
+        <div className="absolute -bottom-40 left-1/4 w-[26rem] h-[26rem] rounded-full bg-success/10 blur-3xl" />
+      </div>
       <Helmet>
         <title>Mi panel — Trado</title>
         <meta name="description" content="Tu panel Trado: balance en escrow, transacciones activas y acceso rápido a depósitos, retiros y verificación." />
@@ -423,10 +439,10 @@ const Dashboard = () => {
           <button
             type="button"
             onClick={() => setPopupPasos(true)}
-            className="w-full flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-left hover:border-primary/40 transition-colors animate-fade-in"
+            className="w-full flex items-center justify-between gap-3 rounded-2xl border border-success/30 bg-gradient-to-r from-success/10 via-primary/5 to-transparent px-4 py-3 text-left hover:shadow-md transition-all animate-fade-in"
           >
             <span className="flex items-center gap-3 min-w-0">
-              <span className="shrink-0 w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <span className="shrink-0 w-9 h-9 rounded-xl bg-success text-white flex items-center justify-center">
                 <Gift className="h-4 w-4" />
               </span>
               <span className="min-w-0">
@@ -463,15 +479,15 @@ const Dashboard = () => {
         {/* Pending Ratings Banner */}
         {pendingRatingCount > 0 && (
           <Card
-            className="border border-border shadow-sm overflow-hidden animate-fade-in bg-card cursor-pointer hover:border-primary/40 transition-colors"
+            className="border-2 border-warning/40 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-warning/10 to-warning/5 cursor-pointer"
             style={{ animationDelay: '0.15s', animationFillMode: 'both' }}
             onClick={() => firstPendingRatingId && navigate(`/transaction/${firstPendingRatingId}`)}
           >
             <CardContent className="py-4 px-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full flex-shrink-0">
-                    <Star className="h-5 w-5 text-primary" />
+                  <div className="p-2 bg-warning/20 rounded-full flex-shrink-0">
+                    <Star className="h-5 w-5 text-warning fill-warning/50" />
                   </div>
                   <div>
                     <p className="font-semibold text-sm">
@@ -484,7 +500,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-primary flex-shrink-0" />
+                <ArrowRight className="h-5 w-5 text-warning flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
@@ -544,9 +560,10 @@ const Dashboard = () => {
                       className="group relative p-4 pl-5 hover:bg-muted/30 cursor-pointer transition-all duration-200 animate-fade-in"
                       style={{ animationDelay: `${0.3 + index * 0.05}s`, animationFillMode: 'both' }}
                     >
+                      <span className={`absolute left-0 top-0 bottom-0 w-1.5 ${tipo.franja}`} aria-hidden />
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1 min-w-0">
-                          <div className={`p-2.5 rounded-xl shrink-0 ${tipo.icono}`} title={tipo.nombre}>
+                          <div className={`p-2.5 rounded-xl shadow-sm shrink-0 ${tipo.icono}`} title={tipo.nombre}>
                             <TipoIcon className="h-5 w-5" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -555,19 +572,25 @@ const Dashboard = () => {
                             </h4>
                             <div className="flex items-center flex-wrap gap-2 text-sm">
                               <span className="font-semibold text-foreground">${formatCLP(transaction.amount)}</span>
-                              <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                              <span className={`text-[11px] px-2 py-0.5 rounded-full ${
+                                isRealSeller
+                                  ? 'bg-emerald-500/10 text-emerald-600'
+                                  : 'bg-info/10 text-info'
+                              }`}>
                                 {isRealSeller ? "Vendiendo" : "Comprando"}
                               </span>
-                              {/* Un solo color para los estados; solo un reclamo se marca distinto */}
                               {transaction.appeal_status && appealStatusLabels[transaction.appeal_status] ? (
-                                <span className="text-[11px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium">
+                                <Badge className={`${appealStatusLabels[transaction.appeal_status].color} text-[11px]`}>
                                   {appealStatusLabels[transaction.appeal_status].label}
-                                </span>
-                              ) : (
-                                <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                                  {getStateLabel(transaction.state).label}
-                                </span>
-                              )}
+                                </Badge>
+                              ) : (() => {
+                                const { label, color } = getStateLabel(transaction.state);
+                                return (
+                                  <Badge className={`${color} text-[11px]`}>
+                                    {label}
+                                  </Badge>
+                                );
+                              })()}
                             </div>
                             {transaction.state !== "cancelled" && (
                               <div className="mt-2 flex items-center gap-2">
@@ -598,13 +621,13 @@ const Dashboard = () => {
           <button
             type="button"
             onClick={() => navigate("/create-transaction")}
-            className="w-full relative overflow-hidden rounded-3xl border border-border bg-card p-5 sm:p-6 text-left shadow-sm hover:border-primary/40 transition-colors animate-fade-in"
+            className="w-full relative overflow-hidden rounded-3xl border border-primary/15 bg-card/80 backdrop-blur p-5 sm:p-6 text-left shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all animate-fade-in"
           >
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0" aria-hidden>
-                <span className="absolute left-0 top-2 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center -rotate-12"><Truck className="h-5 w-5" /></span>
-                <span className="absolute right-0 top-0 w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center rotate-12"><Briefcase className="h-5 w-5" /></span>
-                <span className="absolute left-1/2 -translate-x-1/2 bottom-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-md"><Lock className="h-5 w-5" /></span>
+                <span className="absolute left-0 top-2 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg -rotate-12"><Truck className="h-5 w-5" /></span>
+                <span className="absolute right-0 top-0 w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-violet-500 text-white flex items-center justify-center shadow-lg rotate-12"><Briefcase className="h-5 w-5" /></span>
+                <span className="absolute left-1/2 -translate-x-1/2 bottom-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white flex items-center justify-center shadow-xl"><Lock className="h-5 w-5" /></span>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-primary flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> No tienes salas en curso</p>
@@ -618,7 +641,7 @@ const Dashboard = () => {
 
         {/* Complete Profile Card - Show for users with incomplete profile */}
         {!isProfileComplete && (
-          <Card className="border border-border shadow-sm overflow-hidden animate-fade-in bg-card" 
+          <Card className="border-2 border-primary/30 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-primary/5 to-transparent" 
             style={{ animationDelay: '0.22s', animationFillMode: 'both' }}>
             <CardContent className="py-4 sm:py-5">
               <div className="flex items-start gap-3 sm:gap-4">
@@ -650,18 +673,18 @@ const Dashboard = () => {
 
         {/* Verification Card - Show for unverified users */}
         {profile?.verification_status !== 'approved' && (
-          <Card className="border border-border shadow-sm overflow-hidden animate-fade-in bg-card" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
+          <Card className="border border-info/20 shadow-md overflow-hidden animate-fade-in bg-gradient-to-br from-info/5 to-transparent" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
             <CardContent className="py-4 sm:py-5">
               <div className="flex items-start gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 rounded-xl flex-shrink-0 bg-primary/10">
-                  <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <div className="p-2 sm:p-3 rounded-xl flex-shrink-0 bg-info/10">
+                  <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-info" />
                 </div>
                 <div className="flex-1 min-w-0">
                   {profile?.verification_status === 'in_review' ? (
                     <>
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-semibold text-sm sm:text-base">Verificación en revisión</h4>
-                        <Badge variant="outline" className="border-primary/40 text-primary text-xs">
+                        <Badge variant="outline" className="border-info text-info text-xs">
                           En proceso
                         </Badge>
                       </div>
@@ -687,7 +710,7 @@ const Dashboard = () => {
                           </div>
                           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-primary rounded-full transition-all duration-500"
+                              className="h-full bg-info rounded-full transition-all duration-500"
                               style={{ width: `${Math.min(100, (accumulatedTotal / UNVERIFIED_LIMITS.TOTAL_ACCUMULATED) * 100)}%` }}
                             />
                           </div>
@@ -696,7 +719,7 @@ const Dashboard = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-primary/40 text-primary hover:bg-primary/5"
+                        className="border-info/40 text-info hover:bg-info/10"
                         onClick={() => navigate("/verification")}
                       >
                         <Shield className="h-4 w-4 mr-2" />
@@ -710,28 +733,90 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Acciones: crear (lo principal) y unirse con código. El historial queda como link. */}
-        <div className="space-y-2 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button size="lg" className="h-14 text-base font-semibold" onClick={() => navigate("/create-transaction")}>
-              <Plus className="mr-2 h-5 w-5" />
-              Crear sala
-            </Button>
-            <Button size="lg" variant="outline" className="h-14 text-base font-semibold border-primary/30 text-primary hover:bg-primary/5" onClick={() => navigate("/join-transaction")}>
-              <ShoppingBag className="mr-2 h-5 w-5" />
-              Unirme con un código
-            </Button>
-          </div>
-          <button
-            type="button"
-            onClick={() => navigate("/transaction-history")}
-            className="w-full sm:w-auto flex items-center justify-center sm:justify-start gap-1.5 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+        {/* Action Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+          <Card 
+            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg overflow-hidden hover:-translate-y-1 bg-card/90 backdrop-blur animate-fade-in"
+            style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+            onClick={() => navigate("/create-transaction")}
           >
-            <History className="h-4 w-4" />
-            Ver historial de salas
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
+            <CardHeader className="py-4 sm:pb-5 bg-gradient-to-br from-success to-emerald-600 text-white">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-3 sm:p-3.5 bg-white/20 ring-1 ring-white/30 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                  <Plus className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base sm:text-xl text-white">Crear sala</CardTitle>
+                  <CardDescription className="text-xs truncate text-white/80">Compra, vende o cobra un trabajo</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="hidden sm:block space-y-3 sm:space-y-4 pt-4">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
+                La plata queda retenida en Trado hasta que se entrega lo acordado: <span className="font-medium text-success">productos</span>, <span className="font-medium text-success">entradas</span> o <span className="font-medium text-success">trabajos</span>
+              </p>
+              <Button className="w-full bg-success hover:bg-success/90 group-hover:shadow-lg transition-shadow text-sm">
+                <Plus className="mr-2 h-4 w-4" />
+                Crear sala
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg overflow-hidden hover:-translate-y-1 bg-card/90 backdrop-blur animate-fade-in"
+            style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
+            onClick={() => navigate("/join-transaction")}
+          >
+            <CardHeader className="py-4 sm:pb-5 bg-gradient-to-br from-info to-violet-600 text-white">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-3 sm:p-3.5 bg-white/20 ring-1 ring-white/30 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                  <ShoppingBag className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base sm:text-xl text-white">Unirme a una sala</CardTitle>
+                  <CardDescription className="text-xs truncate text-white/80">Ingresa con código</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="hidden sm:block space-y-3 sm:space-y-4 pt-4">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
+                Si la otra persona ya creó la sala, ingresa el <span className="font-medium text-info">código</span> que te mandó
+              </p>
+              <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow text-sm">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Unirme a una sala
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg overflow-hidden hover:-translate-y-1 bg-card/90 backdrop-blur sm:col-span-2 lg:col-span-1 animate-fade-in"
+            style={{ animationDelay: '0.5s', animationFillMode: 'both' }}
+            onClick={() => navigate("/transaction-history")}
+          >
+            <CardHeader className="py-4 sm:pb-5 bg-gradient-to-br from-primary to-blue-700 text-white">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-3 sm:p-3.5 bg-white/20 ring-1 ring-white/30 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                  <History className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-base sm:text-xl text-white">Historial</CardTitle>
+                  <CardDescription className="text-xs truncate text-white/80">Tus salas anteriores</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="hidden sm:block space-y-3 sm:space-y-4 pt-4">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
+                Revisa tus <span className="font-medium text-primary">salas completadas</span> y su detalle
+              </p>
+              <Button className="w-full group-hover:shadow-lg transition-shadow text-sm">
+                <History className="mr-2 h-4 w-4" />
+                Ver historial
+              </Button>
+            </CardContent>
+          </Card>
         </div>
+
 
         {/* Wallet Card */}
         <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
@@ -749,18 +834,18 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
-            <div className="flex justify-between items-center p-4 sm:p-5 bg-primary/5 border border-primary/15 rounded-xl animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
-              <span className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
+            <div className="flex justify-between items-center p-4 sm:p-5 bg-gradient-to-r from-primary via-medio via-55% to-info text-white rounded-xl shadow-md animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
+              <span className="flex items-center gap-2 text-xs sm:text-sm font-medium text-white/85">
                 <Wallet className="h-4 w-4" /> Saldo disponible
               </span>
-              <span className="text-xl sm:text-3xl font-bold text-primary">${formatCLP(wallet?.balance || 0)}</span>
+              <span className="text-xl sm:text-3xl font-bold">${formatCLP(wallet?.balance || 0)}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.75s', animationFillMode: 'both' }}>
               <Button variant="outline" className="w-full h-10 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet")}>
                 <History className="h-4 w-4" />
                 <span className="text-xs leading-none">Movimientos</span>
               </Button>
-              <Button className="w-full h-10 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=deposit")}>
+              <Button className="w-full h-10 bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=deposit")}>
                 <Plus className="h-4 w-4" />
                 <span className="text-xs leading-none">Depositar</span>
               </Button>

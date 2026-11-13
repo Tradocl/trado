@@ -134,7 +134,7 @@ export function AppealChat({ appealId, currentUserId }: AppealChatProps) {
                     <div
                       className={`max-w-[70%] rounded-2xl px-4 py-2 ${
                         isOwn
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground"
                           : "bg-muted"
                       }`}
                     >

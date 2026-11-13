@@ -172,7 +172,7 @@ export const ReturnStatusPanel = ({
 
   if (loadingData) {
     return (
-      <Card className="border-2 border-primary/30">
+      <Card className="border-2 border-warning/30">
         <CardContent className="p-6">
           <div className="animate-pulse flex items-center gap-3">
             <div className="h-8 w-8 bg-muted rounded-full"></div>
@@ -228,10 +228,10 @@ export const ReturnStatusPanel = ({
     returnRequest.status === "pending"
   ) {
     return (
-      <Card className="border-2 border-primary/30 bg-primary/5">
+      <Card className="border-2 border-warning/30 bg-gradient-to-br from-warning/5 to-warning/10">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <RotateCcw className="h-5 w-5 text-primary" />
+            <RotateCcw className="h-5 w-5 text-warning" />
             Solicitud de Devolución Enviada
             <Badge variant="outline" className="ml-auto">Esperando respuesta</Badge>
           </CardTitle>
@@ -241,8 +241,8 @@ export const ReturnStatusPanel = ({
             <p className="text-sm text-muted-foreground mb-1">Motivo:</p>
             <p className="font-medium">{reasonLabels[returnRequest.reason] || returnRequest.reason}</p>
           </div>
-          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 text-center">
-            <AlertTriangle className="h-8 w-8 text-primary mx-auto mb-2" />
+          <div className="p-4 bg-warning/10 rounded-lg border border-warning/20 text-center">
+            <AlertTriangle className="h-8 w-8 text-warning mx-auto mb-2" />
             <p className="font-medium">Esperando respuesta del vendedor</p>
             <p className="text-sm text-muted-foreground">
               El vendedor debe aceptar o rechazar tu solicitud
@@ -259,10 +259,10 @@ export const ReturnStatusPanel = ({
     (returnRequest.responsibility_type === "buyer_fault" && returnRequest.status !== "shipped" && returnRequest.status !== "completed");
 
   return (
-    <Card className="border-2 border-primary/30 bg-primary/5">
+    <Card className="border-2 border-warning/30 bg-gradient-to-br from-warning/5 to-warning/10">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <RotateCcw className="h-5 w-5 text-primary" />
+          <RotateCcw className="h-5 w-5 text-warning" />
           Devolución en Proceso
           <Badge variant="outline" className="ml-auto">
             {returnRequest.status === "pending" && "Pendiente"}
@@ -286,10 +286,10 @@ export const ReturnStatusPanel = ({
         {returnRequest.shipping_paid_by && (
           <div className={`p-3 rounded-lg flex items-center gap-2 ${
             returnRequest.shipping_paid_by === "buyer" 
-              ? "bg-primary/10 border border-primary/20" 
-              : "bg-primary/10 border border-primary/20"
+              ? "bg-info/10 border border-info/20" 
+              : "bg-warning/10 border border-warning/20"
           }`}>
-            <DollarSign className={`h-5 w-5 ${returnRequest.shipping_paid_by === "buyer" ? "text-primary" : "text-primary"}`} />
+            <DollarSign className={`h-5 w-5 ${returnRequest.shipping_paid_by === "buyer" ? "text-info" : "text-warning"}`} />
             <p className="text-sm">
               <strong>Costo de envío:</strong>{" "}
               {returnRequest.shipping_paid_by === "buyer" ? "Comprador paga" : "Vendedor paga"}
@@ -301,7 +301,7 @@ export const ReturnStatusPanel = ({
         <div className="space-y-3">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              returnRequest.status !== "pending" ? "bg-primary text-primary-foreground" : "bg-primary text-primary-foreground"
+              returnRequest.status !== "pending" ? "bg-success text-success-foreground" : "bg-warning text-warning-foreground"
             }`}>
               <Package className="h-4 w-4" />
             </div>
@@ -311,12 +311,12 @@ export const ReturnStatusPanel = ({
                 {new Date(returnRequest.created_at).toLocaleDateString("es-CL")}
               </p>
             </div>
-            <Check className={`h-5 w-5 text-primary`} />
+            <Check className={`h-5 w-5 text-success`} />
           </div>
 
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              ["shipped", "completed"].includes(returnRequest.status) ? "bg-primary text-primary-foreground" : "bg-muted"
+              ["shipped", "completed"].includes(returnRequest.status) ? "bg-success text-success-foreground" : "bg-muted"
             }`}>
               <Truck className="h-4 w-4" />
             </div>
@@ -329,13 +329,13 @@ export const ReturnStatusPanel = ({
               )}
             </div>
             {["shipped", "completed"].includes(returnRequest.status) && (
-              <Check className="h-5 w-5 text-primary" />
+              <Check className="h-5 w-5 text-success" />
             )}
           </div>
 
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              returnRequest.status === "completed" ? "bg-primary text-primary-foreground" : "bg-muted"
+              returnRequest.status === "completed" ? "bg-success text-success-foreground" : "bg-muted"
             }`}>
               <Check className="h-4 w-4" />
             </div>
@@ -348,7 +348,7 @@ export const ReturnStatusPanel = ({
               )}
             </div>
             {returnRequest.status === "completed" && (
-              <Check className="h-5 w-5 text-primary" />
+              <Check className="h-5 w-5 text-success" />
             )}
           </div>
         </div>
@@ -367,9 +367,9 @@ export const ReturnStatusPanel = ({
           <div className="space-y-3 p-4 bg-background/50 rounded-lg border">
             <div className="flex items-start gap-2 mb-3">
               {returnRequest.shipping_paid_by === "buyer" ? (
-                <Info className="h-5 w-5 text-primary shrink-0" />
+                <Info className="h-5 w-5 text-info shrink-0" />
               ) : (
-                <AlertTriangle className="h-5 w-5 text-primary shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-warning shrink-0" />
               )}
               <p className="text-sm text-muted-foreground">
                 Envía el producto al vendedor usando un courier con seguimiento.
@@ -436,7 +436,7 @@ export const ReturnStatusPanel = ({
             <Button 
               onClick={handleConfirmReceipt} 
               disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90"
+              className="w-full bg-success hover:bg-success/90"
             >
               <Check className="mr-2 h-4 w-4" />
               {loading ? "Procesando..." : "Confirmar Recepción y Procesar Reembolso"}
@@ -446,8 +446,8 @@ export const ReturnStatusPanel = ({
 
         {/* Waiting states */}
         {isBuyer && returnRequest.status === "shipped" && (
-          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 text-center">
-            <Truck className="h-8 w-8 text-primary mx-auto mb-2" />
+          <div className="p-4 bg-info/10 rounded-lg border border-info/20 text-center">
+            <Truck className="h-8 w-8 text-info mx-auto mb-2" />
             <p className="font-medium">Esperando recepción del vendedor</p>
             <p className="text-sm text-muted-foreground">
               El vendedor confirmará cuando reciba el producto
@@ -456,8 +456,8 @@ export const ReturnStatusPanel = ({
         )}
 
         {isSeller && (returnRequest.status === "accepted" || returnRequest.responsibility_type === "buyer_fault") && !returnRequest.tracking_number && (
-          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 text-center">
-            <Package className="h-8 w-8 text-primary mx-auto mb-2" />
+          <div className="p-4 bg-warning/10 rounded-lg border border-warning/20 text-center">
+            <Package className="h-8 w-8 text-warning mx-auto mb-2" />
             <p className="font-medium">Esperando envío del comprador</p>
             <p className="text-sm text-muted-foreground">
               El comprador debe enviar el producto con seguimiento

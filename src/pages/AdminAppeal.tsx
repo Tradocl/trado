@@ -318,7 +318,7 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
               </h1>
 
               {isReturnMediation && (
-                <div className="bg-primary/10 dark:bg-primary/30 border border-primary/30 dark:border-primary text-primary dark:text-primary/70 px-4 py-2 rounded-lg mb-4 text-sm font-medium">
+                <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100 px-4 py-2 rounded-lg mb-4 text-sm font-medium">
                   ⚖️ Esta es una mediación de devolución - Solo decides quién paga el envío de retorno
                 </div>
               )}
@@ -370,7 +370,7 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                         {transaction.tracking_number && transaction.carrier ? (
                           <TrackingPanel trackingNumber={transaction.tracking_number} carrier={transaction.carrier} />
                         ) : (
-                          <p className="text-sm text-primary">El vendedor no ha registrado seguimiento.</p>
+                          <p className="text-sm text-warning">El vendedor no ha registrado seguimiento.</p>
                         )}
                         <p className="text-xs text-muted-foreground">
                           Enviado: {transaction.shipped_at ? new Date(transaction.shipped_at).toLocaleString("es-CL") : "—"}
@@ -407,8 +407,8 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                       {isReturnMediation ? (
                         // Return mediation decision - who pays shipping
                         <div className="space-y-4">
-                          <div className="bg-primary/5 dark:bg-primary/30 border border-primary/20 dark:border-primary p-4 rounded-lg">
-                            <p className="text-sm text-primary dark:text-primary/70">
+                          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
+                            <p className="text-sm text-amber-800 dark:text-amber-200">
                               <strong>Mediación de Devolución:</strong> Debes decidir quién paga el costo del envío de retorno. 
                               Una vez resuelta esta mediación, el comprador podrá enviar el producto y después se procesará el reembolso.
                             </p>
@@ -533,7 +533,7 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                                 </div>
                               </div>
                               {buyerRefund && sellerPayment && (
-                                <p className={`text-sm ${parseFloat(buyerRefund) + parseFloat(sellerPayment) === transaction.amount ? 'text-primary' : 'text-destructive'}`}>
+                                <p className={`text-sm ${parseFloat(buyerRefund) + parseFloat(sellerPayment) === transaction.amount ? 'text-green-600' : 'text-destructive'}`}>
                                   Suma: {formatCLP(parseFloat(buyerRefund || "0") + parseFloat(sellerPayment || "0"))} 
                                   {parseFloat(buyerRefund) + parseFloat(sellerPayment) !== transaction.amount && 
                                     ` (debe ser ${formatCLP(transaction.amount)})`
@@ -567,8 +567,8 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                   )}
 
                   {isResolved && (
-                    <div className="bg-primary/5 dark:bg-primary border border-primary/20 dark:border-primary p-4 rounded-lg">
-                      <p className="text-primary dark:text-primary/70 font-medium">
+                    <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4 rounded-lg">
+                      <p className="text-green-900 dark:text-green-100 font-medium">
                         Esta apelación ya ha sido resuelta
                       </p>
                     </div>

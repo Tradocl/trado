@@ -47,9 +47,9 @@ const getPasswordStrength = (password: string): { score: number; label: string; 
   
   // Determine strength level
   if (score <= 2) return { score: 25, label: "Débil", color: "bg-destructive" };
-  if (score <= 4) return { score: 50, label: "Media", color: "bg-primary" };
-  if (score <= 5) return { score: 75, label: "Fuerte", color: "bg-primary" };
-  return { score: 100, label: "Muy fuerte", color: "bg-primary" };
+  if (score <= 4) return { score: 50, label: "Media", color: "bg-warning" };
+  if (score <= 5) return { score: 75, label: "Fuerte", color: "bg-info" };
+  return { score: 100, label: "Muy fuerte", color: "bg-success" };
 };
 
 const Auth = () => {
@@ -424,7 +424,7 @@ const Auth = () => {
         <meta property="og:url" content="https://trado.cl/auth" />
       </Helmet>
       <h1 className="sr-only">Iniciar sesión o registrarse en Trado</h1>
-      <div className="min-h-screen flex items-center justify-center bg-primary p-4 pb-28 sm:pb-24">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-medio via-55% to-info p-4 pb-28 sm:pb-24">
         <Card className="w-full max-w-md shadow-2xl border-0 relative">
           <CardHeader className="space-y-3 pt-4">
             <div className="flex items-center justify-start">
@@ -687,8 +687,8 @@ const Auth = () => {
                             <span className="text-xs text-muted-foreground">Fortaleza:</span>
                             <span className={`text-xs font-medium ${
                               getPasswordStrength(signupPassword).score <= 25 ? "text-destructive" :
-                              getPasswordStrength(signupPassword).score <= 50 ? "text-primary" :
-                              getPasswordStrength(signupPassword).score <= 75 ? "text-primary" : "text-primary"
+                              getPasswordStrength(signupPassword).score <= 50 ? "text-warning" :
+                              getPasswordStrength(signupPassword).score <= 75 ? "text-info" : "text-success"
                             }`}>
                               {getPasswordStrength(signupPassword).label}
                             </span>
@@ -708,11 +708,11 @@ const Auth = () => {
                             return (
                               <div key={index} className="flex items-center gap-2 text-xs">
                                 {passed ? (
-                                  <Check className="h-3 w-3 text-primary" />
+                                  <Check className="h-3 w-3 text-success" />
                                 ) : (
                                   <X className="h-3 w-3 text-destructive" />
                                 )}
-                                <span className={passed ? "text-primary" : "text-muted-foreground"}>
+                                <span className={passed ? "text-success" : "text-muted-foreground"}>
                                   {req.label}
                                 </span>
                               </div>
@@ -761,8 +761,8 @@ const Auth = () => {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-              <h4 className="font-medium text-primary mb-2">✓ Beneficios de verificarte</h4>
+            <div className="bg-success/10 border border-success/20 rounded-lg p-4">
+              <h4 className="font-medium text-success mb-2">✓ Beneficios de verificarte</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Mayor confianza de la contraparte en tus transacciones</li>
                 <li>• Tu perfil mostrará un distintivo de usuario verificado</li>
@@ -770,8 +770,8 @@ const Auth = () => {
               </ul>
             </div>
 
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-              <h4 className="font-medium text-primary mb-2">⚠️ Sin verificación</h4>
+            <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+              <h4 className="font-medium text-warning mb-2">⚠️ Sin verificación</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Máximo <strong>$100.000 CLP</strong> por transacción</li>
                 <li>• Máximo <strong>$200.000 CLP</strong> en total acumulado</li>
@@ -884,7 +884,7 @@ const Auth = () => {
               </label>
             </div>
 
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+            <div className="bg-info/10 border border-info/20 rounded-lg p-3">
               <p className="text-sm text-muted-foreground">
                 ℹ️ Asegúrate de que tu rostro y los datos del documento sean visibles y legibles
               </p>

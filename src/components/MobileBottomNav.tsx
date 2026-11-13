@@ -104,7 +104,7 @@ const NavItem = memo(({ item, active, onNavigate }: NavItemProps) => {
           aria-current={active ? "page" : undefined}
           className={cn(
             "-mt-6 h-14 w-14 rounded-full",
-            "bg-primary text-primary-foreground",
+            "bg-gradient-to-br from-primary to-primary-light text-primary-foreground",
             "shadow-[0_8px_20px_-8px_hsl(var(--primary)/0.5)] ring-4 ring-background",
             "flex items-center justify-center",
             "active:scale-95 transition-transform",

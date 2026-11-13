@@ -291,10 +291,10 @@ export function EscalationPanel({
   const isAlreadyEscalated = appealStatus === "pendiente_intervencion_plataforma" || appealStatus === "en_revision_plataforma";
 
   return (
-    <Card className="border-2 shadow-lg border-primary/20 dark:border-primary">
-      <CardHeader className="bg-primary/10">
+    <Card className="border-2 shadow-lg border-amber-200 dark:border-amber-800">
+      <CardHeader className="bg-gradient-to-r from-amber-500/10 to-orange-500/10">
         <CardTitle className="flex items-center gap-2">
-          <ShieldAlert className="h-5 w-5 text-primary dark:text-primary" />
+          <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           {isAlreadyEscalated ? "Sube tu Evidencia" : "Enviar Caso a Administradores"}
         </CardTitle>
         <CardDescription>
@@ -308,7 +308,7 @@ export function EscalationPanel({
         {/* Step 1: Upload Evidence */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/50 flex items-center justify-center text-sm font-bold text-primary dark:text-primary/70">
+            <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">
               1
             </div>
             <h3 className="font-semibold">Sube tu evidencia</h3>
@@ -412,7 +412,7 @@ export function EscalationPanel({
         {evidence.length > 0 && (
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-2 text-sm font-medium">
-              <CheckCircle2 className="h-4 w-4 text-primary" />
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
               Evidencia subida ({evidence.length} archivo{evidence.length > 1 ? "s" : ""})
             </div>
             
@@ -456,7 +456,7 @@ export function EscalationPanel({
           <>
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/50 flex items-center justify-center text-sm font-bold text-primary dark:text-primary/70">
+                <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">
                   2
                 </div>
                 <h3 className="font-semibold">Describe tu caso (opcional)</h3>
@@ -477,7 +477,7 @@ export function EscalationPanel({
             {/* Step 3: Submit */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/50 flex items-center justify-center text-sm font-bold text-primary dark:text-primary/70">
+                <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">
                   3
                 </div>
                 <h3 className="font-semibold">Enviar a revisión</h3>
@@ -485,10 +485,10 @@ export function EscalationPanel({
 
               <div className="pl-10 space-y-4">
                 {/* Warning */}
-                <div className="bg-primary/5 dark:bg-primary/30 border border-primary/20 dark:border-primary rounded-lg p-3">
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
                   <div className="flex items-start gap-2">
-                    <AlertTriangle className="h-4 w-4 text-primary dark:text-primary shrink-0 mt-0.5" />
-                    <p className="text-sm text-primary dark:text-primary/70">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
                       Una vez enviado, un administrador revisará toda la evidencia y tomará una decisión final. 
                       Este proceso puede tomar hasta 48 horas.
                     </p>
@@ -498,7 +498,7 @@ export function EscalationPanel({
                 <Button 
                   onClick={handleEscalate}
                   disabled={escalating || evidence.length === 0}
-                  className="w-full bg-primary hover:bg-primary"
+                  className="w-full bg-amber-600 hover:bg-amber-700"
                   size="lg"
                 >
                   {escalating ? (
@@ -526,14 +526,14 @@ export function EscalationPanel({
 
         {/* Already escalated info */}
         {isAlreadyEscalated && (
-          <div className="bg-primary/5 dark:bg-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
+          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-5 w-5 text-primary dark:text-primary shrink-0 mt-0.5" />
+              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-primary dark:text-primary/70">
+                <p className="font-medium text-green-900 dark:text-green-100">
                   Intervención solicitada
                 </p>
-                <p className="text-sm text-primary dark:text-primary/70 mt-1">
+                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
                   Un administrador revisará tu caso pronto. Puedes seguir subiendo evidencia que apoye tu reclamo.
                 </p>
               </div>

@@ -137,7 +137,7 @@ export function CreateAppealDialog({ transactionId, userId, saleType, esVendedor
         {/* Decorative background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-4 -right-4 w-24 h-24 bg-destructive/10 rounded-full blur-xl animate-pulse" />
-          <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-warning/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
         </div>
         
         <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
@@ -156,18 +156,18 @@ export function CreateAppealDialog({ transactionId, userId, saleType, esVendedor
 
         <div className="space-y-6 py-4 relative">
           <div 
-            className="bg-primary/5 dark:bg-primary border border-primary/20 dark:border-primary p-4 rounded-lg animate-fade-in transition-all duration-200 hover:bg-primary/50 dark:hover:bg-primary/50"
+            className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 p-4 rounded-lg animate-fade-in transition-all duration-200 hover:bg-amber-100/50 dark:hover:bg-amber-900/50"
             style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
           >
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/20 dark:bg-primary flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="h-4 w-4 text-primary dark:text-primary" />
+              <div className="w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-800 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               </div>
               <div className="text-sm space-y-2">
-                <p className="font-medium text-primary dark:text-primary/70">
+                <p className="font-medium text-amber-900 dark:text-amber-100">
                   Antes de continuar
                 </p>
-                <ul className="text-primary dark:text-primary/70 space-y-1.5 list-disc list-inside">
+                <ul className="text-amber-700 dark:text-amber-300 space-y-1.5 list-disc list-inside">
                   <li>
                     Tendrás <strong>48 horas</strong> para intentar resolver el problema directamente con la otra parte. 
                     Si no llegan a un acuerdo, automáticamente un administrador entrará como mediador.

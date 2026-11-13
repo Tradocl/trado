@@ -262,7 +262,7 @@ export default function MovementHistory() {
                       </TableCell>
                       <TableCell>{getTypeBadge(movement.type)}</TableCell>
                       <TableCell className="font-medium whitespace-nowrap">
-                        <span className={movement.amount < 0 ? "text-destructive" : "text-primary"}>
+                        <span className={movement.amount < 0 ? "text-destructive" : "text-success"}>
                           {movement.amount < 0 ? "-" : "+"}${formatCLP(Math.abs(movement.amount))}
                         </span>
                       </TableCell>

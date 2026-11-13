@@ -864,13 +864,13 @@ const Transaction = () => {
           ...defaults,
           particleCount,
           origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-          colors: ['#2230C2', '#5B67E0', '#A5ACF2', '#FFFFFF']
+          colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6']
         });
         confetti({
           ...defaults,
           particleCount,
           origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-          colors: ['#2230C2', '#5B67E0', '#A5ACF2', '#FFFFFF']
+          colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6']
         });
       }, 250);
 
@@ -927,7 +927,7 @@ const Transaction = () => {
   const realBuyerName = realBuyerProfile?.full_name || buyerLabel;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/30 to-accent/10">
       <header className="border-b bg-card/80 backdrop-blur-md shadow-sm sticky top-0 z-40">
         <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-1 sm:gap-3 min-w-0">
@@ -946,7 +946,7 @@ const Transaction = () => {
             >
               <span className="text-muted-foreground">Sala</span>
               <span className="font-mono font-bold tracking-wider text-primary">{transaction.invite_code}</span>
-              {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+              {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
             </button>
           )}
         </div>
@@ -958,7 +958,7 @@ const Transaction = () => {
           onClick={() => setHito(null)}
           className="fixed left-1/2 -translate-x-1/2 top-20 z-50 w-[calc(100%-2rem)] max-w-md animate-scale-in"
         >
-          <span className="flex items-center gap-3 rounded-2xl bg-primary text-white px-4 py-3 shadow-2xl ring-4 ring-white/40 text-left">
+          <span className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-success via-emerald-500 to-primary text-white px-4 py-3 shadow-2xl ring-4 ring-white/40 text-left">
             <span className="w-9 h-9 rounded-full bg-white/25 flex items-center justify-center shrink-0 animate-bounce">
               <Check className="h-5 w-5" />
             </span>
@@ -968,8 +968,8 @@ const Transaction = () => {
       )}
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6 animate-fade-in">
         {soloMirando && (
-          <div className="flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm">
-            <Eye className="h-4 w-4 text-primary shrink-0" />
+          <div className="flex items-center gap-2 rounded-xl border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm">
+            <Eye className="h-4 w-4 text-warning shrink-0" />
             <span><b>Modo admin:</b> estás mirando esta sala. No eres parte de ella y no puedes unirte desde aquí.</span>
           </div>
         )}
@@ -985,10 +985,10 @@ const Transaction = () => {
         
         {/* Join action - works for both buyer and seller joining */}
         {canJoin && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-info" />
                 <h4 className="font-bold text-base sm:text-lg">
                   {canJoinAsBuyer 
                     ? (transaction.sale_type === "servicio" 
@@ -1008,7 +1008,7 @@ const Transaction = () => {
                       ? "Únete a esta transacción para proveer el servicio de forma protegida."
                       : "Únete a esta transacción para vender el producto de forma protegida.")}
                 {" "}
-                <span className="text-primary">
+                <span className="text-info">
                   Revisa la información del {canJoinAsBuyer 
                     ? (transaction.sale_type === "servicio" ? "proveedor" : "vendedor")
                     : (transaction.sale_type === "servicio" ? "cliente" : "comprador")} en la sección de Participantes abajo.
@@ -1017,7 +1017,7 @@ const Transaction = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   size="lg"
-                  className="flex-1 bg-primary hover:from-primary/90 hover:to-primary/70 text-sm sm:text-lg py-4 sm:py-6 shadow-xl hover-scale"
+                  className="flex-1 bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-sm sm:text-lg py-4 sm:py-6 shadow-xl hover-scale"
                   onClick={() => setJoinConfirmDialogOpen(true)}
                 >
                   <Users className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
@@ -1048,15 +1048,15 @@ const Transaction = () => {
 
         {/* Buyer deposit action */}
         {isBuyer && transaction.state === "invited" && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-3">
-                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success" />
                 <h4 className="font-bold text-base sm:text-lg">Acción Requerida</h4>
               </div>
               <Button
                 size="lg"
-                className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-sm sm:text-lg py-4 sm:py-6 shadow-xl hover-scale"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-sm sm:text-lg py-4 sm:py-6 shadow-xl hover-scale"
                 onClick={() => setDepositDialogOpen(true)}
               >
                 <DollarSign className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
@@ -1077,15 +1077,15 @@ const Transaction = () => {
 
         {/* Seller mark as shipped (envío) */}
         {isSeller && transaction.state === "funds_secured" && transaction.sale_type === "producto_envio" && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-info" />
                 <h4 className="font-bold text-base sm:text-lg">Acción Requerida</h4>
               </div>
               <Button 
                 size="lg"
-                className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-sm sm:text-lg py-4 sm:py-6 shadow-xl hover-scale" 
+                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-sm sm:text-lg py-4 sm:py-6 shadow-xl hover-scale" 
                 onClick={() => setShippingDialogOpen(true)}
                 disabled={!!activeAppeal}
               >
@@ -1098,10 +1098,10 @@ const Transaction = () => {
 
         {/* Service provider confirm (servicio) */}
         {isSeller && transaction.state === "funds_secured" && transaction.sale_type === "servicio" && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Check className="h-6 w-6 text-primary" />
+                <Check className="h-6 w-6 text-info" />
                 <h4 className="font-bold text-lg">Acción Requerida</h4>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
@@ -1109,7 +1109,7 @@ const Transaction = () => {
               </p>
               <Button
                 size="lg"
-                className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale"
+                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
                 onClick={handleMarkAsShipped}
                 disabled={markingShipped || !!activeAppeal}
               >
@@ -1122,10 +1122,10 @@ const Transaction = () => {
 
         {/* Digital delivery: seller marks as delivered */}
         {isSeller && transaction.state === "funds_secured" && isDigital && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Check className="h-6 w-6 text-primary" />
+                <Check className="h-6 w-6 text-info" />
                 <h4 className="font-bold text-lg">Acción Requerida</h4>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
@@ -1133,7 +1133,7 @@ const Transaction = () => {
               </p>
               <Button
                 size="lg"
-                className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale"
+                className="w-full bg-gradient-to-r from-info to-info/80 hover:from-info/90 hover:to-info/70 text-lg py-6 shadow-xl hover-scale"
                 onClick={handleMarkAsShipped}
                 disabled={markingShipped || !!activeAppeal}
               >
@@ -1159,10 +1159,10 @@ const Transaction = () => {
 
         {/* Buyer: mark as received (envío) */}
         {isBuyer && transaction.state === "in_delivery" && transaction.sale_type === "producto_envio" && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Package className="h-6 w-6 text-primary" />
+                <Package className="h-6 w-6 text-success" />
                 <h4 className="font-bold text-lg">¿Recibiste el producto?</h4>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
@@ -1176,7 +1176,7 @@ const Transaction = () => {
               )}
               <Button 
                 size="lg"
-                className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale" 
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
                 onClick={handleMarkAsReceived}
                 disabled={markingReceived || !!activeAppeal}
               >
@@ -1192,10 +1192,10 @@ const Transaction = () => {
 
         {/* Vendedor con el paquete en camino: antes no tenía ninguna tarjeta, sólo el estado */}
         {isSeller && transaction.state === "in_delivery" && transaction.sale_type === "producto_envio" && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center gap-2">
-                <Truck className="h-6 w-6 text-primary" />
+                <Truck className="h-6 w-6 text-info" />
                 <h4 className="font-bold text-lg">Enviado: esperando que llegue</h4>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -1229,10 +1229,10 @@ const Transaction = () => {
 
         {/* Service client: confirm delivery */}
         {isBuyer && transaction.state === "in_delivery" && transaction.sale_type === "servicio" && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Check className="h-6 w-6 text-primary" />
+                <Check className="h-6 w-6 text-success" />
                 <h4 className="font-bold text-lg">¿El servicio fue realizado correctamente?</h4>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
@@ -1240,7 +1240,7 @@ const Transaction = () => {
               </p>
               <Button
                 size="lg"
-                className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale"
                 onClick={handleConfirmDelivery}
                 disabled={confirmingDelivery || !!activeAppeal}
               >
@@ -1253,10 +1253,10 @@ const Transaction = () => {
 
         {/* Digital delivery: buyer confirms receipt */}
         {isBuyer && transaction.state === "in_delivery" && isDigital && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Check className="h-6 w-6 text-primary" />
+                <Check className="h-6 w-6 text-success" />
                 <h4 className="font-bold text-lg">¿Recibiste el producto digital?</h4>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
@@ -1264,7 +1264,7 @@ const Transaction = () => {
               </p>
               <Button
                 size="lg"
-                className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale"
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale"
                 onClick={handleConfirmDelivery}
                 disabled={confirmingDelivery || !!activeAppeal}
               >
@@ -1277,10 +1277,10 @@ const Transaction = () => {
 
         {/* In-person delivery: confirm handoff */}
         {isBuyer && transaction.state === "in_delivery" && transaction.sale_type === "producto_persona" && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-success/30 shadow-xl bg-gradient-to-br from-success/10 to-success/5 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-3">
-                <Handshake className="h-6 w-6 text-primary" />
+                <Handshake className="h-6 w-6 text-success" />
                 <h4 className="font-bold text-lg">¿Recibiste el producto en persona?</h4>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
@@ -1288,7 +1288,7 @@ const Transaction = () => {
               </p>
               <Button 
                 size="lg"
-                className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale" 
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
                 onClick={handleConfirmDelivery}
                 disabled={confirmingDelivery || !!activeAppeal}
               >
@@ -1301,11 +1301,11 @@ const Transaction = () => {
 
         {/* Review Period UI */}
         {isBuyer && transaction.state === "awaiting_buyer_review" && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-warning/30 shadow-xl bg-gradient-to-br from-warning/10 to-warning/5 animate-scale-in">
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Eye className="h-6 w-6 text-primary" />
+                  <Eye className="h-6 w-6 text-warning" />
                   <h4 className="font-bold text-lg">Tu tiempo para revisarlo</h4>
                 </div>
                 {transaction.received_at && (
@@ -1318,7 +1318,7 @@ const Transaction = () => {
               
               <Button 
                 size="lg"
-                className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl hover-scale" 
+                className="w-full bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-lg py-6 shadow-xl hover-scale" 
                 onClick={handleConfirmDelivery}
                 disabled={confirmingDelivery || !!activeAppeal}
               >
@@ -1342,11 +1342,11 @@ const Transaction = () => {
 
         {/* Seller waiting for review */}
         {isSeller && transaction.state === "awaiting_buyer_review" && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-info/30 shadow-xl bg-gradient-to-br from-info/10 to-info/5 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Eye className="h-6 w-6 text-primary" />
+                  <Eye className="h-6 w-6 text-info" />
                   <h4 className="font-bold text-lg">Comprador Revisando</h4>
                 </div>
                 {transaction.received_at && (
@@ -1375,21 +1375,21 @@ const Transaction = () => {
 
         {/* Resolved Appeal Alert */}
         {isAppealResolved && !activeAppeal && (
-          <Card className="border-2 border-primary/20 dark:border-primary shadow-xl bg-primary/5 dark:bg-primary animate-scale-in">
+          <Card className="border-2 border-green-200 dark:border-green-800 shadow-xl bg-green-50 dark:bg-green-950 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-start gap-3 mb-4">
-                <Check className="h-6 w-6 text-primary dark:text-primary shrink-0 mt-1" />
+                <Check className="h-6 w-6 text-green-600 dark:text-green-400 shrink-0 mt-1" />
                 <div className="flex-1">
-                  <h4 className="font-bold text-lg text-primary dark:text-primary/70 mb-1">
+                  <h4 className="font-bold text-lg text-green-900 dark:text-green-100 mb-1">
                     Apelación Resuelta
                   </h4>
-                  <p className="text-sm text-primary dark:text-primary/70 mb-1">
+                  <p className="text-sm text-green-700 dark:text-green-300 mb-1">
                     {transaction.appeal_status === 'resuelta_a_favor_comprador' && 'El caso fue resuelto a favor del comprador.'}
                     {transaction.appeal_status === 'resuelta_a_favor_vendedor' && 'El caso fue resuelto a favor del vendedor.'}
                     {transaction.appeal_status === 'resuelta_parcial' && 'El caso fue resuelto con una distribución parcial de fondos.'}
                     {transaction.appeal_status === 'cerrada' && 'El caso ha sido cerrado.'}
                   </p>
-                  <p className="text-xs text-primary dark:text-primary">
+                  <p className="text-xs text-green-600 dark:text-green-400">
                     Los fondos han sido distribuidos según la resolución.
                   </p>
                 </div>
@@ -1400,12 +1400,12 @@ const Transaction = () => {
 
         {/* Active Appeal Alert - Only show for non-return mediation appeals and when not resolved */}
         {activeAppeal && !activeAppeal.reason_description?.startsWith("[MEDIACIÓN DEVOLUCIÓN]") && !isAppealResolved && (
-          <Card className="border-2 border-primary/20 dark:border-primary bg-primary/5 dark:from-primary/30 dark:to-primary/30 animate-scale-in">
+          <Card className="border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 animate-scale-in">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <AlertCircle className="h-5 w-5 text-primary dark:text-primary" />
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 Apelación Activa
-                <Badge variant="outline" className="ml-auto bg-primary/10 dark:bg-primary text-primary dark:text-primary/70 border-primary/30 dark:border-primary">
+                <Badge variant="outline" className="ml-auto bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700">
                   {activeAppeal.status === "apelacion_abierta" && "Abierta"}
                   {activeAppeal.status === "en_negociacion" && "En negociación"}
                   {activeAppeal.status === "pendiente_intervencion_plataforma" && "Esperando admin"}
@@ -1440,19 +1440,19 @@ const Transaction = () => {
               </div>
 
               {/* Info */}
-              <div className="p-4 bg-primary/10 dark:bg-primary/50 rounded-lg border border-primary/20 dark:border-primary">
+              <div className="p-4 bg-amber-100 dark:bg-amber-900/50 rounded-lg border border-amber-200 dark:border-amber-800">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="h-5 w-5 text-primary dark:text-primary shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <div className="text-sm">
-                    <p className="font-semibold text-primary dark:text-primary/70 mb-2">
+                    <p className="font-semibold text-amber-900 dark:text-amber-100 mb-2">
                       Resolución de conflicto en curso
                     </p>
-                    <p className="text-primary dark:text-primary/70 mb-3">
+                    <p className="text-amber-700 dark:text-amber-300 mb-3">
                       Ambas partes pueden negociar una solución o escalar a un administrador para que tome una decisión.
                     </p>
-                    <div className="bg-primary/5 dark:bg-primary/50 rounded-md p-3 mt-2">
-                      <p className="font-medium text-primary dark:text-primary/70 mb-2">📋 ¿Qué pasará después?</p>
-                      <ol className="list-decimal ml-4 space-y-1 text-primary dark:text-primary/70">
+                    <div className="bg-amber-50 dark:bg-amber-950/50 rounded-md p-3 mt-2">
+                      <p className="font-medium text-amber-800 dark:text-amber-200 mb-2">📋 ¿Qué pasará después?</p>
+                      <ol className="list-decimal ml-4 space-y-1 text-amber-700 dark:text-amber-300">
                         <li>Negocia un acuerdo mutuo con la otra parte</li>
                         <li>Sube evidencia para respaldar tu caso</li>
                         <li>Si no hay acuerdo, un admin tomará la decisión</li>
@@ -1500,18 +1500,18 @@ const Transaction = () => {
 
         {/* Appeal Resolution Result Panel */}
         {isAppealResolved && appealDecision && (
-          <Card className="border-2 border-primary/20 dark:border-primary shadow-xl bg-primary/5 dark:from-primary/30 dark:to-primary/30 animate-scale-in">
+          <Card className="border-2 border-emerald-200 dark:border-emerald-800 shadow-xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-full bg-primary/10 dark:bg-primary flex items-center justify-center shrink-0">
-                  <ShieldCheck className="h-6 w-6 text-primary dark:text-primary" />
+                <div className="h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div className="flex-1 space-y-4">
                   <div>
-                    <p className="font-bold text-lg text-primary dark:text-primary/70">
+                    <p className="font-bold text-lg text-emerald-900 dark:text-emerald-100">
                       {appealDecision.is_mutual_agreement ? "Acuerdo Mutuo Alcanzado" : "Apelación Resuelta"}
                     </p>
-                    <p className="text-sm text-primary dark:text-primary/70">
+                    <p className="text-sm text-emerald-700 dark:text-emerald-300">
                       {appealDecision.is_mutual_agreement && "Las partes llegaron a un acuerdo sin intervención del administrador"}
                       {!appealDecision.is_mutual_agreement && transaction.appeal_status === "resuelta_a_favor_comprador" && "Decisión a favor del comprador"}
                       {!appealDecision.is_mutual_agreement && transaction.appeal_status === "resuelta_a_favor_vendedor" && "Decisión a favor del vendedor"}
@@ -1524,31 +1524,31 @@ const Transaction = () => {
                   {(appealDecision.buyer_refund_amount > 0 || appealDecision.seller_payment_amount > 0) && (
                     <div className="grid grid-cols-2 gap-3">
                       {appealDecision.buyer_refund_amount > 0 && (
-                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-primary/20 dark:border-primary">
-                          <p className="text-xs text-primary dark:text-primary font-medium mb-1">Reembolso al Comprador</p>
-                          <p className="text-lg font-bold text-primary dark:text-primary/70">${formatCLP(appealDecision.buyer_refund_amount)}</p>
+                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">Reembolso al Comprador</p>
+                          <p className="text-lg font-bold text-emerald-900 dark:text-emerald-100">${formatCLP(appealDecision.buyer_refund_amount)}</p>
                         </div>
                       )}
                       {appealDecision.seller_payment_amount > 0 && (
-                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-primary/20 dark:border-primary">
-                          <p className="text-xs text-primary dark:text-primary font-medium mb-1">Pago al Vendedor</p>
-                          <p className="text-lg font-bold text-primary dark:text-primary/70">${formatCLP(appealDecision.seller_payment_amount)}</p>
+                        <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">Pago al Vendedor</p>
+                          <p className="text-lg font-bold text-emerald-900 dark:text-emerald-100">${formatCLP(appealDecision.seller_payment_amount)}</p>
                         </div>
                       )}
                     </div>
                   )}
                   
                   {/* Resolution notes */}
-                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-primary/20 dark:border-primary">
-                    <p className="text-xs font-medium text-primary dark:text-primary mb-1">
+                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
+                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">
                       {appealDecision.is_mutual_agreement ? "Detalle del acuerdo:" : "Notas del administrador:"}
                     </p>
-                    <p className="text-sm text-primary dark:text-primary/70">
+                    <p className="text-sm text-emerald-800 dark:text-emerald-200">
                       {appealDecision.resolution_notes}
                     </p>
                   </div>
                   
-                  <p className="text-xs text-primary dark:text-primary">
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">
                     Resuelto el {new Date(appealDecision.created_at).toLocaleDateString("es-CL", { 
                       day: "numeric", 
                       month: "long", 
@@ -1565,13 +1565,13 @@ const Transaction = () => {
 
         {/* Completed state */}
         {(transaction.state === "completed" || isAppealResolved) && (
-          <Card className="relative overflow-hidden border-0 shadow-2xl bg-primary text-white animate-scale-in">
+          <Card className="relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-success via-emerald-600 to-primary text-white animate-scale-in">
             {/* Confeti */}
             <div className="absolute inset-0 pointer-events-none" aria-hidden>
               {[
-                ["8%", "12%", "bg-primary/30", "0s"], ["22%", "70%", "bg-white", "0.3s"], ["38%", "20%", "bg-primary/30", "0.6s"],
-                ["55%", "78%", "bg-primary/30", "0.2s"], ["70%", "15%", "bg-white", "0.5s"], ["86%", "60%", "bg-primary/30", "0.4s"],
-                ["92%", "25%", "bg-primary/30", "0.1s"], ["15%", "45%", "bg-primary/30", "0.7s"],
+                ["8%", "12%", "bg-amber-300", "0s"], ["22%", "70%", "bg-white", "0.3s"], ["38%", "20%", "bg-pink-300", "0.6s"],
+                ["55%", "78%", "bg-sky-300", "0.2s"], ["70%", "15%", "bg-white", "0.5s"], ["86%", "60%", "bg-amber-300", "0.4s"],
+                ["92%", "25%", "bg-pink-300", "0.1s"], ["15%", "45%", "bg-sky-300", "0.7s"],
               ].map(([left, top, color, delay]) => (
                 <span
                   key={left + top}
@@ -1596,7 +1596,7 @@ const Transaction = () => {
                   {isSeller && (
                     <Button
                       onClick={() => navigate("/wallet")}
-                      className="mt-5 bg-white text-primary hover:bg-white/90 font-bold"
+                      className="mt-5 bg-white text-success hover:bg-white/90 font-bold"
                     >
                       Ver mi billetera
                     </Button>
@@ -1613,7 +1613,7 @@ const Transaction = () => {
                       <Button
                         size="sm"
                         onClick={() => navigate("/verification")}
-                        className="mt-3 bg-white text-primary hover:bg-white/90 font-bold"
+                        className="mt-3 bg-white text-success hover:bg-white/90 font-bold"
                       >
                         Verificarme
                       </Button>
@@ -1629,11 +1629,11 @@ const Transaction = () => {
 
         {/* Rating CTA after completion */}
         {(transaction.state === "completed" || isAppealResolved) && ((isSeller && !hasRatedBuyer && transaction.buyer_id) || (isBuyer && !hasRatedSeller)) && (
-          <Card className="border-2 border-primary/30 shadow-xl bg-primary/10 animate-scale-in">
+          <Card className="border-2 border-warning/30 shadow-xl bg-gradient-to-br from-warning/10 to-warning/5 animate-scale-in">
             <CardContent className="p-6">
               <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 bg-primary/20 rounded-full">
-                  <Star className="h-8 w-8 text-primary" />
+                <div className="p-3 bg-warning/20 rounded-full">
+                  <Star className="h-8 w-8 text-warning" />
                 </div>
                 <div className="flex-1">
                   <p className="font-bold text-xl mb-2">¡Ayúdanos a crecer la confianza!</p>
@@ -1646,7 +1646,7 @@ const Transaction = () => {
                 {isSeller && !hasRatedBuyer && transaction.buyer_id && (
                   <Button
                     size="lg"
-                    className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl"
+                    className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
                     onClick={() => {
                       handleOpenRatingDialog(transaction.buyer_id!, buyerProfile?.full_name || "Comprador", false);
                     }}
@@ -1658,7 +1658,7 @@ const Transaction = () => {
                 {isBuyer && !hasRatedSeller && (
                   <Button
                     size="lg"
-                    className="w-full bg-primary hover:from-primary/90 hover:to-primary/70 text-lg py-6 shadow-xl"
+                    className="w-full bg-gradient-to-r from-warning to-warning/80 hover:from-warning/90 hover:to-warning/70 text-lg py-6 shadow-xl"
                     onClick={() => {
                       handleOpenRatingDialog(transaction.seller_id, sellerProfile?.full_name || "Vendedor", true);
                     }}
@@ -1678,7 +1678,7 @@ const Transaction = () => {
             {isSeller && hasRatedBuyer && isBuyer && hasRatedSeller && (
               <div className="p-4 bg-muted/50 rounded-lg text-center">
                 <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
+                  <Check className="h-4 w-4 text-success" />
                   Ya has calificado esta transacción
                 </p>
               </div>
@@ -1687,7 +1687,7 @@ const Transaction = () => {
             {isSeller && hasRatedBuyer && !isBuyer && (
               <div className="p-4 bg-muted/50 rounded-lg text-center">
                 <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
+                  <Check className="h-4 w-4 text-success" />
                   Ya has calificado al comprador
                 </p>
               </div>
@@ -1696,7 +1696,7 @@ const Transaction = () => {
             {isBuyer && hasRatedSeller && !isSeller && (
               <div className="p-4 bg-muted/50 rounded-lg text-center">
                 <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
+                  <Check className="h-4 w-4 text-success" />
                   Ya has calificado al vendedor
                 </p>
               </div>
@@ -1706,13 +1706,13 @@ const Transaction = () => {
 
         {/* === SECTION 2: INVITE CODE (when waiting for other party) === */}
         {isInitiator && transaction.state === "created" && !joinerProfile && (
-          <Card className="border-2 border-primary/30 shadow-lg bg-primary/20 animate-scale-in">
+          <Card className="border-2 border-info/30 shadow-lg bg-gradient-to-br from-info/20 to-info/5 animate-scale-in">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-3">
-                <div className="p-1.5 sm:p-2 bg-primary rounded-lg animate-pulse">
-                  <Copy className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
+                <div className="p-1.5 sm:p-2 bg-info rounded-lg animate-pulse">
+                  <Copy className="h-4 w-4 sm:h-5 sm:w-5 text-info-foreground" />
                 </div>
-                <h4 className="font-bold text-primary text-base sm:text-lg">
+                <h4 className="font-bold text-info text-base sm:text-lg">
                   Esperando {joinerRoleLabel}
                 </h4>
               </div>
@@ -1721,15 +1721,15 @@ const Transaction = () => {
                   <Input
                     value={transaction.invite_code}
                     readOnly
-                    className="text-center text-lg sm:text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-primary/30"
+                    className="text-center text-lg sm:text-2xl font-mono tracking-widest font-bold bg-background/50 border-2 border-info/30"
                   />
                   <div className="flex gap-2">
                     <Button 
                       onClick={copyInviteCode} 
                       variant="outline"
-                      className="flex-1 border-2 border-primary/30 hover:bg-primary/20 transition-all"
+                      className="flex-1 border-2 border-info/30 hover:bg-info/20 transition-all"
                     >
-                      {copied ? <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary mr-2" /> : <Copy className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />}
+                      {copied ? <Check className="h-4 w-4 sm:h-5 sm:w-5 text-success mr-2" /> : <Copy className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />}
                       <span className="text-sm">Copiar código</span>
                     </Button>
 
@@ -1740,13 +1740,13 @@ const Transaction = () => {
                   variant="outline"
                   className="border-2 border-primary/30 hover:bg-primary/20 transition-all w-full text-sm"
                 >
-                  {copiedLink ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                  {copiedLink ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
                   <span className="ml-2">Copiar enlace de invitación</span>
                 </Button>
               </div>
               <Button
                 onClick={compartirWhatsApp}
-                className="mt-3 w-full h-12 rounded-xl text-base font-bold text-white bg-primary hover:bg-primary/90"
+                className="mt-3 w-full h-12 rounded-xl text-base font-bold text-white bg-[#25D366] hover:bg-[#1ebe5a] shadow-lg shadow-[#25D366]/25"
               >
                 <MessageCircle className="h-5 w-5 mr-2" /> Mandar por WhatsApp
               </Button>
@@ -1825,7 +1825,7 @@ const Transaction = () => {
                 {(() => {
                   if (isAppealResolved) {
                     return (
-                      <Badge className="bg-primary text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
+                      <Badge className="bg-success text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
                         Completada
                       </Badge>
                     );
@@ -1839,7 +1839,7 @@ const Transaction = () => {
                   );
                 })()}
                 {activeAppeal && (
-                  <Badge className="bg-primary text-white text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
+                  <Badge className="bg-amber-500 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 shadow-lg">
                     En Apelación
                   </Badge>
                 )}
@@ -1848,7 +1848,7 @@ const Transaction = () => {
           </CardHeader>
           <CardContent className="pt-4 px-4 sm:px-6">
             <div className="relative overflow-hidden">
-              <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-4 sm:p-5 bg-primary text-white rounded-xl shadow-lg">
+              <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-4 sm:p-5 bg-gradient-to-r from-primary via-medio via-55% to-info text-white rounded-xl shadow-lg">
                 {isBuyer ? (
                   <>
                     <span className="text-sm sm:text-base font-semibold text-white/85">{preDeposito && veoMiComision ? "Tu pago total (con tarjeta)" : "Tu pago total"}</span>
@@ -1887,19 +1887,19 @@ const Transaction = () => {
                   <button
                     type="button"
                     aria-expanded={progressOpen}
-                    className="w-full text-left p-4 bg-primary/20 rounded-xl border border-primary/30 hover:from-primary/25 hover:to-primary/10 transition-colors"
+                    className="w-full text-left p-4 bg-gradient-to-br from-success/20 to-success/5 rounded-xl border border-success/30 hover:from-success/25 hover:to-success/10 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/20 rounded-full">
-                        {transaction.state === 'invited' && <DollarSign className="h-5 w-5 text-primary" />}
-                        {transaction.state === 'funds_secured' && <Shield className="h-5 w-5 text-primary" />}
-                        {transaction.state === 'in_delivery' && <Truck className="h-5 w-5 text-primary" />}
-                        {transaction.state === 'awaiting_buyer_review' && <Eye className="h-5 w-5 text-primary" />}
-                        {['return_requested', 'return_in_progress'].includes(transaction.state) && <Package className="h-5 w-5 text-primary" />}
-                        {!['invited', 'funds_secured', 'in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state) && <Check className="h-5 w-5 text-primary" />}
+                      <div className="p-2 bg-success/20 rounded-full">
+                        {transaction.state === 'invited' && <DollarSign className="h-5 w-5 text-success" />}
+                        {transaction.state === 'funds_secured' && <Shield className="h-5 w-5 text-success" />}
+                        {transaction.state === 'in_delivery' && <Truck className="h-5 w-5 text-success" />}
+                        {transaction.state === 'awaiting_buyer_review' && <Eye className="h-5 w-5 text-success" />}
+                        {['return_requested', 'return_in_progress'].includes(transaction.state) && <Package className="h-5 w-5 text-warning" />}
+                        {!['invited', 'funds_secured', 'in_delivery', 'awaiting_buyer_review', 'return_requested', 'return_in_progress'].includes(transaction.state) && <Check className="h-5 w-5 text-success" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-primary">
+                        <p className="font-semibold text-success">
                           {transaction.state === 'invited' && `Esperando el pago del ${buyerLabel.toLowerCase()}`}
                           {transaction.state === 'funds_secured' && 'Pago retenido en Trado'}
                           {transaction.state === 'in_delivery' && `${transaction.sale_type === 'servicio' ? 'Servicio en proceso' : isDigital ? 'Producto digital entregado' : 'Producto en camino'}`}
@@ -1944,7 +1944,7 @@ const Transaction = () => {
               <div className="space-y-3 sm:space-y-4">
                 {/* Step 1: Room Created */}
                 <div className="flex items-center gap-3 sm:gap-4 group">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-primary text-primary-foreground shrink-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground shrink-0">
                     <Store className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1958,7 +1958,7 @@ const Transaction = () => {
                 {/* Step 2: Client Joined */}
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
-                    joinerProfile ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                    joinerProfile ? 'bg-success text-success-foreground' : 'bg-muted'
                   }`}>
                     <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
@@ -1974,9 +1974,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery || transaction.state === 'funds_secured'
-                      ? 'bg-primary text-primary-foreground' 
+                      ? 'bg-success text-success-foreground' 
                       : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -1997,9 +1997,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : transaction.state === 'funds_secured'
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <Check className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2020,9 +2020,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : passedDelivery
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <Star className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2043,7 +2043,7 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : 'bg-muted'
                   }`}>
                     <Check className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2067,7 +2067,7 @@ const Transaction = () => {
               <div className="space-y-3 sm:space-y-4">
                 {/* Step 1: Room Created */}
                 <div className="flex items-center gap-3 sm:gap-4 group">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-primary text-primary-foreground shrink-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground shrink-0">
                     <Store className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -2081,7 +2081,7 @@ const Transaction = () => {
                 {/* Step 2: Buyer Joined */}
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
-                    joinerProfile ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                    joinerProfile ? 'bg-success text-success-foreground' : 'bg-muted'
                   }`}>
                     <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
@@ -2097,9 +2097,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery || transaction.state === 'funds_secured'
-                      ? 'bg-primary text-primary-foreground' 
+                      ? 'bg-success text-success-foreground' 
                       : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2120,9 +2120,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : transaction.state === 'funds_secured'
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2143,9 +2143,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : passedDelivery
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <Handshake className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2166,7 +2166,7 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : 'bg-muted'
                   }`}>
                     <Check className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2190,7 +2190,7 @@ const Transaction = () => {
               <div className="space-y-3 sm:space-y-4">
                 {/* Step 1: Room Created */}
                 <div className="flex items-center gap-3 sm:gap-4 group">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-primary text-primary-foreground shrink-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg bg-success text-success-foreground shrink-0">
                     <Store className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -2204,7 +2204,7 @@ const Transaction = () => {
                 {/* Step 2: Buyer Joined */}
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
-                    joinerProfile ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                    joinerProfile ? 'bg-success text-success-foreground' : 'bg-muted'
                   }`}>
                     <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
@@ -2220,9 +2220,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery || transaction.state === 'funds_secured'
-                      ? 'bg-primary text-primary-foreground' 
+                      ? 'bg-success text-success-foreground' 
                       : transaction.state === 'awaiting_deposit' || transaction.state === 'invited'
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2243,9 +2243,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedDelivery
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : transaction.state === 'funds_secured'
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <Truck className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2278,9 +2278,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     passedReceived
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : transaction.state === 'in_delivery'
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <Package className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2301,9 +2301,9 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : isInReview
-                      ? 'bg-primary text-primary-foreground animate-pulse'
+                      ? 'bg-warning text-warning-foreground animate-pulse'
                       : 'bg-muted'
                   }`}>
                     <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2326,7 +2326,7 @@ const Transaction = () => {
                 <div className="flex items-center gap-3 sm:gap-4 group">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shadow-lg shrink-0 ${
                     isCompleted
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-success text-success-foreground'
                       : 'bg-muted'
                   }`}>
                     <Check className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -2394,19 +2394,19 @@ const Transaction = () => {
           <CardContent className="px-2 sm:px-6">
             <Accordion type="single" collapsible className="w-full space-y-2">
               {/* Real Seller/Provider */}
-              <AccordionItem value="seller-ratings" className="border rounded-lg bg-gradient-to-br from-primary/5 to-transparent px-2 sm:px-3">
+              <AccordionItem value="seller-ratings" className="border rounded-lg bg-gradient-to-br from-success/5 to-transparent px-2 sm:px-3">
                 <AccordionTrigger className="hover:no-underline py-2 sm:py-3">
                   <div className="flex items-center gap-2 sm:gap-3 w-full">
                     {realSellerProfile ? (
-                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-primary/30 shrink-0">
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-success/30 shrink-0">
                         <AvatarImage src={realSellerProfile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/20 text-primary font-bold text-xs sm:text-sm">
+                        <AvatarFallback className="bg-success/20 text-success font-bold text-xs sm:text-sm">
                           {realSellerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || (isService ? "P" : "V")}
                         </AvatarFallback>
                       </Avatar>
                     ) : (
-                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                        <Store className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-success/20 flex items-center justify-center shrink-0">
+                        <Store className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0 text-left">
@@ -2430,11 +2430,11 @@ const Transaction = () => {
                         <InsigniaVerificacion verificado={!!realSellerProfile.is_verified} tamano="xs" />
                         {Number(realSellerProfile.reputation_score) > 0 ? (
                           <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
-                            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary fill-primary mr-0.5 sm:mr-1" />
+                            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
                             {Number(realSellerProfile.reputation_score).toFixed(1)}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 bg-primary/10 text-primary border-primary/30">
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 bg-info/10 text-info border-info/30">
                             Nuevo en Trado
                           </Badge>
                         )}
@@ -2450,19 +2450,19 @@ const Transaction = () => {
               </AccordionItem>
               
               {/* Real Buyer/Client */}
-              <AccordionItem value="buyer-ratings" className="border rounded-lg bg-gradient-to-br from-primary/5 to-transparent px-2 sm:px-3">
+              <AccordionItem value="buyer-ratings" className="border rounded-lg bg-gradient-to-br from-info/5 to-transparent px-2 sm:px-3">
                 <AccordionTrigger className="hover:no-underline py-2 sm:py-3">
                   <div className="flex items-center gap-2 sm:gap-3 w-full">
                     {realBuyerProfile ? (
-                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-primary/30 shrink-0">
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-info/30 shrink-0">
                         <AvatarImage src={realBuyerProfile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/20 text-primary font-bold text-xs sm:text-sm">
+                        <AvatarFallback className="bg-info/20 text-info font-bold text-xs sm:text-sm">
                           {realBuyerProfile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || "C"}
                         </AvatarFallback>
                       </Avatar>
                     ) : (
-                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                        <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-info/20 flex items-center justify-center shrink-0">
+                        <Users className="h-4 w-4 sm:h-5 sm:w-5 text-info" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0 text-left">
@@ -2486,11 +2486,11 @@ const Transaction = () => {
                         <InsigniaVerificacion verificado={!!realBuyerProfile.is_verified} tamano="xs" />
                         {Number(realBuyerProfile.reputation_score) > 0 ? (
                           <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5">
-                            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary fill-primary mr-0.5 sm:mr-1" />
+                            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning mr-0.5 sm:mr-1" />
                             {Number(realBuyerProfile.reputation_score).toFixed(1)}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 bg-primary/10 text-primary border-primary/30">
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 bg-info/10 text-info border-info/30">
                             Nuevo en Trado
                           </Badge>
                         )}
@@ -2529,15 +2529,15 @@ const Transaction = () => {
         <DialogContent className="sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/10 rounded-full blur-xl animate-pulse" />
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-success/10 rounded-full blur-xl animate-pulse" />
             <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
           </div>
           
           <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
             {/* Animated icon */}
             <div className="mx-auto mb-4 relative">
-              <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
-              <div className="relative w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+              <div className="absolute inset-0 bg-success/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+              <div className="relative w-16 h-16 bg-gradient-to-br from-success to-success/80 rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
                 <Shield className="w-8 h-8 text-white" />
               </div>
             </div>
@@ -2570,7 +2570,7 @@ const Transaction = () => {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">{sellerLabel} recibirá</span>
-                <span className="text-primary font-medium">${formatCLP(vendedorRecibeAlDepositar)}</span>
+                <span className="text-success font-medium">${formatCLP(vendedorRecibeAlDepositar)}</span>
               </div>
               <p className="text-xs text-muted-foreground">
                 Comisión calculada con el saldo de tu billetera: la parte que depositaste con tarjeta paga 5% y el resto,
@@ -2579,12 +2579,12 @@ const Transaction = () => {
             </div>
             
             <div 
-              className="p-4 bg-primary/10 rounded-lg border border-primary/20 animate-fade-in transition-all duration-200 hover:bg-primary/15"
+              className="p-4 bg-warning/10 rounded-lg border border-warning/20 animate-fade-in transition-all duration-200 hover:bg-warning/15"
               style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
             >
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <Lock className="w-4 h-4 text-primary" />
+                <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-4 h-4 text-warning" />
                 </div>
                 <p className="text-sm">
                   Tu dinero queda retenido en Trado. Solo se liberará al {sellerLabel.toLowerCase()} cuando confirmes que
@@ -2595,7 +2595,7 @@ const Transaction = () => {
             
             <Button 
               onClick={handleDeposit} 
-              className="w-full bg-primary hover:bg-primary/90 animate-fade-in group transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/25"
+              className="w-full bg-success hover:bg-success/90 animate-fade-in group transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-success/25"
               style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
               disabled={depositingEscrow}
             >
@@ -2616,7 +2616,7 @@ const Transaction = () => {
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-destructive/10 rounded-full blur-xl animate-pulse" />
-            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-warning/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
           </div>
           
           <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
@@ -2635,12 +2635,12 @@ const Transaction = () => {
           
           <div className="space-y-4 relative">
             <div 
-              className="p-4 bg-primary/10 rounded-lg border border-primary/20 animate-fade-in transition-all duration-200 hover:bg-primary/15"
+              className="p-4 bg-warning/10 rounded-lg border border-warning/20 animate-fade-in transition-all duration-200 hover:bg-warning/15"
               style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
             >
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="w-4 h-4 text-primary" />
+                <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-4 h-4 text-warning" />
                 </div>
                 <p className="text-sm">
                   <strong>Importante:</strong> Solo abre una disputa si hay un problema real. 
@@ -2701,15 +2701,15 @@ const Transaction = () => {
         <DialogContent className="sm:max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/10 rounded-full blur-xl animate-pulse" />
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-info/10 rounded-full blur-xl animate-pulse" />
             <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
           </div>
           
           <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
             {/* Animated icon */}
             <div className="mx-auto mb-4 relative">
-              <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
-              <div className="relative w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+              <div className="absolute inset-0 bg-info/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+              <div className="relative w-16 h-16 bg-gradient-to-br from-info to-info/80 rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
                 <Truck className="w-8 h-8 text-white" />
               </div>
             </div>
@@ -2734,7 +2734,7 @@ const Transaction = () => {
                 value={shippingTrackingNumber}
                 onChange={(e) => setShippingTrackingNumber(e.target.value)}
                 placeholder="Ej: ABC123456789"
-                className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                className="transition-all duration-200 focus:ring-2 focus:ring-info/20"
               />
             </div>
             
@@ -2750,7 +2750,7 @@ const Transaction = () => {
                   if (value !== "otro") setShippingCustomCarrier("");
                 }}
               >
-                <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-info/20">
                   <SelectValue placeholder="Selecciona courier" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2774,7 +2774,7 @@ const Transaction = () => {
                   value={shippingCustomCarrier}
                   onChange={(e) => setShippingCustomCarrier(e.target.value)}
                   placeholder="Ej: DHL, FedEx, etc."
-                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  className="transition-all duration-200 focus:ring-2 focus:ring-info/20"
                 />
               </div>
             )}
@@ -2791,7 +2791,7 @@ const Transaction = () => {
                 Cancelar
               </Button>
               <Button 
-                className="flex-1 bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/25"
+                className="flex-1 bg-info hover:bg-info/90 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-info/25"
                 onClick={handleMarkAsShipped}
                 disabled={markingShipped}
               >
@@ -2816,7 +2816,7 @@ const Transaction = () => {
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader className="text-center pb-4">
             <div 
-              className="mx-auto w-16 h-16 rounded-full bg-primary flex items-center justify-center mb-4 animate-scale-in"
+              className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-info to-info/60 flex items-center justify-center mb-4 animate-scale-in"
               style={{ animationFillMode: 'both' }}
             >
               <ShieldCheck className="h-8 w-8 text-white animate-pulse" />
@@ -2880,7 +2880,7 @@ const Transaction = () => {
                 {/* Creator Reputation */}
                 <div className="flex items-center justify-between p-2 bg-background/50 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-primary" />
+                    <Star className="h-4 w-4 text-warning" />
                     <span className="text-sm">Reputación</span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -2891,7 +2891,7 @@ const Transaction = () => {
                             key={i}
                             className={`h-3.5 w-3.5 ${
                               i < Math.round(creatorProfile.reputation_score)
-                                ? "text-primary fill-primary"
+                                ? "text-warning fill-warning"
                                 : "text-muted-foreground/30"
                             }`}
                           />
@@ -2908,7 +2908,7 @@ const Transaction = () => {
 
                 {/* Verification warning if not verified */}
                 {creatorProfile && !creatorProfile.is_verified && (
-                  <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-lg text-primary text-xs">
+                  <div className="flex items-center gap-2 p-2 bg-warning/10 rounded-lg text-warning text-xs">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
                     <span>Este usuario aún no ha verificado su identidad</span>
                   </div>
@@ -2930,11 +2930,11 @@ const Transaction = () => {
 
               {/* Financial Breakdown */}
               <div 
-                className="bg-primary/10 border border-primary/20 rounded-lg p-4 space-y-3 animate-fade-in"
+                className="bg-success/10 border border-success/20 rounded-lg p-4 space-y-3 animate-fade-in"
                 style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
               >
                 <h4 className="font-semibold flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-primary" />
+                  <DollarSign className="h-4 w-4 text-success" />
                   Desglose Financiero
                 </h4>
                 
@@ -2952,7 +2952,7 @@ const Transaction = () => {
                     <>
                       <div className="flex justify-between font-bold text-base">
                         <span>Total a depositar</span>
-                        <span className="text-primary">${formatCLP(buyerPays)}</span>
+                        <span className="text-success">${formatCLP(buyerPays)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>Lo que recibe el {isService ? 'proveedor' : 'vendedor'}</span>
@@ -2963,7 +2963,7 @@ const Transaction = () => {
                     <>
                       <div className="flex justify-between font-bold text-base">
                         <span>Recibirás</span>
-                        <span className="text-primary">${formatCLP(sellerReceives)}</span>
+                        <span className="text-success">${formatCLP(sellerReceives)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>El {isService ? 'cliente' : 'comprador'} depositará</span>
@@ -2977,13 +2977,13 @@ const Transaction = () => {
               {/* Verification Warning for Unverified Users */}
               {isUserVerified === false && (
                 <div 
-                  className="bg-primary/10 border border-primary/30 rounded-lg p-4 space-y-3 animate-fade-in"
+                  className="bg-warning/10 border border-warning/30 rounded-lg p-4 space-y-3 animate-fade-in"
                   style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
                 >
                   <div className="flex items-start gap-2">
-                    <AlertTriangle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                     <div className="space-y-2">
-                      <p className="font-medium text-primary">Usuario no verificado</p>
+                      <p className="font-medium text-warning">Usuario no verificado</p>
                       <p className="text-sm text-muted-foreground">
                         Tienes límites de transacción activos:
                       </p>
@@ -2994,7 +2994,7 @@ const Transaction = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="mt-2 border-primary/50 text-primary hover:bg-primary/10"
+                        className="mt-2 border-warning/50 text-warning hover:bg-warning/10"
                         onClick={() => {
                           setJoinConfirmDialogOpen(false);
                           navigate("/verification");
@@ -3013,7 +3013,7 @@ const Transaction = () => {
                 className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 rounded-lg p-3 animate-fade-in"
                 style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
               >
-                <Lock className="h-4 w-4 text-primary" />
+                <Lock className="h-4 w-4 text-info" />
                 <p>
                   {canJoinAsBuyer 
                     ? `Tu pago estará 100% protegido hasta que confirmes ${isService ? 'el servicio' : 'la recepción del producto'}.`
@@ -3035,7 +3035,7 @@ const Transaction = () => {
               Cancelar
             </Button>
             <Button
-              className="flex-1 bg-primary hover:bg-primary/90"
+              className="flex-1 bg-info hover:bg-info/90"
               onClick={handleJoin}
               disabled={joiningTransaction}
             >

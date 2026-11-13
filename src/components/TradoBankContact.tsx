@@ -62,7 +62,7 @@ export function TradoBankContact({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <Card className={urgente ? "border border-primary/40 bg-primary/5 shadow-sm" : "border shadow-sm"}>
+      <Card className={urgente ? "border border-info/40 bg-info/5 shadow-sm" : "border shadow-sm"}>
         <CollapsibleTrigger asChild>
           <button
             type="button"
@@ -104,7 +104,7 @@ export function TradoBankContact({
                   <span className={`flex items-center gap-2 min-w-0 text-right ${f.mono ? "font-mono" : "font-medium"}`}>
                     <span className="truncate">{f.value}</span>
                     {copiado === f.label ? (
-                      <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                      <Check className="h-3.5 w-3.5 text-success shrink-0" />
                     ) : (
                       <Copy className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     )}

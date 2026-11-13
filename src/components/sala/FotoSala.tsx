@@ -105,7 +105,7 @@ export function FotoSala({ transactionId, puedeEditar, nombre }: { transactionId
           disabled={subiendo}
           className="w-full flex items-center gap-3 rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 text-left hover:bg-primary/10 transition-colors"
         >
-          <span className="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center shrink-0">
+          <span className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white flex items-center justify-center shrink-0">
             {subiendo ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
           </span>
           <span className="min-w-0">

@@ -147,7 +147,7 @@ const PublicProfile = () => {
       <div className="max-w-lg mx-auto px-4">
         <div className="-mt-12 mb-4 flex items-end justify-between">
           <div className="relative">
-            <Avatar className={`h-24 w-24 border-4 border-background shadow-xl ring-2 ${profile.is_verified ? "ring-primary/80" : "ring-primary/20"}`}>
+            <Avatar className={`h-24 w-24 border-4 border-background shadow-xl ring-2 ${profile.is_verified ? "ring-emerald-400" : "ring-primary/20"}`}>
               <AvatarImage src={profile.avatar_url || undefined} />
               <AvatarFallback className="bg-gradient-to-br from-primary to-[#7C3AED] text-white font-bold text-2xl">
                 {initials}
@@ -180,7 +180,7 @@ const PublicProfile = () => {
             {[1, 2, 3, 4, 5].map((s) => (
               <Star
                 key={s}
-                className={`h-4 w-4 ${s <= reputationStars ? "text-primary fill-primary" : "text-muted-foreground/30"}`}
+                className={`h-4 w-4 ${s <= reputationStars ? "text-warning fill-warning" : "text-muted-foreground/30"}`}
               />
             ))}
           </div>
@@ -204,8 +204,8 @@ const PublicProfile = () => {
 
           <Card className="border-border/60">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Star className="h-5 w-5 text-primary fill-primary" />
+              <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
+                <Star className="h-5 w-5 text-warning fill-warning" />
               </div>
               <div>
                 <p className="text-2xl font-bold leading-none">{(profile.reputation_score ?? 0).toFixed(1)}</p>
@@ -221,20 +221,20 @@ const PublicProfile = () => {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Confianza y seguridad</p>
             <div className="space-y-2.5">
               <div className="flex items-center gap-2.5">
-                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${profile.is_verified ? "bg-primary" : "bg-muted-foreground/40"}`} />
+                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${profile.is_verified ? "bg-success" : "bg-muted-foreground/40"}`} />
                 <span className={`text-sm ${profile.is_verified ? "text-foreground" : "text-muted-foreground"}`}>
                   Identidad verificada
                 </span>
-                {profile.is_verified && <ShieldCheck className="h-3.5 w-3.5 text-primary ml-auto" />}
+                {profile.is_verified && <ShieldCheck className="h-3.5 w-3.5 text-success ml-auto" />}
               </div>
               <div className="flex items-center gap-2.5">
-                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${(profile.total_transactions ?? 0) > 0 ? "bg-primary" : "bg-muted-foreground/40"}`} />
+                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${(profile.total_transactions ?? 0) > 0 ? "bg-success" : "bg-muted-foreground/40"}`} />
                 <span className={`text-sm ${(profile.total_transactions ?? 0) > 0 ? "text-foreground" : "text-muted-foreground"}`}>
                   Historial de transacciones
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
-                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${(profile.reputation_score ?? 0) >= 4 ? "bg-primary" : "bg-muted-foreground/40"}`} />
+                <div className={`h-2 w-2 rounded-full flex-shrink-0 ${(profile.reputation_score ?? 0) >= 4 ? "bg-success" : "bg-muted-foreground/40"}`} />
                 <span className={`text-sm ${(profile.reputation_score ?? 0) >= 4 ? "text-foreground" : "text-muted-foreground"}`}>
                   Reputación alta (≥ 4.0)
                 </span>

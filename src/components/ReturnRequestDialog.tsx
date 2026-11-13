@@ -139,23 +139,23 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
       else setOpen(true);
     }}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full border-2 border-primary/30 hover:bg-primary/10 transition-all duration-200 hover:scale-[1.01]">
-          <RotateCcw className="mr-2 h-5 w-5 text-primary" />
+        <Button variant="outline" className="w-full border-2 border-warning/30 hover:bg-warning/10 transition-all duration-200 hover:scale-[1.01]">
+          <RotateCcw className="mr-2 h-5 w-5 text-warning" />
           Solicitar Devolución
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
         {/* Decorative background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/10 rounded-full blur-xl animate-pulse" />
+          <div className="absolute -top-4 -right-4 w-24 h-24 bg-warning/10 rounded-full blur-xl animate-pulse" />
           <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }} />
         </div>
         
         <DialogHeader className="relative animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
           {/* Animated icon */}
           <div className="mx-auto mb-4 relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
-            <div className="relative w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+            <div className="absolute inset-0 bg-warning/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+            <div className="relative w-16 h-16 bg-gradient-to-br from-warning to-warning/80 rounded-full flex items-center justify-center shadow-lg animate-scale-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               <RotateCcw className="w-8 h-8 text-white" />
             </div>
           </div>
@@ -193,18 +193,18 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
 
               <button
                 onClick={() => handleCategorySelect("buyer_fault")}
-                className="w-full p-4 rounded-lg border-2 border-primary/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 text-left hover:scale-[1.01]"
+                className="w-full p-4 rounded-lg border-2 border-info/30 hover:border-info/50 hover:bg-info/5 transition-all duration-200 text-left hover:scale-[1.01]"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                    <Info className="h-5 w-5 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-info/20 flex items-center justify-center flex-shrink-0">
+                    <Info className="h-5 w-5 text-info" />
                   </div>
                   <div>
-                    <p className="font-semibold text-primary">Arrepentimiento</p>
+                    <p className="font-semibold text-info">Arrepentimiento</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       Cambié de opinión, ya no quiero el producto, o no es lo que esperaba (aunque corresponde a la descripción)
                     </p>
-                    <p className="text-xs text-primary/80 mt-2 font-medium">
+                    <p className="text-xs text-info/80 mt-2 font-medium">
                       → Tú pagarás el envío de retorno
                     </p>
                   </div>
@@ -216,7 +216,7 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
           {/* Step 2: Reason Selection */}
           {step === "reason" && (
             <div className="space-y-4 animate-fade-in" style={{ animationFillMode: 'both' }}>
-              <div className={`p-3 rounded-lg transition-all duration-200 ${responsibilityType === "seller_fault" ? "bg-destructive/10 border border-destructive/20" : "bg-primary/10 border border-primary/20"}`}>
+              <div className={`p-3 rounded-lg transition-all duration-200 ${responsibilityType === "seller_fault" ? "bg-destructive/10 border border-destructive/20" : "bg-info/10 border border-info/20"}`}>
                 <p className="text-sm font-medium">
                   {responsibilityType === "seller_fault" 
                     ? "⚠️ Problema con el producto - El vendedor evaluará tu solicitud"
@@ -270,7 +270,7 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Costo de envío:</span>
-                  <span className={`text-sm font-medium ${responsibilityType === "seller_fault" ? "text-primary" : "text-primary"}`}>
+                  <span className={`text-sm font-medium ${responsibilityType === "seller_fault" ? "text-warning" : "text-info"}`}>
                     {responsibilityType === "seller_fault" ? "Por definir" : "Tú pagas"}
                   </span>
                 </div>
@@ -279,15 +279,15 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
               {/* Warning based on type */}
               {responsibilityType === "seller_fault" ? (
                 <div 
-                  className="p-4 bg-primary/10 rounded-lg border border-primary/20 animate-fade-in transition-all duration-200 hover:bg-primary/15"
+                  className="p-4 bg-warning/10 rounded-lg border border-warning/20 animate-fade-in transition-all duration-200 hover:bg-warning/15"
                   style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <AlertTriangle className="h-4 w-4 text-primary" />
+                    <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="h-4 w-4 text-warning" />
                     </div>
                     <div className="text-sm">
-                      <p className="font-semibold text-primary mb-1">El vendedor evaluará tu solicitud</p>
+                      <p className="font-semibold text-warning mb-1">El vendedor evaluará tu solicitud</p>
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">
                         <li>El vendedor puede <strong>aceptar</strong> (él paga envío)</li>
                         <li>O puede <strong>rechazar</strong> (se escala a mediación)</li>
@@ -298,15 +298,15 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
                 </div>
               ) : (
                 <div 
-                  className="p-4 bg-primary/10 rounded-lg border border-primary/20 animate-fade-in transition-all duration-200 hover:bg-primary/15"
+                  className="p-4 bg-info/10 rounded-lg border border-info/20 animate-fade-in transition-all duration-200 hover:bg-info/15"
                   style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <Info className="h-4 w-4 text-primary" />
+                    <div className="w-8 h-8 rounded-full bg-info/20 flex items-center justify-center flex-shrink-0">
+                      <Info className="h-4 w-4 text-info" />
                     </div>
                     <div className="text-sm">
-                      <p className="font-semibold text-primary mb-1">Proceso automático</p>
+                      <p className="font-semibold text-info mb-1">Proceso automático</p>
                       <ul className="list-disc list-inside text-muted-foreground space-y-1">
                         <li>Deberás enviar el producto con seguimiento</li>
                         <li><strong>Tú pagas</strong> el costo del envío de retorno</li>
@@ -351,7 +351,7 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe el problema con más detalle..."
                   rows={3}
-                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  className="transition-all duration-200 focus:ring-2 focus:ring-warning/20"
                 />
               </div>
 
@@ -365,7 +365,7 @@ export const ReturnRequestDialog = ({ transactionId, userId, commission, onReque
                 <Button 
                   onClick={handleSubmit} 
                   disabled={loading} 
-                  className={`flex-1 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${responsibilityType === "seller_fault" ? "bg-primary hover:bg-primary/90 hover:shadow-primary/25" : "bg-primary hover:bg-primary/90 hover:shadow-primary/25"}`}
+                  className={`flex-1 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${responsibilityType === "seller_fault" ? "bg-warning hover:bg-warning/90 hover:shadow-warning/25" : "bg-info hover:bg-info/90 hover:shadow-info/25"}`}
                 >
                   {loading ? (
                     <>

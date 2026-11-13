@@ -26,7 +26,7 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex min-h-screen items-center justify-center bg-background p-4">
           <div className="text-center max-w-md space-y-4">
-            <AlertTriangle className="h-16 w-16 text-primary mx-auto" />
+            <AlertTriangle className="h-16 w-16 text-warning mx-auto" />
             <h1 className="text-2xl font-bold text-foreground">Algo salió mal</h1>
             <p className="text-muted-foreground">
               Ocurrió un error inesperado. Intenta recargar la página.

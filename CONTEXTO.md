@@ -468,12 +468,6 @@ ni el aviso de cookies.
 
 ### Colores de marca
 
-**En la app, una sola línea de color: el azul `primary`** (decisión del equipo,
-2026-11-13). Fondos lisos, nada de verde/morado/ámbar para tipos de sala,
-estados o botones; el tipo de sala se distingue por el ícono. Rojo
-(`destructive`) solo para lo que de verdad requiere atención (reclamos, errores).
-Lo llamativo y multicolor queda para la landing, el blog e Instagram/EtMday.
-
 La app usa la paleta de los reels y carruseles
 (`Instagram/_sistema/remotion/src/marca.ts`): azul `#2230C2` (`--primary`),
 morado `#7C3AED` (`--info`) y el paso intermedio `#4B35D6` (`--medio`). El
