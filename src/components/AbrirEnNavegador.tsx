@@ -18,7 +18,7 @@ export const AbrirEnNavegador = () => {
   };
 
   return (
-    <div className="mb-2 rounded-lg border border-info/30 bg-info/10 p-3 text-xs text-muted-foreground space-y-2">
+    <div className="mb-2 rounded-lg border border-primary/30 bg-primary/10 p-3 text-xs text-muted-foreground space-y-2">
       <p>
         Estás en el navegador de Instagram. Si Google no te deja entrar, abre Trado en tu navegador.
       </p>

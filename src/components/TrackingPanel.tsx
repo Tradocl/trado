@@ -55,10 +55,10 @@ export function TrackingPanel({ trackingNumber, carrier, titulo = "Seguimiento d
   };
 
   return (
-    <div className="flex items-start gap-3 p-3 bg-info/10 border border-info/20 rounded-lg">
-      <Package className="h-4 w-4 text-info mt-0.5 shrink-0" />
+    <div className="flex items-start gap-3 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+      <Package className="h-4 w-4 text-primary mt-0.5 shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-info mb-1">{titulo}</p>
+        <p className="text-xs font-semibold text-primary mb-1">{titulo}</p>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           <span className="font-medium">{carrierLabel}</span>
           <span>·</span>
@@ -66,7 +66,7 @@ export function TrackingPanel({ trackingNumber, carrier, titulo = "Seguimiento d
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); copiar("Número de seguimiento copiado"); }}
-            className="inline-flex items-center gap-1 text-info hover:underline"
+            className="inline-flex items-center gap-1 text-primary hover:underline"
           >
             {copiado ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             {copiado ? "Copiado" : "Copiar"}
@@ -74,7 +74,7 @@ export function TrackingPanel({ trackingNumber, carrier, titulo = "Seguimiento d
         </div>
         {enlace ? (
           <>
-            <Button variant="link" size="sm" className="h-auto p-0 mt-1.5 text-xs text-info" asChild>
+            <Button variant="link" size="sm" className="h-auto p-0 mt-1.5 text-xs text-primary" asChild>
               <a
                 href={enlace.url}
                 target="_blank"

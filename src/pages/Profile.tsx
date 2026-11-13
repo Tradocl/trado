@@ -52,9 +52,9 @@ const getPasswordStrength = (password: string): { score: number; label: string; 
   if (/[^A-Za-z0-9]/.test(password)) score += 1;
   
   if (score <= 2) return { score: 25, label: "Débil", color: "bg-destructive" };
-  if (score <= 4) return { score: 50, label: "Media", color: "bg-warning" };
-  if (score <= 5) return { score: 75, label: "Fuerte", color: "bg-info" };
-  return { score: 100, label: "Muy fuerte", color: "bg-success" };
+  if (score <= 4) return { score: 50, label: "Media", color: "bg-primary" };
+  if (score <= 5) return { score: 75, label: "Fuerte", color: "bg-primary" };
+  return { score: 100, label: "Muy fuerte", color: "bg-primary" };
 };
 
 interface ProfileData {
@@ -80,17 +80,6 @@ interface ProfileData {
   dashboard_background_url: string | null;
   dashboard_theme: string | null;
 }
-
-const colorOptions = [
-  { value: "primary", label: "Azul", gradient: "from-primary to-primary-light" },
-  { value: "emerald", label: "Verde", gradient: "from-emerald-600 to-emerald-400" },
-  { value: "purple", label: "Púrpura", gradient: "from-purple-600 to-purple-400" },
-  { value: "orange", label: "Naranja", gradient: "from-orange-600 to-orange-400" },
-  { value: "rose", label: "Rosa", gradient: "from-rose-600 to-rose-400" },
-  { value: "cyan", label: "Cian", gradient: "from-cyan-600 to-cyan-400" },
-  { value: "amber", label: "Ámbar", gradient: "from-amber-600 to-amber-400" },
-  { value: "slate", label: "Gris", gradient: "from-slate-700 to-slate-500" },
-];
 
 const bankAccountSchema = z.object({
   bank_holder_name: z.string().trim().min(3, "Nombre debe tener al menos 3 caracteres").max(100, "Nombre muy largo"),
@@ -670,12 +659,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen relative bg-gradient-to-br from-primary/[0.07] via-background to-info/[0.09]">
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-primary/15 blur-3xl" />
-        <div className="absolute top-1/3 -right-32 w-[30rem] h-[30rem] rounded-full bg-info/15 blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 w-[26rem] h-[26rem] rounded-full bg-success/10 blur-3xl" />
-      </div>
+    <div className="min-h-screen relative bg-background">
       <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-md">
         <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-1 sm:gap-3 max-w-2xl">
           <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/dashboard")}>
@@ -690,9 +674,9 @@ const Profile = () => {
       <main className="relative container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-2xl space-y-4 sm:space-y-5">
         {/* Encabezado: quién eres y en qué estado está tu cuenta */}
         <Card className="border-0 shadow-2xl overflow-hidden rounded-3xl bg-card/95 backdrop-blur">
-          <div className="relative h-28 sm:h-32 bg-gradient-to-br from-primary via-medio via-55% to-info overflow-hidden">
+          <div className="relative h-28 sm:h-32 bg-primary overflow-hidden">
             <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/15 blur-2xl" aria-hidden />
-            <div className="absolute -bottom-16 left-10 w-40 h-40 rounded-full bg-success/30 blur-2xl" aria-hidden />
+            <div className="absolute -bottom-16 left-10 w-40 h-40 rounded-full bg-primary/30 blur-2xl" aria-hidden />
           </div>
           <CardContent className="relative pt-0 pb-5">
             {/* Avatar */}
@@ -700,12 +684,12 @@ const Profile = () => {
               <div className="relative">
                 <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-background shadow-xl ring-4 ring-primary/20">
                   <AvatarImage src={profileData?.avatar_url || undefined} />
-                  <AvatarFallback className="text-2xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white font-bold">
+                  <AvatarFallback className="text-2xl bg-primary text-white font-bold">
                     {profileData?.full_name ? getInitials(profileData.full_name) : "U"}
                   </AvatarFallback>
                 </Avatar>
                 <label
-                  className="absolute bottom-1 right-1 p-2 bg-success rounded-full cursor-pointer hover:bg-success/90 transition-colors shadow-lg ring-2 ring-background"
+                  className="absolute bottom-1 right-1 p-2 bg-primary rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-lg ring-2 ring-background"
                   onClick={handleAvatarLabelClick}
                 >
                   <Camera className="h-4 w-4 text-white" />
@@ -738,11 +722,11 @@ const Profile = () => {
                 )}
                 <InsigniaVerificacion verificado={!!profileData?.is_verified} propia />
                 {isProfileComplete ? (
-                  <Badge className="bg-success/10 text-success hover:bg-success/10 border-0">
+                  <Badge className="bg-primary/10 text-primary hover:bg-primary/10 border-0">
                     <CheckCircle2 className="mr-1 h-3 w-3" /> Perfil completo
                   </Badge>
                 ) : (
-                  <Badge className="bg-warning/10 text-warning hover:bg-warning/10 border-0">
+                  <Badge className="bg-primary/10 text-primary hover:bg-primary/10 border-0">
                     <AlertCircle className="mr-1 h-3 w-3" /> Perfil incompleto
                   </Badge>
                 )}
@@ -752,15 +736,15 @@ const Profile = () => {
                   <p className="text-lg sm:text-xl font-extrabold text-primary">{salasCompletadas ?? profileData?.total_transactions ?? 0}</p>
                   <p className="text-[11px] text-muted-foreground leading-tight">Salas completadas</p>
                 </div>
-                <div className="rounded-2xl bg-warning/10 border border-warning/15 px-2 py-2.5">
-                  <p className="text-lg sm:text-xl font-extrabold text-warning flex items-center justify-center gap-1">
-                    <Star className="h-4 w-4 fill-warning" />
+                <div className="rounded-2xl bg-primary/10 border border-primary/15 px-2 py-2.5">
+                  <p className="text-lg sm:text-xl font-extrabold text-primary flex items-center justify-center gap-1">
+                    <Star className="h-4 w-4 fill-primary" />
                     {Number(profileData?.reputation_score) > 0 ? Number(profileData?.reputation_score).toFixed(1) : "—"}
                   </p>
                   <p className="text-[11px] text-muted-foreground leading-tight">Tu nota</p>
                 </div>
-                <div className="rounded-2xl bg-success/10 border border-success/15 px-2 py-2.5">
-                  <p className="text-lg sm:text-xl font-extrabold text-success">
+                <div className="rounded-2xl bg-primary/10 border border-primary/15 px-2 py-2.5">
+                  <p className="text-lg sm:text-xl font-extrabold text-primary">
                     ${formatCLP(profileData?.is_verified ? MAX_TRANSACTION_AMOUNT : UNVERIFIED_LIMITS.PER_TRANSACTION)}
                   </p>
                   <p className="text-[11px] text-muted-foreground leading-tight">Salas de hasta</p>
@@ -798,12 +782,12 @@ const Profile = () => {
                   <p className="text-xs font-semibold text-primary">{listos} de {pasos.length} listos</p>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden mb-3">
-                  <div className="h-full rounded-full bg-gradient-to-r from-success to-primary transition-all" style={{ width: `${(listos / pasos.length) * 100}%` }} />
+                  <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(listos / pasos.length) * 100}%` }} />
                 </div>
                 <div className="divide-y">
                   {pasos.map((x) => (
                     <div key={x.titulo} className="flex items-center gap-3 py-2.5">
-                      <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${x.hecho ? "bg-success text-white" : "bg-muted text-muted-foreground"}`}>
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${x.hecho ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
                         {x.hecho ? <Check className="h-4 w-4" /> : <span className="w-2 h-2 rounded-full bg-current" />}
                       </span>
                       <div className="flex-1 min-w-0">
@@ -930,7 +914,7 @@ const Profile = () => {
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <span className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm shrink-0">
                       <Building2 className="h-5 w-5" />
                     </span>
                     <div>
@@ -1075,7 +1059,7 @@ const Profile = () => {
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <span className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm shrink-0">
                       <Lock className="h-5 w-5" />
                     </span>
                     <div>
@@ -1163,8 +1147,8 @@ const Profile = () => {
                                     <span className="text-xs text-muted-foreground">Fortaleza:</span>
                                     <span className={`text-xs font-medium ${
                                       strength.score <= 25 ? "text-destructive" :
-                                      strength.score <= 50 ? "text-warning" :
-                                      strength.score <= 75 ? "text-info" : "text-success"
+                                      strength.score <= 50 ? "text-primary" :
+                                      strength.score <= 75 ? "text-primary" : "text-primary"
                                     }`}>
                                       {strength.label}
                                     </span>
@@ -1184,11 +1168,11 @@ const Profile = () => {
                                     return (
                                       <div key={index} className="flex items-center gap-2 text-xs">
                                         {passed ? (
-                                          <Check className="h-3 w-3 text-success" />
+                                          <Check className="h-3 w-3 text-primary" />
                                         ) : (
                                           <X className="h-3 w-3 text-destructive" />
                                         )}
-                                        <span className={passed ? "text-success" : "text-muted-foreground"}>
+                                        <span className={passed ? "text-primary" : "text-muted-foreground"}>
                                           {req.label}
                                         </span>
                                       </div>
@@ -1253,7 +1237,7 @@ const Profile = () => {
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="w-10 h-10 rounded-xl bg-violet-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <span className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm shrink-0">
                       <Edit2 className="h-5 w-5" />
                     </span>
                     <div>
@@ -1287,32 +1271,6 @@ const Profile = () => {
                   <p className="text-xs text-muted-foreground">
                     Se mostrará en lugar de tu nombre completo en el dashboard
                   </p>
-                </div>
-
-                {/* Color */}
-                <div className="space-y-2">
-                  <Label>Color de la tarjeta</Label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {colorOptions.map((color) => (
-                      <button
-                        key={color.value}
-                        type="button"
-                        onClick={() => setSelectedColor(color.value)}
-                        className={`relative h-10 rounded-lg bg-gradient-to-br ${color.gradient} transition-all duration-200 ${
-                          selectedColor === color.value
-                            ? "ring-2 ring-offset-2 ring-foreground scale-105"
-                            : "hover:scale-105"
-                        }`}
-                        title={color.label}
-                      >
-                        {selectedColor === color.value && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-2.5 h-2.5 bg-white rounded-full" />
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 {/* Theme */}
@@ -1418,7 +1376,7 @@ const Profile = () => {
                   <Label>Vista previa</Label>
                   <div 
                     className={`relative p-3 rounded-lg overflow-hidden ${
-                      !backgroundUrl ? `bg-gradient-to-br ${colorOptions.find(c => c.value === selectedColor)?.gradient || colorOptions[0].gradient}` : ''
+                      !backgroundUrl ? 'bg-primary' : ''
                     } text-white`}
                     style={backgroundUrl ? { 
                       backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${backgroundUrl})`,

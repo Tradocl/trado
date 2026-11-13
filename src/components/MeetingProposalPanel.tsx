@@ -248,9 +248,9 @@ export const MeetingProposalPanel = ({
   // Show accepted meeting info prominently
   if (acceptedProposal) {
     return (
-      <Card className="border-2 border-success/30 bg-gradient-to-br from-success/10 to-success/5">
+      <Card className="border-2 border-primary/30 bg-primary/10">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-success">
+          <CardTitle className="flex items-center gap-2 text-primary">
             <Check className="h-5 w-5" />
             Encuentro Confirmado
           </CardTitle>
@@ -290,9 +290,9 @@ export const MeetingProposalPanel = ({
   const pendingProposals = proposals.filter(p => p.status === "pending");
 
   return (
-    <Card className="border-2 border-info/30 bg-gradient-to-br from-info/10 to-info/5">
+    <Card className="border-2 border-primary/30 bg-primary/10">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-info">
+        <CardTitle className="flex items-center gap-2 text-primary">
           <Users className="h-5 w-5" />
           Propuestas de Encuentro
         </CardTitle>

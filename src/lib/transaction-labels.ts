@@ -6,9 +6,9 @@ export type StateColor = "neutral" | "info" | "warning" | "success" | "destructi
 
 const COLOR_CLASSES: Record<StateColor, string> = {
   neutral: "bg-secondary text-secondary-foreground",
-  info: "bg-info text-info-foreground",
-  warning: "bg-warning text-warning-foreground",
-  success: "bg-success text-success-foreground",
+  info: "bg-primary text-primary-foreground",
+  warning: "bg-primary text-primary-foreground",
+  success: "bg-primary text-primary-foreground",
   destructive: "bg-destructive text-destructive-foreground",
 };
 

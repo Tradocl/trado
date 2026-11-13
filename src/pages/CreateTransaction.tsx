@@ -35,28 +35,28 @@ const CASOS_CREAR: {
     ejemplo: "Por courier, a cualquier parte de Chile", nombre: "Ej: Zapatillas Nike talla 42",
     detalle: "Estado, talla o modelo, qué incluye y cómo se envía. Ej: Nuevas, en caja, envío por Starken.",
     entrega: "lo envía por courier con seguimiento",
-    caja: "from-emerald-500/15 border-emerald-500/20", sel: "border-emerald-500", icono: "bg-emerald-500 text-white",
+    caja: "border-border", sel: "border-primary", icono: "bg-primary text-white",
   },
   {
     tipo: "producto_persona", icon: Handshake, vendo: "Vendo en persona", compro: "Compro en persona",
     ejemplo: "Se juntan y se revisa ahí mismo", nombre: "Ej: iPhone 13 128GB",
     detalle: "Estado, accesorios y dónde se juntan. Ej: Batería al 89 %, con cargador, nos juntamos en Metro Baquedano.",
     entrega: "se juntan y lo revisa ahí mismo",
-    caja: "from-amber-500/15 border-amber-500/20", sel: "border-amber-500", icono: "bg-amber-500 text-white",
+    caja: "border-border", sel: "border-primary", icono: "bg-primary text-white",
   },
   {
     tipo: "producto_digital", icon: Ticket, vendo: "Vendo una entrada o algo digital", compro: "Compro una entrada o algo digital",
     ejemplo: "Entradas, links, archivos, cuentas", nombre: "Ej: 2 entradas cancha concierto",
     detalle: "Qué es exactamente y cómo se entrega. Ej: 2 entradas cancha general, transferencia por la ticketera.",
     entrega: "manda la entrada, el link o el archivo",
-    caja: "from-rose-500/15 border-rose-500/20", sel: "border-rose-500", icono: "bg-rose-500 text-white",
+    caja: "border-border", sel: "border-primary", icono: "bg-primary text-white",
   },
   {
     tipo: "servicio", icon: Briefcase, vendo: "Cobro un trabajo", compro: "Contrato un trabajo",
     ejemplo: "Diseño, fotos, clases, arreglos…", nombre: "Ej: Diseño de logo para emprendimiento",
     detalle: "Qué incluye, cuántas revisiones y para cuándo. Ej: Logo en 3 propuestas, 2 rondas de cambios, en 7 días.",
     entrega: "hace el trabajo y lo marca como realizado",
-    caja: "from-violet-500/15 border-violet-500/20", sel: "border-violet-500", icono: "bg-violet-500 text-white",
+    caja: "border-border", sel: "border-primary", icono: "bg-primary text-white",
   },
 ];
 
@@ -395,7 +395,7 @@ const CreateTransaction = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-info/5">
+    <div className="min-h-screen bg-background">
       <Helmet>
         <title>Crear sala — Trado</title>
         <meta name="description" content="Crea una sala de Trado: la plata queda retenida hasta que se entrega lo acordado." />
@@ -416,7 +416,7 @@ const CreateTransaction = () => {
         </div>
         {/* Avance */}
         <div className="h-1 bg-muted">
-          <div className="h-full bg-gradient-to-r from-primary via-info to-success transition-all duration-500" style={{ width: `${(paso / 4) * 100}%` }} />
+          <div className="h-full bg-primary transition-all duration-500" style={{ width: `${(paso / 4) * 100}%` }} />
         </div>
       </header>
 
@@ -464,8 +464,8 @@ const CreateTransaction = () => {
                         setMainType(c.tipo === "servicio" ? "servicio" : "producto");
                         setEligioTipo(true);
                       }}
-                      className={`relative text-left rounded-2xl border-2 p-4 bg-gradient-to-b to-card transition-all hover:-translate-y-0.5 hover:shadow-lg ${c.caja} ${
-                        sel ? `${c.sel} shadow-lg` : "border-transparent"
+                      className={`relative text-left rounded-2xl border-2 p-4 bg-card transition-all hover:border-primary/40 ${c.caja} ${
+                        sel ? `${c.sel} bg-primary/5` : "border-border"
                       }`}
                     >
                       {sel && (
@@ -473,7 +473,7 @@ const CreateTransaction = () => {
                           <Check className="h-3.5 w-3.5" />
                         </span>
                       )}
-                      <span className={`w-11 h-11 rounded-2xl ${c.icono} shadow-md flex items-center justify-center mb-3`}>
+                      <span className={`w-11 h-11 rounded-2xl ${c.icono} flex items-center justify-center mb-3`}>
                         <Icon className="h-5 w-5" />
                       </span>
                       <span className="block font-bold">{vendo ? c.vendo : c.compro}</span>
@@ -497,7 +497,7 @@ const CreateTransaction = () => {
         {/* ── Paso 2: qué es ── */}
         {paso === 2 && (
           <div className="space-y-5 animate-fade-in">
-            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium bg-gradient-to-r ${caso.caja} to-card`}>
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium bg-card ${caso.caja}`}>
               <CasoIcon className="h-4 w-4" /> {vendo ? caso.vendo : caso.compro}
             </div>
             <div className="space-y-2">
@@ -564,8 +564,8 @@ const CreateTransaction = () => {
               </div>
 
               {amountTooHigh && (
-                <div className="mt-5 p-4 bg-info/10 rounded-xl border border-info/30 text-sm">
-                  <p className="font-semibold text-info">Monto sobre el máximo</p>
+                <div className="mt-5 p-4 bg-primary/10 rounded-xl border border-primary/30 text-sm">
+                  <p className="font-semibold text-primary">Monto sobre el máximo</p>
                   <p className="text-muted-foreground mt-1">
                     Sobre ${formatCLP(MAX_TRANSACTION_AMOUNT)} coordinamos las condiciones contigo: escríbenos a{" "}
                     <a href="mailto:contacto@trado.cl" className="text-primary underline">contacto@trado.cl</a>.
@@ -575,7 +575,7 @@ const CreateTransaction = () => {
 
               {orderDetails && (
                 <div className="mt-5 space-y-3">
-                  <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-primary via-medio via-55% to-info text-white px-5 py-4 shadow-lg">
+                  <div className="flex items-center justify-between rounded-2xl bg-primary text-white px-5 py-4 shadow-lg">
                     <span className="text-sm font-medium text-white/85">
                       {vendo ? "Recibirás" : sinComision ? "Pagarás" : "Pagarás con tarjeta"}
                     </span>
@@ -584,8 +584,8 @@ const CreateTransaction = () => {
                     </span>
                   </div>
                   {sinComision ? (
-                    <div className="flex items-center gap-3 rounded-2xl bg-success/10 border border-success/30 px-4 py-3">
-                      <Gift className="h-5 w-5 text-success shrink-0" />
+                    <div className="flex items-center gap-3 rounded-2xl bg-primary/10 border border-primary/30 px-4 py-3">
+                      <Gift className="h-5 w-5 text-primary shrink-0" />
                       <p className="text-sm"><b>Tu primera sala va sin comisión.</b> No se descuenta nada.</p>
                     </div>
                   ) : (
@@ -594,7 +594,7 @@ const CreateTransaction = () => {
                 </div>
               )}
               {!orderDetails && !amountTooHigh && tienePrimeraGratis && (
-                <p className="mt-4 text-sm text-success font-medium flex items-center gap-1.5">
+                <p className="mt-4 text-sm text-primary font-medium flex items-center gap-1.5">
                   <Gift className="h-4 w-4" /> Tu primera sala va sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.
                 </p>
               )}
@@ -602,7 +602,7 @@ const CreateTransaction = () => {
 
             {isVerified === false && (
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5 text-warning" />
+                <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
                 Sin verificar puedes usar salas de hasta ${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)} (${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)} en
                 total).{" "}
                 <button type="button" onClick={() => navigate("/verification")} className="text-primary underline">Verificarme</button>
@@ -615,7 +615,7 @@ const CreateTransaction = () => {
         {paso === 4 && orderDetails && (
           <div className="space-y-5 animate-fade-in">
             <div className="rounded-3xl overflow-hidden border shadow-xl bg-card">
-              <div className="bg-gradient-to-r from-primary via-medio via-55% to-info text-white p-5 sm:p-6">
+              <div className="bg-primary text-white p-5 sm:p-6">
                 <div className="flex items-center gap-2 text-sm text-white/80">
                   <CasoIcon className="h-4 w-4" /> {vendo ? caso.vendo : caso.compro}
                 </div>
@@ -636,7 +636,7 @@ const CreateTransaction = () => {
                   </div>
                   <div className="rounded-xl bg-muted/50 p-3">
                     <p className="text-xs text-muted-foreground">Comisión Trado</p>
-                    <p className="font-bold text-lg">{sinComision ? <span className="text-success">$0</span> : `$${formatCLP(orderDetails.appFee)}`}</p>
+                    <p className="font-bold text-lg">{sinComision ? <span className="text-primary">$0</span> : `$${formatCLP(orderDetails.appFee)}`}</p>
                     <p className="text-[11px] text-muted-foreground">{sinComision ? "tu primera sala" : "con tarjeta · menos por transferencia"}</p>
                   </div>
                 </div>
@@ -701,7 +701,7 @@ const CreateTransaction = () => {
           {paso < 4 ? (
             <Button
               size="lg"
-              className={`flex-1 rounded-xl h-14 text-base font-bold bg-gradient-to-r from-primary via-medio via-55% to-info text-white shadow-lg ${puedeSeguir ? "" : "opacity-60"}`}
+              className={`flex-1 rounded-xl h-14 text-base font-bold bg-primary text-white shadow-lg ${puedeSeguir ? "" : "opacity-60"}`}
               onClick={siguiente}
             >
               Seguir <ArrowRight className="h-5 w-5 ml-2" />
@@ -709,7 +709,7 @@ const CreateTransaction = () => {
           ) : (
             <Button
               size="lg"
-              className="flex-1 rounded-xl h-14 text-base font-bold bg-gradient-to-r from-success to-emerald-600 text-white shadow-lg shadow-success/25"
+              className="flex-1 rounded-xl h-14 text-base font-bold bg-primary text-white shadow-lg shadow-primary/25"
               disabled={loading || !termsAccepted || !orderDetails}
               onClick={handleCreateTransaction}
             >
@@ -729,12 +729,12 @@ const CreateTransaction = () => {
       }}>
         <DialogContent className="max-w-sm max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden overscroll-contain p-0">
           {/* Animated background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-success/5 via-transparent to-primary/5 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
           
           {/* Confetti-like decorative elements */}
           <div className="absolute top-0 left-0 w-full h-32 overflow-hidden pointer-events-none">
             <div 
-              className="absolute top-4 left-8 w-2 h-2 bg-success/40 rounded-full animate-bounce"
+              className="absolute top-4 left-8 w-2 h-2 bg-primary/40 rounded-full animate-bounce"
               style={{ animationDelay: '0.1s', animationDuration: '2s' }}
             />
             <div 
@@ -742,15 +742,15 @@ const CreateTransaction = () => {
               style={{ animationDelay: '0.3s', animationDuration: '2.5s' }}
             />
             <div 
-              className="absolute top-6 right-12 w-2 h-2 bg-warning/40 rounded-full animate-bounce"
+              className="absolute top-6 right-12 w-2 h-2 bg-primary/40 rounded-full animate-bounce"
               style={{ animationDelay: '0.5s', animationDuration: '2.2s' }}
             />
             <div 
-              className="absolute top-12 right-20 w-2.5 h-2.5 bg-success/30 rounded-full animate-bounce"
+              className="absolute top-12 right-20 w-2.5 h-2.5 bg-primary/30 rounded-full animate-bounce"
               style={{ animationDelay: '0.2s', animationDuration: '2.8s' }}
             />
             <div 
-              className="absolute top-3 left-1/2 w-1.5 h-1.5 bg-info/40 rounded-full animate-bounce"
+              className="absolute top-3 left-1/2 w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"
               style={{ animationDelay: '0.4s', animationDuration: '2.3s' }}
             />
           </div>
@@ -763,14 +763,14 @@ const CreateTransaction = () => {
               {/* Animated success icon with pulse ring */}
               <div className="relative mb-6">
                 <div 
-                  className="absolute inset-0 bg-success/20 rounded-full animate-ping"
+                  className="absolute inset-0 bg-primary/20 rounded-full animate-ping"
                   style={{ animationDuration: '1.5s' }}
                 />
                 <div 
-                  className="relative p-5 bg-gradient-to-br from-success/20 to-success/10 rounded-full border-2 border-success/30 shadow-lg shadow-success/20 animate-scale-in"
+                  className="relative p-5 bg-primary/20 rounded-full border-2 border-primary/30 shadow-lg shadow-primary/20 animate-scale-in"
                   style={{ animationDelay: '0.2s', animationFillMode: 'backwards' }}
                 >
-                  <CheckCircle2 className="h-14 w-14 text-success drop-shadow-sm" />
+                  <CheckCircle2 className="h-14 w-14 text-primary drop-shadow-sm" />
                 </div>
               </div>
               
@@ -821,7 +821,7 @@ const CreateTransaction = () => {
               style={{ animationDelay: '0.5s', animationFillMode: 'backwards' }}
             >
               <Button
-                className="w-full h-14 text-base font-semibold bg-[#25D366] hover:bg-[#1ebe5b] text-white shadow-lg shadow-[#25D366]/25"
+                className="w-full h-14 text-base font-semibold bg-primary hover:bg-primary/90 text-white"
                 onClick={shareViaWhatsApp}
               >
                 <MessageCircle className="mr-2 h-5 w-5" />
@@ -829,7 +829,7 @@ const CreateTransaction = () => {
               </Button>
               <Button
                 variant="outline"
-                className={`w-full h-12 font-semibold transition-all duration-300 ${copiedLink ? "border-success text-success" : ""}`}
+                className={`w-full h-12 font-semibold transition-all duration-300 ${copiedLink ? "border-primary text-primary" : ""}`}
                 onClick={copyInviteLink}
               >
                 {copiedLink ? (

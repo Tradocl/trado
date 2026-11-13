@@ -39,9 +39,9 @@ interface TransactionChatProps {
 export type EventoSala = { id: string; at: string; texto: string; color?: "success" | "info" | "warning" | "primary" };
 
 const COLOR_EVENTO: Record<string, string> = {
-  success: "bg-success/10 text-success border-success/25",
-  info: "bg-info/10 text-info border-info/25",
-  warning: "bg-warning/10 text-warning border-warning/25",
+  success: "bg-primary/10 text-primary border-primary/25",
+  info: "bg-primary/10 text-primary border-primary/25",
+  warning: "bg-primary/10 text-primary border-primary/25",
   primary: "bg-primary/10 text-primary border-primary/25",
 };
 
@@ -377,20 +377,20 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
                 if (isSystemMessage) {
                   return (
                     <div key={msg.id} className="flex justify-center my-2 sm:my-4">
-                      <div className="max-w-[95%] sm:max-w-[85%] rounded-lg sm:rounded-xl border-2 border-amber-500/30 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 p-2.5 sm:p-4 shadow-lg">
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3 pb-1.5 sm:pb-2 border-b border-amber-300/50 dark:border-amber-700/50">
-                          <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0">
+                      <div className="max-w-[95%] sm:max-w-[85%] rounded-lg sm:rounded-xl border-2 border-primary/30 bg-primary/5 dark:from-primary/30 dark:to-primary/20 p-2.5 sm:p-4 shadow-lg">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3 pb-1.5 sm:pb-2 border-b border-primary/50 dark:border-primary/50">
+                          <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-primary flex items-center justify-center shrink-0">
                             <span className="text-white text-xs sm:text-sm font-bold">T</span>
                           </div>
-                          <span className="font-bold text-xs sm:text-sm text-amber-800 dark:text-amber-200">Trado</span>
-                          <span className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 ml-auto">
+                          <span className="font-bold text-xs sm:text-sm text-primary dark:text-primary/70">Trado</span>
+                          <span className="text-[10px] sm:text-xs text-primary dark:text-primary ml-auto">
                             Sistema
                           </span>
                         </div>
-                        <div className="text-xs sm:text-sm text-amber-900 dark:text-amber-100 space-y-2 sm:space-y-3 whitespace-pre-line">
+                        <div className="text-xs sm:text-sm text-primary dark:text-primary/70 space-y-2 sm:space-y-3 whitespace-pre-line">
                           {displayMessage}
                         </div>
-                        <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 mt-2 sm:mt-3 pt-1.5 sm:pt-2 border-t border-amber-300/50 dark:border-amber-700/50">
+                        <p className="text-[10px] sm:text-xs text-primary dark:text-primary mt-2 sm:mt-3 pt-1.5 sm:pt-2 border-t border-primary/50 dark:border-primary/50">
                           {new Date(msg.created_at).toLocaleTimeString("es-CL", {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -409,7 +409,7 @@ export const TransactionChat = ({ transactionId, sellerId, sellerName, buyerId, 
                     <div
                       className={`max-w-[85%] sm:max-w-[70%] rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 ${
                         isOwn
-                          ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground"
+                          ? "bg-primary text-primary-foreground"
                           : "bg-muted"
                       }`}
                     >

@@ -70,7 +70,7 @@ const SetPassword = () => {
         <title>Crear contraseña — Trado</title>
         <meta name="robots" content="noindex" />
       </Helmet>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-medio via-55% to-info p-4">
+      <div className="min-h-screen flex items-center justify-center bg-primary p-4">
         <Card className="w-full max-w-md shadow-2xl border-0">
           <CardHeader className="space-y-3 text-center">
             <div className="flex justify-center">
@@ -112,7 +112,7 @@ const SetPassword = () => {
                 {requirements.map((r) => {
                   const ok = r.test(password);
                   return (
-                    <li key={r.label} className={`flex items-center gap-2 ${ok ? "text-success" : "text-muted-foreground"}`}>
+                    <li key={r.label} className={`flex items-center gap-2 ${ok ? "text-primary" : "text-muted-foreground"}`}>
                       {ok ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
                       {r.label}
                     </li>

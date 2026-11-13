@@ -33,9 +33,9 @@ const getPasswordStrength = (password: string): { score: number; label: string; 
   if (/[^A-Za-z0-9]/.test(password)) score += 1;
   
   if (score <= 2) return { score: 25, label: "Débil", color: "bg-destructive" };
-  if (score <= 4) return { score: 50, label: "Media", color: "bg-warning" };
-  if (score <= 5) return { score: 75, label: "Fuerte", color: "bg-info" };
-  return { score: 100, label: "Muy fuerte", color: "bg-success" };
+  if (score <= 4) return { score: 50, label: "Media", color: "bg-primary" };
+  if (score <= 5) return { score: 75, label: "Fuerte", color: "bg-primary" };
+  return { score: 100, label: "Muy fuerte", color: "bg-primary" };
 };
 
 const ResetPassword = () => {
@@ -117,7 +117,7 @@ const ResetPassword = () => {
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-info/10">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Verificando sesión...</p>
@@ -128,7 +128,7 @@ const ResetPassword = () => {
 
   if (!isValidSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-info/10 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <Logo height={56} className="mx-auto mb-4" />
@@ -153,7 +153,7 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-info/10 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <Logo height={56} className="mx-auto mb-4" />
@@ -198,8 +198,8 @@ const ResetPassword = () => {
                       <span className="text-xs text-muted-foreground">Fortaleza:</span>
                       <span className={`text-xs font-medium ${
                         getPasswordStrength(password).score <= 25 ? "text-destructive" :
-                        getPasswordStrength(password).score <= 50 ? "text-warning" :
-                        getPasswordStrength(password).score <= 75 ? "text-info" : "text-success"
+                        getPasswordStrength(password).score <= 50 ? "text-primary" :
+                        getPasswordStrength(password).score <= 75 ? "text-primary" : "text-primary"
                       }`}>
                         {getPasswordStrength(password).label}
                       </span>
@@ -218,11 +218,11 @@ const ResetPassword = () => {
                       return (
                         <div key={index} className="flex items-center gap-2 text-xs">
                           {passed ? (
-                            <Check className="h-3 w-3 text-success" />
+                            <Check className="h-3 w-3 text-primary" />
                           ) : (
                             <X className="h-3 w-3 text-destructive" />
                           )}
-                          <span className={passed ? "text-success" : "text-muted-foreground"}>
+                          <span className={passed ? "text-primary" : "text-muted-foreground"}>
                             {req.label}
                           </span>
                         </div>
@@ -264,8 +264,8 @@ const ResetPassword = () => {
                 <div className="flex items-center gap-2 text-xs mt-1">
                   {confirmPassword === password ? (
                     <>
-                      <Check className="h-3 w-3 text-success" />
-                      <span className="text-success">Las contraseñas coinciden</span>
+                      <Check className="h-3 w-3 text-primary" />
+                      <span className="text-primary">Las contraseñas coinciden</span>
                     </>
                   ) : (
                     <>

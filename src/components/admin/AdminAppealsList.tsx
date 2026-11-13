@@ -160,7 +160,7 @@ export function AdminAppealsList() {
               <div>
                 <p className="text-muted-foreground">Motivo</p>
                 <p className="font-medium">
-                  {isReturnMediation(appeal) && <span className="text-amber-600 dark:text-amber-400">⚖️ </span>}
+                  {isReturnMediation(appeal) && <span className="text-primary dark:text-primary">⚖️ </span>}
                   {getReasonLabel(appeal.reason, appeal.reason_description)}
                 </p>
               </div>

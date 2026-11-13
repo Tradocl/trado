@@ -27,9 +27,9 @@ export function ConQuienTratas({ perfil, rol }: { perfil: Perfil; rol: string })
       className="w-full flex items-center gap-3 sm:gap-4 rounded-2xl border bg-card p-3 sm:p-4 shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-left"
     >
       <div className="relative shrink-0">
-        <Avatar className={`h-12 w-12 sm:h-14 sm:w-14 ring-2 ${perfil.is_verified ? "ring-emerald-400" : "ring-primary/20"}`}>
+        <Avatar className={`h-12 w-12 sm:h-14 sm:w-14 ring-2 ${perfil.is_verified ? "ring-primary/80" : "ring-primary/20"}`}>
           <AvatarImage src={perfil.avatar_url || undefined} />
-          <AvatarFallback className="bg-gradient-to-br from-primary via-medio via-55% to-info text-white font-bold">{iniciales}</AvatarFallback>
+          <AvatarFallback className="bg-primary text-white font-bold">{iniciales}</AvatarFallback>
         </Avatar>
         <CheckEnFoto verificado={perfil.is_verified} />
       </div>
@@ -39,8 +39,8 @@ export function ConQuienTratas({ perfil, rol }: { perfil: Perfil; rol: string })
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
           <InsigniaVerificacion verificado={perfil.is_verified} />
           {reputacion > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning px-2 py-0.5 font-semibold">
-              <Star className="h-3.5 w-3.5 fill-warning" /> {reputacion.toFixed(1)}
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2 py-0.5 font-semibold">
+              <Star className="h-3.5 w-3.5 fill-primary" /> {reputacion.toFixed(1)}
             </span>
           )}
           {salas > 0 ? (
@@ -48,7 +48,7 @@ export function ConQuienTratas({ perfil, rol }: { perfil: Perfil; rol: string })
               {salas} {salas === 1 ? "sala" : "salas"} en Trado
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-info/15 text-info px-2 py-0.5 font-semibold">
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2 py-0.5 font-semibold">
               <Sparkles className="h-3.5 w-3.5" /> Nuevo en Trado
             </span>
           )}

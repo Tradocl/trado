@@ -44,7 +44,7 @@ export const RutConBusqueda = ({
         </button>
       </div>
       {validateRUT(rut) ? (
-        <Badge variant="secondary" className="text-success">RUT válido</Badge>
+        <Badge variant="secondary" className="text-primary">RUT válido</Badge>
       ) : (
         <Badge variant="destructive">Dígito verificador no calza</Badge>
       )}

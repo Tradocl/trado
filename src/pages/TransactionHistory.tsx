@@ -13,10 +13,10 @@ import { Logo } from "@/components/Logo";
 
 // Mismos colores que los casos del panel y de crear sala, para reconocer el tipo de un vistazo
 const TIPO: Record<string, { icon: typeof Package; nombre: string; franja: string; icono: string }> = {
-  producto_envio: { icon: Truck, nombre: "Envío", franja: "bg-emerald-500", icono: "bg-emerald-500 text-white" },
-  producto_persona: { icon: Handshake, nombre: "En persona", franja: "bg-amber-500", icono: "bg-amber-500 text-white" },
-  producto_digital: { icon: Ticket, nombre: "Digital", franja: "bg-rose-500", icono: "bg-rose-500 text-white" },
-  servicio: { icon: Briefcase, nombre: "Servicio", franja: "bg-violet-500", icono: "bg-violet-500 text-white" },
+  producto_envio: { icon: Truck, nombre: "Envío", franja: "bg-primary", icono: "bg-primary text-white" },
+  producto_persona: { icon: Handshake, nombre: "En persona", franja: "bg-primary", icono: "bg-primary text-white" },
+  producto_digital: { icon: Ticket, nombre: "Digital", franja: "bg-primary", icono: "bg-primary text-white" },
+  servicio: { icon: Briefcase, nombre: "Servicio", franja: "bg-primary", icono: "bg-primary text-white" },
 };
 const TIPO_OTRO = { icon: Package, nombre: "Sala", franja: "bg-primary", icono: "bg-primary text-white" };
 
@@ -245,7 +245,7 @@ export default function TransactionHistory() {
                 <Calendar className="h-3 w-3" />
                 <span>{fecha ? format(new Date(fecha), "d MMM yyyy", { locale: es }) : "—"}</span>
                 {porReclamo && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning px-2 py-0.5 font-semibold">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2 py-0.5 font-semibold">
                     <Scale className="h-3 w-3" /> Resuelta por reclamo
                   </span>
                 )}
@@ -258,7 +258,7 @@ export default function TransactionHistory() {
               <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground">
                 {porReclamo ? "Monto de la sala" : isSale ? "Recibiste" : "Pagaste"}
               </p>
-              <p className={`text-2xl font-extrabold tracking-tight ${isSale && !porReclamo ? "text-success" : ""}`}>
+              <p className={`text-2xl font-extrabold tracking-tight ${isSale && !porReclamo ? "text-primary" : ""}`}>
                 ${formatCLP(porReclamo ? Number(transaction.amount) : neto)}
               </p>
               {!porReclamo && comisionMia && (
@@ -274,8 +274,8 @@ export default function TransactionHistory() {
                 {otherParty?.full_name || "Usuario"}
               </p>
               {otherParty && Number(otherParty.reputation_score) > 0 && (
-                <p className="text-xs inline-flex items-center gap-0.5 text-warning">
-                  <Star className="h-3 w-3 fill-warning" /> {Number(otherParty.reputation_score).toFixed(1)}
+                <p className="text-xs inline-flex items-center gap-0.5 text-primary">
+                  <Star className="h-3 w-3 fill-primary" /> {Number(otherParty.reputation_score).toFixed(1)}
                 </p>
               )}
             </div>
@@ -283,11 +283,11 @@ export default function TransactionHistory() {
 
           <div className="mt-3 pt-3 border-t">
             {hasRated ? (
-              <span className="text-xs text-success flex items-center gap-1 font-medium">
+              <span className="text-xs text-primary flex items-center gap-1 font-medium">
                 <Check className="h-3.5 w-3.5" /> Ya calificaste
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/15 text-warning px-3 py-1 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 text-primary px-3 py-1 text-xs font-semibold">
                 <Star className="h-3.5 w-3.5" /> Calificar a {isSale ? "quien compró" : "quien vendió"}
               </span>
             )}
@@ -313,7 +313,7 @@ export default function TransactionHistory() {
 
   const Vacio = ({ venta }: { venta: boolean }) => (
     <div className="rounded-3xl bg-card/90 backdrop-blur shadow-md p-8 sm:p-10 text-center">
-      <div className={`mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg ${venta ? "bg-gradient-to-br from-success to-emerald-600" : "bg-gradient-to-br from-info to-violet-600"}`}>
+      <div className={`mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg ${venta ? "bg-primary" : "bg-primary"}`}>
         {venta ? <Store className="h-8 w-8" /> : <ShoppingBag className="h-8 w-8" />}
       </div>
       <h3 className="text-lg sm:text-xl font-bold mb-1">{venta ? "Todavía no completas una venta" : "Todavía no completas una compra"}</h3>
@@ -324,7 +324,7 @@ export default function TransactionHistory() {
       </p>
       <Button
         onClick={() => navigate(venta ? "/create-transaction" : "/join-transaction")}
-        className={`rounded-xl font-bold text-white ${venta ? "bg-success hover:bg-success/90" : "bg-info hover:bg-info/90"}`}
+        className={`rounded-xl font-bold text-white ${venta ? "bg-primary hover:bg-primary/90" : "bg-primary hover:bg-primary/90"}`}
       >
         {venta ? <><Plus className="h-4 w-4 mr-1" /> Crear una sala</> : "Unirme a una sala"}
       </Button>
@@ -348,11 +348,7 @@ export default function TransactionHistory() {
     );
 
   return (
-    <div className="min-h-screen relative bg-gradient-to-br from-primary/[0.07] via-background to-info/[0.09]">
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-primary/15 blur-3xl" />
-        <div className="absolute top-1/3 -right-32 w-[30rem] h-[30rem] rounded-full bg-info/15 blur-3xl" />
-      </div>
+    <div className="min-h-screen relative bg-background">
       <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-md">
         <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-1 sm:gap-3 max-w-5xl">
           <Button variant="ghost" size="sm" className="px-2 sm:px-3" onClick={() => navigate("/dashboard")}>
@@ -364,7 +360,7 @@ export default function TransactionHistory() {
       </header>
 
       <main className="relative container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-5xl space-y-5 sm:space-y-6">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white p-5 sm:p-7 shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl bg-primary text-white p-5 sm:p-7 shadow-2xl">
           <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10 blur-2xl pointer-events-none" aria-hidden />
           <div className="relative">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-2">
@@ -395,11 +391,11 @@ export default function TransactionHistory() {
 
         <Tabs defaultValue={sales.length > purchases.length ? "sales" : "purchases"} className="space-y-4 sm:space-y-5">
           <TabsList className="grid w-full sm:max-w-md grid-cols-2 h-12 rounded-xl bg-card/90 shadow-sm p-1">
-            <TabsTrigger value="purchases" className="rounded-lg h-full flex items-center gap-2 data-[state=active]:bg-info data-[state=active]:text-white">
+            <TabsTrigger value="purchases" className="rounded-lg h-full flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
               <ShoppingBag className="h-4 w-4" />
               Compras ({purchases.length})
             </TabsTrigger>
-            <TabsTrigger value="sales" className="rounded-lg h-full flex items-center gap-2 data-[state=active]:bg-success data-[state=active]:text-white">
+            <TabsTrigger value="sales" className="rounded-lg h-full flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
               <Store className="h-4 w-4" />
               Ventas ({sales.length})
             </TabsTrigger>

@@ -186,7 +186,7 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            <AlertTriangle className="h-5 w-5 text-primary" />
             Solicitar Intervención de Administrador
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
@@ -195,11 +195,11 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
                 Estás a punto de solicitar que un administrador intervenga en este caso.
               </p>
               
-              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-2">
-                <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+              <div className="bg-primary/5 dark:bg-primary/30 border border-primary/20 dark:border-primary rounded-lg p-3 space-y-2">
+                <p className="text-sm font-semibold text-primary dark:text-primary/70">
                   Ten en cuenta:
                 </p>
-                <ul className="text-sm text-amber-800 dark:text-amber-200 space-y-2 list-disc list-inside">
+                <ul className="text-sm text-primary dark:text-primary/70 space-y-2 list-disc list-inside">
                   <li>
                     <strong>Un administrador tomará la decisión final</strong> basándose en la evidencia que ambas partes presenten.
                   </li>
@@ -223,7 +223,7 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
           <AlertDialogAction 
             onClick={handleRequestAdminIntervention}
             disabled={requestingIntervention}
-            className="bg-amber-600 hover:bg-amber-700"
+            className="bg-primary hover:bg-primary"
           >
             {requestingIntervention ? (
               <>
@@ -250,23 +250,23 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
       <CardContent className="pt-6 space-y-4">
         {/* Pending Proposal Alert */}
         {hasPendingProposalForMe && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-300 dark:border-amber-700 rounded-xl p-4 animate-pulse">
+          <div className="bg-primary/5 dark:from-primary/30 dark:to-primary/30 border-2 border-primary/30 dark:border-primary rounded-xl p-4 animate-pulse">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center shrink-0">
-                <Bell className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary flex items-center justify-center shrink-0">
+                <Bell className="h-5 w-5 text-primary dark:text-primary" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-amber-900 dark:text-amber-100">
+                <p className="font-semibold text-primary dark:text-primary/70">
                   ¡Tienes una propuesta pendiente!
                 </p>
-                <p className="text-sm text-amber-700 dark:text-amber-300">
+                <p className="text-sm text-primary dark:text-primary/70">
                   La otra parte te ha enviado una propuesta de acuerdo. Revísala ahora.
                 </p>
               </div>
               <Button 
                 size="sm"
                 onClick={() => setCurrentStep("mutual")}
-                className="bg-amber-600 hover:bg-amber-700"
+                className="bg-primary hover:bg-primary"
               >
                 Ver propuesta
               </Button>
@@ -277,13 +277,13 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
         {/* Option 1: Mutual Agreement */}
         <button
           onClick={() => setCurrentStep("mutual")}
-          className={`w-full text-left border-2 rounded-xl p-5 hover:border-primary hover:bg-primary/5 transition-all group ${hasPendingProposalForMe ? 'border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20' : ''}`}
+          className={`w-full text-left border-2 rounded-xl p-5 hover:border-primary hover:bg-primary/5 transition-all group ${hasPendingProposalForMe ? 'border-primary/30 dark:border-primary bg-primary/50 dark:bg-primary/20' : ''}`}
         >
           <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shrink-0 group-hover:from-green-500/30 group-hover:to-emerald-500/30 transition-colors relative">
-              <Handshake className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0 group-hover:from-primary/30 group-hover:to-primary/30 transition-colors relative">
+              <Handshake className="h-6 w-6 text-primary dark:text-primary" />
               {hasPendingProposalForMe && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-amber-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full flex items-center justify-center text-xs text-white font-bold">
                   1
                 </span>
               )}
@@ -298,10 +298,10 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
                 los fondos se distribuyen automáticamente sin intervención de administradores.
               </p>
               <div className="flex gap-2 mt-3">
-                <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                <span className="text-xs bg-primary/10 dark:bg-primary/30 text-primary dark:text-primary/70 px-2 py-1 rounded-full">
                   Más rápido
                 </span>
-                <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                <span className="text-xs bg-primary/10 dark:bg-primary/30 text-primary dark:text-primary/70 px-2 py-1 rounded-full">
                   Sin esperas
                 </span>
               </div>
@@ -313,14 +313,14 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
         <button
           onClick={() => setShowConfirmDialog(true)}
           disabled={requestingIntervention}
-          className="w-full text-left border-2 rounded-xl p-5 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-all group disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full text-left border-2 rounded-xl p-5 hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/20 transition-all group disabled:opacity-70 disabled:cursor-not-allowed"
         >
           <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center shrink-0 group-hover:from-amber-500/30 group-hover:to-orange-500/30 transition-colors">
+            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0 group-hover:from-primary/30 group-hover:to-primary/30 transition-colors">
               {requestingIntervention ? (
-                <div className="h-6 w-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               ) : (
-                <ShieldAlert className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                <ShieldAlert className="h-6 w-6 text-primary dark:text-primary" />
               )}
             </div>
             <div className="flex-1">
@@ -328,17 +328,17 @@ Por favor, suban toda la evidencia posible (fotos, capturas de pantalla, videos,
                 <h3 className="font-semibold text-lg">
                   {requestingIntervention ? "Solicitando..." : "Solicitar Intervención de Administrador"}
                 </h3>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-amber-500 transition-colors" />
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 No llegamos a un acuerdo. Solicita que un administrador revise la situación 
                 y tome una decisión imparcial. Podrás subir evidencia de tu caso.
               </p>
               <div className="flex gap-2 mt-3">
-                <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded-full">
+                <span className="text-xs bg-primary/10 dark:bg-primary/30 text-primary dark:text-primary/70 px-2 py-1 rounded-full">
                   Revisión imparcial
                 </span>
-                <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-1 rounded-full">
+                <span className="text-xs bg-primary/10 dark:bg-primary/30 text-primary dark:text-primary/70 px-2 py-1 rounded-full">
                   Decisión final
                 </span>
               </div>

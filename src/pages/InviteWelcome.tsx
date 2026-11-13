@@ -102,7 +102,7 @@ const InviteWelcome = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-muted flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Cargando invitación...</div>
       </div>
     );
@@ -110,7 +110,7 @@ const InviteWelcome = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-muted flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -126,7 +126,7 @@ const InviteWelcome = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-muted">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -142,7 +142,7 @@ const InviteWelcome = () => {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Invitation Card */}
         <Card className="mb-8 border-2 border-primary/20 shadow-xl overflow-hidden animate-fade-in">
-          <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 border-b">
+          <div className="bg-primary/10 p-6 border-b">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-xl animate-scale-in">
                 <Handshake className="h-8 w-8 text-primary" />
@@ -157,7 +157,7 @@ const InviteWelcome = () => {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg transition-transform hover:scale-[1.02]">
                 <div className="p-2 bg-background rounded-lg">
-                  {isService ? <Wrench className="h-5 w-5 text-info" /> : <Package className="h-5 w-5 text-info" />}
+                  {isService ? <Wrench className="h-5 w-5 text-primary" /> : <Package className="h-5 w-5 text-primary" />}
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Tipo</p>
@@ -166,7 +166,7 @@ const InviteWelcome = () => {
               </div>
               <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg transition-transform hover:scale-[1.02]">
                 <div className="p-2 bg-background rounded-lg">
-                  <DollarSign className="h-5 w-5 text-success" />
+                  <DollarSign className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Monto total</p>
@@ -218,8 +218,8 @@ const InviteWelcome = () => {
           <div className="grid sm:grid-cols-3 gap-4">
             <Card className="bg-card/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               <CardContent className="pt-6 text-center">
-                <div className="p-3 bg-success/10 rounded-full w-fit mx-auto mb-3">
-                  <Lock className="h-6 w-6 text-success" />
+                <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-3">
+                  <Lock className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold mb-1">Dinero Protegido</h3>
                 <p className="text-sm text-muted-foreground">
@@ -229,8 +229,8 @@ const InviteWelcome = () => {
             </Card>
             <Card className="bg-card/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
               <CardContent className="pt-6 text-center">
-                <div className="p-3 bg-info/10 rounded-full w-fit mx-auto mb-3">
-                  <Shield className="h-6 w-6 text-info" />
+                <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-3">
+                  <Shield className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold mb-1">Mediación Gratuita</h3>
                 <p className="text-sm text-muted-foreground">
@@ -240,8 +240,8 @@ const InviteWelcome = () => {
             </Card>
             <Card className="bg-card/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
               <CardContent className="pt-6 text-center">
-                <div className="p-3 bg-warning/10 rounded-full w-fit mx-auto mb-3">
-                  <Users className="h-6 w-6 text-warning" />
+                <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-3">
+                  <Users className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold mb-1">Chat Integrado</h3>
                 <p className="text-sm text-muted-foreground">

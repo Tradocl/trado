@@ -158,37 +158,37 @@ export default function Appeal() {
         label: "En Negociación", 
         variant: "secondary",
         icon: MessageSquare,
-        color: "text-amber-500"
+        color: "text-primary"
       },
       pendiente_intervencion_plataforma: { 
         label: "Pendiente Revisión", 
         variant: "outline",
         icon: Clock,
-        color: "text-blue-500"
+        color: "text-primary"
       },
       en_revision_plataforma: { 
         label: "En Revisión", 
         variant: "outline",
         icon: ShieldAlert,
-        color: "text-purple-500"
+        color: "text-primary"
       },
       resuelta_a_favor_comprador: { 
         label: "Resuelta - Comprador", 
         variant: "default",
         icon: CheckCircle2,
-        color: "text-green-500"
+        color: "text-primary"
       },
       resuelta_a_favor_vendedor: { 
         label: "Resuelta - Vendedor", 
         variant: "default",
         icon: CheckCircle2,
-        color: "text-green-500"
+        color: "text-primary"
       },
       resuelta_parcial: { 
         label: "Resuelta Parcial", 
         variant: "default",
         icon: CheckCircle2,
-        color: "text-green-500"
+        color: "text-primary"
       },
       cerrada: { 
         label: "Cerrada", 
@@ -211,17 +211,17 @@ export default function Appeal() {
       servicio: { 
         label: "Servicio", 
         icon: Briefcase,
-        color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+        color: "bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary/70"
       },
       producto_persona: { 
         label: "Producto - Entrega en persona", 
         icon: Users,
-        color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+        color: "bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary/70"
       },
       producto_envio: { 
         label: "Producto - Envío", 
         icon: Truck,
-        color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+        color: "bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary/70"
       },
     };
     return configs[saleType] || { 
@@ -256,7 +256,7 @@ export default function Appeal() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent"></div>
@@ -269,7 +269,7 @@ export default function Appeal() {
 
   if (!appeal || !transaction) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -297,7 +297,7 @@ export default function Appeal() {
   const isResolved = ["resuelta_a_favor_comprador", "resuelta_a_favor_vendedor", "resuelta_parcial", "cerrada"].includes(appeal.status);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
@@ -321,7 +321,7 @@ export default function Appeal() {
           </div>
 
           {isReturnMediation && (
-            <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-primary/10 dark:bg-primary/30 border border-primary/30 dark:border-primary text-primary dark:text-primary/70 px-4 py-3 rounded-lg text-sm">
               <p className="font-medium mb-1">⚖️ Mediación de Costo de Envío</p>
               <p>Un administrador decidirá quién debe pagar el envío de retorno. Puedes subir evidencia y comunicarte por el chat mientras esperas la resolución.</p>
             </div>
@@ -413,18 +413,18 @@ export default function Appeal() {
 
             {/* Platform Review Alert */}
             {appeal.status === "pendiente_intervencion_plataforma" && (
-              <Card className="border-2 shadow-lg border-blue-200 dark:border-blue-800">
+              <Card className="border-2 shadow-lg border-primary/20 dark:border-primary">
                 <CardContent className="pt-6">
-                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="bg-primary/5 dark:from-primary/30 dark:to-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
                     <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
-                        <ShieldAlert className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary flex items-center justify-center shrink-0">
+                        <ShieldAlert className="h-5 w-5 text-primary dark:text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                        <p className="font-semibold text-primary dark:text-primary/70 mb-1">
                           Esperando Revisión de la Plataforma
                         </p>
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                        <p className="text-sm text-primary dark:text-primary/70">
                           Un árbitro revisará toda la evidencia y conversaciones para tomar una decisión justa. 
                           Recibirás una notificación cuando el caso sea resuelto.
                         </p>
@@ -437,18 +437,18 @@ export default function Appeal() {
 
             {/* Resolution Decision */}
             {isResolved && decision && (
-              <Card className="border-2 shadow-lg border-green-200 dark:border-green-800">
+              <Card className="border-2 shadow-lg border-primary/20 dark:border-primary">
                 <CardContent className="pt-6 space-y-4">
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                  <div className="bg-primary/5 dark:from-primary/30 dark:to-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
                     <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="h-5 w-5 text-primary dark:text-primary" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-green-900 dark:text-green-100 mb-1">
+                        <p className="font-semibold text-primary dark:text-primary/70 mb-1">
                           {decision.is_mutual_agreement ? "Acuerdo Mutuo Alcanzado" : "Caso Resuelto"}
                         </p>
-                        <p className="text-sm text-green-700 dark:text-green-300 mb-3">
+                        <p className="text-sm text-primary dark:text-primary/70 mb-3">
                           {decision.is_mutual_agreement && "Las partes llegaron a un acuerdo sin intervención"}
                           {!decision.is_mutual_agreement && appeal.status === "resuelta_a_favor_comprador" && "Decisión a favor del comprador"}
                           {!decision.is_mutual_agreement && appeal.status === "resuelta_a_favor_vendedor" && "Decisión a favor del vendedor"}
@@ -460,13 +460,13 @@ export default function Appeal() {
                           <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
                             {decision.buyer_refund_amount > 0 && (
                               <div className="bg-white/50 dark:bg-black/20 rounded-md p-2">
-                                <p className="text-green-600 dark:text-green-400 font-medium">Reembolso Comprador</p>
+                                <p className="text-primary dark:text-primary font-medium">Reembolso Comprador</p>
                                 <p className="font-bold">{formatCLP(decision.buyer_refund_amount)}</p>
                               </div>
                             )}
                             {decision.seller_payment_amount > 0 && (
                               <div className="bg-white/50 dark:bg-black/20 rounded-md p-2">
-                                <p className="text-green-600 dark:text-green-400 font-medium">Pago Vendedor</p>
+                                <p className="text-primary dark:text-primary font-medium">Pago Vendedor</p>
                                 <p className="font-bold">{formatCLP(decision.seller_payment_amount)}</p>
                               </div>
                             )}
@@ -474,15 +474,15 @@ export default function Appeal() {
                         )}
                         
                         <div className="bg-white/50 dark:bg-black/20 rounded-md p-3">
-                          <p className="text-sm font-medium text-green-800 dark:text-green-200 mb-1">
+                          <p className="text-sm font-medium text-primary dark:text-primary/70 mb-1">
                             {decision.is_mutual_agreement ? "Detalle del Acuerdo:" : "Notas del Administrador:"}
                           </p>
-                          <p className="text-sm text-green-700 dark:text-green-300">
+                          <p className="text-sm text-primary dark:text-primary/70">
                             {decision.resolution_notes}
                           </p>
                         </div>
                         
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                        <p className="text-xs text-primary dark:text-primary mt-2">
                           Resuelto el {new Date(decision.created_at).toLocaleDateString("es-CL", { 
                             day: "numeric", 
                             month: "long", 

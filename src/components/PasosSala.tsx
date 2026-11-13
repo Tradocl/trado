@@ -30,7 +30,7 @@ export const PasosSala = ({ saleType, state, conAmbos }: { saleType: string; sta
       <div className="flex items-center justify-between gap-3 mb-2.5">
         <p className="text-sm font-semibold">
           {terminado ? (
-            <span className="text-success">Sala completada</span>
+            <span className="text-primary">Sala completada</span>
           ) : (
             <>
               <span className="text-muted-foreground font-medium">Paso {actual} de {pasos.length} · </span>
@@ -50,16 +50,16 @@ export const PasosSala = ({ saleType, state, conAmbos }: { saleType: string; sta
                 <span
                   className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
                     hecho
-                      ? "bg-success text-white"
+                      ? "bg-primary text-white"
                       : ahora
-                        ? "bg-gradient-to-br from-primary via-medio via-55% to-info text-white ring-4 ring-primary/15"
+                        ? "bg-primary text-white ring-4 ring-primary/15"
                         : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {hecho ? <Check className="h-3.5 w-3.5" /> : n}
                 </span>
                 {n < pasos.length && (
-                  <span className={`h-0.5 flex-1 rounded-full ${hecho ? "bg-success" : "bg-muted"}`} />
+                  <span className={`h-0.5 flex-1 rounded-full ${hecho ? "bg-primary" : "bg-muted"}`} />
                 )}
               </div>
               <span

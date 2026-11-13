@@ -173,8 +173,8 @@ export default function Support() {
           <CardContent>
             {sent ? (
               <div className="text-center py-6">
-                <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-3">
-                  <Mail className="h-6 w-6 text-success" />
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Mail className="h-6 w-6 text-primary" />
                 </div>
                 <p className="font-medium mb-1">Mensaje enviado</p>
                 <p className="text-sm text-muted-foreground mb-4">

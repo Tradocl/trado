@@ -116,31 +116,31 @@ export default function ReturnRoom() {
         label: "Pendiente", 
         variant: "secondary",
         icon: Clock,
-        color: "text-amber-500"
+        color: "text-primary"
       },
       disputed: { 
         label: "En Mediación", 
         variant: "outline",
         icon: Scale,
-        color: "text-blue-500"
+        color: "text-primary"
       },
       accepted: { 
         label: "Aceptada", 
         variant: "default",
         icon: CheckCircle2,
-        color: "text-green-500"
+        color: "text-primary"
       },
       shipped: { 
         label: "Producto Enviado", 
         variant: "default",
         icon: Truck,
-        color: "text-purple-500"
+        color: "text-primary"
       },
       completed: { 
         label: "Completada", 
         variant: "default",
         icon: CheckCircle2,
-        color: "text-green-500"
+        color: "text-primary"
       },
     };
     
@@ -154,7 +154,7 @@ export default function ReturnRoom() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent"></div>
@@ -167,7 +167,7 @@ export default function ReturnRoom() {
 
   if (!returnRequest || !transaction) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -197,7 +197,7 @@ export default function ReturnRoom() {
   const isSeller = user?.id === transaction.seller_id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
@@ -211,7 +211,7 @@ export default function ReturnRoom() {
           </Button>
 
           <div className="flex items-center gap-3 mb-2">
-            <div className={`h-10 w-10 rounded-full bg-gradient-to-br from-warning/20 to-orange-500/20 flex items-center justify-center ${statusConfig.color}`}>
+            <div className={`h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center ${statusConfig.color}`}>
               <RotateCcw className="h-5 w-5" />
             </div>
             <div>
@@ -226,7 +226,7 @@ export default function ReturnRoom() {
           <div className="lg:col-span-2 space-y-6">
             {/* Status Card */}
             <Card className="border-2 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-warning/5 to-orange-500/5">
+              <CardHeader className="bg-primary/5">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <StatusIcon className="h-5 w-5" />
@@ -278,7 +278,7 @@ export default function ReturnRoom() {
                     <Separator className="my-4" />
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-muted-foreground">Notas de Resolución</p>
-                      <p className="text-sm leading-relaxed bg-green-50 dark:bg-green-950/30 p-3 rounded-lg border border-green-200 dark:border-green-800">
+                      <p className="text-sm leading-relaxed bg-primary/5 dark:bg-primary/30 p-3 rounded-lg border border-primary/20 dark:border-primary">
                         {returnRequest.admin_notes}
                       </p>
                     </div>
@@ -289,24 +289,24 @@ export default function ReturnRoom() {
 
             {/* Mediation Status Alert */}
             {isInMediation && (
-              <Card className="border-2 shadow-lg border-blue-200 dark:border-blue-800">
+              <Card className="border-2 shadow-lg border-primary/20 dark:border-primary">
                 <CardContent className="pt-6">
-                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="bg-primary/5 dark:from-primary/30 dark:to-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
                     <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
-                        <ShieldAlert className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary flex items-center justify-center shrink-0">
+                        <ShieldAlert className="h-5 w-5 text-primary dark:text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                        <p className="font-semibold text-primary dark:text-primary/70 mb-1">
                           En Mediación - Esperando Decisión del Administrador
                         </p>
-                        <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                        <p className="text-sm text-primary dark:text-primary/70 mb-3">
                           Un árbitro revisará la evidencia y decidirá quién debe pagar el costo del envío de retorno.
                           Puedes subir evidencia adicional y comunicarte por el chat.
                         </p>
-                        <div className="bg-blue-100 dark:bg-blue-900/50 rounded-md p-3 text-sm">
+                        <div className="bg-primary/10 dark:bg-primary/50 rounded-md p-3 text-sm">
                           <p className="font-medium mb-2">📋 ¿Qué pasará después de la mediación?</p>
-                          <ol className="list-decimal ml-4 space-y-1 text-blue-800 dark:text-blue-200">
+                          <ol className="list-decimal ml-4 space-y-1 text-primary dark:text-primary/70">
                             <li>El admin decidirá quién paga el envío de retorno</li>
                             <li>El comprador enviará el producto de vuelta</li>
                             <li>El vendedor confirmará la recepción</li>
@@ -322,26 +322,26 @@ export default function ReturnRoom() {
 
             {/* Resolution Result */}
             {isResolved && returnRequest.shipping_paid_by && (
-              <Card className="border-2 shadow-lg border-green-200 dark:border-green-800">
+              <Card className="border-2 shadow-lg border-primary/20 dark:border-primary">
                 <CardContent className="pt-6">
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                  <div className="bg-primary/5 dark:from-primary/30 dark:to-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
                     <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="h-5 w-5 text-primary dark:text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold text-green-900 dark:text-green-100 mb-1">
+                        <p className="font-semibold text-primary dark:text-primary/70 mb-1">
                           Mediación Resuelta
                         </p>
-                        <p className="text-sm text-green-700 dark:text-green-300 mb-3">
+                        <p className="text-sm text-primary dark:text-primary/70 mb-3">
                           {returnRequest.shipping_paid_by === "seller" 
                             ? "El vendedor pagará el costo del envío de retorno."
                             : "El comprador pagará el costo del envío de retorno."}
                         </p>
                         
                         {returnRequest.status === "accepted" && isBuyer && (
-                          <div className="bg-green-100 dark:bg-green-900/50 rounded-md p-3 text-sm">
-                            <p className="font-medium text-green-800 dark:text-green-200">
+                          <div className="bg-primary/10 dark:bg-primary/50 rounded-md p-3 text-sm">
+                            <p className="font-medium text-primary dark:text-primary/70">
                               📦 Ahora puedes enviar el producto de vuelta desde la sala de transacción.
                             </p>
                           </div>

@@ -309,14 +309,14 @@ const Verification = () => {
     switch (status) {
       case 'approved':
         return (
-          <Badge className="bg-success text-white">
+          <Badge className="bg-primary text-white">
             <CheckCircle className="w-4 h-4 mr-1" />
             Verificado
           </Badge>
         );
       case 'in_review':
         return (
-          <Badge className="bg-info text-white">
+          <Badge className="bg-primary text-white">
             <Clock className="w-4 h-4 mr-1" />
             En Revisión
           </Badge>
@@ -374,7 +374,7 @@ const Verification = () => {
           <CardContent className="space-y-6">
             {profile.verification_status === 'approved' ? (
               <div className="text-center py-8">
-                <CheckCircle className="h-16 w-16 text-success mx-auto mb-4" />
+                <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">¡Identidad Verificada!</h3>
                 <p className="text-muted-foreground">
                   Tu cuenta tiene el sello de verificación.
@@ -382,7 +382,7 @@ const Verification = () => {
               </div>
             ) : profile.verification_status === 'in_review' ? (
               <div className="text-center py-8">
-                <Clock className="h-16 w-16 text-info mx-auto mb-4" />
+                <Clock className="h-16 w-16 text-primary mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">En Revisión</h3>
                 <p className="text-muted-foreground">
                   Tu documento está siendo revisado por nuestro equipo.

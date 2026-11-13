@@ -36,7 +36,7 @@ export function PushNotificationBanner() {
   }
 
   return (
-    <Card className="border-0 shadow-lg bg-gradient-to-r from-primary/10 to-primary/5 animate-fade-in">
+    <Card className="border-0 shadow-lg bg-primary/10 animate-fade-in">
       <CardContent className="p-4 flex items-center gap-3">
         <div className="p-2 rounded-full bg-primary/20 flex-shrink-0">
           <Bell className="h-5 w-5 text-primary" />

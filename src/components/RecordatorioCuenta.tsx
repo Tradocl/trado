@@ -96,7 +96,7 @@ export const RecordatorioCuenta = ({ userId, perfilCompleto, estadoVerificacion,
       aria-label={contenido.titulo}
       className="fixed z-50 inset-x-3 bottom-20 sm:bottom-6 sm:left-auto sm:right-6 sm:w-[380px] animate-in slide-in-from-bottom-6 fade-in duration-500"
     >
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2230C2] via-[#4B35D6] via-55% to-[#7C3AED] text-white shadow-[0_20px_60px_-15px_rgba(31,37,193,0.7)] p-5">
+      <div className="relative overflow-hidden rounded-3xl bg-primary text-white shadow-[0_20px_60px_-15px_rgba(31,37,193,0.7)] p-5">
         <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
         <button onClick={posponer} aria-label="Cerrar" className="absolute top-3 right-3 p-1.5 rounded-full text-white/70 hover:text-white hover:bg-white/10">
           <X className="h-4 w-4" />
@@ -113,7 +113,7 @@ export const RecordatorioCuenta = ({ userId, perfilCompleto, estadoVerificacion,
         <p className="text-sm text-white/85 mt-3 leading-relaxed">{contenido.texto}</p>
         <div className="flex gap-1.5 mt-4">
           {[1, 2].map((n) => (
-            <span key={n} className={`h-1.5 flex-1 rounded-full ${n < contenido.paso ? "bg-emerald-300" : n === contenido.paso ? "bg-white" : "bg-white/25"}`} />
+            <span key={n} className={`h-1.5 flex-1 rounded-full ${n < contenido.paso ? "bg-primary/30" : n === contenido.paso ? "bg-white" : "bg-white/25"}`} />
           ))}
         </div>
         <div className="flex items-center gap-2 mt-4">

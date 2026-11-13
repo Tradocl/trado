@@ -483,9 +483,9 @@ export const CompleteProfileModal = ({ open, onClose, onComplete }: CompleteProf
           </div>
 
           {/* Info message */}
-          <div className="p-3 bg-info/10 rounded-lg border border-info/20">
+          <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
             <p className="text-xs text-muted-foreground">
-              <strong className="text-info">¿Por qué pedimos estos datos?</strong><br />
+              <strong className="text-primary">¿Por qué pedimos estos datos?</strong><br />
               Tu RUT y teléfono son necesarios para verificar tu identidad y proteger las transacciones. 
               La dirección es importante para entregas en persona.
             </p>

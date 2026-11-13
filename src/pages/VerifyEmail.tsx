@@ -115,14 +115,14 @@ const VerifyEmail = () => {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-medio via-55% to-info p-4">
+      <div className="min-h-screen flex items-center justify-center bg-primary p-4">
         <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-medio via-55% to-info p-4">
+    <div className="min-h-screen flex items-center justify-center bg-primary p-4">
       <Card className="w-full max-w-md shadow-2xl border-0 animate-in fade-in zoom-in-95 duration-500">
         <CardHeader className="text-center space-y-4 pb-2">
           <div className="flex justify-center">
@@ -130,8 +130,8 @@ const VerifyEmail = () => {
           </div>
           {verified ? (
             <>
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="h-8 w-8 text-primary" />
               </div>
               <h1 className="text-xl font-semibold">¡Correo verificado!</h1>
             </>

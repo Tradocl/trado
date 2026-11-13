@@ -619,7 +619,7 @@ const Wallet = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-muted">
+    <div className="min-h-screen bg-background">
       <Helmet>
         <title>Mi billetera — Trado</title>
         <meta name="description" content="Administra tu saldo, depósitos y retiros en Trado." />
@@ -637,7 +637,7 @@ const Wallet = () => {
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
-        <Card className="relative overflow-hidden border-0 shadow-2xl rounded-3xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white">
+        <Card className="relative overflow-hidden border-0 shadow-2xl rounded-3xl bg-primary text-white">
           <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10 blur-2xl pointer-events-none" aria-hidden />
           <CardHeader className="relative pb-2 sm:pb-4">
             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2 text-white/90">
@@ -681,7 +681,7 @@ const Wallet = () => {
         <div className="grid grid-cols-2 gap-2 sm:gap-4">
           <Button
             size="default"
-            className="bg-success hover:bg-success/90 h-14 rounded-xl text-sm sm:text-base font-bold shadow-lg shadow-success/20"
+            className="bg-primary hover:bg-primary/90 h-14 rounded-xl text-sm sm:text-base font-bold shadow-lg shadow-primary/20"
             onClick={() => requireCompleteProfile(() => setDepositOpen(true))}
           >
             <Plus className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
@@ -705,9 +705,9 @@ const Wallet = () => {
         <TradoBankContact />
 
         {pendingMovements.filter((m) => m.type === "deposit" || m.type === "withdrawal").length > 0 && (
-          <Card className="border-warning/50 bg-warning/5">
+          <Card className="border-primary/50 bg-primary/5">
             <CardHeader className="py-3 sm:py-6">
-              <CardTitle className="flex items-center gap-2 text-warning text-sm sm:text-base">
+              <CardTitle className="flex items-center gap-2 text-primary text-sm sm:text-base">
                 <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                 Pendientes de Aprobación
               </CardTitle>
@@ -724,10 +724,10 @@ const Wallet = () => {
                     return (
                       <div
                         key={movement.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-warning/30 rounded-lg bg-background gap-3"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-primary/30 rounded-lg bg-background gap-3"
                       >
                         <div className="flex items-center gap-3 sm:gap-4">
-                          <div className="p-1.5 sm:p-2 rounded-full bg-warning/10 text-warning">
+                          <div className="p-1.5 sm:p-2 rounded-full bg-primary/10 text-primary">
                             <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                           </div>
                           <div className="min-w-0 flex-1">
@@ -744,7 +744,7 @@ const Wallet = () => {
                         </div>
                         <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
                           <div className="text-left sm:text-right">
-                            <p className="text-base sm:text-lg font-bold text-warning">
+                            <p className="text-base sm:text-lg font-bold text-primary">
                               {isDeposit ? "+" : "-"}${formatCLP(Math.abs(movement.amount))}
                             </p>
                           </div>
@@ -821,16 +821,16 @@ const Wallet = () => {
                   let etiqueta = "";
 
                   if (isEscrowPending) {
-                    iconBgClass = "bg-amber-500 text-white";
-                    textColorClass = "text-amber-600";
+                    iconBgClass = "bg-primary text-white";
+                    textColorClass = "text-primary";
                     etiqueta = "Retenido";
                   } else if (isDeposit) {
-                    iconBgClass = "bg-emerald-500 text-white";
-                    textColorClass = "text-emerald-600";
+                    iconBgClass = "bg-primary text-white";
+                    textColorClass = "text-primary";
                     amountPrefix = "+";
                     etiqueta = movement.type === "escrow_release" ? "Pago recibido" : "Depósito";
                   } else if (isEscrowLock) {
-                    iconBgClass = "bg-violet-500 text-white";
+                    iconBgClass = "bg-primary text-white";
                     textColorClass = "text-foreground";
                     amountPrefix = "-";
                     etiqueta = "Pago de sala";
@@ -845,7 +845,7 @@ const Wallet = () => {
                     <div
                       key={movement.id}
                       className={`flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-2xl hover:bg-muted/40 hover:shadow-sm transition-all ${
-                        isEscrowPending ? "border-amber-500/40 bg-amber-500/5" : ""
+                        isEscrowPending ? "border-primary/40 bg-primary/5" : ""
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -908,7 +908,7 @@ const Wallet = () => {
           {transferReference ? (
             /* Transfer requested — show instructions + bank details */
             <div className="space-y-4">
-              <div className="p-3 bg-success/10 border border-success/30 rounded-lg text-sm space-y-1">
+              <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg text-sm space-y-1">
                 <p className="font-medium text-foreground">Solicitud registrada</p>
                 <p className="text-muted-foreground">
                   Transfiere <strong>${formatCLP(parseFormattedAmount(amountDisplay))}</strong> a la cuenta de
@@ -917,7 +917,7 @@ const Wallet = () => {
                 </p>
               </div>
 
-              <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg text-xs text-muted-foreground space-y-1">
+              <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg text-xs text-muted-foreground space-y-1">
                 <p className="font-medium text-foreground">¿Es tu primera transferencia a Trado?</p>
                 <p>
                   Tu banco puede limitar la primera transferencia a un destinatario nuevo
@@ -963,8 +963,8 @@ const Wallet = () => {
               {transferForced ? (
                 /* Large amount — transfer only (avoids MP's 3.19% fee) */
                 <>
-                  <div className="p-3 bg-info/10 border border-info/30 rounded-lg text-xs text-muted-foreground flex gap-2">
-                    <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                  <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg text-xs text-muted-foreground flex gap-2">
+                    <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <p>
                       Para montos sobre <span className="font-medium text-foreground">$1.150.000</span> el depósito
                       es por <span className="font-medium text-foreground">transferencia bancaria</span>. Al generar
@@ -978,8 +978,8 @@ const Wallet = () => {
                 </>
               ) : (
                 <>
-                  <div className="p-3 bg-info/10 border border-info/30 rounded-lg text-xs text-muted-foreground flex gap-2">
-                    <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                  <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg text-xs text-muted-foreground flex gap-2">
+                    <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <p>
                       <span className="font-medium text-foreground">Mercado Pago</span> es nuestra pasarela segura.
                       Paga con tarjeta, transferencia o saldo MP; tu saldo se acredita automáticamente.
@@ -1154,13 +1154,13 @@ const Wallet = () => {
               </div>
             </div>
 
-            <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+            <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
               <p className="text-sm text-muted-foreground">
                 ⚠️ Tu solicitud será revisada por un administrador. Los fondos se transferirán a la cuenta bancaria que proporcionaste una vez aprobada.
               </p>
             </div>
 
-            <div className="p-3 bg-info/10 border border-info/20 rounded-lg">
+            <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
               <p className="text-sm text-muted-foreground">
                 🔒 <strong>Seguridad:</strong> Por tu protección, el RUT de la cuenta bancaria debe coincidir con el RUT registrado en tu perfil.
               </p>

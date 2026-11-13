@@ -15,10 +15,10 @@ import { Logo } from "@/components/Logo";
 // Unirse con el código que mandó la otra persona: un campo grande, "Pegar" (sirve también si
 // pegan el link entero) y una vista previa de la sala antes de entrar, para que sepa a qué se une.
 const TIPOS: Record<string, { icon: typeof Package; nombre: string; color: string }> = {
-  producto_envio: { icon: Truck, nombre: "Envío", color: "bg-emerald-500" },
-  producto_persona: { icon: Handshake, nombre: "En persona", color: "bg-amber-500" },
-  producto_digital: { icon: Ticket, nombre: "Digital", color: "bg-rose-500" },
-  servicio: { icon: Briefcase, nombre: "Servicio", color: "bg-violet-500" },
+  producto_envio: { icon: Truck, nombre: "Envío", color: "bg-primary" },
+  producto_persona: { icon: Handshake, nombre: "En persona", color: "bg-primary" },
+  producto_digital: { icon: Ticket, nombre: "Digital", color: "bg-primary" },
+  servicio: { icon: Briefcase, nombre: "Servicio", color: "bg-primary" },
 };
 
 type Vista = {
@@ -136,7 +136,7 @@ const JoinTransaction = () => {
   const TipoIcon = tipo.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-info/5">
+    <div className="min-h-screen bg-background">
       <Helmet>
         <title>Unirme a una sala — Trado</title>
         <meta name="robots" content="noindex" />
@@ -153,7 +153,7 @@ const JoinTransaction = () => {
 
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-xl">
         <div className="text-center mb-7">
-          <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white flex items-center justify-center shadow-lg">
+          <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg">
             <Handshake className="h-8 w-8" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Unirme a una sala</h1>
@@ -189,7 +189,7 @@ const JoinTransaction = () => {
             <Button
               type="submit"
               size="lg"
-              className="w-full h-14 rounded-xl text-base font-bold bg-gradient-to-r from-primary via-medio via-55% to-info text-white shadow-lg"
+              className="w-full h-14 rounded-xl text-base font-bold bg-primary text-white shadow-lg"
               disabled={loading || inviteCode.length < 4}
             >
               <Search className="mr-2 h-5 w-5" />
@@ -199,7 +199,7 @@ const JoinTransaction = () => {
         ) : (
           <div className="space-y-4 animate-scale-in">
             <div className="rounded-3xl overflow-hidden border shadow-xl bg-card">
-              <div className="bg-gradient-to-r from-primary via-medio via-55% to-info text-white p-5 sm:p-6">
+              <div className="bg-primary text-white p-5 sm:p-6">
                 <span className={`inline-flex items-center gap-1.5 rounded-full ${tipo.color} px-2.5 py-1 text-xs font-semibold`}>
                   <TipoIcon className="h-3.5 w-3.5" /> {tipo.nombre}
                 </span>
@@ -216,8 +216,8 @@ const JoinTransaction = () => {
                     <span className="font-semibold">{vista.seller_name}</span>
                   </p>
                 )}
-                <p className="flex items-start gap-2 rounded-xl bg-success/10 border border-success/20 p-3 text-sm">
-                  <Lock className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                <p className="flex items-start gap-2 rounded-xl bg-primary/10 border border-primary/20 p-3 text-sm">
+                  <Lock className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   La plata queda retenida en Trado hasta que se confirme la entrega. Si algo sale mal, se reclama y no se mueve.
                 </p>
               </div>
@@ -225,7 +225,7 @@ const JoinTransaction = () => {
 
             <Button
               size="lg"
-              className="w-full h-14 rounded-xl text-base font-bold bg-gradient-to-r from-success to-emerald-600 text-white shadow-lg"
+              className="w-full h-14 rounded-xl text-base font-bold bg-primary text-white shadow-lg"
               onClick={() => navigate(`/transaction/${vista.id}`)}
             >
               Unirme a esta sala <ArrowRight className="ml-2 h-5 w-5" />
@@ -238,7 +238,7 @@ const JoinTransaction = () => {
 
         {isVerified === false && (
           <p className="mt-6 text-xs text-muted-foreground flex items-start gap-1.5 justify-center text-center">
-            <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5 text-warning" />
+            <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
             Sin verificar puedes usar salas de hasta ${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)} (${formatCLP(UNVERIFIED_LIMITS.TOTAL_ACCUMULATED)} en total).
           </p>
         )}

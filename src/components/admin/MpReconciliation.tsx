@@ -64,12 +64,12 @@ export function MpReconciliation() {
   const pasivo = informe?.trado.pasivo_usuarios;
 
   return (
-    <Card className={informe ? (informe.cuadra ? "border-2 border-success/40" : "border-2 border-destructive/40") : ""}>
+    <Card className={informe ? (informe.cuadra ? "border-2 border-primary/40" : "border-2 border-destructive/40") : ""}>
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div>
           <CardTitle className="flex items-center gap-2">
             {informe && (informe.cuadra
-              ? <CheckCircle2 className="h-5 w-5 text-success" />
+              ? <CheckCircle2 className="h-5 w-5 text-primary" />
               : <AlertTriangle className="h-5 w-5 text-destructive" />)}
             Cuadratura con Mercado Pago
           </CardTitle>
@@ -112,14 +112,14 @@ export function MpReconciliation() {
             </div>
 
             {informe.acreditados_ahora.length > 0 && (
-              <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 text-sm">
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 text-sm">
                 Acreditados recién por la cuadratura (el aviso de MP no había llegado):{" "}
                 {informe.acreditados_ahora.map((a) => `#${a.pago} $${formatCLP(a.monto)}`).join(", ")}
               </div>
             )}
 
             {informe.diferencias.length === 0 ? (
-              <p className="text-sm text-success">✓ Cada pago de Trado en Mercado Pago está registrado en Trado, con sus reembolsos.</p>
+              <p className="text-sm text-primary">✓ Cada pago de Trado en Mercado Pago está registrado en Trado, con sus reembolsos.</p>
             ) : (
               <div className="space-y-2">
                 <p className="text-sm font-semibold text-destructive">Diferencias que no se corrigen solas:</p>

@@ -92,7 +92,7 @@ export const UserRatings = ({ userId, maxRatings = 3 }: UserRatingsProps) => {
                   key={i}
                   className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${
                     i < rating.stars
-                      ? "text-warning fill-warning"
+                      ? "text-primary fill-primary"
                       : "text-muted-foreground/30"
                   }`}
                 />

@@ -222,7 +222,7 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                 Decide quién debe pagar el costo del envío de retorno
               </p>
 
-              <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100 px-4 py-2 rounded-lg mb-6 text-sm font-medium">
+              <div className="bg-primary/10 dark:bg-primary/30 border border-primary/30 dark:border-primary text-primary dark:text-primary/70 px-4 py-2 rounded-lg mb-6 text-sm font-medium">
                 ⚖️ Esta mediación es sobre el COSTO DE ENVÍO DE RETORNO, no sobre el reembolso del producto
               </div>
 
@@ -310,8 +310,8 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
                         Decidir Costo de Envío de Retorno
                       </h3>
 
-                      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
-                        <p className="text-sm text-amber-800 dark:text-amber-200">
+                      <div className="bg-primary/5 dark:bg-primary/30 border border-primary/20 dark:border-primary p-4 rounded-lg">
+                        <p className="text-sm text-primary dark:text-primary/70">
                           <strong>Importante:</strong> Tu decisión determinará quién paga el envío de retorno.
                           Una vez resuelta, el comprador podrá enviar el producto y después se procesará el reembolso completo.
                         </p>
@@ -366,11 +366,11 @@ El administrador ha tomado una decisión sobre quién paga el costo del envío d
 
                   {/* Resolution Result */}
                   {isResolved && (
-                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                      <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">
+                    <div className="bg-primary/5 dark:bg-primary/30 border border-primary/20 dark:border-primary rounded-lg p-4">
+                      <h3 className="font-semibold text-primary dark:text-primary/70 mb-2">
                         ✅ Mediación Resuelta
                       </h3>
-                      <p className="text-sm text-green-700 dark:text-green-300 mb-2">
+                      <p className="text-sm text-primary dark:text-primary/70 mb-2">
                         {returnRequest.shipping_paid_by === "seller" 
                           ? "El vendedor pagará el costo del envío de retorno."
                           : "El comprador pagará el costo del envío de retorno."}

@@ -20,7 +20,9 @@ export function AnilloRevision({ desde, horas, color = "warning" }: { desde: str
 
   const r = 26;
   const c = 2 * Math.PI * r;
-  const trazo = color === "warning" ? "hsl(var(--warning))" : "hsl(var(--info))";
+  // Una sola línea de color en la app: el anillo va siempre en el azul de marca
+  const trazo = "hsl(var(--primary))";
+  void color;
 
   return (
     <div className="relative w-[68px] h-[68px] shrink-0" role="img" aria-label={`Quedan ${h} horas y ${m} minutos de revisión`}>

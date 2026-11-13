@@ -177,12 +177,12 @@ El vendedor ha rechazado la solicitud de devolución. Un administrador decidirá
   };
 
   return (
-    <Card className="border-2 border-warning/30 bg-gradient-to-br from-warning/5 to-warning/10">
+    <Card className="border-2 border-primary/30 bg-primary/5">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Package className="h-5 w-5 text-warning" />
+          <Package className="h-5 w-5 text-primary" />
           Solicitud de Devolución Recibida
-          <Badge variant="outline" className="ml-auto bg-warning/20 text-warning border-warning/30">
+          <Badge variant="outline" className="ml-auto bg-primary/20 text-primary border-primary/30">
             Requiere tu respuesta
           </Badge>
         </CardTitle>
@@ -202,14 +202,14 @@ El vendedor ha rechazado la solicitud de devolución. Un administrador decidirá
         </div>
 
         {/* Warning */}
-        <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
+        <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-semibold text-warning mb-2">¿Qué deseas hacer?</p>
+              <p className="font-semibold text-primary mb-2">¿Qué deseas hacer?</p>
               <ul className="space-y-2 text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                  <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   <span><strong>Aceptar:</strong> Reconoces el problema y tú pagarás el envío de retorno</span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -226,7 +226,7 @@ El vendedor ha rechazado la solicitud de devolución. Un administrador decidirá
             <Button
               onClick={handleAccept}
               disabled={loading}
-              className="flex-1 bg-success hover:bg-success/90"
+              className="flex-1 bg-primary hover:bg-primary/90"
             >
               <Check className="mr-2 h-4 w-4" />
               {loading ? "Procesando..." : "Aceptar Devolución"}
