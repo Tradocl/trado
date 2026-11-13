@@ -734,87 +734,45 @@ const Dashboard = () => {
         )}
 
         {/* Action Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-          <Card 
-            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg overflow-hidden hover:-translate-y-1 bg-card/90 backdrop-blur animate-fade-in"
-            style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+          <button
+            type="button"
             onClick={() => navigate("/create-transaction")}
+            className="group flex items-center gap-3 sm:gap-4 rounded-xl bg-primary text-white px-4 py-4 sm:py-5 text-left shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all animate-fade-in"
+            style={{ animationDelay: "0.3s", animationFillMode: "both" }}
           >
-            <CardHeader className="py-4 sm:pb-5 bg-gradient-to-br from-success to-primary text-white">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-3 sm:p-3.5 bg-white/20 ring-1 ring-white/30 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                  <Plus className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base sm:text-xl text-white">Crear sala</CardTitle>
-                  <CardDescription className="text-xs truncate text-white/80">Compra, vende o cobra un trabajo</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="hidden sm:block space-y-3 sm:space-y-4 pt-4">
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
-                La plata queda retenida en Trado hasta que se entrega lo acordado: <span className="font-medium text-success">productos</span>, <span className="font-medium text-success">entradas</span> o <span className="font-medium text-success">trabajos</span>
-              </p>
-              <Button className="w-full bg-success hover:bg-success/90 group-hover:shadow-lg transition-shadow text-sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Crear sala
-              </Button>
-            </CardContent>
-          </Card>
+            <span className="p-3 rounded-xl bg-white/20 ring-1 ring-white/30 shrink-0">
+              <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-base sm:text-lg">Crear sala</span>
+              <span className="block text-xs sm:text-sm text-white/80 truncate">Compra, vende o cobra un trabajo</span>
+            </span>
+            <ArrowRight className="h-5 w-5 text-white/80 group-hover:translate-x-0.5 transition-transform shrink-0" />
+          </button>
 
-          <Card 
-            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg overflow-hidden hover:-translate-y-1 bg-card/90 backdrop-blur animate-fade-in"
-            style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
-            onClick={() => navigate("/join-transaction")}
-          >
-            <CardHeader className="py-4 sm:pb-5 bg-gradient-to-br from-info to-violet-600 text-white">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-3 sm:p-3.5 bg-white/20 ring-1 ring-white/30 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                  <ShoppingBag className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base sm:text-xl text-white">Unirme a una sala</CardTitle>
-                  <CardDescription className="text-xs truncate text-white/80">Ingresa con código</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="hidden sm:block space-y-3 sm:space-y-4 pt-4">
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
-                Si la otra persona ya creó la sala, ingresa el <span className="font-medium text-info">código</span> que te mandó
-              </p>
-              <Button className="w-full bg-info hover:bg-info/90 group-hover:shadow-lg transition-shadow text-sm">
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Unirme a una sala
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg overflow-hidden hover:-translate-y-1 bg-card/90 backdrop-blur sm:col-span-2 lg:col-span-1 animate-fade-in"
-            style={{ animationDelay: '0.5s', animationFillMode: 'both' }}
-            onClick={() => navigate("/transaction-history")}
-          >
-            <CardHeader className="py-4 sm:pb-5 bg-gradient-to-br from-primary to-blue-700 text-white">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-3 sm:p-3.5 bg-white/20 ring-1 ring-white/30 rounded-xl sm:rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                  <History className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-base sm:text-xl text-white">Historial</CardTitle>
-                  <CardDescription className="text-xs truncate text-white/80">Tus salas anteriores</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="hidden sm:block space-y-3 sm:space-y-4 pt-4">
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed hidden sm:block">
-                Revisa tus <span className="font-medium text-primary">salas completadas</span> y su detalle
-              </p>
-              <Button className="w-full group-hover:shadow-lg transition-shadow text-sm">
-                <History className="mr-2 h-4 w-4" />
-                Ver historial
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Unirse e historial: filas blancas simples; el único bloque de color es "Crear sala" */}
+          {[
+            { ir: "/join-transaction", icon: ShoppingBag, titulo: "Unirme a una sala", detalle: "Ingresa con el código que te mandaron", delay: "0.4s" },
+            { ir: "/transaction-history", icon: History, titulo: "Historial", detalle: "Tus salas anteriores", delay: "0.5s" },
+          ].map(({ ir, icon: Icon, titulo, detalle, delay }) => (
+            <button
+              key={ir}
+              type="button"
+              onClick={() => navigate(ir)}
+              className="group flex items-center gap-3 sm:gap-4 rounded-xl border border-border bg-card px-4 py-4 sm:py-5 text-left shadow-sm hover:border-primary/40 hover:shadow-md transition-all animate-fade-in"
+              style={{ animationDelay: delay, animationFillMode: "both" }}
+            >
+              <span className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-base sm:text-lg">{titulo}</span>
+                <span className="block text-xs sm:text-sm text-muted-foreground truncate">{detalle}</span>
+              </span>
+              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+            </button>
+          ))}
         </div>
 
 
