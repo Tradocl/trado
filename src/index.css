@@ -151,12 +151,12 @@ All colors MUST be HSL.
   .page-subtitle {
     @apply text-sm text-muted-foreground mt-1;
   }
-  /* Tarjetas de la app: azul muy pálido, sin borde ni sombra (estilo simple, una sola línea de color) */
+  /* Tarjetas de la app con la forma de la landing: blancas, borde suave y bien redondeadas */
   .section-card {
-    @apply rounded-3xl border-0 bg-primary/[0.04] shadow-none;
+    @apply rounded-3xl border bg-card shadow-sm hover:shadow-md transition-shadow;
   }
   .stat-tile {
-    @apply rounded-3xl border-0 bg-primary/[0.04] p-5 shadow-none;
+    @apply rounded-3xl border bg-card p-5 shadow-sm;
   }
 }
 
@@ -213,6 +213,11 @@ All colors MUST be HSL.
 }
 .confeti-pieza { animation-name: confetiCae; animation-timing-function: cubic-bezier(.2,.6,.4,1); animation-fill-mode: both; }
 @media (prefers-reduced-motion: reduce) { .confeti { display: none; } }
+
+/* Panel: la plata que viaja de "retenido" a "disponible" */
+@keyframes plataViaja { 0% { left: -4px; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: calc(100% - 8px); opacity: 0; } }
+.plata-viaja { animation: plataViaja 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .plata-viaja { animation: none; left: 50%; } }
 
 /* Insignia "Verificado": un brillo que la cruza cada tanto, para que se note */
 @keyframes insigniaBrillo {

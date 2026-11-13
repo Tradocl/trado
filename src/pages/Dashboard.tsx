@@ -81,6 +81,42 @@ const appealStatusLabels: Record<string, { label: string; color: string }> = {
 
 const POPUP_PASOS_KEY = "trado_primeros_pasos_cerrado";
 
+/** Quién es quién en la sala (initiator_role cambia dónde queda el creador antes de que entre el otro) */
+function rolEnSala(t: { initiator_role?: string | null; seller_id: string | null; buyer_id: string | null }, uid?: string) {
+  const creadaPorComprador = (t.initiator_role || "seller") === "buyer";
+  if (creadaPorComprador && !t.buyer_id) return { vende: false, compra: t.seller_id === uid };
+  return { vende: t.seller_id === uid, compra: t.buyer_id === uid };
+}
+
+/** Lo que tiene que pasar ahora en la sala, y si te toca a ti */
+function queToca(t: { state: string; sale_type?: string | null; seller_id: string | null; buyer_id: string | null; appeal_status?: string | null },
+  rol: { vende: boolean; compra: boolean }): { mio: boolean; texto: string } {
+  const tipo = t.sale_type || "";
+  if (t.appeal_status) return { mio: false, texto: "Hay un reclamo en curso" };
+  if (!t.seller_id || !t.buyer_id) return { mio: true, texto: "Comparte el link con la otra persona" };
+  switch (t.state) {
+    case "created":
+    case "invited":
+    case "awaiting_deposit":
+      return rol.compra ? { mio: true, texto: "Paga para asegurar la sala" } : { mio: false, texto: "Esperando que la otra persona pague" };
+    case "funds_secured": {
+      const accion = tipo === "producto_envio" ? "Envía el producto y deja el seguimiento"
+        : tipo === "producto_persona" ? "Coordina la entrega en persona"
+        : tipo === "servicio" ? "Haz el trabajo y márcalo como entregado"
+        : "Entrega lo acordado";
+      return rol.vende ? { mio: true, texto: accion } : { mio: false, texto: "Esperando la entrega" };
+    }
+    case "in_delivery":
+      return rol.compra
+        ? { mio: true, texto: tipo === "producto_envio" ? "Márcalo como recibido cuando llegue" : "Revisa y confirma que está todo bien" }
+        : { mio: false, texto: "Esperando que la otra persona confirme" };
+    case "awaiting_buyer_review":
+      return rol.compra ? { mio: true, texto: "Revisa y confirma que está todo bien" } : { mio: false, texto: "La otra persona está revisando" };
+    default:
+      return { mio: false, texto: "En curso" };
+  }
+}
+
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useAdminRole();
@@ -110,6 +146,13 @@ const Dashboard = () => {
     try { cerradoHace = Date.now() - Number(localStorage.getItem(POPUP_PASOS_KEY) || 0); } catch { /* sin storage */ }
     if (cerradoHace > 24 * 60 * 60 * 1000) setPopupPasos(true);
   }, [loading, yaUsaTrado]);
+
+  const conRol = transactions.map((t) => {
+    const rol = rolEnSala(t, user?.id);
+    return { t, mio: queToca(t, rol).mio };
+  });
+  const salasMias = conRol.filter((x) => x.mio).length;
+  const salasOrdenadas = [...conRol].sort((a, b) => Number(b.mio) - Number(a.mio)).map((x) => x.t);
 
   const isProfileComplete = profile?.rut && profile?.phone && profile?.address &&
     profile.rut.trim() !== '' && profile.phone.trim() !== '' && profile.address.trim() !== '';
@@ -324,8 +367,8 @@ const Dashboard = () => {
             <button type="button" aria-label="Salir" onClick={handleSignOut} className="w-10 h-10 rounded-full bg-primary/[0.06] text-muted-foreground flex items-center justify-center hover:bg-primary/10 transition-colors">
               <LogOut className="h-[18px] w-[18px]" />
             </button>
-            <Button onClick={() => navigate("/create-transaction")} className="rounded-full h-10 px-4 sm:px-5 font-semibold">
-              Crear sala
+            <Button onClick={() => navigate("/create-transaction")} className="rounded-full h-10 px-4 sm:px-5 font-bold bg-gradient-to-r from-primary via-medio to-info text-white shadow-md hover:opacity-95">
+              <Plus className="h-4 w-4 mr-1" /> Crear sala
             </Button>
           </div>
         </div>
@@ -333,61 +376,81 @@ const Dashboard = () => {
 
       <main className="app-container relative space-y-5 md:space-y-7">
         <PushNotificationBanner />
-        {/* Bienvenida: el saludo grande sobre blanco, sin bloque de color */}
-        <section className="text-center pt-4 sm:pt-8 pb-1 animate-fade-in">
-          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
-            Hola {profile?.nickname || profile?.full_name?.split(" ")[0] || "Usuario"}
-          </h2>
-          <p className="text-muted-foreground mt-2">
-            {transactions.length > 0
-              ? `Tienes ${transactions.length} ${transactions.length === 1 ? "sala en curso" : "salas en curso"}`
-              : !yaUsaTrado
-                ? "Tu primera sala va sin comisión"
-                : "Todo listo para tu próximo trato"}
-          </p>
-          {profile && profile.verification_status !== "in_review" && (
-            <div className="mt-3 flex justify-center">
-              <InsigniaVerificacion verificado={profile.verification_status === "approved"} propia />
+        {/* Bienvenida con la cara de la landing: degradado de marca, vidrio y la plata en movimiento */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white p-5 sm:p-7 shadow-xl animate-fade-in">
+          <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-16 w-60 h-60 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
+            <div className="min-w-0">
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight break-words">
+                Hola, {profile?.nickname || profile?.full_name?.split(" ")[0] || "Usuario"}
+              </h2>
+              <p className="text-white/80 mt-1 text-sm sm:text-base">
+                {salasMias > 0
+                  ? `Te ${salasMias === 1 ? "toca algo en 1 sala" : `tocan cosas en ${salasMias} salas`}`
+                  : transactions.length > 0
+                    ? `Tienes ${transactions.length} ${transactions.length === 1 ? "sala en curso" : "salas en curso"}`
+                    : !yaUsaTrado
+                      ? "Tu primera sala va sin comisión"
+                      : "Todo tranquilo por ahora"}
+              </p>
             </div>
-          )}
-        </section>
+            {profile && profile.verification_status !== "in_review" && (
+              <InsigniaVerificacion verificado={profile.verification_status === "approved"} sobreColor propia tamano="xs" className="self-start shrink-0 sm:mt-1.5" />
+            )}
+          </div>
 
-        <div className="grid grid-cols-2 gap-3 animate-fade-in" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
-          {[
-            { icon: Wallet, etiqueta: "Saldo", valor: `$${formatCLP(wallet?.balance || 0)}`, ir: "/wallet" },
-            ...((wallet?.blocked_balance || 0) > 0
-              ? [{ icon: Lock, etiqueta: "Retenido en salas", valor: `$${formatCLP(wallet?.blocked_balance || 0)}`, ir: "/wallet" }]
-              : []),
-            ...(yaUsaTrado
-              ? [
-                  { icon: Star, etiqueta: "Tu nota", valor: Number(profile?.reputation_score) > 0 ? Number(profile?.reputation_score).toFixed(1) : "—", ir: "/profile" },
-                  { icon: CheckCircle, etiqueta: "Salas completadas", valor: String(profile?.total_transactions || 0), ir: "/transaction-history" },
-                ]
-              : [{ icon: Star, etiqueta: "Tu reputación", valor: "Por empezar", ir: "/profile" }]),
-          ].map(({ icon: Icon, etiqueta, valor, ir }, i, lista) => (
-            <button
-              key={etiqueta}
-              type="button"
-              onClick={() => navigate(ir)}
-              // Si quedan en número impar, la última ocupa el ancho completo (sin hueco)
-              className={`text-left rounded-3xl bg-primary/[0.04] hover:bg-primary/[0.07] transition-colors p-4 sm:p-5 ${
-                lista.length % 2 === 1 && i === lista.length - 1 ? "col-span-2" : ""
-              }`}
-            >
-              <span className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                <Icon className="h-5 w-5" />
+          {/* Tu plata en Trado: lo retenido en el candado y lo disponible, con el pulso entre los dos */}
+          <div className="relative mt-5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md p-4">
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={() => navigate("/wallet")} className="flex-1 min-w-0 text-left">
+                <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-white/70">
+                  <span className="relative flex w-7 h-7 rounded-full bg-white text-primary items-center justify-center">
+                    <Lock className="h-3.5 w-3.5" />
+                    {(wallet?.blocked_balance || 0) > 0 && <span className="absolute inset-0 rounded-full ring-2 ring-white/70 animate-ping" />}
+                  </span>
+                  Retenido
+                </span>
+                <p className="text-xl sm:text-2xl font-extrabold mt-1.5 truncate">${formatCLP(wallet?.blocked_balance || 0)}</p>
+              </button>
+              {/* El camino de la plata: se libera cuando se cumple el trato */}
+              <div className="relative w-14 sm:w-auto sm:flex-1 sm:max-w-md h-[2px] bg-white/25 shrink-0" aria-hidden>
+                <span className="plata-viaja absolute -top-[5px] w-3 h-3 rounded-full bg-emerald-300 shadow-[0_0_10px_rgba(110,231,183,0.9)]" />
+              </div>
+              <button type="button" onClick={() => navigate("/wallet")} className="flex-1 min-w-0 text-right">
+                <span className="flex items-center justify-end gap-2 text-[11px] font-bold uppercase tracking-wider text-white/70">
+                  Disponible
+                  <span className="flex w-7 h-7 rounded-full bg-emerald-300 text-emerald-950 items-center justify-center">
+                    <Wallet className="h-3.5 w-3.5" />
+                  </span>
+                </span>
+                <p className="text-xl sm:text-2xl font-extrabold mt-1.5 truncate">${formatCLP(wallet?.balance || 0)}</p>
+              </button>
+            </div>
+            <p className="text-xs text-white/65 mt-3 text-center">La plata retenida pasa a disponible cuando se cumple cada trato.</p>
+          </div>
+
+          <div className="relative mt-4 flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={() => navigate("/wallet?action=withdraw")} className="rounded-full bg-white text-primary hover:bg-white/90 font-bold">
+              <ArrowUpRight className="h-4 w-4 mr-1" /> Retirar
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => navigate("/wallet?action=deposit")} className="rounded-full bg-white/15 hover:bg-white/25 text-white font-semibold">
+              <Plus className="h-4 w-4 mr-1" /> Depositar
+            </Button>
+            {yaUsaTrado && (
+              <span className="ml-auto flex items-center gap-3 text-sm text-white/85">
+                <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-white/40" /> {Number(profile?.reputation_score) > 0 ? Number(profile?.reputation_score).toFixed(1) : "—"}</span>
+                <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4" /> {profile?.total_transactions || 0}</span>
               </span>
-              <p className="text-sm text-muted-foreground mt-7 sm:mt-9">{etiqueta}</p>
-              <p className="text-xl sm:text-2xl font-semibold text-foreground mt-0.5 truncate">{valor}</p>
-            </button>
-          ))}
-        </div>
+            )}
+          </div>
+        </section>
 
         {!loading && !yaUsaTrado && (
           <button
             type="button"
             onClick={() => setPopupPasos(true)}
-            className="w-full flex items-center justify-between gap-3 rounded-3xl bg-primary/[0.04] px-4 py-4 text-left hover:bg-primary/[0.07] transition-colors animate-fade-in"
+            className="w-full flex items-center justify-between gap-3 rounded-3xl border border-border bg-card px-4 py-4 text-left shadow-sm hover:shadow-md transition-shadow animate-fade-in"
           >
             <span className="flex items-center gap-3 min-w-0">
               <span className="shrink-0 w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
@@ -427,7 +490,7 @@ const Dashboard = () => {
         {/* Pending Ratings Banner */}
         {pendingRatingCount > 0 && (
           <Card
-            className="border-0 shadow-none rounded-3xl overflow-hidden animate-fade-in bg-primary/[0.04] cursor-pointer hover:bg-primary/[0.07] transition-colors"
+            className="rounded-3xl border border-border shadow-sm overflow-hidden animate-fade-in bg-card cursor-pointer hover:shadow-md transition-shadow"
             style={{ animationDelay: '0.15s', animationFillMode: 'both' }}
             onClick={() => firstPendingRatingId && navigate(`/transaction/${firstPendingRatingId}`)}
           >
@@ -458,21 +521,21 @@ const Dashboard = () => {
         {transactions.length > 0 && (
           <>
           <h2 className="sr-only">Salas en curso</h2>
-          <Card className="border-0 shadow-none rounded-3xl bg-primary/[0.04] overflow-hidden animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+          <Card className="rounded-3xl border border-border shadow-sm bg-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-3 text-base">
                 <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                   <ShoppingBag className="h-5 w-5 text-primary" />
                 </div>
-                Salas en curso
+                Tus salas
               </CardTitle>
               <CardDescription>
-                Las salas que tienes abiertas
+                {salasMias > 0 ? "Primero las que te tocan a ti" : "Las que tienes abiertas"}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y divide-primary/10">
-                {transactions.map((transaction, index) => {
+              <div className="divide-y divide-border/70">
+                {salasOrdenadas.map((transaction, index) => {
                   // Calculate REAL role of current user based on initiator_role
                   const initiatorRole = transaction.initiator_role || 'seller';
                   let isRealSeller = false;
@@ -496,6 +559,7 @@ const Dashboard = () => {
                   const handleTransactionClick = () => {
                     navigate(`/transaction/${transaction.id}`);
                   };
+                  const toca = queToca(transaction, { vende: isRealSeller, compra: isRealBuyer });
                   const tipo = TIPO_SALA[transaction.sale_type || ""] ?? TIPO_SALA_OTRO;
                   const TipoIcon = tipo.icon;
                   const pasos = PASOS[transaction.sale_type || ""] ?? PASOS.producto_digital;
@@ -505,9 +569,10 @@ const Dashboard = () => {
                     <div
                       key={transaction.id}
                       onClick={handleTransactionClick}
-                      className="group relative p-4 pl-5 hover:bg-primary/[0.04] cursor-pointer transition-all duration-200 animate-fade-in"
+                      className={`group relative p-4 pl-5 cursor-pointer transition-all duration-200 animate-fade-in ${toca.mio ? "bg-primary/[0.04] hover:bg-primary/[0.07]" : "hover:bg-muted/40"}`}
                       style={{ animationDelay: `${0.3 + index * 0.05}s`, animationFillMode: 'both' }}
                     >
+                      {toca.mio && <span className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-gradient-to-b from-primary to-info" aria-hidden />}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1 min-w-0">
                           <div className={`w-11 h-11 rounded-full shrink-0 flex items-center justify-center ${tipo.icono}`} title={tipo.nombre}>
@@ -533,6 +598,13 @@ const Dashboard = () => {
                                 </span>
                               )}
                             </div>
+                            {/* Lo que tiene que pasar ahora */}
+                            <p className={`mt-2 text-sm flex items-start gap-1.5 ${toca.mio ? "font-bold text-foreground" : "text-muted-foreground"}`}>
+                              {toca.mio && (
+                                <span className="shrink-0 whitespace-nowrap mt-px text-[10px] font-extrabold uppercase tracking-wider bg-emerald-400 text-emerald-950 rounded-full px-2 py-0.5">Te toca</span>
+                              )}
+                              <span>{toca.texto}</span>
+                            </p>
                             {transaction.state !== "cancelled" && (
                               <div className="mt-2 flex items-center gap-2">
                                 <div className="flex gap-1 flex-1 max-w-[220px]">
@@ -562,7 +634,7 @@ const Dashboard = () => {
           <button
             type="button"
             onClick={() => navigate("/create-transaction")}
-            className="w-full relative overflow-hidden rounded-3xl bg-primary/[0.04] p-5 sm:p-6 text-left hover:bg-primary/[0.07] transition-colors animate-fade-in"
+            className="w-full relative overflow-hidden rounded-3xl border border-border bg-card p-5 sm:p-6 text-left shadow-sm hover:shadow-md transition-shadow animate-fade-in"
           >
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0" aria-hidden>
@@ -582,7 +654,7 @@ const Dashboard = () => {
 
         {/* Complete Profile Card - Show for users with incomplete profile */}
         {!isProfileComplete && (
-          <Card className="border-0 shadow-none rounded-3xl overflow-hidden animate-fade-in bg-primary/[0.04]" 
+          <Card className="rounded-3xl border border-border shadow-sm overflow-hidden animate-fade-in bg-card" 
             style={{ animationDelay: '0.22s', animationFillMode: 'both' }}>
             <CardContent className="py-4 sm:py-5">
               <div className="flex items-start gap-3 sm:gap-4">
@@ -614,7 +686,7 @@ const Dashboard = () => {
 
         {/* Verification Card - Show for unverified users */}
         {profile?.verification_status !== 'approved' && (
-          <Card className="border-0 shadow-none rounded-3xl overflow-hidden animate-fade-in bg-primary/[0.04]" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
+          <Card className="rounded-3xl border border-border shadow-sm overflow-hidden animate-fade-in bg-card" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
             <CardContent className="py-4 sm:py-5">
               <div className="flex items-start gap-3 sm:gap-4">
                 <div className="w-11 h-11 rounded-full flex-shrink-0 bg-primary/10 flex items-center justify-center">
@@ -660,7 +732,7 @@ const Dashboard = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="rounded-full bg-card text-primary hover:bg-card/80"
+                        className="rounded-full bg-primary/10 text-primary hover:bg-primary/15"
                         onClick={() => navigate("/verification")}
                       >
                         <Shield className="h-4 w-4 mr-2" />
@@ -692,39 +764,6 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {/* Wallet Card */}
-        <Card className="border-0 shadow-none rounded-3xl bg-primary/[0.04] overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
-          <CardHeader className="py-4 sm:py-5 pb-0 sm:pb-0">
-            <CardTitle className="flex items-center gap-2 sm:gap-3 text-base">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <Wallet className="h-5 w-5 text-primary" />
-              </div>
-              Mi Billetera
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              {(wallet?.balance || 0) > 0
-                ? "Lo que tienes disponible en Trado"
-                : "Cuando te paguen en una sala, la plata llega aquí y la retiras a tu cuenta bancaria"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.75s', animationFillMode: 'both' }}>
-              <Button variant="ghost" className="w-full h-10 rounded-full bg-card hover:bg-card/80 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet")}>
-                <History className="h-4 w-4" />
-                <span className="text-xs leading-none">Movimientos</span>
-              </Button>
-              <Button className="w-full h-10 rounded-full text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=deposit")}>
-                <Plus className="h-4 w-4" />
-                <span className="text-xs leading-none">Depositar</span>
-              </Button>
-              <Button variant="ghost" className="w-full h-10 rounded-full bg-card hover:bg-card/80 text-primary text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=withdraw")}>
-                <ArrowUpRight className="h-4 w-4" />
-                <span className="text-xs leading-none">Retirar</span>
-              </Button>
-            </div>
-            
-          </CardContent>
-        </Card>
       </main>
 
       <CompleteProfileModal
