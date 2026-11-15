@@ -20,6 +20,7 @@ import { InsigniaVerificacion, CheckEnFoto } from "@/components/InsigniaVerifica
 import { getStateLabel } from "@/lib/transaction-labels";
 import { PushNotificationBanner } from "@/components/PushNotificationBanner";
 import { PrimerosPasos } from "@/components/PrimerosPasos";
+import { RatingDialog } from "@/components/RatingDialog";
 
 interface Profile {
   full_name: string;
@@ -107,6 +108,10 @@ const Dashboard = () => {
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
   const [pendingRatingCount, setPendingRatingCount] = useState(0);
   const [firstPendingRatingId, setFirstPendingRatingId] = useState<string | null>(null);
+  // La primera sala por calificar, para calificarla con un toque desde el aviso
+  const [porCalificar, setPorCalificar] = useState<{ id: string; producto: string; otroId: string; otroNombre: string; calificaVendedor: boolean } | null>(null);
+  const [estrellasAviso, setEstrellasAviso] = useState(0);
+  const [hoverAviso, setHoverAviso] = useState(0);
   // Hasta que alguna sala tenga plata, el panel muestra los primeros pasos arriba. Parte en
   // true para no mostrarlos un instante a quien ya usa Trado mientras carga.
   const [yaUsaTrado, setYaUsaTrado] = useState(true);
@@ -238,6 +243,22 @@ const Dashboard = () => {
 
       setPendingRatingCount(pending.length);
       setFirstPendingRatingId(pending[0]?.id ?? null);
+      const primera = pending[0];
+      if (primera) {
+        // Sala terminada: seller_id es quien vendió y buyer_id quien compró
+        const soyVendedor = primera.seller_id === user.id;
+        const otroId = soyVendedor ? primera.buyer_id : primera.seller_id;
+        if (otroId) {
+          const { data: otro } = await supabase.rpc("get_safe_profile", { profile_id: otroId }).maybeSingle();
+          setPorCalificar({
+            id: primera.id,
+            producto: primera.product_name,
+            otroId,
+            otroNombre: (otro as { full_name?: string } | null)?.full_name?.split(" ")[0] || (soyVendedor ? "quien compró" : "quien vendió"),
+            calificaVendedor: !soyVendedor,
+          });
+        } else setPorCalificar(null);
+      } else setPorCalificar(null);
       
       const profileData = {
         ...profileRes.data,
@@ -480,34 +501,61 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Pending Ratings Banner */}
+        {/* Sala por calificar: se califica tocando una estrella */}
         {pendingRatingCount > 0 && (
-          <Card
-            className="border-2 border-warning/40 shadow-xl overflow-hidden animate-fade-in bg-gradient-to-br from-warning/10 to-warning/5 cursor-pointer"
+          <div
+            className="relative overflow-hidden rounded-2xl border border-warning/40 bg-gradient-to-br from-warning/15 via-warning/5 to-transparent shadow-md px-4 py-4 sm:px-5 animate-fade-in"
             style={{ animationDelay: '0.15s', animationFillMode: 'both' }}
-            onClick={() => firstPendingRatingId && navigate(`/transaction/${firstPendingRatingId}`)}
           >
-            <CardContent className="py-4 px-5">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-warning/20 rounded-full flex-shrink-0">
-                    <Star className="h-5 w-5 text-warning fill-warning/50" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">
-                      {pendingRatingCount === 1
-                        ? "Tienes 1 sala pendiente de calificar"
-                        : `Tienes ${pendingRatingCount} salas pendientes de calificar`}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Tu calificación ayuda a construir confianza en la comunidad
-                    </p>
-                  </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <span className="w-10 h-10 shrink-0 rounded-xl bg-warning text-white flex items-center justify-center shadow-sm">
+                  <Star className="h-5 w-5 fill-white" />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm sm:text-base truncate">
+                    {porCalificar ? `¿Cómo te fue con ${porCalificar.otroNombre}?` : "Tienes salas por calificar"}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {porCalificar ? porCalificar.producto : "Tu calificación ayuda a construir confianza"}
+                    {pendingRatingCount > 1 && ` · ${pendingRatingCount} por calificar`}
+                  </p>
                 </div>
-                <ArrowRight className="h-5 w-5 text-warning flex-shrink-0" />
               </div>
-            </CardContent>
-          </Card>
+              {porCalificar ? (
+                <div className="flex items-center gap-1 sm:gap-1.5 self-center sm:self-auto" onMouseLeave={() => setHoverAviso(0)}>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      aria-label={`${n} ${n === 1 ? "estrella" : "estrellas"}`}
+                      onMouseEnter={() => setHoverAviso(n)}
+                      onClick={() => setEstrellasAviso(n)}
+                      className="p-1 rounded-lg transition-transform hover:scale-125 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-warning"
+                    >
+                      <Star className={`h-8 w-8 sm:h-7 sm:w-7 transition-colors ${n <= (hoverAviso || estrellasAviso) ? "fill-warning text-warning" : "text-warning/40"}`} />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <button type="button" onClick={() => firstPendingRatingId && navigate(`/transaction/${firstPendingRatingId}`)} className="text-sm font-semibold text-warning flex items-center gap-1">
+                  Calificar <ArrowRight className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        {porCalificar && (
+          <RatingDialog
+            open={estrellasAviso > 0}
+            onOpenChange={(abierto) => { if (!abierto) { setEstrellasAviso(0); setHoverAviso(0); } }}
+            transactionId={porCalificar.id}
+            ratedUserId={porCalificar.otroId}
+            ratedUserName={porCalificar.otroNombre}
+            isRatingSeller={porCalificar.calificaVendedor}
+            estrellasIniciales={estrellasAviso}
+            onRatingComplete={() => { setEstrellasAviso(0); loadUserData(); }}
+          />
         )}
 
         {/* Transactions in Progress */}

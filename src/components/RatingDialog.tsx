@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,8 @@ interface RatingDialogProps {
   ratedUserName: string;
   isRatingSeller: boolean;
   onRatingComplete: () => void;
+  /** Estrellas ya marcadas al abrir (p. ej. tocadas en el aviso del panel) */
+  estrellasIniciales?: number;
 }
 
 export const RatingDialog = ({
@@ -30,8 +32,12 @@ export const RatingDialog = ({
   ratedUserName,
   isRatingSeller,
   onRatingComplete,
+  estrellasIniciales,
 }: RatingDialogProps) => {
   const [stars, setStars] = useState(0);
+  useEffect(() => {
+    if (open && estrellasIniciales) setStars(estrellasIniciales);
+  }, [open, estrellasIniciales]);
   const [hoveredStars, setHoveredStars] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
