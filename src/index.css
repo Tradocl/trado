@@ -204,6 +204,11 @@ All colors MUST be HSL.
 .acerca-carta { animation: cartaLee 2.4s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .frase-previa { animation: none; } .carta-interior { transition: none; } .acerca-celular, .acerca-carta { animation: none; } }
 
+/* "Cómo funciona" del EtMday: texto que se escribe solo */
+@keyframes escribe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.escribe { animation: escribe .9s steps(18) both; }
+@media (prefers-reduced-motion: reduce) { .escribe { animation: none; } }
+
 /* Confeti de los casos del EtMday */
 @keyframes confetiCae {
   0%   { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }

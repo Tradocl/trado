@@ -53,6 +53,7 @@ const AdminBlog = lazy(() => import("./pages/AdminBlog"));
 const Support = lazy(() => import("./pages/Support"));
 const CasoEtm = lazy(() => import("./pages/CasoEtm"));
 const PantallaEtm = lazy(() => import("./pages/PantallaEtm"));
+const ComoFuncionaEtm = lazy(() => import("./pages/ComoFuncionaEtm"));
 
 const queryClient = new QueryClient();
 
@@ -162,6 +163,7 @@ const App = () => (
                 {/* Casos de estafa del stand del EtMday (se abren desde tarjetas NFC) */}
                 <Route path="/etm" element={<CasoEtm />} />
                 <Route path="/etm/pantalla" element={<PantallaEtm />} />
+                <Route path="/etm/como-funciona" element={<ComoFuncionaEtm />} />
                 <Route path="/etm/:caso" element={<CasoEtm />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/categoria/:categorySlug" element={<Blog />} />
