@@ -174,13 +174,71 @@ const CrearSalaYLink = () => {
   return enChat ? <Chat conLink /> : <CrearSala />;
 };
 
+/** Cuánto agrandar el celular dibujado (mide 300 × 540 px) para que llene el alto disponible */
+function useZoom(reservado: number, maximo: number) {
+  const calc = () => (typeof window === "undefined" ? 1 : Math.max(0.8, Math.min(maximo, (window.innerHeight - reservado) / 540)));
+  const [z, setZ] = useState(calc);
+  useEffect(() => {
+    const f = () => setZ(calc());
+    window.addEventListener("resize", f);
+    return () => window.removeEventListener("resize", f);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return z;
+}
+
+const Celular = ({ i, zoom }: { i: number; zoom: number }) => (
+  <div style={{ zoom }} className="w-[300px] mx-auto">
+    <div className="rounded-[2.6rem] bg-[#0F1424] p-2.5 shadow-[0_30px_80px_-20px_rgba(15,20,36,0.7)] ring-1 ring-white/10">
+      <div className="rounded-[2.1rem] overflow-hidden h-[520px] flex flex-col bg-white" key={i}>
+        <PantallaDelPaso i={i} />
+      </div>
+    </div>
+  </div>
+);
+
+const Puntos = ({ i, setI }: { i: number; setI: (k: number) => void }) => (
+  <div className="flex gap-2 justify-center">
+    {PASOS.map((p, k) => (
+      <button key={p.titulo} aria-label={p.titulo} onClick={() => setI(k)} className={`h-2 rounded-full transition-all ${k === i ? "w-10 bg-white" : "w-3 bg-white/35"}`} />
+    ))}
+  </div>
+);
+
 const ComoFuncionaEtm = () => {
   const [i, setI] = useState(0);
+  // ?modo=vertical: pensado para 9:16 (Reels, Historias, un celular parado en el stand)
+  const vertical = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("modo") === "vertical";
+  const zoomPantalla = useZoom(200, 1.5);
+  const zoomVertical = useZoom(400, 1.4);
   useEffect(() => {
     if (reducido()) return;
     const t = setTimeout(() => setI((x) => (x + 1) % PASOS.length), PASOS[i].ms);
     return () => clearTimeout(t);
   }, [i]);
+
+  if (vertical)
+    return (
+      <div className={`h-[100dvh] ${DEGRADADO} text-white overflow-hidden relative`}>
+        <Helmet><title>Cómo funciona · Trado</title><meta name="robots" content="noindex" /></Helmet>
+        <div className="absolute -top-32 -right-32 w-[30rem] h-[30rem] bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-40 -left-32 w-[30rem] h-[30rem] bg-[#7C3AED]/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative h-full flex flex-col px-6 pt-7 pb-6">
+          <div className="flex items-center justify-between">
+            <Logo variant="white" height={34} />
+            <span className="text-[13px] font-bold uppercase tracking-wider border border-white/50 rounded-full px-3 py-1">No somos un marketplace</span>
+          </div>
+          <h1 className="text-[2.1rem] font-extrabold tracking-tight leading-[1.05] mt-5">¿Cómo paso mi venta a Trado?</h1>
+          <div className="flex-1 flex items-center justify-center py-4"><Celular i={i} zoom={zoomVertical} /></div>
+          <div key={`t-${i}`} className="chat-pop rounded-3xl bg-white text-[#0F1424] px-5 py-4 shadow-2xl">
+            <p className="text-sm font-bold text-[#2230C2]">Paso {i + 1} de {PASOS.length}</p>
+            <p className="text-2xl font-extrabold leading-tight mt-0.5">{PASOS[i].titulo}</p>
+            <p className="text-base text-[#0F1424]/75 mt-1.5 leading-snug">{PASOS[i].texto}</p>
+          </div>
+          <div className="mt-4"><Puntos i={i} setI={setI} /></div>
+          <p className="text-center text-white/85 text-base mt-3">Crea tu cuenta gratis en <b className="text-white">trado.cl</b></p>
+        </div>
+      </div>
+    );
 
   return (
     <div className={`min-h-[100dvh] ${DEGRADADO} text-white overflow-hidden relative`}>
@@ -191,58 +249,50 @@ const ComoFuncionaEtm = () => {
       <div className="absolute -top-32 -right-32 w-[34rem] h-[34rem] bg-white/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -left-32 w-[34rem] h-[34rem] bg-[#7C3AED]/30 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative min-h-[100dvh] max-w-6xl mx-auto px-6 py-8 lg:px-12 flex flex-col">
+      <div className="relative min-h-[100dvh] max-w-[1600px] mx-auto px-6 py-6 lg:px-12 2xl:py-10 flex flex-col">
         <div className="flex items-center justify-between">
           <Logo variant="white" height={34} />
-          <span className="text-xs sm:text-sm font-bold uppercase tracking-wider border border-white/50 rounded-full px-3 py-1">No somos un marketplace</span>
+          <span className="text-xs sm:text-base font-bold uppercase tracking-wider border border-white/50 rounded-full px-3 lg:px-4 py-1 lg:py-1.5">No somos un marketplace</span>
         </div>
 
-        <div className="flex-1 grid lg:grid-cols-[1fr_340px] gap-8 lg:gap-14 items-center mt-6">
+        <div className="flex-1 grid lg:grid-cols-[1fr_auto] gap-8 lg:gap-16 items-center mt-4">
           {/* Los pasos, con el actual destacado */}
           <div className="order-2 lg:order-1">
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">
+            <h1 className="text-3xl sm:text-5xl 2xl:text-7xl font-extrabold tracking-tight leading-[1.02]">
               ¿Cómo paso mi venta a Trado?
             </h1>
-            <p className="text-white/80 text-lg mt-3 max-w-xl">Sigues comprando y vendiendo donde ya lo haces. Trado solo entra cuando toca pagar.</p>
-            <ol className="mt-6 space-y-2.5">
+            <p className="text-white/80 text-lg lg:text-xl 2xl:text-2xl mt-3 2xl:mt-5 max-w-2xl">Sigues comprando y vendiendo donde ya lo haces. Trado solo entra cuando toca pagar.</p>
+            <ol className="mt-5 2xl:mt-8 space-y-1.5 2xl:space-y-3">
               {PASOS.map((p, k) => (
                 <li
                   key={p.titulo}
-                  className={`rounded-2xl px-4 py-3 transition-all duration-500 ${k === i ? "bg-white text-[#0F1424] shadow-2xl scale-[1.02]" : "bg-white/0 text-white/60"}`}
+                  className={`rounded-2xl lg:rounded-3xl px-4 py-2.5 lg:px-5 lg:text-xl 2xl:px-6 2xl:py-4 2xl:text-2xl transition-all duration-500 ${k === i ? "bg-white text-[#0F1424] shadow-2xl scale-[1.02]" : "bg-white/0 text-white/60"}`}
                 >
                   <p className="font-extrabold flex items-center gap-3">
-                    <span className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm ${k === i ? "bg-[#2230C2] text-white" : k < i ? "bg-white/25 text-white" : "border border-white/40"}`}>
+                    <span className={`w-7 h-7 lg:w-8 lg:h-8 2xl:w-10 2xl:h-10 shrink-0 rounded-full flex items-center justify-center text-sm 2xl:text-lg ${k === i ? "bg-[#2230C2] text-white" : k < i ? "bg-white/25 text-white" : "border border-white/40"}`}>
                       {k < i ? "✓" : k + 1}
                     </span>
                     {p.titulo}
                   </p>
-                  {k === i && <p className="text-sm text-[#0F1424]/75 mt-1 ml-10 chat-pop">{p.texto}</p>}
+                  {k === i && <p className="text-sm lg:text-base 2xl:text-xl font-medium text-[#0F1424]/75 mt-1 ml-10 lg:ml-11 2xl:ml-[3.25rem] chat-pop">{p.texto}</p>}
                 </li>
               ))}
             </ol>
           </div>
 
           {/* El celular */}
-          <div className="order-1 lg:order-2 mx-auto w-full max-w-[300px]">
-            <div className="rounded-[2.6rem] bg-[#0F1424] p-2.5 shadow-[0_30px_80px_-20px_rgba(15,20,36,0.7)] ring-1 ring-white/10">
-              <div className="rounded-[2.1rem] overflow-hidden h-[520px] flex flex-col bg-white" key={i}>
-                <PantallaDelPaso i={i} />
-              </div>
-            </div>
+          <div className="order-1 lg:order-2 mx-auto">
+            <Celular i={i} zoom={zoomPantalla} />
             {/* En el celular la lista queda abajo: el paso actual va bajo la animación */}
             <div key={`t-${i}`} className="lg:hidden chat-pop mt-4 rounded-2xl bg-white text-[#0F1424] px-4 py-3 shadow-xl">
               <p className="font-extrabold">{i + 1}. {PASOS[i].titulo}</p>
               <p className="text-sm text-[#0F1424]/75 mt-0.5">{PASOS[i].texto}</p>
             </div>
-            <div className="flex gap-1.5 mt-4 justify-center">
-              {PASOS.map((p, k) => (
-                <button key={p.titulo} aria-label={p.titulo} onClick={() => setI(k)} className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-white" : "w-3 bg-white/35"}`} />
-              ))}
-            </div>
+            <div className="mt-4"><Puntos i={i} setI={setI} /></div>
           </div>
         </div>
 
-        <p className="text-center text-white/75 text-sm mt-6">Crea tu cuenta gratis en <b className="text-white">trado.cl</b> · tu primera sala va sin comisión</p>
+        <p className="text-center text-white/80 text-sm lg:text-base 2xl:text-xl mt-4">Crea tu cuenta gratis en <b className="text-white">trado.cl</b> · tu primera sala va sin comisión</p>
       </div>
     </div>
   );
