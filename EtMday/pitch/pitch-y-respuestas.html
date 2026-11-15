@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Pitch y respuestas · Stand Trado EtMday</title>
+<!-- Hoja interna para el equipo del stand (A4, imprimir y tener a mano). Cifras de comisión,
+     plazos y límites leídos del código (calculateFee, REVIEW_HOURS, UNVERIFIED_LIMITS) al
+     2026-11-15. Generar: node EtMday/generar.mjs EtMday/pitch/pitch-y-respuestas.html 210mm 297mm -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: 210mm 297mm; margin: 0; }
+  :root { --azul: #2230C2; --violeta: #7C3AED; --tinta: #0F1424; --gris: #5B6072; --linea: #E6E7F0; --suave: #F3F4FD; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 210mm; height: 297mm; overflow: hidden; }
+  body { font-family: "Plus Jakarta Sans", system-ui, sans-serif; color: var(--tinta); font-size: 2.85mm; line-height: 1.4; padding: 10mm 12mm;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; border-bottom: .5mm solid var(--azul); padding-bottom: 2.5mm; }
+  .top b { font-size: 5.2mm; font-weight: 800; color: var(--azul); }
+  .top span { color: var(--gris); font-size: 2.8mm; }
+  h2 { font-size: 3mm; font-weight: 800; text-transform: uppercase; letter-spacing: .35mm; color: var(--azul); margin: 4.5mm 0 1.8mm; }
+  .pitch { background: var(--suave); border-radius: 3mm; padding: 3.5mm 4mm; font-size: 3.15mm; line-height: 1.5; }
+  .pitch p + p { margin-top: 1.6mm; }
+  .corto { margin-top: 2mm; border-left: .8mm solid var(--violeta); padding-left: 3mm; font-size: 3mm; }
+  .faq { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4mm 6mm; }
+  .faq div b { display: block; font-size: 2.95mm; }
+  .faq div span { display: block; color: #2B3040; }
+  .no { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm 6mm; }
+  .no p { padding-left: 4mm; position: relative; }
+  .no p::before { content: "✕"; position: absolute; left: 0; color: var(--violeta); font-weight: 800; }
+  .no p.si::before { content: "✓"; color: var(--azul); }
+</style>
+</head>
+<body>
+  <div class="top"><b>Stand Trado · pitch y respuestas</b><span>Uso interno · EtMday 19–21 nov</span></div>
+
+  <h2>Pitch de 30 segundos</h2>
+  <div class="pitch">
+    <p>¿Alguna vez compraste o vendiste algo por Instagram, Marketplace o en persona, con alguien que no conocías? Alguien tiene que confiar primero, y ahí aparecen las estafas: el comprobante falso, el "transfiéreme primero", el cliente que te deja en visto.</p>
+    <p><b>Trado es un pago protegido entre personas.</b> El que paga deposita en Trado, la plata queda retenida, y recién se libera cuando se cumple el trato. Si algo no calza, se reporta y la plata no se mueve.</p>
+    <p>Sirve en persona, por envío, para trabajos freelance y entradas. No es un marketplace: lo usas donde ya compras y vendes. Y tu primera sala va sin comisión. ¿Quieres ver si detectas una estafa? Acerca tu celular a una carta.</p>
+  </div>
+  <p class="corto"><b>En 10 segundos:</b> "Trado guarda la plata hasta que se cumple el trato: así nadie tiene que confiar en un desconocido para comprar o vender."</p>
+
+  <h2>Preguntas que van a hacer</h2>
+  <div class="faq">
+    <div><b>¿Cuánto cobra?</b><span>5% con tarjeta. Desde $400.000 se puede pagar por transferencia, que baja por tramos: 3,5% hasta $400.000, 3% hasta $1.150.000 y 2,5% sobre eso. Mínimo $1.000. La primera sala de cada cuenta va sin comisión hasta $250.000.</span></div>
+    <div><b>¿Quién paga la comisión?</b><span>Quien crea la sala, y solo si el trato se concreta. Crear la cuenta es gratis y no hay mensualidad.</span></div>
+    <div><b>¿Y si no me llega o no es lo acordado?</b><span>No confirmas y lo reportas: la plata sigue retenida. Hay 48 horas para que las dos partes lleguen a un acuerdo; si no, el equipo de Trado revisa las pruebas de ambos y decide.</span></div>
+    <div><b>¿Cuánto tiempo tengo para revisar?</b><span>72 horas en productos con envío, desde que lo marcas como recibido. 24 horas en persona, servicios y digital. Si no se reclama en ese plazo, se libera sola.</span></div>
+    <div><b>¿Cuándo le llega la plata al que vende?</b><span>Al confirmarse, queda en su billetera Trado. Desde ahí pide el retiro y se transfiere a su cuenta bancaria (a su nombre, mismo RUT) en horario hábil.</span></div>
+    <div><b>¿Tengo que verificarme?</b><span>No para empezar: sin verificar, salas de hasta $250.000 y $500.000 en total. Para más (hasta $2.000.000 por sala) se verifica con carnet y selfie.</span></div>
+    <div><b>¿En qué se diferencia de Mercado Libre?</b><span>No es un marketplace ni tienes que publicar ahí: sirve para lo que ya vendes por redes, WhatsApp o en persona, y también para trabajos y entradas.</span></div>
+    <div><b>¿Cómo se paga?</b><span>Con tarjeta a través de Mercado Pago, o por transferencia desde $400.000.</span></div>
+    <div><b>¿Y si la otra persona nunca se une?</b><span>No pasa nada: sin pago no hay riesgo. Una sala sin movimiento se cancela sola a las 72 horas.</span></div>
+    <div><b>¿Sirve en persona?</b><span>Sí: el comprador paga en Trado antes de juntarse, revisa ahí mismo y confirma desde su celular. Nadie anda con efectivo ni depende de una captura.</span></div>
+  </div>
+
+  <h2>Cuidado al hablar</h2>
+  <div class="no">
+    <p>Nada de "100 % seguro", "cero estafas" ni "garantizado".</p>
+    <p>No decir que todos están verificados: verificarse es opcional.</p>
+    <p>No prometer seguridad física al juntarse: Trado protege el pago.</p>
+    <p>No inventar cifras de estafas ni de usuarios.</p>
+    <p class="si">Si no sabes algo: "te lo confirmo", y anota el correo.</p>
+    <p class="si">Invita siempre a jugar una carta y a seguir @trado_cl.</p>
+  </div>
+</body>
+</html>

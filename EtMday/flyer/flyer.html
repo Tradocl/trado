@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Flyer · Trado EtMday 2026</title>
+<!-- Flyer A6 (105 × 148 mm) a dos caras para entregar en el stand. Papel, nada de stickers
+     (el manual multa con 2 UF cada adhesivo pegado en el parque).
+     Página 1 = frente, página 2 = dorso. Generar: node EtMday/generar.mjs EtMday/flyer/flyer.html 105mm 148mm -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: 105mm 148mm; margin: 0; }
+  :root { --azul: #2230C2; --medio: #4B35D6; --violeta: #7C3AED; --tinta: #0F1424; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Plus Jakarta Sans", system-ui, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .cara { width: 105mm; height: 148mm; position: relative; overflow: hidden; page-break-after: always; display: flex; flex-direction: column; padding: 9mm 8mm 8mm; }
+  .frente { color: #fff; background: linear-gradient(150deg, var(--azul) 0%, var(--medio) 55%, var(--violeta) 100%); }
+  .brillo { position: absolute; width: 70mm; height: 70mm; border-radius: 50%; background: rgba(255,255,255,.12); filter: blur(14mm); top: -25mm; right: -25mm; }
+  .logo { height: 8mm; align-self: flex-start; position: relative; }
+  .chat { position: relative; margin-top: 9mm; align-self: flex-start; max-width: 80mm; background: #fff; color: var(--tinta);
+          border-radius: 4mm 4mm 4mm 1mm; padding: 3mm 4mm; font-size: 4.2mm; font-weight: 700; line-height: 1.25; box-shadow: 0 2mm 5mm rgba(0,0,0,.2); }
+  .chat small { display: block; font-size: 2.8mm; font-weight: 600; color: rgba(15,20,36,.5); margin-top: 1mm; }
+  h1 { position: relative; font-size: 9.6mm; font-weight: 800; line-height: 1.02; letter-spacing: -.3mm; margin-top: 7mm; }
+  .bajada { position: relative; font-size: 3.9mm; line-height: 1.35; margin-top: 4mm; opacity: .92; }
+  .qr { position: relative; margin-top: auto; display: flex; align-items: center; gap: 4mm; background: #fff; color: var(--tinta); border-radius: 4mm; padding: 3mm; }
+  .qr img { width: 24mm; height: 24mm; flex: none; }
+  .qr b { display: block; font-size: 4mm; font-weight: 800; color: var(--azul); line-height: 1.15; }
+  .qr span { display: block; font-size: 2.9mm; margin-top: 1mm; line-height: 1.3; color: rgba(15,20,36,.7); }
+  .dorso { color: var(--tinta); background: #fff; }
+  .dorso h2 { font-size: 6.4mm; font-weight: 800; line-height: 1.1; color: var(--azul); }
+  .pasos { margin-top: 6mm; display: flex; flex-direction: column; gap: 4mm; }
+  .paso { display: flex; gap: 3mm; align-items: flex-start; }
+  .paso .n { width: 7mm; height: 7mm; border-radius: 50%; background: var(--azul); color: #fff; font-weight: 800; font-size: 3.6mm; display: flex; align-items: center; justify-content: center; flex: none; }
+  .paso b { display: block; font-size: 3.9mm; font-weight: 800; }
+  .paso span { display: block; font-size: 3.1mm; color: rgba(15,20,36,.7); line-height: 1.3; margin-top: .5mm; }
+  .sirve { margin-top: 6mm; font-size: 3.1mm; color: rgba(15,20,36,.75); line-height: 1.5; }
+  .sirve b { color: var(--tinta); }
+  .regalo { margin-top: 5mm; border-radius: 3mm; background: #EEF0FF; padding: 3mm 3.5mm; font-size: 3.3mm; line-height: 1.35; }
+  .regalo b { color: var(--azul); }
+  .redes { margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 3mm; border-top: .3mm solid #E6E7F0; }
+  .redes .web { font-size: 4.6mm; font-weight: 800; color: #fff; background: var(--azul); border-radius: 99mm; padding: 1.4mm 4mm; }
+  .redes .ig { font-size: 3.6mm; font-weight: 700; }
+</style>
+</head>
+<body>
+  <section class="cara frente">
+    <div class="brillo"></div>
+    <img class="logo" src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado">
+    <div class="chat">Transfiéreme primero y te lo mando al tiro 😉<small>¿Te suena?</small></div>
+    <h1>Compra y vende sin confiar en un desconocido.</h1>
+    <p class="bajada">Con Trado, la plata queda retenida hasta que recibes lo acordado. Recién ahí se libera.</p>
+    <div class="qr">
+      <img src="../qr/qr-flyer.svg" alt="">
+      <div><b>Crea tu cuenta gratis</b><span>Escanea y arma tu primera sala en un minuto.</span></div>
+    </div>
+  </section>
+
+  <section class="cara dorso">
+    <h2>Así funciona</h2>
+    <div class="pasos">
+      <div class="paso"><span class="n">1</span><div><b>Creas una sala</b><span>Con lo que se vende y el precio. Le mandas el link a la otra persona.</span></div></div>
+      <div class="paso"><span class="n">2</span><div><b>Se paga en Trado</b><span>La plata no le llega al vendedor: queda retenida.</span></div></div>
+      <div class="paso"><span class="n">3</span><div><b>Se entrega lo acordado</b><span>En persona, por envío o digital.</span></div></div>
+      <div class="paso"><span class="n">4</span><div><b>Se confirma y se libera</b><span>Si algo no calza, se reporta y la plata no se mueve.</span></div></div>
+    </div>
+    <p class="sirve">Sirve para <b>compras por redes</b>, <b>ventas en persona</b>, <b>trabajos freelance</b> y <b>entradas</b>. No es un marketplace: sigues vendiendo donde ya lo haces.</p>
+    <p class="regalo"><b>Tu primera sala va sin comisión</b>, hasta $250.000.</p>
+    <div class="redes"><span class="web">trado.cl</span><span class="ig">@trado_cl</span></div>
+  </section>
+</body>
+</html>

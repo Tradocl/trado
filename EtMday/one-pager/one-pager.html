@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Trado · One pager</title>
+<!-- One pager A4 para inversionistas, mentores y aliados en el EtMday.
+     Las cifras de comisión salen de calculateFee (src/lib/utils.ts) y las de uso de la base
+     al 2026-11-15: si cambian, actualizar acá. Lo que está entre [corchetes] lo completa el equipo.
+     Generar: node EtMday/generar.mjs EtMday/one-pager/one-pager.html 210mm 297mm -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: 210mm 297mm; margin: 0; }
+  :root { --azul: #2230C2; --medio: #4B35D6; --violeta: #7C3AED; --tinta: #0F1424; --gris: #5B6072; --linea: #E6E7F0; --suave: #F3F4FD; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 210mm; height: 297mm; overflow: hidden; }
+  body { font-family: "Plus Jakarta Sans", system-ui, sans-serif; color: var(--tinta); font-size: 2.95mm; line-height: 1.42;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  header { position: relative; overflow: hidden; color: #fff; padding: 9mm 13mm 8mm;
+           background: linear-gradient(150deg, var(--azul) 0%, var(--medio) 55%, var(--violeta) 100%); }
+  header .brillo { position: absolute; width: 90mm; height: 90mm; border-radius: 50%; background: rgba(255,255,255,.12); filter: blur(18mm); top: -40mm; right: -20mm; }
+  .fila { position: relative; display: flex; justify-content: space-between; align-items: flex-start; }
+  .logo { height: 9mm; }
+  .contacto-top { text-align: right; font-size: 3mm; opacity: .9; line-height: 1.5; }
+  h1 { position: relative; font-size: 8mm; font-weight: 800; line-height: 1.05; letter-spacing: -.3mm; margin-top: 5mm; max-width: 165mm; }
+  header p { position: relative; font-size: 3.5mm; margin-top: 2.5mm; opacity: .92; max-width: 165mm; }
+  main { padding: 6mm 13mm 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4.5mm 8mm; }
+  h2 { font-size: 3.1mm; font-weight: 800; text-transform: uppercase; letter-spacing: .4mm; color: var(--azul); margin-bottom: 2mm; }
+  .bloque p + p { margin-top: 1.5mm; }
+  .ancho { grid-column: 1 / -1; }
+  .pasos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+  .paso { background: var(--suave); border-radius: 3mm; padding: 2.5mm 3mm; }
+  .paso .n { width: 6mm; height: 6mm; border-radius: 50%; background: var(--azul); color: #fff; font-weight: 800; font-size: 3mm; display: flex; align-items: center; justify-content: center; }
+  .paso b { display: block; margin-top: 2mm; font-size: 3.3mm; }
+  .paso span { display: block; color: var(--gris); font-size: 2.85mm; line-height: 1.35; margin-top: .6mm; }
+  ul { list-style: none; }
+  li { padding-left: 4mm; position: relative; margin-top: .8mm; }
+  li::before { content: ""; position: absolute; left: 0; top: 1.6mm; width: 1.6mm; height: 1.6mm; border-radius: 50%; background: var(--violeta); }
+  table { width: 100%; border-collapse: collapse; font-size: 3mm; }
+  td { padding: 1.4mm 0; border-bottom: .25mm solid var(--linea); vertical-align: top; }
+  td:last-child { text-align: right; font-weight: 700; }
+  .metricas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+  .metrica { border: .3mm solid var(--linea); border-radius: 3mm; padding: 2.5mm 3mm; }
+  .metrica b { display: block; font-size: 5.4mm; font-weight: 800; color: var(--azul); line-height: 1.1; }
+  .metrica span { display: block; color: var(--gris); font-size: 2.8mm; margin-top: .6mm; line-height: 1.3; }
+  .nota { color: var(--gris); font-size: 2.75mm; margin-top: 2mm; }
+  footer { position: absolute; left: 13mm; right: 13mm; bottom: 8mm; display: flex; align-items: center; gap: 4mm; background: var(--suave); border-radius: 4mm; padding: 3mm; }
+  footer img { width: 15mm; height: 15mm; }
+  footer b { display: block; font-size: 4mm; color: var(--azul); }
+  footer span { display: block; color: var(--gris); font-size: 3mm; margin-top: .5mm; }
+  .relleno { color: #B4570F; font-weight: 700; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brillo"></div>
+    <div class="fila">
+      <img class="logo" src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado">
+      <div class="contacto-top">trado.cl · @trado_cl<br>contacto@trado.cl</div>
+    </div>
+    <h1>Pago protegido para compras, ventas y trabajos entre personas en Chile.</h1>
+    <p>Trado retiene la plata hasta que se cumple el trato. Quien paga no se arriesga a perderla y quien vende no se arriesga a no cobrar.</p>
+  </header>
+
+  <main>
+    <section class="bloque">
+      <h2>El problema</h2>
+      <p>Cada vez más gente compra, vende y cobra trabajos por Instagram, WhatsApp o en persona, con alguien que no conoce. Alguien tiene que confiar primero: el que paga se arriesga a que nunca le llegue nada, y el que vende o trabaja, a no cobrar.</p>
+      <p>Comprobantes falsos, "transfiéreme primero", el cliente que deja en visto o el encuentro con plata en efectivo: no hay un intermediario neutro para esos tratos.</p>
+    </section>
+    <section class="bloque">
+      <h2>La solución</h2>
+      <p>Una sala de pago protegido: se crea en un minuto y se comparte por link. Quien paga deposita en Trado, la plata queda retenida, y recién se libera cuando se confirma que se entregó lo acordado.</p>
+      <p>Si algo no calza, se reporta y la plata no se mueve: las partes tienen 48 horas para llegar a un acuerdo, y si no, el equipo de Trado revisa las pruebas y decide.</p>
+    </section>
+
+    <section class="ancho">
+      <h2>Cómo funciona</h2>
+      <div class="pasos">
+        <div class="paso"><span class="n">1</span><b>Se crea la sala</b><span>Qué se vende y en cuánto. Se comparte el link.</span></div>
+        <div class="paso"><span class="n">2</span><b>Se paga en Trado</b><span>Con tarjeta o transferencia. La plata queda retenida.</span></div>
+        <div class="paso"><span class="n">3</span><b>Se entrega</b><span>En persona, por envío o digital. Plazo de revisión: 72 h envío, 24 h el resto.</span></div>
+        <div class="paso"><span class="n">4</span><b>Se libera</b><span>Al confirmar, o sola al terminar el plazo sin reclamos.</span></div>
+      </div>
+    </section>
+
+    <section class="bloque">
+      <h2>Para quién</h2>
+      <ul>
+        <li>Compradores y vendedores casuales de cosas usadas.</li>
+        <li>Emprendedores que venden por Instagram y necesitan que les crean.</li>
+        <li>Freelancers que entregan un trabajo y quieren asegurar el pago.</li>
+        <li>Reventa de entradas y productos digitales.</li>
+      </ul>
+      <p class="nota">No es un marketplace: se usa donde la gente ya compra y vende.</p>
+    </section>
+    <section class="bloque">
+      <h2>Modelo de negocio</h2>
+      <table>
+        <tr><td>Pago con tarjeta</td><td>5% del monto</td></tr>
+        <tr><td>Transferencia (desde $400.000), por tramos</td><td>3,5% → 3% → 2,5%</td></tr>
+        <tr><td>Comisión mínima</td><td>$1.000</td></tr>
+        <tr><td>Primera sala de cada cuenta</td><td>Sin comisión hasta $250.000</td></tr>
+      </table>
+      <p class="nota">Se cobra solo si el trato se concreta. Salas de hasta $2.000.000 (verificando identidad).</p>
+    </section>
+
+    <section class="ancho">
+      <h2>Dónde estamos</h2>
+      <div class="metricas">
+        <div class="metrica"><b>Jun 2026</b><span>Lanzamiento, plataforma en producción</span></div>
+        <div class="metrica"><b>42</b><span>cuentas creadas, 23 en el último mes</span></div>
+        <div class="metrica"><b>12</b><span>salas creadas</span></div>
+        <div class="metrica"><b>$200.000</b><span>custodiados y liberados en salas completadas</span></div>
+      </div>
+      <p class="nota">Pagos con Mercado Pago (tarjeta) y transferencia. Verificación de identidad con carnet y selfie. Sociedad Comercial Trado Limitada.</p>
+    </section>
+
+    <section class="bloque">
+      <h2>Equipo</h2>
+      <p><b>Jose Pablo Acevedo</b> · <span class="relleno">[cargo]</span><br><span class="relleno">[Nombre · cargo]</span><br><span class="relleno">[Nombre · cargo]</span></p>
+    </section>
+    <section class="bloque">
+      <h2>Qué buscamos en el EtMday</h2>
+      <p class="relleno">[Ej.: alianzas con comunidades de compraventa y emprendedores, mentoría en pagos y regulación, conversaciones con inversionistas.]</p>
+    </section>
+  </main>
+
+  <footer>
+    <img src="../qr/qr-one-pager.svg" alt="">
+    <div><b>trado.cl</b><span>contacto@trado.cl · @trado_cl · Crea tu cuenta gratis y prueba una sala.</span></div>
+  </footer>
+</body>
+</html>
