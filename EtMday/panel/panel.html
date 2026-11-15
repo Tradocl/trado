@@ -3,17 +3,21 @@
 <head>
 <meta charset="utf-8">
 <title>Panel NFC · Trado EtMday 2026</title>
-<!-- Panel de mesa del stand: 9 cartas boca abajo, cada una con una tarjeta NFC pegada
-     detrás. La carta N tiene grabado trado.cl/etm/N y abre siempre el mismo caso
-     (orden en CARTAS, src/lib/casos-etm.ts); el link no delata de qué se trata.
+<!-- Panel de mesa del stand: 9 cartas boca abajo del tamaño EXACTO de una tarjeta de crédito
+     (85,6 × 54 mm, ISO/IEC 7810 ID-1). Cada carta impresa marca dónde va una tarjeta NFC:
+     se pega detrás del papel, justo bajo la carta (o la tarjeta física va encima, con su cara
+     de tarjetas.html pegada). La carta N tiene grabado trado.cl/etm/N y abre siempre el mismo
+     caso (orden en CARTAS, src/lib/casos-etm.ts); el link no delata de qué se trata.
      El QR de respaldo abre trado.cl/etm/sorpresa (un caso al azar).
-     Tamaño A3 vertical (297 × 420 mm); al ser vectorial se puede imprimir en A2.
-     Se genera a PDF con EtMday/panel/generar.mjs. -->
+     A3 vertical (297 × 420 mm). Las filas de cartas están ubicadas para que el corte a los
+     210 mm caiga en el espacio entre la fila 1 y la 2: así se imprime en 2 hojas A4
+     horizontales (panel-2xA4.pdf) sin partir ninguna carta.
+     Se genera con: node EtMday/panel/generar.mjs -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
   @page { size: 297mm 420mm; margin: 0; }
-  :root { --azul: #2230C2; --medio: #4B35D6; --violeta: #7C3AED; --verde: #10B981; --naranjo: #FF6B4A; --tinta: #0F1424; }
+  :root { --azul: #2230C2; --medio: #4B35D6; --violeta: #7C3AED; --verde: #10B981; --tinta: #0F1424; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 297mm; height: 420mm; }
   body {
@@ -24,26 +28,31 @@
   }
   .brillo { position: absolute; border-radius: 50%; filter: blur(30mm); pointer-events: none; }
   .b1 { width: 160mm; height: 160mm; background: rgba(255,255,255,.12); top: -60mm; right: -50mm; }
-  .b2 { width: 170mm; height: 170mm; background: rgba(16,185,129,.22); bottom: -70mm; left: -60mm; }
-  .hoja { position: relative; height: 100%; padding: 16mm 15mm 12mm; display: flex; flex-direction: column; }
+  .b2 { width: 170mm; height: 170mm; background: rgba(124,58,237,.35); bottom: -70mm; left: -60mm; }
 
-  header { display: flex; justify-content: space-between; align-items: flex-start; }
+  /* Todo en posiciones fijas (mm) para que el corte A4 caiga entre filas */
+  header { position: absolute; top: 16mm; left: 15mm; right: 15mm; display: flex; justify-content: space-between; align-items: flex-start; }
   .logo { height: 15mm; }
   .pill { font-size: 4.2mm; font-weight: 800; letter-spacing: .4mm; text-transform: uppercase;
           border: .5mm solid rgba(255,255,255,.55); border-radius: 99mm; padding: 2.2mm 5mm; }
-  h1 { font-size: 21mm; font-weight: 800; line-height: .98; letter-spacing: -.9mm; margin-top: 9mm; }
-  h1 u { text-decoration: none; background: linear-gradient(transparent 82%, var(--verde) 82%, var(--verde) 94%, transparent 94%); }
-  .bajada { font-size: 7.4mm; font-weight: 500; margin-top: 4mm; opacity: .92; }
+  .titulo { position: absolute; top: 56mm; left: 15mm; right: 15mm; }
+  h1 { font-size: 21mm; font-weight: 800; line-height: .98; letter-spacing: -.9mm; }
+  h1 u { text-decoration: none; background: linear-gradient(transparent 82%, rgba(255,255,255,.4) 82%, rgba(255,255,255,.4) 94%, transparent 94%); }
+  .bajada { font-size: 7.4mm; font-weight: 500; margin-top: 5mm; opacity: .92; }
 
-  .grilla { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 6mm; margin-top: 9mm; }
-  /* Cada carta mide ~84 × 82 mm: la tarjeta NFC (85,6 × 54 mm) va pegada detrás, en vertical y al centro */
-  .carta { border-radius: 8mm; border: 1.6mm solid #fff; position: relative; overflow: hidden;
-           box-shadow: 0 4mm 10mm rgba(10,15,60,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .carta::before { content: ""; position: absolute; inset: 4mm; border: .6mm dashed rgba(255,255,255,.4); border-radius: 5mm; }
-  .carta .q { font-size: 30mm; font-weight: 800; line-height: 1; color: rgba(255,255,255,.95); text-shadow: 0 1.5mm 0 rgba(0,0,0,.15); }
-  .carta .ondas { width: 10mm; height: 10mm; color: #fff; margin-top: 2mm; }
-  .carta .acerca { font-size: 3.8mm; font-weight: 800; margin-top: 2mm; letter-spacing: .2mm; }
-  .carta .num { position: absolute; top: 7mm; left: 8mm; font-size: 6mm; font-weight: 800; opacity: .85; }
+  /* 3 columnas de 85,6 mm + 2 espacios de 10 mm = 276,8 mm; filas en 142, 214 y 286 mm (espacios de 18 mm) */
+  .carta { position: absolute; width: 85.6mm; height: 54mm; }
+  .fila1 { top: 142mm; } .fila2 { top: 214mm; } .fila3 { top: 286mm; }
+  .col1 { left: 10.1mm; } .col2 { left: 105.7mm; } .col3 { left: 201.3mm; }
+
+  .cara { width: 100%; height: 100%; border-radius: 3.2mm; border: .9mm solid #fff; position: relative; overflow: hidden;
+          box-shadow: 0 2.5mm 6mm rgba(10,15,60,.35); display: flex; align-items: center; justify-content: center; gap: 5mm; }
+  .cara::before { content: ""; position: absolute; inset: 2.4mm; border: .4mm dashed rgba(255,255,255,.4); border-radius: 2mm; }
+  .cara .q { font-size: 30mm; font-weight: 800; line-height: 1; color: rgba(255,255,255,.95); text-shadow: 0 1mm 0 rgba(0,0,0,.15); }
+  .cara .lado { display: flex; flex-direction: column; align-items: center; }
+  .cara .ondas { width: 9mm; height: 9mm; color: #fff; }
+  .cara .acerca { font-size: 3.3mm; font-weight: 800; margin-top: 1.5mm; letter-spacing: .15mm; text-align: center; line-height: 1.2; }
+  .cara .num { position: absolute; top: 4.2mm; left: 5mm; font-size: 4.6mm; font-weight: 800; opacity: .85; }
   .c1 { background: radial-gradient(circle at 30% 20%, #4B35D6, #0F1424 70%); }
   .c2 { background: radial-gradient(circle at 70% 25%, #10B981, #064E3B 75%); }
   .c3 { background: radial-gradient(circle at 30% 80%, #FF6B4A, #7C2D12 75%); }
@@ -54,45 +63,56 @@
   .c8 { background: radial-gradient(circle at 30% 25%, #2DD4BF, #134E4A 75%); }
   .c9 { background: radial-gradient(circle at 50% 30%, #818CF8, #1E1B4B 75%); }
 
-  footer { display: flex; align-items: center; gap: 7mm; margin-top: 9mm; }
-  .qr { background: #fff; border-radius: 5mm; padding: 2.5mm; flex: none; }
-  .qr img { width: 32mm; height: 32mm; display: block; }
+  .pasos { position: absolute; top: 352mm; left: 15mm; right: 15mm; display: flex; gap: 6mm; font-size: 5mm; font-weight: 700; }
+  .pasos span { flex: 1; background: rgba(255,255,255,.14); border: .4mm solid rgba(255,255,255,.3); border-radius: 4mm; padding: 2.6mm 4mm; }
+  .pasos b { display: inline-flex; width: 7mm; height: 7mm; border-radius: 50%; background: #fff; color: var(--azul); align-items: center; justify-content: center; margin-right: 2mm; font-size: 4mm; }
+
+  footer { position: absolute; left: 15mm; right: 15mm; bottom: 12mm; display: flex; align-items: center; gap: 7mm; }
+  .qr { background: #fff; border-radius: 4mm; padding: 2mm; flex: none; }
+  .qr img { width: 26mm; height: 26mm; display: block; }
   .pie { flex: 1; }
-  .pie b { display: block; font-size: 6.6mm; font-weight: 800; }
-  .pie span { display: block; font-size: 4.8mm; opacity: .85; margin-top: 1.5mm; }
+  .pie b { display: block; font-size: 6mm; font-weight: 800; }
+  .pie span { display: block; font-size: 4.6mm; opacity: .85; margin-top: 1.5mm; }
   .web { font-weight: 800; background: #fff; color: var(--azul); border-radius: 99mm; padding: 2.6mm 7mm; font-size: 6mm; flex: none; }
 </style>
 </head>
 <body>
   <div class="brillo b1"></div><div class="brillo b2"></div>
-  <div class="hoja">
-    <header>
-      <img class="logo" src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado">
-      <span class="pill">9 estafas reales</span>
-    </header>
+  <header>
+    <img class="logo" src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado">
+    <span class="pill">9 estafas reales</span>
+  </header>
+  <div class="titulo">
     <h1>Elige una carta.<br>¿La <u>detectarías</u>?</h1>
     <p class="bajada">Acerca tu celular y descubre qué estafa te toca.</p>
-
-    <div class="grilla" id="grilla"></div>
-
-    <footer>
-      <div class="qr"><img src="../../public/etm/qr-sorpresa.svg" alt=""></div>
-      <div class="pie">
-        <b>¿Tu celular no tiene NFC? Escanea aquí.</b>
-        <span>No somos un marketplace: Trado protege el pago de lo que ya compras y vendes.</span>
-      </div>
-      <span class="web">trado.cl</span>
-    </footer>
   </div>
+
+  <div id="cartas"></div>
+
+  <div class="pasos">
+    <span><b>1</b>Acerca tu celular</span>
+    <span><b>2</b>Lee el chat</span>
+    <span><b>3</b>¿Lo detectaste?</span>
+  </div>
+
+  <footer>
+    <div class="qr"><img src="../../public/etm/qr-sorpresa.svg" alt=""></div>
+    <div class="pie">
+      <b>¿Tu celular no tiene NFC? Escanea aquí.</b>
+      <span>No somos un marketplace: Trado protege el pago de lo que ya compras y vendes.</span>
+    </div>
+    <span class="web">trado.cl</span>
+  </footer>
 
 <script>
   const ondas = '<svg class="ondas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/><path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/><path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/><path d="M16.37 2a20.16 20.16 0 0 1 0 20"/></svg>';
-  document.getElementById("grilla").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `
-    <div class="carta c${n}">
-      <span class="num">${n}</span>
-      <span class="q">?</span>
-      ${ondas}
-      <span class="acerca">Acerca tu celular</span>
+  document.getElementById("cartas").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `
+    <div class="carta fila${Math.ceil(n / 3)} col${((n - 1) % 3) + 1}">
+      <div class="cara c${n}">
+        <span class="num">${n}</span>
+        <span class="q">?</span>
+        <span class="lado">${ondas}<span class="acerca">Acerca tu<br>celular</span></span>
+      </div>
     </div>`).join("");
 </script>
 </body>

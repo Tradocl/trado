@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Caras de las tarjetas NFC · Trado EtMday 2026</title>
+<!-- Las 9 caras de carta a tamaño EXACTO de tarjeta de crédito (85,6 × 54 mm), en una hoja A4
+     horizontal. Se imprimen al 100 % ("Tamaño real", nunca "Ajustar a la página"), se recortan
+     por la línea gris y se pegan sobre cada tarjeta NFC. La N va en la tarjeta grabada con
+     trado.cl/etm/N. Para comprobar la escala: la regla de abajo debe medir 50 mm.
+     Se genera con: node EtMday/panel/generar.mjs -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: 297mm 210mm; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 297mm; height: 210mm; }
+  body { font-family: "Plus Jakarta Sans", system-ui, sans-serif; background: #fff; color: #0F1424;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; position: relative; }
+  /* 3 × 85,6 + 2 × 8 = 272,8 mm de ancho; 3 × 54 + 2 × 8 = 178 mm de alto */
+  .grilla { position: absolute; top: 12mm; left: 12.1mm; display: grid; grid-template-columns: repeat(3, 85.6mm); grid-auto-rows: 54mm; gap: 8mm; }
+  .corte { position: relative; outline: .2mm solid #9AA0B4; border-radius: 3.2mm; }
+  .cara { width: 85.6mm; height: 54mm; border-radius: 3.2mm; position: relative; overflow: hidden; color: #fff;
+          display: flex; align-items: center; justify-content: center; gap: 5mm; }
+  .cara::before { content: ""; position: absolute; inset: 2.4mm; border: .4mm dashed rgba(255,255,255,.4); border-radius: 2mm; }
+  .cara .q { font-size: 30mm; font-weight: 800; line-height: 1; color: rgba(255,255,255,.95); text-shadow: 0 1mm 0 rgba(0,0,0,.15); }
+  .cara .lado { display: flex; flex-direction: column; align-items: center; }
+  .cara .ondas { width: 9mm; height: 9mm; color: #fff; }
+  .cara .acerca { font-size: 3.3mm; font-weight: 800; margin-top: 1.5mm; letter-spacing: .15mm; text-align: center; line-height: 1.2; }
+  .cara .num { position: absolute; top: 4.2mm; left: 5mm; font-size: 4.6mm; font-weight: 800; opacity: .85; }
+  .cara .marca { position: absolute; bottom: 3.6mm; right: 5mm; font-size: 3mm; font-weight: 800; opacity: .8; }
+  .c1 { background: radial-gradient(circle at 30% 20%, #4B35D6, #0F1424 70%); }
+  .c2 { background: radial-gradient(circle at 70% 25%, #10B981, #064E3B 75%); }
+  .c3 { background: radial-gradient(circle at 30% 80%, #FF6B4A, #7C2D12 75%); }
+  .c4 { background: radial-gradient(circle at 75% 75%, #7C3AED, #2E1065 75%); }
+  .c5 { background: radial-gradient(circle at 25% 30%, #38BDF8, #0C4A6E 75%); }
+  .c6 { background: radial-gradient(circle at 60% 20%, #F472B6, #831843 75%); }
+  .c7 { background: radial-gradient(circle at 70% 70%, #FBBF24, #78350F 75%); }
+  .c8 { background: radial-gradient(circle at 30% 25%, #2DD4BF, #134E4A 75%); }
+  .c9 { background: radial-gradient(circle at 50% 30%, #818CF8, #1E1B4B 75%); }
+  .nota { position: absolute; left: 12.1mm; right: 12.1mm; bottom: 7mm; display: flex; justify-content: space-between; align-items: center; font-size: 3.2mm; color: #4A5068; }
+  .regla { display: flex; align-items: center; gap: 2mm; }
+  .regla i { display: block; width: 50mm; height: 2.4mm; border: .3mm solid #0F1424; border-top: none; }
+</style>
+</head>
+<body>
+  <div class="grilla" id="grilla"></div>
+  <div class="nota">
+    <span>Imprimir al <b>100 % / tamaño real</b> · recortar por la línea gris · la carta N va en la tarjeta grabada con trado.cl/etm/N</span>
+    <span class="regla"><i></i>debe medir 50 mm</span>
+  </div>
+<script>
+  const ondas = '<svg class="ondas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/><path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/><path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/><path d="M16.37 2a20.16 20.16 0 0 1 0 20"/></svg>';
+  document.getElementById("grilla").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `
+    <div class="corte"><div class="cara c${n}">
+      <span class="num">${n}</span>
+      <span class="q">?</span>
+      <span class="lado">${ondas}<span class="acerca">Acerca tu<br>celular</span></span>
+      <span class="marca">trado</span>
+    </div></div>`).join("");
+</script>
+</body>
+</html>
