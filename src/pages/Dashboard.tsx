@@ -80,7 +80,7 @@ const appealStatusLabels: Record<string, { label: string; color: string }> = {
 
 const getCardGradient = (color: string): string => {
   const gradients: Record<string, string> = {
-    primary: "bg-gradient-to-br from-primary to-primary-light",
+    primary: "bg-gradient-to-br from-primary via-medio via-55% to-violet-600",
     emerald: "bg-gradient-to-br from-primary to-primary/80",
     purple: "bg-gradient-to-br from-purple-600 to-purple-400",
     orange: "bg-gradient-to-br from-orange-600 to-orange-400",
@@ -352,7 +352,7 @@ const Dashboard = () => {
         <PushNotificationBanner />
         {/* Welcome Card */}
         <Card 
-          className={`border-0 shadow-xl text-white overflow-hidden animate-fade-in ${!profile?.dashboard_background_url ? getCardGradient(profile?.dashboard_color || 'primary') : ''}`}
+          className={`relative border-0 rounded-3xl shadow-[0_20px_50px_-15px_hsl(var(--primary)/0.55)] text-white overflow-hidden animate-fade-in ${!profile?.dashboard_background_url ? getCardGradient(profile?.dashboard_color || 'primary') : ''}`}
           style={{
             animationDelay: '0.1s',
             animationFillMode: 'both',
@@ -363,13 +363,20 @@ const Dashboard = () => {
             } : {})
           }}
         >
-          <CardHeader className="pb-2 sm:pb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div>
-                <CardTitle className="text-lg sm:text-2xl flex items-center gap-2 flex-wrap">
-                  <span className="truncate max-w-[160px] xs:max-w-[220px] sm:max-w-none">¡Hola, {profile?.nickname || profile?.full_name?.split(' ')[0] || "Usuario"}!</span>
+          {/* Decoración: círculos de luz y candado de fondo */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -top-20 -right-16 w-64 h-64 rounded-full bg-white/10" />
+            <div className="absolute -top-8 right-24 w-28 h-28 rounded-full bg-white/[0.06]" />
+            <div className="absolute -bottom-28 -left-16 w-72 h-72 rounded-full bg-violet-400/30 blur-2xl" />
+            <Lock className="hidden sm:block absolute -right-4 bottom-2 h-40 w-40 text-white/[0.07] rotate-12" strokeWidth={1.5} />
+          </div>
+          <CardHeader className="relative pb-3 sm:pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+              <div className="min-w-0">
+                <CardTitle className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  <span className="block truncate">¡Hola, {profile?.nickname || profile?.full_name?.split(' ')[0] || "Usuario"}! 👋</span>
                 </CardTitle>
-                <CardDescription className="text-white/80 text-xs sm:text-sm">
+                <CardDescription className="text-white/85 text-sm mt-1">
                   {transactions.length > 0
                     ? `Tienes ${transactions.length} ${transactions.length === 1 ? "sala en curso" : "salas en curso"}`
                     : !yaUsaTrado
@@ -387,51 +394,47 @@ const Dashboard = () => {
               )}
             </div>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-6 pt-0">
-            <div className="flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20 px-3 py-2 animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
-              <Wallet className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs opacity-80 truncate">Saldo</p>
-                <p className="text-base sm:text-2xl font-bold truncate">${formatCLP(wallet?.balance || 0)}</p>
-              </div>
+          <CardContent className="relative pt-0 space-y-4">
+            <div className="animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+              <p className="text-xs sm:text-sm font-medium text-white/75 flex items-center gap-1.5"><Wallet className="h-4 w-4" /> Saldo disponible</p>
+              <p className="text-4xl sm:text-5xl font-extrabold tracking-tight mt-1 tabular-nums">${formatCLP(wallet?.balance || 0)}</p>
+              {(wallet?.blocked_balance || 0) === 0 && (wallet?.balance || 0) === 0 && (
+                <p className="text-xs text-white/70 mt-1">Cuando te paguen en una sala, la plata llega aquí y la retiras a tu cuenta.</p>
+              )}
             </div>
-            {(wallet?.blocked_balance || 0) > 0 && (
-              <div className="flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20 px-3 py-2 animate-fade-in" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
-                <Lock className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs opacity-80 truncate">Retenido en salas</p>
-                  <p className="text-base sm:text-2xl font-bold truncate">${formatCLP(wallet?.blocked_balance || 0)}</p>
-                </div>
-              </div>
-            )}
-            {yaUsaTrado ? (
-            <>
-            <div className="flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20 px-3 py-2 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
-              <Star className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 fill-white/40" />
-              <div>
-                <p className="text-xs opacity-80">Tu nota</p>
-                <p className="text-base sm:text-2xl font-bold">
-                  {Number(profile?.reputation_score) > 0 ? Number(profile?.reputation_score).toFixed(1) : "—"}
-                </p>
-              </div>
+            <div className="flex flex-wrap gap-2 animate-fade-in" style={{ animationDelay: '0.28s', animationFillMode: 'both' }}>
+              {(wallet?.blocked_balance || 0) > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25 backdrop-blur-sm px-3 py-1.5 text-xs sm:text-sm">
+                  <Lock className="h-3.5 w-3.5" /> <b>${formatCLP(wallet?.blocked_balance || 0)}</b> retenido en salas
+                </span>
+              )}
+              {yaUsaTrado ? (
+                <>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25 backdrop-blur-sm px-3 py-1.5 text-xs sm:text-sm">
+                    <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" /> Nota <b>{Number(profile?.reputation_score) > 0 ? Number(profile?.reputation_score).toFixed(1) : "—"}</b>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25 backdrop-blur-sm px-3 py-1.5 text-xs sm:text-sm">
+                    <CheckCircle className="h-3.5 w-3.5" /> <b>{profile?.total_transactions || 0}</b> {(profile?.total_transactions || 0) === 1 ? "sala completada" : "salas completadas"}
+                  </span>
+                </>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 ring-1 ring-white/25 backdrop-blur-sm px-3 py-1.5 text-xs sm:text-sm">
+                  <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" /> Cada sala completada suma a tu reputación
+                </span>
+              )}
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20 px-3 py-2 animate-fade-in" style={{ animationDelay: '0.35s', animationFillMode: 'both' }}>
-              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-              <div>
-                <p className="text-xs opacity-80">Salas completadas</p>
-                <p className="text-base sm:text-2xl font-bold">{profile?.total_transactions || 0}</p>
-              </div>
+            {/* Acciones de la billetera: antes estaban en una tarjeta aparte que repetía el saldo */}
+            <div className="grid grid-cols-3 gap-2 sm:max-w-md animate-fade-in" style={{ animationDelay: '0.36s', animationFillMode: 'both' }}>
+              <button type="button" onClick={() => navigate("/wallet?action=deposit")} className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 rounded-xl bg-white text-primary font-semibold text-xs sm:text-sm py-2.5 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                <Plus className="h-4 w-4" /> Depositar
+              </button>
+              <button type="button" onClick={() => navigate("/wallet?action=withdraw")} className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 rounded-xl bg-white/15 ring-1 ring-white/30 backdrop-blur-sm font-semibold text-xs sm:text-sm py-2.5 hover:bg-white/25 transition-all">
+                <ArrowUpRight className="h-4 w-4" /> Retirar
+              </button>
+              <button type="button" onClick={() => navigate("/wallet")} className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 rounded-xl bg-white/15 ring-1 ring-white/30 backdrop-blur-sm font-semibold text-xs sm:text-sm py-2.5 hover:bg-white/25 transition-all">
+                <History className="h-4 w-4" /> Movimientos
+              </button>
             </div>
-            </>
-            ) : (
-              <div className="col-span-2 sm:col-span-1 flex items-center gap-2.5 rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20 px-3 py-2 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
-                <Star className="h-5 w-5 flex-shrink-0" />
-                <p className="text-xs sm:text-sm leading-snug">
-                  <b>Empieza a construir tu reputación.</b> Cada sala que completas suma confianza para tus próximos tratos.
-                </p>
-              </div>
-            )}
-            
           </CardContent>
         </Card>
 
@@ -459,6 +462,7 @@ const Dashboard = () => {
             </span>
           </button>
         )}
+
         <PrimerosPasos
           abierto={popupPasos}
           onCerrar={cerrarPopupPasos}
@@ -511,16 +515,14 @@ const Dashboard = () => {
           <>
           <h2 className="sr-only">Salas en curso</h2>
           <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
-            <CardHeader className="border-b border-border/60">
-              <CardTitle className="flex items-center gap-3 text-base">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <ShoppingBag className="h-5 w-5 text-primary" />
-                </div>
+            <CardHeader className="border-b border-border/60 py-3.5 sm:py-4 flex-row items-center justify-between space-y-0">
+              <CardTitle className="flex items-center gap-2.5 text-base">
+                <span className="p-2 bg-primary/10 rounded-lg">
+                  <ShoppingBag className="h-4 w-4 text-primary" />
+                </span>
                 Salas en curso
+                <span className="min-w-[1.5rem] h-6 px-1.5 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">{transactions.length}</span>
               </CardTitle>
-              <CardDescription>
-                Las salas que tienes abiertas
-              </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border/50">
@@ -617,27 +619,48 @@ const Dashboard = () => {
           </>
         )}
 
-        {!loading && transactions.length === 0 && yaUsaTrado && (
+
+        {/* Action Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
           <button
             type="button"
             onClick={() => navigate("/create-transaction")}
-            className="w-full relative overflow-hidden rounded-3xl border border-primary/15 bg-card/80 backdrop-blur p-5 sm:p-6 text-left shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all animate-fade-in"
+            className="group relative overflow-hidden flex items-center gap-3 sm:gap-4 rounded-2xl bg-gradient-to-r from-primary to-medio text-white px-4 py-4 sm:py-5 text-left shadow-lg shadow-primary/30 hover:shadow-xl hover:-translate-y-0.5 transition-all animate-fade-in"
+            style={{ animationDelay: "0.3s", animationFillMode: "both" }}
           >
-            <div className="flex items-center gap-4 sm:gap-6">
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0" aria-hidden>
-                <span className="absolute left-0 top-2 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg -rotate-12"><Truck className="h-5 w-5" /></span>
-                <span className="absolute right-0 top-0 w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-violet-500 text-white flex items-center justify-center shadow-lg rotate-12"><Briefcase className="h-5 w-5" /></span>
-                <span className="absolute left-1/2 -translate-x-1/2 bottom-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-primary via-medio via-55% to-info text-white flex items-center justify-center shadow-xl"><Lock className="h-5 w-5" /></span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-primary flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> No tienes salas en curso</p>
-                <p className="font-extrabold text-lg sm:text-xl tracking-tight mt-0.5">Crea tu próxima sala en 1 minuto</p>
-                <p className="text-sm text-muted-foreground mt-0.5">Vende, compra o cobra un trabajo con la plata retenida hasta que se cumpla</p>
-              </div>
-              <ArrowRight className="hidden sm:block h-6 w-6 text-primary shrink-0" />
-            </div>
+            <span className="p-3 rounded-xl bg-white/20 ring-1 ring-white/30 shrink-0">
+              <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-base sm:text-lg">Crear sala</span>
+              <span className="block text-xs sm:text-sm text-white/80 truncate">Compra, vende o cobra un trabajo</span>
+            </span>
+            <ArrowRight className="h-5 w-5 text-white/80 group-hover:translate-x-0.5 transition-transform shrink-0" />
           </button>
-        )}
+
+          {/* Unirse e historial: filas blancas simples; el único bloque de color es "Crear sala" */}
+          {[
+            { ir: "/join-transaction", icon: ShoppingBag, titulo: "Unirme a una sala", detalle: "Ingresa con el código que te mandaron", delay: "0.4s" },
+            { ir: "/transaction-history", icon: History, titulo: "Historial", detalle: "Tus salas anteriores", delay: "0.5s" },
+          ].map(({ ir, icon: Icon, titulo, detalle, delay }) => (
+            <button
+              key={ir}
+              type="button"
+              onClick={() => navigate(ir)}
+              className="group flex items-center gap-3 sm:gap-4 rounded-2xl border border-border bg-card/90 backdrop-blur px-4 py-4 sm:py-5 text-left shadow-sm hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 transition-all animate-fade-in"
+              style={{ animationDelay: delay, animationFillMode: "both" }}
+            >
+              <span className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-base sm:text-lg">{titulo}</span>
+                <span className="block text-xs sm:text-sm text-muted-foreground truncate">{detalle}</span>
+              </span>
+              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+            </button>
+          ))}
+        </div>
 
         {/* Complete Profile Card - Show for users with incomplete profile */}
         {!isProfileComplete && (
@@ -673,7 +696,7 @@ const Dashboard = () => {
 
         {/* Verification Card - Show for unverified users */}
         {profile?.verification_status !== 'approved' && (
-          <Card className="border border-info/20 shadow-md overflow-hidden animate-fade-in bg-gradient-to-br from-info/5 to-transparent" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
+          <Card className="border border-info/20 shadow-sm overflow-hidden animate-fade-in bg-card/90 backdrop-blur" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
             <CardContent className="py-4 sm:py-5">
               <div className="flex items-start gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-xl flex-shrink-0 bg-info/10">
@@ -697,10 +720,10 @@ const Dashboard = () => {
                     </>
                   ) : (
                     <>
-                      <h4 className="font-semibold text-sm sm:text-base mb-1">¿Necesitas salas de montos mayores?</h4>
+                      <h4 className="font-semibold text-sm sm:text-base mb-1">Sube tu límite a ${formatCLP(MAX_TRANSACTION_AMOUNT)}</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                         Sin verificar puedes usar salas de hasta <strong>${formatCLP(UNVERIFIED_LIMITS.PER_TRANSACTION)}</strong>.
-                        Verifica tu identidad con tu carnet para salas de hasta ${formatCLP(MAX_TRANSACTION_AMOUNT)}.
+                        Verifica tu identidad con tu carnet y sube ese límite.
                       </p>
                       {accumulatedTotal > 0 && (
                         <div className="mb-3 max-w-sm">
@@ -733,88 +756,8 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Action Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-          <button
-            type="button"
-            onClick={() => navigate("/create-transaction")}
-            className="group flex items-center gap-3 sm:gap-4 rounded-xl bg-primary text-white px-4 py-4 sm:py-5 text-left shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all animate-fade-in"
-            style={{ animationDelay: "0.3s", animationFillMode: "both" }}
-          >
-            <span className="p-3 rounded-xl bg-white/20 ring-1 ring-white/30 shrink-0">
-              <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold text-base sm:text-lg">Crear sala</span>
-              <span className="block text-xs sm:text-sm text-white/80 truncate">Compra, vende o cobra un trabajo</span>
-            </span>
-            <ArrowRight className="h-5 w-5 text-white/80 group-hover:translate-x-0.5 transition-transform shrink-0" />
-          </button>
-
-          {/* Unirse e historial: filas blancas simples; el único bloque de color es "Crear sala" */}
-          {[
-            { ir: "/join-transaction", icon: ShoppingBag, titulo: "Unirme a una sala", detalle: "Ingresa con el código que te mandaron", delay: "0.4s" },
-            { ir: "/transaction-history", icon: History, titulo: "Historial", detalle: "Tus salas anteriores", delay: "0.5s" },
-          ].map(({ ir, icon: Icon, titulo, detalle, delay }) => (
-            <button
-              key={ir}
-              type="button"
-              onClick={() => navigate(ir)}
-              className="group flex items-center gap-3 sm:gap-4 rounded-xl border border-border bg-card px-4 py-4 sm:py-5 text-left shadow-sm hover:border-primary/40 hover:shadow-md transition-all animate-fade-in"
-              style={{ animationDelay: delay, animationFillMode: "both" }}
-            >
-              <span className="p-3 rounded-xl bg-primary/10 text-primary shrink-0">
-                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold text-base sm:text-lg">{titulo}</span>
-                <span className="block text-xs sm:text-sm text-muted-foreground truncate">{detalle}</span>
-              </span>
-              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
-            </button>
-          ))}
-        </div>
 
 
-        {/* Wallet Card */}
-        <Card className="section-card overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
-          <CardHeader className="border-b border-border/60 py-4 sm:py-5">
-            <CardTitle className="flex items-center gap-2 sm:gap-3 text-base">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Wallet className="h-5 w-5 text-primary" />
-              </div>
-              Mi Billetera
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              {(wallet?.balance || 0) > 0
-                ? "Lo que tienes disponible en Trado"
-                : "Cuando te paguen en una sala, la plata llega aquí y la retiras a tu cuenta bancaria"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
-            <div className="flex justify-between items-center p-4 sm:p-5 bg-gradient-to-r from-primary via-medio via-55% to-info text-white rounded-xl shadow-md animate-fade-in" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
-              <span className="flex items-center gap-2 text-xs sm:text-sm font-medium text-white/85">
-                <Wallet className="h-4 w-4" /> Saldo disponible
-              </span>
-              <span className="text-xl sm:text-3xl font-bold">${formatCLP(wallet?.balance || 0)}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in" style={{ animationDelay: '0.75s', animationFillMode: 'both' }}>
-              <Button variant="outline" className="w-full h-10 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet")}>
-                <History className="h-4 w-4" />
-                <span className="text-xs leading-none">Movimientos</span>
-              </Button>
-              <Button className="w-full h-10 bg-success hover:bg-success/90 shadow-md text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=deposit")}>
-                <Plus className="h-4 w-4" />
-                <span className="text-xs leading-none">Depositar</span>
-              </Button>
-              <Button variant="outline" className="w-full h-10 border-primary/30 text-primary hover:bg-primary/5 text-xs sm:text-sm px-2 sm:px-4 transition-all duration-200 hover:scale-[1.02] flex-col gap-0.5 sm:flex-row sm:gap-2" onClick={() => navigate("/wallet?action=withdraw")}>
-                <ArrowUpRight className="h-4 w-4" />
-                <span className="text-xs leading-none">Retirar</span>
-              </Button>
-            </div>
-            
-          </CardContent>
-        </Card>
       </main>
 
       <CompleteProfileModal
