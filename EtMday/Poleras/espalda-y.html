@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda Y · Bingo del estafador</title>
+<!-- Espalda Y: cartón de bingo con las frases típicas del chanta. Área 28 × 36 cm, fondo
+     transparente. Generar: node EtMday/Poleras/generar.mjs espalda-y -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #ECEDF3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; padding: 0.8cm 1cm 0.8cm; }
+
+  h1 { font-size: 6.4cm; font-weight: 800; letter-spacing: -0.25cm; line-height: 0.85; color: var(--indigo); text-transform: uppercase; }
+  .sub { margin-top: -0.1cm; font-size: 1.9cm; font-weight: 800; font-style: italic; color: var(--violeta); letter-spacing: -0.06cm; }
+
+  .carton { margin-top: 0.7cm; display: grid; grid-template-columns: repeat(3, 8.4cm); grid-template-rows: repeat(3, 6.9cm);
+            border: 0.25cm solid var(--tinta); border-radius: 0.6cm; overflow: hidden; }
+  .c { position: relative; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0.5cm;
+       font-size: 1.15cm; font-weight: 800; line-height: 1.12; border-right: 0.12cm solid var(--tinta); border-bottom: 0.12cm solid var(--tinta); }
+  .c:nth-child(3n) { border-right: 0; }
+  .c:nth-child(n+7) { border-bottom: 0; }
+  .libre { background: var(--indigo); color: #fff; flex-direction: column; gap: 0.3cm; font-size: 0.75cm; letter-spacing: 0.08cm; text-transform: uppercase; }
+  .libre img { width: 5.6cm; }
+  .marca::after { content: ""; position: absolute; inset: 0.3cm 0.12cm; border: 0.24cm solid var(--violeta); border-radius: 50%; transform: rotate(-8deg); }
+
+  .linea { position: absolute; top: 6.3cm; right: 0.3cm; transform: rotate(10deg); background: var(--violeta); color: #fff;
+           font-size: 1.3cm; font-weight: 800; padding: 0.12cm 0.5cm 0.2cm; border-radius: 0.4cm; letter-spacing: -0.04cm; }
+
+  .bajada { margin-top: 0.8cm; font-size: 1.1cm; font-weight: 700; text-align: center; line-height: 1.3; }
+  .bajada b { color: var(--indigo); }
+  .pie { margin-top: auto; font-size: 1.15cm; font-weight: 800; }
+</style>
+</head>
+<body>
+  <h1>Bingo</h1>
+  <p class="sub">del estafador</p>
+
+  <div class="carton">
+    <div class="c marca" style="font-size: 1.02cm">“Transfiéreme primero”</div>
+    <div class="c">“Tengo otro interesado”</div>
+    <div class="c">Comprobante borroso</div>
+    <div class="c">“Mi primo lo va a buscar”</div>
+    <div class="c libre"><img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado">Casilla libre</div>
+    <div class="c">Precio regalado</div>
+    <div class="c">“No tengo más fotos”</div>
+    <div class="c">“Te lo mando al tiro”</div>
+    <div class="c marca">Te dejó en visto</div>
+  </div>
+  <div class="linea">¡LÍNEA!</div>
+
+  <p class="bajada">Si completas una línea, no transfieras:<br><b>paga con trado y la plata queda retenida.</b></p>
+  <p class="pie">trado.cl</p>
+</body>
+</html>

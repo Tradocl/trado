@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AB · Etiqueta de lavado</title>
+<!-- Espalda AB: etiqueta de cuidado de la ropa, pero con instrucciones para no caer en estafas.
+     Íconos dibujados a mano en SVG. Área 28 × 36 cm, fondo transparente.
+     Generar: node EtMday/Poleras/generar.mjs espalda-ab -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #8A8FA3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; padding: 0.8cm 1.2cm; }
+
+  .etiqueta { width: 100%; height: 100%; border: 0.3cm solid var(--tinta); border-radius: 0.8cm; position: relative;
+              display: flex; flex-direction: column; padding: 1.3cm 1.4cm 1.1cm; }
+  .etiqueta::before { content: ""; position: absolute; inset: 0.45cm; border: 0.1cm dashed var(--gris); border-radius: 0.45cm; }
+
+  .arriba { text-align: center; }
+  .arriba small { display: block; font-size: 0.85cm; font-weight: 800; letter-spacing: 0.12cm; text-transform: uppercase; color: var(--gris); }
+  h1 { margin-top: 0.3cm; font-size: 2.6cm; font-weight: 800; line-height: 0.92; letter-spacing: -0.1cm; text-transform: uppercase; }
+  h1 span { color: var(--indigo); }
+  .comp { margin-top: 0.5cm; font-size: 1.05cm; font-weight: 800; }
+  .comp b { color: var(--violeta); }
+
+  ul { list-style: none; margin-top: 0.9cm; border-top: 0.12cm solid var(--tinta); }
+  li { display: flex; align-items: center; gap: 0.9cm; padding: 0.65cm 0; border-bottom: 0.06cm solid #D9DBE6;
+       font-size: 1.3cm; font-weight: 700; line-height: 1.15; }
+  li svg { flex: none; width: 3.4cm; height: 3.4cm; }
+  li b { color: var(--indigo); }
+
+  .firma { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 0.7cm; }
+  .firma img { height: 2.1cm; }
+  .firma span { font-size: 1.15cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <div class="etiqueta">
+    <div class="arriba">
+      <small>Instrucciones de cuidado</small>
+      <h1>Cuida tu<br><span>plata.</span></h1>
+      <p class="comp">100% algodón · <b>0% transferir primero</b></p>
+    </div>
+
+    <ul>
+      <li>
+        <svg viewBox="0 0 60 60" fill="none" stroke="#131924" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M8 20 L14 50 H46 L52 20"/><path d="M8 20 Q17 26 26 20 Q35 14 44 20 Q48 23 52 20"/>
+          <path d="M6 6 L54 54 M54 6 L6 54" stroke="#7B46D8" stroke-width="4.5"/></svg>
+        <span>No transferir primero a desconocidos</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 60 60" fill="none" stroke="#131924" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M30 8 L54 50 H6 Z"/>
+          <path d="M6 6 L54 54 M54 6 L6 54" stroke="#7B46D8" stroke-width="4.5"/></svg>
+        <span>No confiar en comprobantes borrosos</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 60 60" fill="none" stroke="#131924" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M10 46 H52 V40 Q52 20 32 20 H20 Q14 20 12 28 Z"/><path d="M20 20 V14 H40"/>
+          <path d="M6 6 L54 54 M54 6 L6 54" stroke="#7B46D8" stroke-width="4.5"/></svg>
+        <span>No planchar el chamullo del “te lo mando al tiro”</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 60 60" fill="none" stroke="#1F25C1" stroke-width="3.5" stroke-linejoin="round">
+          <rect x="7" y="7" width="46" height="46" rx="4"/><circle cx="30" cy="30" r="15"/><circle cx="30" cy="30" r="3.5" fill="#1F25C1"/></svg>
+        <span><b>Dejar la plata en trado</b> hasta recibir lo tuyo</span>
+      </li>
+    </ul>
+
+    <div class="firma">
+      <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+      <span>trado.cl</span>
+    </div>
+  </div>
+</body>
+</html>

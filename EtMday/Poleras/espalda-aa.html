@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AA · Sellos ALTO EN</title>
+<!-- Espalda AA: los sellos negros de la ley de etiquetado, aplicados a transferirle primero a un
+     desconocido. Sin texto ni logos de ninguna institución. Área 28 × 36 cm, fondo transparente.
+     Generar: node EtMday/Poleras/generar.mjs espalda-aa -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; padding: 1cm 1cm 0.8cm; }
+
+  .prod { font-size: 1cm; font-weight: 800; letter-spacing: 0.1cm; text-transform: uppercase; color: #8A8FA3; }
+  h1 { margin-top: 0.2cm; font-size: 2.3cm; font-weight: 800; text-align: center; line-height: 0.95; letter-spacing: -0.1cm; }
+  h1 span { color: var(--indigo); }
+
+  .sellos { margin-top: 0.9cm; display: grid; grid-template-columns: repeat(2, 9.8cm); gap: 0.5cm 1cm; }
+  .sellos svg { display: block; width: 9.8cm; }
+
+  .prefiera { margin-top: 0.7cm; display: flex; align-items: center; gap: 0.8cm; }
+  .prefiera span { font-size: 1.7cm; font-weight: 800; text-transform: uppercase; letter-spacing: -0.04cm; }
+  .prefiera img { height: 3.3cm; }
+  .pie { margin-top: auto; font-size: 0.9cm; font-weight: 700; }
+</style>
+</head>
+<body>
+  <p class="prod">Producto:</p>
+  <h1>Transferirle primero<br><span>a un desconocido</span></h1>
+
+  <div class="sellos" id="sellos"></div>
+
+  <div class="prefiera"><span>Prefiera:</span>
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+  </div>
+  <p class="pie">La plata queda retenida hasta que recibes lo tuyo · trado.cl</p>
+<script>
+  const sello = (palabra, tam) => `<svg viewBox="0 0 110 110">
+    <polygon points="32.2,0 77.8,0 110,32.2 110,77.8 77.8,110 32.2,110 0,77.8 0,32.2" fill="#131924"/>
+    <polygon points="34,4.5 76,4.5 105.5,34 105.5,76 76,105.5 34,105.5 4.5,76 4.5,34" fill="none" stroke="#fff" stroke-width="2"/>
+    <text x="55" y="50" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="800" font-size="18" fill="#fff">ALTO EN</text>
+    <text x="55" y="${tam > 17 ? 75 : 73}" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="800" font-size="${tam}" fill="#fff">${palabra}</text>
+  </svg>`;
+  document.getElementById("sellos").innerHTML =
+    sello("CHAMULLO", 15.5) + sello("RIESGO", 19) + sello("LADRILLOS", 14.5) + sello("VISTO", 21);
+</script>
+</body>
+</html>
