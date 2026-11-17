@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda E · ¿Qué había en la caja?</title>
+<!-- Gráfica de la espalda, opción E: la caja con un ladrillo ("¿Qué había en la caja? Un
+     ladrillo" / "la plata espera a que abras la caja", del feed de Instagram). Dibujo en SVG
+     con colores de la marca. Área 28 × 36 cm, fondo transparente.
+     Generar: node EtMday/Poleras/generar.mjs -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; padding: 1.2cm 1cm 0.8cm; }
+
+  .pregunta { font-size: 1.75cm; font-weight: 800; letter-spacing: -0.05cm; text-align: center; }
+  svg { display: block; width: 21cm; margin-top: 0.6cm; }
+  h1 { margin-top: 0.4cm; font-size: 4.9cm; font-weight: 800; text-transform: uppercase; text-align: center;
+       line-height: 0.86; letter-spacing: -0.14cm; }
+  h1 span { display: block; color: var(--violeta); }
+  .bajada { margin-top: 1cm; font-size: 1.05cm; font-weight: 700; text-align: center; line-height: 1.3; }
+  .bajada b { color: var(--indigo); }
+
+  .firma { margin-top: auto; display: flex; align-items: center; gap: 0.7cm; }
+  .firma img { height: 2.1cm; }
+  .firma span { font-size: 1.15cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <p class="pregunta">¿Qué había en la caja?</p>
+
+  <svg viewBox="0 0 200 118" aria-hidden="true">
+    <g stroke="#131924" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+      <!-- interior de la caja -->
+      <polygon points="40,62 150,62 172,42 62,42" fill="#C9CBD8"/>
+      <!-- ladrillo asomándose -->
+      <g transform="rotate(-8 105 40)">
+        <rect x="64" y="20" width="84" height="38" rx="2" fill="#7B46D8"/>
+        <polygon points="64,20 148,20 158,12 74,12" fill="#9C74E3"/>
+        <polygon points="148,20 158,12 158,50 148,58" fill="#5A2FB0"/>
+        <circle cx="86" cy="39" r="5" fill="#5A2FB0"/>
+        <circle cx="106" cy="39" r="5" fill="#5A2FB0"/>
+        <circle cx="126" cy="39" r="5" fill="#5A2FB0"/>
+      </g>
+      <!-- caja: frente, costado y tapas -->
+      <rect x="40" y="62" width="110" height="52" fill="#ECEDF3"/>
+      <polygon points="150,62 172,42 172,94 150,114" fill="#D9DBE6"/>
+      <polygon points="40,62 62,42 36,24 14,44" fill="#ECEDF3"/>
+      <polygon points="150,62 172,42 194,58 172,78" fill="#D9DBE6"/>
+      <rect x="54" y="86" width="44" height="16" rx="2" fill="#fff" stroke-width="2"/>
+    </g>
+    <text x="76" y="97.5" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="8" fill="#131924">FRÁGIL</text>
+  </svg>
+
+  <h1>Un<span>ladrillo.</span></h1>
+
+  <p class="bajada">Con <b>trado</b> la plata espera<br>a que abras la caja.</p>
+
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+</body>
+</html>

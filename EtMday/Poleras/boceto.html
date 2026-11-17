@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <title>Boceto poleras · Trado EtMday 2026</title>
-<!-- Vista de cómo quedan las poleras: frente + las tres opciones de espalda, a escala
+<!-- Vista de cómo quedan las poleras: frente + las cinco opciones de espalda, a escala
      (polera XXL de ~64 cm de ancho; espalda 28 × 36 cm; logo 9 cm). Usa los PNG que arma generar.mjs. -->
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { width: 2300px; height: 800px; background: #F5F5FA; font-family: "Plus Jakarta Sans", sans-serif; color: #131924; padding: 50px 60px; }
+  body { width: 2300px; height: 1460px; background: #F5F5FA; font-family: "Plus Jakarta Sans", sans-serif; color: #131924; padding: 50px 60px; }
   h1 { font-size: 40px; font-weight: 800; letter-spacing: -1px; }
   h1 + p { font-size: 20px; color: #5B6075; margin-top: 6px; }
-  .fila { display: flex; gap: 40px; margin-top: 40px; }
-  figure { flex: 1; text-align: center; }
+  .fila { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-top: 40px; }
+  figure { text-align: center; }
   figcaption { font-size: 22px; font-weight: 800; margin-top: 14px; }
   figcaption small { display: block; font-size: 16px; font-weight: 600; color: #5B6075; margin-top: 4px; }
   svg { width: 100%; height: auto; filter: drop-shadow(0 10px 18px rgba(19,25,36,.12)); }
@@ -20,7 +20,7 @@
 </head>
 <body>
   <h1>Poleras Trado · EtMday 2026</h1>
-  <p>Polera blanca XXL. Frente con el logo chico en el pecho; espalda con una de las tres gráficas (son dos poleras: pueden ir iguales o distintas).</p>
+  <p>Polera blanca XXL. Frente con el logo chico en el pecho; espalda con una de las cinco gráficas (son dos poleras: pueden ir iguales o distintas).</p>
   <div class="fila">
     <figure>
       <svg viewBox="0 0 100 88"><use href="#polera-frente"/>
@@ -41,6 +41,16 @@
       <svg viewBox="0 0 100 88"><use href="#polera-espalda"/>
         <image href="espalda-c.png" x="36" y="11" width="28" height="36"/></svg>
       <figcaption>Espalda · opción C<small>Diccionario: “transfiéreme primero” · antónimo: trado</small></figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 100 88"><use href="#polera-espalda"/>
+        <image href="espalda-d.png" x="36" y="11" width="28" height="36"/></svg>
+      <figcaption>Espalda · opción D<small>“¿Quién paga primero?” · Ninguno: trado se pone al medio</small></figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 100 88"><use href="#polera-espalda"/>
+        <image href="espalda-e.png" x="36" y="11" width="28" height="36"/></svg>
+      <figcaption>Espalda · opción E<small>“¿Qué había en la caja? Un ladrillo.”</small></figcaption>
     </figure>
   </div>
 
