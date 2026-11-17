@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Trado · archivos para imprenta</title>
+<!-- Piezas autoadhesivas para mandar a imprenta. Dos modos:
+     ?pieza=carta&n=1..9 | buena | reverso | dado&cara=0..5 | qr | logo   → una pieza sola, a tamaño
+       real + 3 mm de sangrado por lado (la página mide eso; el corte va 3 mm hacia adentro).
+     ?ficha=dado | tarjetas | extra   → hoja A4 que explica medidas, cantidades, material y corte.
+     Se arma todo con: node EtMday/imprenta/armar.mjs -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --azul: #2230C2; --medio: #4B35D6; --violeta: #7C3AED; --tinta: #0F1424; --naranjo: #FF6B4A; --gris: #5B6075; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Plus Jakarta Sans", system-ui, sans-serif; color: var(--tinta); background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* ---------- Tarjeta (85,6 × 54 mm) ---------- */
+  .tj { position: relative; overflow: hidden; color: #fff; display: flex; align-items: center; justify-content: center; }
+  .tj .in { position: absolute; border: .4mm dashed rgba(255,255,255,.4); border-radius: 2mm; }
+  .tj .q { font-size: 30mm; font-weight: 800; line-height: 1; color: rgba(255,255,255,.95); text-shadow: 0 1mm 0 rgba(0,0,0,.15); }
+  .tj .lado { display: flex; flex-direction: column; align-items: center; margin-left: 5mm; }
+  .tj .ondas { width: 9mm; height: 9mm; }
+  .tj .acerca { font-size: 3.3mm; font-weight: 800; margin-top: 1.5mm; text-align: center; line-height: 1.2; }
+  .tj .num { position: absolute; font-size: 4.6mm; font-weight: 800; opacity: .85; }
+  .tj .marca { position: absolute; font-size: 3mm; font-weight: 800; opacity: .8; }
+  .c1 { background: radial-gradient(circle at 30% 20%, #4B35D6, #0F1424 70%); }
+  .c2 { background: radial-gradient(circle at 70% 25%, #10B981, #064E3B 75%); }
+  .c3 { background: radial-gradient(circle at 30% 80%, #FF6B4A, #7C2D12 75%); }
+  .c4 { background: radial-gradient(circle at 75% 75%, #7C3AED, #2E1065 75%); }
+  .c5 { background: radial-gradient(circle at 25% 30%, #38BDF8, #0C4A6E 75%); }
+  .c6 { background: radial-gradient(circle at 60% 20%, #F472B6, #831843 75%); }
+  .c7 { background: radial-gradient(circle at 70% 70%, #FBBF24, #78350F 75%); }
+  .c8 { background: radial-gradient(circle at 30% 25%, #2DD4BF, #134E4A 75%); }
+  .c9 { background: radial-gradient(circle at 50% 30%, #818CF8, #1E1B4B 75%); }
+  .marca-g { background: linear-gradient(150deg, #2230C2 0%, #4B35D6 55%, #7C3AED 100%); }
+  .tj .ok { width: 20mm; height: 20mm; border-radius: 50%; background: #fff; color: var(--azul); display: flex; align-items: center; justify-content: center; box-shadow: 0 1.5mm 4mm rgba(10,15,60,.35); }
+  .tj .ok svg { width: 12mm; height: 12mm; }
+  .tj .der { display: flex; flex-direction: column; align-items: flex-start; margin-left: 5mm; }
+  .tj .der img { height: 9mm; }
+  .tj .der b { font-size: 4.6mm; font-weight: 800; margin-top: 1.2mm; }
+  .tj .der span { font-size: 2.8mm; font-weight: 700; opacity: .9; margin-top: .6mm; }
+  .tj.rev { flex-direction: column; text-align: center; }
+  .tj.rev img { height: 11mm; }
+  .tj.rev .preg { font-size: 4.2mm; font-weight: 800; margin-top: 3mm; }
+  .tj.rev .mkt { font-size: 2.5mm; font-weight: 600; opacity: .85; margin-top: 1.5mm; }
+  .luz { position: absolute; border-radius: 50%; background: rgba(255,255,255,.1); }
+
+  /* ---------- Cara del dado (círculo; 1em = diámetro / 10) ---------- */
+  .dd { border-radius: 50%; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .dd.gana { color: #fff; }
+  .dd .check { width: 3.6em; height: 3.6em; border-radius: 50%; background: #fff; color: var(--azul); display: flex; align-items: center; justify-content: center; box-shadow: 0 .25em .6em rgba(10,15,60,.35); }
+  .dd .check svg { width: 2.3em; height: 2.3em; }
+  .dd img { height: 1.55em; margin-top: .7em; }
+  .dd.gana .txt { font-size: .82em; font-weight: 800; letter-spacing: .06em; margin-top: .35em; }
+  .dd.pierde { background: #F3F3F9; }
+  .dd .x { width: 4.4em; height: 4.4em; color: var(--naranjo); }
+  .dd.pierde .txt { font-size: .95em; font-weight: 800; line-height: 1.1; margin-top: .45em; padding: 0 .8em; }
+  .dd .sub { font-size: .6em; font-weight: 700; color: #6B7085; margin-top: .3em; text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ---------- Sticker QR y sticker logo ---------- */
+  .sq { background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+  .sq .borde { position: absolute; border: 1.6mm solid var(--violeta); border-radius: 6mm; }
+  .sq img.qr { width: 46mm; height: 46mm; display: block; }
+  .sq .esc { font-size: 5mm; font-weight: 800; color: var(--violeta); margin-top: 2mm; letter-spacing: .3mm; }
+  .sq img.lg { height: 6mm; margin-top: 1.5mm; }
+  .sl { display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .sl img { height: 20mm; position: relative; }
+
+  /* ---------- Fichas A4 ---------- */
+  .ficha { width: 210mm; height: 297mm; padding: 14mm; position: relative; overflow: hidden; }
+  .cab { display: flex; justify-content: space-between; align-items: center; }
+  .cab img { height: 9mm; }
+  .cab span { font-size: 3.2mm; font-weight: 700; color: var(--gris); }
+  h1 { font-size: 9mm; font-weight: 800; letter-spacing: -.3mm; margin-top: 6mm; line-height: 1.05; }
+  .bajada { font-size: 3.7mm; color: var(--gris); margin-top: 2mm; line-height: 1.45; }
+  table { width: 100%; border-collapse: collapse; margin-top: 5mm; font-size: 3.4mm; }
+  th { text-align: left; font-size: 2.7mm; text-transform: uppercase; letter-spacing: .3mm; color: var(--gris); padding: 1.6mm 2mm; border-bottom: .3mm solid #DADCE8; }
+  td { padding: 2.2mm 2mm; border-bottom: .2mm solid #E6E7F0; vertical-align: top; line-height: 1.4; }
+  td b { font-weight: 800; }
+  .specs { margin-top: 5mm; background: #F3F3F9; border-radius: 3mm; padding: 4mm 5mm; font-size: 3.4mm; line-height: 1.6; }
+  .specs b { font-weight: 800; }
+  h2 { font-size: 4.6mm; font-weight: 800; margin-top: 7mm; color: var(--azul); }
+  .guia { margin-top: 4mm; display: flex; flex-wrap: wrap; gap: 9mm 10mm; align-items: flex-end; }
+  .cota { display: flex; flex-direction: column; align-items: center; }
+  .cota .fila { display: flex; align-items: center; }
+  .cota .h, .cota .v { color: var(--naranjo); font-size: 3mm; font-weight: 800; display: flex; align-items: center; justify-content: center; position: relative; }
+  .cota .h { height: 6mm; border-left: .3mm solid var(--naranjo); border-right: .3mm solid var(--naranjo); margin-bottom: 1mm; }
+  .cota .h::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: .3mm solid var(--naranjo); z-index: 0; }
+  .cota .h span, .cota .v span { background: #fff; padding: 0 1.5mm; position: relative; z-index: 1; }
+  .cota .v { width: 6mm; border-top: .3mm solid var(--naranjo); border-bottom: .3mm solid var(--naranjo); margin-left: 1mm; }
+  .cota .v::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; border-left: .3mm solid var(--naranjo); }
+  .cota .v span { writing-mode: vertical-rl; transform: rotate(180deg); padding: 1.5mm 0; }
+  .cota small { font-size: 2.9mm; font-weight: 700; color: var(--gris); margin-top: 2mm; text-align: center; }
+  .escala { position: absolute; left: 14mm; bottom: 10mm; font-size: 2.8mm; color: var(--gris); }
+</style>
+</head>
+<body>
+<div id="todo"></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const B = 3; // sangrado (mm) por lado
+  const LOGO_B = "../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg";
+  const LOGO_G = "../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg";
+  const QR = "../Poleras/qr-polera.svg"; // QR a https://trado.cl
+  const ONDAS = '<svg class="ondas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/><path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/><path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/><path d="M16.37 2a20.16 20.16 0 0 1 0 20"/></svg>';
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const XS = '<svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  const ESTAFAS = ["Comprobante falso", "Te pago después", "Link de pago falso", "Pagaste por fuera", "Te llegó un ladrillo"];
+
+  // b = sangrado en mm (0 para las vistas de la ficha). Devuelven [html, ancho, alto] en mm.
+  const carta = (n, b) => [`<div class="tj c${n}" style="width:${85.6 + 2 * b}mm;height:${54 + 2 * b}mm">
+      <span class="in" style="inset:${2.4 + b}mm"></span><span class="num" style="top:${4.2 + b}mm;left:${5 + b}mm">${n}</span>
+      <span class="q">?</span><span class="lado" style="color:#fff">${ONDAS}<span class="acerca">Acerca tu<br>celular</span></span>
+      <span class="marca" style="bottom:${3.6 + b}mm;right:${5 + b}mm">trado</span></div>`, 85.6 + 2 * b, 54 + 2 * b];
+  const buena = (b) => [`<div class="tj marca-g" style="width:${85.6 + 2 * b}mm;height:${54 + 2 * b}mm">
+      <span class="luz" style="width:50mm;height:50mm;top:${-24 + b}mm;right:${-18 + b}mm"></span>
+      <span class="in" style="inset:${2.4 + b}mm"></span><span class="num" style="top:${4.2 + b}mm;left:${5 + b}mm">10</span>
+      <span class="ok">${CHECK}</span><span class="der"><img src="${LOGO_B}" alt="trado"><b>Esta es la buena</b><span>Acerca tu celular · trado.cl</span></span></div>`, 85.6 + 2 * b, 54 + 2 * b];
+  const reverso = (b) => [`<div class="tj rev marca-g" style="width:${85.6 + 2 * b}mm;height:${54 + 2 * b}mm">
+      <span class="luz" style="width:60mm;height:60mm;top:${-28 + b}mm;right:${-22 + b}mm"></span>
+      <img src="${LOGO_B}" alt="trado"><span class="preg">¿Detectarías la estafa?</span><span class="mkt">No somos un marketplace · trado.cl</span></div>`, 85.6 + 2 * b, 54 + 2 * b];
+  // Dado: el diseño se calcula para 150 mm y el sangrado agranda el círculo sin mover el contenido
+  const dado = (i, b, D = 150) => {
+    const fs = `font-size:${D / 10}mm;width:${D + 2 * b}mm;height:${D + 2 * b}mm`;
+    const html = i === 0
+      ? `<div class="dd gana marca-g" style="${fs}"><span class="check">${CHECK}</span><img src="${LOGO_B}" alt="trado"><span class="txt">¡GANASTE!</span></div>`
+      : `<div class="dd pierde" style="${fs}">${XS}<span class="txt">${ESTAFAS[i - 1]}</span><span class="sub">estafa</span></div>`;
+    return [html, D + 2 * b, D + 2 * b];
+  };
+  const qr = (b) => [`<div class="sq" style="width:${80 + 2 * b}mm;height:${80 + 2 * b}mm"><span class="borde" style="inset:${4 + b}mm"></span>
+      <img class="qr" src="${QR}" alt=""><span class="esc">ESCANÉAME</span><img class="lg" src="${LOGO_G}" alt="trado"></div>`, 80 + 2 * b, 80 + 2 * b];
+  const logo = (b) => [`<div class="sl marca-g" style="width:${100 + 2 * b}mm;height:${35 + 2 * b}mm"><img src="${LOGO_B}" alt="trado"></div>`, 100 + 2 * b, 35 + 2 * b];
+
+  const todo = document.getElementById("todo");
+  const pagina = (w, h) => { const st = document.createElement("style"); st.textContent = `@page { size: ${w}mm ${h}mm; margin: 0; } html, body { width: ${w}mm; height: ${h}mm; overflow: hidden; }`; document.head.appendChild(st); };
+
+  const pieza = q.get("pieza");
+  if (pieza) {
+    const n = Number(q.get("n") || 1), cara = Number(q.get("cara") || 0);
+    const [html, w, h] = pieza === "carta" ? carta(n, B) : pieza === "buena" ? buena(B) : pieza === "reverso" ? reverso(B)
+      : pieza === "dado" ? dado(cara, B) : pieza === "qr" ? qr(B) : logo(B);
+    // el dado lleva fondo de color hasta el borde de la página (sangrado cuadrado alrededor del círculo, en blanco)
+    todo.innerHTML = html; pagina(w, h);
+  } else {
+    // Vista con medidas: la pieza a escala (s) con sus cotas
+    const conCota = ([html, w, h], s, anchoTxt, altoTxt, pie) => `<div class="cota">
+      <div class="h" style="width:${w * s}mm"><span>${anchoTxt}</span></div>
+      <div class="fila"><div style="width:${w * s}mm;height:${h * s}mm"><div style="transform:scale(${s});transform-origin:0 0">${html}</div></div>
+        <div class="v" style="height:${h * s}mm"><span>${altoTxt}</span></div></div>
+      <small>${pie}</small></div>`;
+    const cab = `<div class="cab"><img src="${LOGO_G}" alt="trado"><span>Archivos para imprenta · EtMday 2026</span></div>`;
+    const f = q.get("ficha");
+    let html = "";
+    if (f === "dado") {
+      html = `${cab}<h1>Caras del dado · círculos de 15 cm</h1>
+        <p class="bajada">Son las 6 caras de un dado grande: una gana (trado) y cinco pierden (una estafa cada una). Cada cara es un <b>círculo autoadhesivo de 15 cm de diámetro</b>.</p>
+        <table><tr><th>Pieza</th><th>Medida</th><th>Cantidad</th></tr>
+          <tr><td><b>Cara 1 · ¡Ganaste! (trado)</b></td><td>Círculo de 15 cm de diámetro</td><td>1</td></tr>
+          ${ESTAFAS.map((e, i) => `<tr><td><b>Cara ${i + 2} · ${e}</b></td><td>Círculo de 15 cm de diámetro</td><td>1</td></tr>`).join("")}
+          <tr><td colspan="2"><b>Total</b> (un dado completo)</td><td><b>6 stickers</b></td></tr></table>
+        <div class="specs"><b>Material:</b> adhesivo blanco (papel o vinilo), idealmente con laminado mate para que no se raye.<br>
+          <b>Corte:</b> circular, de 15 cm de diámetro (troquelado o a mano).<br>
+          <b>Archivo:</b> cada cara viene en su propia página a tamaño real, con <b>3 mm de sangrado</b> por lado (la página mide 15,6 × 15,6 cm; el corte va 3 mm hacia adentro).</div>
+        <h2>Cómo quedan, con sus medidas</h2>
+        <div class="guia">${[0, 1, 2].map((i) => conCota(dado(i, 0), 0.27, "15 cm", "15 cm", i === 0 ? "Cara 1 · gana" : `Cara ${i + 1}`)).join("")}</div>
+        <p class="escala">Las vistas de esta hoja están achicadas. Las páginas que siguen están a tamaño real: imprimir al 100 %.</p>`;
+    } else if (f === "tarjetas") {
+      html = `${cab}<h1>Tarjetas autoadhesivas · 8,56 × 5,4 cm</h1>
+        <p class="bajada">Se pegan sobre tarjetas NFC del tamaño de una tarjeta de crédito. Cada sticker mide <b>8,56 × 5,4 cm</b>, con las esquinas redondeadas (radio 3 mm). Hay 3 copias de cada una para tener repuesto.</p>
+        <table><tr><th>Pieza</th><th>Medida</th><th>Cantidad</th></tr>
+          <tr><td><b>Cartas 1 a 9</b> (“?” con su número)</td><td>8,56 × 5,4 cm cada una</td><td>3 de cada número · 27</td></tr>
+          <tr><td><b>Carta 10 · “Esta es la buena”</b></td><td>8,56 × 5,4 cm</td><td>3</td></tr>
+          <tr><td><b>Reverso</b> (igual para todas)</td><td>8,56 × 5,4 cm</td><td>30</td></tr>
+          <tr><td colspan="2"><b>Total</b></td><td><b>60 stickers</b></td></tr></table>
+        <div class="specs"><b>Material:</b> papel o vinilo adhesivo <b>no metalizado</b> (el metal bloquea el NFC), con laminado mate.<br>
+          <b>Corte:</b> rectangular de 8,56 × 5,4 cm con esquinas redondeadas de 3 mm (como una tarjeta de crédito).<br>
+          <b>Archivo:</b> cada diseño en su propia página a tamaño real, con <b>3 mm de sangrado</b> por lado (la página mide 9,16 × 6 cm). La cantidad de cada uno está en esta tabla.</div>
+        <h2>Cómo quedan, con sus medidas</h2>
+        <div class="guia">${conCota(carta(1, 0), 0.62, "8,56 cm", "5,4 cm", "Carta 1 (igual del 1 al 9, cambia el color y el número)")}
+          ${conCota(buena(0), 0.62, "8,56 cm", "5,4 cm", "Carta 10 · la buena")}
+          ${conCota(reverso(0), 0.62, "8,56 cm", "5,4 cm", "Reverso")}</div>
+        <p class="escala">Las vistas de esta hoja están achicadas. Las páginas que siguen están a tamaño real: imprimir al 100 %.</p>`;
+    } else {
+      html = `${cab}<h1>Stickers extra (opcionales)</h1>
+        <p class="bajada">Para marcar nuestras propias cosas en el stand: el notebook, la tablet, el atril o la caja. <b>No son para regalar ni pegar en el parque</b>: la organización cobra 2 UF por cada sticker pegado en el recinto.</p>
+        <table><tr><th>Pieza</th><th>Medida</th><th>Cantidad</th></tr>
+          <tr><td><b>Sticker QR “Escanéame”</b> (lleva a trado.cl)</td><td>8 × 8 cm</td><td>5</td></tr>
+          <tr><td><b>Sticker logo trado</b></td><td>10 × 3,5 cm</td><td>10</td></tr></table>
+        <div class="specs"><b>Material:</b> vinilo adhesivo blanco con laminado mate.<br>
+          <b>Corte:</b> el QR cuadrado de 8 × 8 cm con esquinas redondeadas (5 mm); el logo rectangular de 10 × 3,5 cm con esquinas redondeadas (5 mm).<br>
+          <b>Archivo:</b> cada uno en su página a tamaño real con <b>3 mm de sangrado</b> por lado.</div>
+        <h2>Cómo quedan, con sus medidas</h2>
+        <div class="guia">${conCota(qr(0), 0.75, "8 cm", "8 cm", "Sticker QR")}${conCota(logo(0), 0.75, "10 cm", "3,5 cm", "Sticker logo")}</div>
+        <p class="escala">Las vistas de esta hoja están achicadas. Las páginas que siguen están a tamaño real: imprimir al 100 %.</p>`;
+    }
+    todo.innerHTML = `<div class="ficha">${html}</div>`;
+    pagina(210, 297);
+  }
+</script>
+</body>
+</html>
