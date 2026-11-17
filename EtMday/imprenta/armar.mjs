@@ -46,7 +46,7 @@ const archivos = {
     ...(await Promise.all([])),
   ],
 };
-for (let c = 0; c < 6; c++) archivos["1-Trado-dado-circulos-15cm.pdf"].push(await pdf(`pieza=dado&cara=${c}`, 150 + 2 * B, 150 + 2 * B));
+for (let c = 0; c < 2; c++) archivos["1-Trado-dado-circulos-15cm.pdf"].push(await pdf(`pieza=dado&cara=${c}`, 150 + 2 * B, 150 + 2 * B));
 
 archivos["2-Trado-tarjetas-adhesivas-8,56x5,4cm.pdf"] = [await pdf("ficha=tarjetas", 210, 297, "vista-tarjetas.png")];
 for (let n = 1; n <= 9; n++) archivos["2-Trado-tarjetas-adhesivas-8,56x5,4cm.pdf"].push(await pdf(`pieza=carta&n=${n}`, 85.6 + 2 * B, 54 + 2 * B));

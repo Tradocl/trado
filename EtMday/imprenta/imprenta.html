@@ -55,6 +55,7 @@
   .dd.pierde { background: #F3F3F9; }
   .dd .x { width: 4.4em; height: 4.4em; color: var(--naranjo); }
   .dd.pierde .txt { font-size: .95em; font-weight: 800; line-height: 1.1; margin-top: .45em; padding: 0 .8em; }
+  .dd.pierde .txt.est { font-size: 1.5em; letter-spacing: .04em; margin-top: .35em; }
   .dd .sub { font-size: .6em; font-weight: 700; color: #6B7085; margin-top: .3em; text-transform: uppercase; letter-spacing: .08em; }
 
   /* ---------- Sticker QR y sticker logo ---------- */
@@ -124,7 +125,7 @@
     const fs = `font-size:${D / 10}mm;width:${D + 2 * b}mm;height:${D + 2 * b}mm`;
     const html = i === 0
       ? `<div class="dd gana marca-g" style="${fs}"><span class="check">${CHECK}</span><img src="${LOGO_B}" alt="trado"><span class="txt">¡GANASTE!</span></div>`
-      : `<div class="dd pierde" style="${fs}">${XS}<span class="txt">${ESTAFAS[i - 1]}</span><span class="sub">estafa</span></div>`;
+      : `<div class="dd pierde" style="${fs}">${XS}<span class="txt est">ESTAFA</span></div>`;
     return [html, D + 2 * b, D + 2 * b];
   };
   const qr = (b) => [`<div class="sq" style="width:${80 + 2 * b}mm;height:${80 + 2 * b}mm"><span class="borde" style="inset:${4 + b}mm"></span>
@@ -153,16 +154,16 @@
     let html = "";
     if (f === "dado") {
       html = `${cab}<h1>Caras del dado · círculos de 15 cm</h1>
-        <p class="bajada">Son las 6 caras de un dado grande: una gana (trado) y cinco pierden (una estafa cada una). Cada cara es un <b>círculo autoadhesivo de 15 cm de diámetro</b>.</p>
-        <table><tr><th>Pieza</th><th>Medida</th><th>Cantidad</th></tr>
-          <tr><td><b>Cara 1 · ¡Ganaste! (trado)</b></td><td>Círculo de 15 cm de diámetro</td><td>1</td></tr>
-          ${ESTAFAS.map((e, i) => `<tr><td><b>Cara ${i + 2} · ${e}</b></td><td>Círculo de 15 cm de diámetro</td><td>1</td></tr>`).join("")}
+        <p class="bajada">Un dado grande con 6 caras: <b>una gana</b> (trado con un check) y <b>cinco pierden</b> (todas iguales: “ESTAFA” con una X). Son <b>solo 2 diseños</b>, cada uno un <b>círculo autoadhesivo de 15 cm de diámetro</b>.</p>
+        <table><tr><th>Diseño</th><th>Medida</th><th>Cantidad</th></tr>
+          <tr><td><b>1 · trado ✓ ¡Ganaste!</b></td><td>Círculo de 15 cm de diámetro</td><td>1</td></tr>
+          <tr><td><b>2 · ESTAFA ✕</b></td><td>Círculo de 15 cm de diámetro</td><td>5</td></tr>
           <tr><td colspan="2"><b>Total</b> (un dado completo)</td><td><b>6 stickers</b></td></tr></table>
         <div class="specs"><b>Material:</b> adhesivo blanco (papel o vinilo), idealmente con laminado mate para que no se raye.<br>
           <b>Corte:</b> circular, de 15 cm de diámetro (troquelado o a mano).<br>
-          <b>Archivo:</b> cada cara viene en su propia página a tamaño real, con <b>3 mm de sangrado</b> por lado (la página mide 15,6 × 15,6 cm; el corte va 3 mm hacia adentro).</div>
+          <b>Archivo:</b> página 2 = diseño 1 y página 3 = diseño 2, a tamaño real, con <b>3 mm de sangrado</b> por lado (la página mide 15,6 × 15,6 cm; el corte va 3 mm hacia adentro).</div>
         <h2>Cómo quedan, con sus medidas</h2>
-        <div class="guia">${[0, 1, 2].map((i) => conCota(dado(i, 0), 0.27, "15 cm", "15 cm", i === 0 ? "Cara 1 · gana" : `Cara ${i + 1}`)).join("")}</div>
+        <div class="guia">${conCota(dado(0, 0), 0.34, "15 cm", "15 cm", "Diseño 1 · trado (1 copia)")}${conCota(dado(1, 0), 0.34, "15 cm", "15 cm", "Diseño 2 · estafa (5 copias)")}</div>
         <p class="escala">Las vistas de esta hoja están achicadas. Las páginas que siguen están a tamaño real: imprimir al 100 %.</p>`;
     } else if (f === "tarjetas") {
       html = `${cab}<h1>Tarjetas autoadhesivas · 8,56 × 5,4 cm</h1>
