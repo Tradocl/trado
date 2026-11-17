@@ -21,7 +21,7 @@
 <script>
   const pieza = new URLSearchParams(location.search).get("pieza") || "frente";
   const TXT = {
-    frente: ["Frente", "Logo morado de 9 cm en el lado izquierdo del pecho"],
+    frente: ["Frente", "Logo degradado de 9 cm en el lado izquierdo del pecho"],
     a: ["Espalda · opción A", "“Yo no transfiero primero.”"],
     b: ["Espalda · opción B", "“Escanéame la espalda” con QR a trado.cl"],
     c: ["Espalda · opción C", "Diccionario: “transfiéreme primero” · antónimo: trado"],
@@ -33,14 +33,14 @@
     j: ["Espalda · opción J", "“Zona libre de estafas” con cinta de peligro"],
     k: ["Espalda · opción K", "“Se busca al que dijo transfiéreme primero” con el QR como foto"],
     l: ["Espalda · opción L", "“¿Y si no te llega? Nada.” · con trado la plata vuelve a ti"],
-    m: ["Espalda · opción M", "“¿Te piden transferir primero? Escanea primero.” · QR grande y trado morado"],
-    n: ["Espalda · opción N", "“Que no te vendan un ladrillo.” · trado morado arriba y QR grande"],
-    o: ["Espalda · opción O", "“Te lo mando al tiro” no es una garantía · QR grande y trado morado"],
-    p: ["Espalda · opción P", "“¿Compras o vendes por redes?” · estafas tachadas, QR grande y trado morado"],
+    m: ["Espalda · opción M", "“¿Te piden transferir primero? Escanea primero.” · QR grande y logo degradado"],
+    n: ["Espalda · opción N", "“Que no te vendan un ladrillo.” · logo degradado arriba y QR grande"],
+    o: ["Espalda · opción O", "“Te lo mando al tiro” no es una garantía · QR grande y logo degradado"],
+    p: ["Espalda · opción P", "“¿Compras o vendes por redes?” · estafas tachadas, QR grande y logo degradado"],
     q: ["Espalda · opción Q", "“¿Vas a comprar por internet? Paga con Trado.” · degradado azul a morado"],
-    r: ["Espalda · opción R", "“No le transfieras a un desconocido” · morado lleno"],
-    s: ["Espalda · opción S", "“¿Miedo a que te estafen? Usa Trado.” · fondo oscuro con brillo morado"],
-    t: ["Espalda · opción T", "“Compra y vende por redes tranquilo” · morado y azul"],
+    r: ["Espalda · opción R", "“No le transfieras a un desconocido” · índigo lleno"],
+    s: ["Espalda · opción S", "“¿Miedo a que te estafen? Usa Trado.” · fondo oscuro con brillo índigo"],
+    t: ["Espalda · opción T", "“Compra y vende por redes tranquilo” · índigo"],
     u: ["Espalda · opción U", "Anti Estafa Club: insignia de miembro con el QR al centro"],
     v: ["Espalda · opción V", "Polera de gira: “Gira contra las estafas”, todas las fechas canceladas"],
     w: ["Espalda · opción W", "Etiqueta de cuidados gigante: “Cuidados de tu plata”"],
@@ -60,7 +60,7 @@
     <path d="${cuello}" fill="none" stroke="#D9DBE6" stroke-width="1.4"/>
     <path d="M18 31 L20 7 M82 31 L80 7" fill="none" stroke="#ECEDF3" stroke-width=".3"/>
     ${frente
-      ? '<image href="frente-logo-morado.png" x="56" y="15" width="9" height="3.16"/>'
+      ? '<image href="frente-logo.png" x="56" y="15" width="9" height="3.16"/>'
       : `<image href="espalda-${pieza}.png" x="36" y="11" width="28" height="36"/>`}`;
 </script>
 </body>

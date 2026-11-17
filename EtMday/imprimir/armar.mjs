@@ -62,8 +62,8 @@ rmSync(env, { recursive: true, force: true });
 mkdirSync(env);
 const pol = join(et, "Poleras");
 for (const [de, a] of [
-  [join(pol, "frente-logo-morado.pdf"), "1-polera-frente-logo-9cm.pdf"],
-  [join(pol, "frente-logo-morado.png"), "1-polera-frente-logo-9cm-600dpi.png"],
+  [join(pol, "frente-logo.pdf"), "1-polera-frente-logo-9cm.pdf"],
+  [join(pol, "frente-logo.png"), "1-polera-frente-logo-9cm-600dpi.png"],
   [join(pol, "espalda-g.pdf"), "2-polera-espalda-28x36cm.pdf"],
   [join(pol, "espalda-g.png"), "2-polera-espalda-28x36cm-600dpi.png"],
   [join(pol, "grande", "polera-frente.png"), "3-como-queda-frente.png"],
@@ -74,9 +74,9 @@ writeFileSync(join(env, "LEEME.txt"), [
   "Trado · poleras y dados para el EtMday 2026",
   "",
   "POLERAS (blancas, estampado DTF):",
-  "- Frente: logo trado morado, 9 cm de ancho, lado izquierdo del pecho, ~8 cm bajo el hombro.",
+  "- Frente: logo trado degradado (azul a morado), 9 cm de ancho, lado izquierdo del pecho, ~8 cm bajo el hombro.",
   "  Archivo: 1-polera-frente-logo-9cm.pdf (vectorial) o el .png a 600 dpi.",
-  "- Espalda: grafica de 28 x 36 cm (el bloque morado mide 26 x 34,4 cm), centrada, ~6 cm bajo el cuello.",
+  "- Espalda: grafica de 28 x 36 cm (el bloque de color mide 26 x 34,4 cm), centrada, ~6 cm bajo el cuello.",
   "  Archivo: 2-polera-espalda-28x36cm.pdf (vectorial) o el .png a 600 dpi. Fondo transparente.",
   "- El QR lleva a https://trado.cl. Por favor no achicarlo ni cambiarle el color.",
   "- 3-como-queda-*.png muestran como deben quedar.",
