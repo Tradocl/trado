@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera en grande · Trado EtMday 2026</title>
+<!-- Una sola polera en grande, para revisar el detalle: ?pieza=frente o ?pieza=a … f (espaldas).
+     Mismo dibujo y escala que boceto.html. Lo usa generar-grandes.mjs. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1600px; height: 1700px; background: #F5F5FA; font-family: "Plus Jakarta Sans", sans-serif; color: #131924;
+         display: flex; flex-direction: column; align-items: center; padding: 40px 60px; }
+  h1 { font-size: 40px; font-weight: 800; letter-spacing: -1px; }
+  p { font-size: 22px; color: #5B6075; margin-top: 6px; }
+  svg { width: 1480px; height: auto; margin-top: 10px; filter: drop-shadow(0 16px 26px rgba(19,25,36,.14)); }
+</style>
+</head>
+<body>
+  <h1 id="t"></h1><p id="s"></p>
+  <svg id="polera" viewBox="0 0 100 88"></svg>
+<script>
+  const pieza = new URLSearchParams(location.search).get("pieza") || "frente";
+  const TXT = {
+    frente: ["Frente", "Logo morado de 9 cm en el lado izquierdo del pecho"],
+    a: ["Espalda · opción A", "“Yo no transfiero primero.”"],
+    b: ["Espalda · opción B", "“Escanéame la espalda” con QR a trado.cl"],
+    c: ["Espalda · opción C", "Diccionario: “transfiéreme primero” · antónimo: trado"],
+    d: ["Espalda · opción D", "“¿Quién paga primero?” · Ninguno: trado se pone al medio"],
+    e: ["Espalda · opción E", "“¿Qué había en la caja? Un ladrillo.”"],
+    f: ["Espalda · opción F", "“Ni ahí” + “Yo no transfiero primero” + QR grande a trado.cl"],
+  };
+  document.getElementById("t").textContent = TXT[pieza][0];
+  document.getElementById("s").textContent = TXT[pieza][1] + " · polera blanca, gráfica a tamaño real (28 × 36 cm)";
+  const frente = pieza === "frente";
+  const cuello = frente ? "M37 3 Q50 13 63 3" : "M37 3 Q50 7 63 3";
+  document.getElementById("polera").innerHTML = `
+    <path d="${cuello} L80 7 L99 27 L88 37 L82 31 L82 85 Q50 87 18 85 L18 31 L12 37 L1 27 L20 7 Z" fill="#fff" stroke="#D9DBE6" stroke-width=".3" stroke-linejoin="round"/>
+    <path d="${cuello}" fill="none" stroke="#D9DBE6" stroke-width="1.4"/>
+    <path d="M18 31 L20 7 M82 31 L80 7" fill="none" stroke="#ECEDF3" stroke-width=".3"/>
+    ${frente
+      ? '<image href="frente-logo-morado.png" x="56" y="15" width="9" height="3.16"/>'
+      : `<image href="espalda-${pieza}.png" x="36" y="11" width="28" height="36"/>`}`;
+</script>
+</body>
+</html>

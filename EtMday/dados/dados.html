@@ -6,7 +6,7 @@
 <!-- Caras para pegar en el dado del stand: 1 cara que gana (trado + check) y 5 que pierden
      (una X y una estafa típica). Hojas A4 vertical, a tamaño real, para recortar por la línea gris.
      El lado de la cara se elige con ?lado=50 (mm): medir el dado y usar la cara 2-3 mm más chica
-     que el lado. ?armable=60 dibuja en cambio un dado de papel para recortar, doblar y pegar.
+     que el lado. ?circulo=150 (diámetro en mm, ?hoja=A3 para dos por hoja) las hace circulares. ?armable=60 dibuja en cambio un dado de papel para recortar, doblar y pegar.
      Se genera con: node EtMday/dados/generar.mjs -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -93,6 +93,20 @@
     const st = document.createElement("style"); st.textContent = "@page { size: 297mm 210mm; margin: 0; }"; document.head.appendChild(st);
     document.documentElement.style.width = "297mm";
     document.body.style.width = "297mm";
+  } else if (q.get("circulo")) {
+    // Caras circulares de D mm de diámetro, una cara por círculo; ?hoja=A3 pone dos por hoja
+    const D = Number(q.get("circulo"));
+    const A3 = q.get("hoja") === "A3";
+    const [PW, PH] = A3 ? [297, 420] : [210, 297];
+    const porHoja = Math.max(1, Math.floor((PH - 30 + 10) / (D + 10)));
+    const lista = caras();
+    const hojas = [];
+    for (let i = 0; i < lista.length; i += porHoja) hojas.push(lista.slice(i, i + porHoja));
+    const st = document.createElement("style"); st.textContent = `@page { size: ${PW}mm ${PH}mm; margin: 0; } html, body { width: ${PW}mm; } .circ .cara, .circ .corte { border-radius: 50%; } .circ .pierde { border-width: .08em; }`; document.head.appendChild(st);
+    todo.innerHTML = hojas.map((h, k) => `<div class="hoja circ" style="--L:${D}mm;width:${PW}mm;height:${PH}mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10mm;padding-bottom:16mm">
+      ${h.map((c) => `<div class="corte">${c}</div>`).join("")}
+      ${nota(`Círculos de ${D / 10} cm de diámetro · imprimir al <b>100 % / tamaño real</b> · hoja ${k + 1} de ${hojas.length}`)}
+    </div>`).join("");
   } else {
     const cols = Math.max(1, Math.floor((190 + 6) / (L + 6)));
     const filas = Math.max(1, Math.floor((265 + 6) / (L + 6)));

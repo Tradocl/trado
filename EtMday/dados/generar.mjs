@@ -1,4 +1,4 @@
-// Genera los PDF de las caras del dado (5, 7 y 10 cm) y del dado de papel armable (6 cm),
+// Genera los PDF de las caras del dado (5, 7 y 10 cm; círculos de 15 cm en A4 y A3) y del dado de papel armable (6 cm),
 // más vistas previas PNG. Uso: node EtMday/dados/generar.mjs   (requiere Chrome)
 import { spawn } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -26,6 +26,8 @@ for (const [query, nombre, w, h] of [
   ["lado=70", "dado-caras-7cm", 210, 297],
   ["lado=100", "dado-caras-10cm", 210, 297],
   ["armable=60", "dado-armable-6cm", 297, 210],
+  ["circulo=150", "dado-circulos-15cm-A4", 210, 297],
+  ["circulo=150&hoja=A3", "dado-circulos-15cm-A3", 297, 420],
 ]) {
   await cdp("Emulation.setDeviceMetricsOverride", { width: px(w), height: px(h), deviceScaleFactor: 1.5, mobile: false });
   await cdp("Page.navigate", { url: pathToFileURL(join(AQUI, "dados.html")).href + "?" + query });
