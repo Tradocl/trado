@@ -21,7 +21,7 @@ ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pend.has(d.id)
 const cdp = (method, params = {}) => new Promise((r) => { const i = ++id; pend.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
 await cdp("Page.enable");
 await cdp("Emulation.setDeviceMetricsOverride", { width: 1600, height: 1700, deviceScaleFactor: 1.5, mobile: false });
-for (const pieza of ["frente", "a", "b", "c", "d", "e", "f"]) {
+for (const pieza of ["frente", "a", "b", "c", "d", "e", "f", "g"]) {
   await cdp("Page.navigate", { url: pathToFileURL(join(aqui, "vista-grande.html")).href + "?pieza=" + pieza });
   await espera(3000);
   const png = await cdp("Page.captureScreenshot", { format: "png" });

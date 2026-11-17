@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda · Ni ahí + QR</title>
+<!-- Espalda definitiva (la que se manda a estampar): un bloque con el degradado de la marca,
+     "¿Te dijeron transfiéreme primero?" + "NI AHÍ." gigante y el QR a https://trado.cl
+     (qr-polera.svg, 9,4 cm en tarjeta blanca: se lee a 2-3 metros). Área 28 × 36 cm, fondo
+     transparente. El degradado se imprime bien en DTF. Generar: node EtMday/Poleras/generar.mjs -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --medio: #4B35D6; --violeta: #7B46D8; --tinta: #131924; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; display: flex; justify-content: center; padding-top: 0.6cm; }
+  .bloque { position: relative; overflow: hidden; width: 26cm; height: 34.4cm; border-radius: 1.6cm; color: #fff;
+            background: linear-gradient(155deg, var(--indigo) 0%, var(--medio) 55%, var(--violeta) 100%);
+            display: flex; flex-direction: column; align-items: center; padding: 1.4cm 1.4cm 1.1cm; text-align: center; }
+  .luz { position: absolute; border-radius: 50%; background: rgba(255,255,255,.1); }
+  .luz.a { width: 16cm; height: 16cm; top: -7cm; right: -6cm; }
+  .luz.b { width: 10cm; height: 10cm; bottom: 5cm; left: -5cm; background: rgba(255,255,255,.07); }
+  .pre { position: relative; font-size: 1.25cm; font-weight: 800; line-height: 1.2; }
+  .pre q { quotes: "“" "”"; background: rgba(255,255,255,.18); border-radius: 0.4cm; padding: 0 0.3cm; }
+  .ni { position: relative; margin-top: 0.5cm; font-size: 6.2cm; font-weight: 800; line-height: 1.16; letter-spacing: -0.25cm;
+        transform: rotate(-5deg); text-shadow: 0 0.25cm 0 rgba(15,20,60,.28); white-space: nowrap; }
+  .ni span { display: block; }
+  .qr-zona { position: relative; margin-top: 0.9cm; display: flex; flex-direction: column; align-items: center; }
+  .qr { background: #fff; border-radius: 1cm; padding: 0.7cm; box-shadow: 0 0.4cm 1cm rgba(10,15,60,.35); }
+  .qr img { display: block; width: 9.4cm; height: 9.4cm; }
+  .esc { margin-top: 0.5cm; font-size: 1.15cm; font-weight: 800; letter-spacing: .03cm; }
+  .firma { position: relative; margin-top: auto; display: flex; align-items: center; gap: 0.6cm; }
+  .firma img { height: 1.7cm; }
+  .firma span { font-size: 0.95cm; font-weight: 800; border-left: 0.1cm solid rgba(255,255,255,.7); padding-left: 0.6cm; }
+</style>
+</head>
+<body>
+  <div class="bloque">
+    <div class="luz a"></div><div class="luz b"></div>
+    <p class="pre">¿Te dijeron <q>transfiéreme primero</q>?</p>
+    <p class="ni"><span>NI</span><span>AHÍ.</span></p>
+    <div class="qr-zona">
+      <div class="qr"><img src="qr-polera.svg" alt=""></div>
+      <p class="esc">Escanéame antes de transferir ↑</p>
+    </div>
+    <div class="firma">
+      <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado">
+      <span>trado.cl</span>
+    </div>
+  </div>
+</body>
+</html>

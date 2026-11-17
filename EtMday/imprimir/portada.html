@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>EtMday 2026 · Qué imprimir y qué hacer</title>
+<!-- Primera hoja de Trado-EtMday-todo.pdf: qué se imprime, cómo, y qué falta hacer.
+     Se arma con: node EtMday/imprimir/armar.mjs -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: 210mm 297mm; margin: 0; }
+  :root { --azul: #2230C2; --violeta: #7C3AED; --tinta: #0F1424; --gris: #5B6075; --suave: #F3F3F9; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 210mm; }
+  body { font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .hoja { width: 210mm; height: 297mm; padding: 14mm 14mm 12mm; position: relative; overflow: hidden; break-after: page; }
+  .hoja:last-child { break-after: auto; }
+  .cab { display: flex; justify-content: space-between; align-items: center; }
+  .cab img { height: 9mm; }
+  .cab span { font-size: 3.2mm; font-weight: 700; color: var(--gris); }
+  h1 { font-size: 9mm; font-weight: 800; letter-spacing: -.3mm; margin-top: 6mm; line-height: 1.05; }
+  .bajada { font-size: 3.6mm; color: var(--gris); margin-top: 2mm; }
+  h2 { font-size: 4.6mm; font-weight: 800; margin-top: 7mm; color: var(--azul); }
+  table { width: 100%; border-collapse: collapse; margin-top: 2.5mm; font-size: 3.15mm; }
+  th { text-align: left; font-size: 2.7mm; text-transform: uppercase; letter-spacing: .3mm; color: var(--gris); padding: 1.6mm 2mm; border-bottom: .3mm solid #DADCE8; }
+  td { padding: 1.7mm 2mm; border-bottom: .2mm solid #E6E7F0; vertical-align: top; line-height: 1.35; }
+  td b { font-weight: 800; }
+  td.n { white-space: nowrap; font-weight: 700; }
+  ol { margin-top: 2.5mm; padding-left: 0; list-style: none; counter-reset: t; }
+  ol li { counter-increment: t; position: relative; padding: 2mm 2mm 2mm 11mm; border-bottom: .2mm solid #E6E7F0; font-size: 3.3mm; line-height: 1.4; }
+  ol li::before { content: ""; position: absolute; left: 2mm; top: 2.1mm; width: 4.6mm; height: 4.6mm; border: .45mm solid var(--azul); border-radius: 1.2mm; }
+  ol li b { font-weight: 800; }
+  .urg { display: inline-block; font-size: 2.6mm; font-weight: 800; color: #fff; background: var(--violeta); border-radius: 99mm; padding: .3mm 2mm; margin-left: 1.5mm; vertical-align: .3mm; }
+  .aviso { margin-top: 5mm; background: var(--suave); border-radius: 3mm; padding: 3.5mm 4mm; font-size: 3.2mm; line-height: 1.45; }
+  .aviso b { font-weight: 800; }
+  .pie { position: absolute; left: 14mm; right: 14mm; bottom: 9mm; font-size: 2.8mm; color: var(--gris); display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="hoja">
+  <div class="cab">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>EtMday 2026 · 19, 20 y 21 de noviembre · Parque Bicentenario</span>
+  </div>
+  <h1>Qué imprimir y qué hacer</h1>
+  <p class="bajada">Todo lo del stand en este PDF, en orden. Cada pieza va en su tamaño real: al imprimir, elegir <b>“Tamaño real” o 100 %</b>, nunca “Ajustar a la página”.</p>
+
+  <h2>Qué imprimir</h2>
+  <table>
+    <tr><th>Pieza</th><th>Tamaño y papel</th><th>Cuántas</th></tr>
+    <tr><td><b>Display de mesa</b> · “No somos un marketplace”</td><td>A3, papel grueso o foam, en un atril</td><td class="n">1</td></tr>
+    <tr><td><b>Panel de las 9 cartas</b></td><td>A3 en imprenta, o las 2 hojas A4 que vienen después, unidas; montado en cartón pluma</td><td class="n">1</td></tr>
+    <tr><td><b>Caras de las tarjetas NFC</b> (frente y reverso)</td><td>A4 horizontal, papel adhesivo o couché; recortar por la línea gris</td><td class="n">1 juego</td></tr>
+    <tr><td><b>Caras del dado</b>, círculos de 15 cm</td><td>A4, 1 círculo por hoja; cartulina o adhesivo</td><td class="n">6 hojas</td></tr>
+    <tr><td><b>Flyer</b></td><td>A6, frente y dorso (una página cada uno)</td><td class="n">200–300</td></tr>
+    <tr><td><b>One pager</b> para inversionistas y mentores</td><td>A4</td><td class="n">20–30</td></tr>
+    <tr><td><b>Pitch y respuestas</b> (para el equipo, no se entrega)</td><td>A4</td><td class="n">1 por persona</td></tr>
+    <tr><td><b>Poleras</b>: logo morado adelante, “NI AHÍ.” con QR atrás</td><td>Se mandan a estampar (DTF) con los archivos de la carpeta para enviar</td><td class="n">2</td></tr>
+  </table>
+
+  <h2>Qué hay que hacer</h2>
+  <ol>
+    <li><b>Mandar a estampar las poleras</b> con los archivos de la carpeta para enviar. Tallas: __________ <span class="urg">HOY</span></li>
+    <li><b>Retirar la credencial</b> (solo hasta el 18 de noviembre). Es la única entrada válida. <span class="urg">MAÑANA</span></li>
+    <li><b>Imprimir</b> todo lo de la tabla y montar el panel y el display en cartón pluma o atril.</li>
+    <li><b>Grabar las 9 tarjetas NFC</b> con trado.cl/etm/1 … trado.cl/etm/9 y probarlas con un iPhone y un Android.</li>
+    <li><b>Pegar las caras</b> en las tarjetas (la carta N en la tarjeta grabada con /etm/N) y en el dado.</li>
+    <li><b>Definir el premio</b> para quien saque la cara de trado en el dado y para quien acierte las 9: __________</li>
+    <li><b>Completar el one pager</b> (equipo y qué buscamos) antes de imprimirlo.</li>
+    <li><b>Armar los turnos</b>: el stand nunca puede quedar solo (se pierde la garantía de $200.000).</li>
+    <li><b>Publicar el post</b> del stand etiquetando a @emprendetumente_org y agendar las actividades de conexión en etmday.org.</li>
+  </ol>
+
+  <div class="aviso">
+    <b>Llevar:</b> notebook o tablet con trado.cl/etm/pantalla y el video, cargadores, zapatilla <b>certificada SEC</b>, powerbank, internet propio (es al aire libre), tijeras y cinta doble faz para el cartón (nada pegado al mesón).<br>
+    <b>Ojo:</b> no regalar stickers (2 UF de multa por cada uno pegado en el parque), sin globos, sin música. Llegar entre 8:00 y 8:45, y sacar fotos del espacio al montar y al desmontar.
+  </div>
+</div>
+</body>
+</html>
