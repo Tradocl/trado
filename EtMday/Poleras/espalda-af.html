@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AF · Horóscopo</title>
+<!-- Espalda AF: horóscopo de revista, el mismo para los 12 signos. Área 28 × 36 cm, fondo
+     transparente. Generar: node EtMday/Poleras/generar.mjs espalda-af -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #8A8FA3; --claro: #ECEDF3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; padding: 0.9cm 1.2cm 0.8cm; }
+
+  .cab { text-align: center; }
+  .cab small { font-size: 0.85cm; font-weight: 800; letter-spacing: 0.12cm; text-transform: uppercase; color: var(--gris); }
+  h1 { font-size: 4.6cm; font-weight: 800; letter-spacing: -0.2cm; line-height: 1; color: var(--indigo); }
+  .sub { font-size: 1.35cm; font-weight: 800; font-style: italic; color: var(--violeta); }
+  .signos { margin-top: 0.45cm; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.2cm 0.25cm; }
+  .signos span { font-size: 0.7cm; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05cm; border: 0.07cm solid var(--tinta);
+                 border-radius: 99cm; padding: 0.08cm 0.35cm; }
+
+  .item { display: flex; gap: 0.7cm; align-items: flex-start; padding: 0.5cm 0; border-bottom: 0.07cm solid #D9DBE6; }
+  .item:first-of-type { margin-top: 0.6cm; border-top: 0.12cm solid var(--tinta); }
+  .item h2 { flex: none; width: 4.6cm; font-size: 1cm; font-weight: 800; letter-spacing: 0.08cm; text-transform: uppercase; color: var(--indigo); padding-top: 0.12cm; }
+  .item p { font-size: 1.17cm; font-weight: 700; line-height: 1.22; }
+  .item p b { color: var(--indigo); }
+
+  .extra { margin-top: 0.6cm; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5cm; }
+  .extra div { background: var(--claro); border-radius: 0.5cm; padding: 0.45cm 0.6cm; display: flex; align-items: center; gap: 0.5cm; }
+  .extra b { font-size: 3.2cm; font-weight: 800; line-height: 0.9; color: var(--indigo); }
+  .extra i { flex: none; width: 2.4cm; height: 2.4cm; border-radius: 50%; background: var(--indigo); }
+  .extra p { font-size: 0.85cm; font-weight: 700; line-height: 1.2; }
+  .extra p strong { display: block; font-size: 0.75cm; letter-spacing: 0.08cm; text-transform: uppercase; color: var(--gris); }
+
+  .firma { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 0.7cm; }
+  .firma img { height: 2.1cm; }
+  .firma span { font-size: 1.15cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <div class="cab">
+    <small>Semana del EtMday</small>
+    <h1>Horóscopo</h1>
+    <p class="sub">el mismo para los 12 signos</p>
+    <div class="signos"><span>Aries</span><span>Tauro</span><span>Géminis</span><span>Cáncer</span><span>Leo</span><span>Virgo</span>
+      <span>Libra</span><span>Escorpio</span><span>Sagitario</span><span>Capricornio</span><span>Acuario</span><span>Piscis</span></div>
+  </div>
+
+  <div class="item"><h2>Amor</h2><p>Alguien nuevo te escribirá: “hola, ¿disponible?”</p></div>
+  <div class="item"><h2>Dinero</h2><p>Un desconocido te pedirá que transfieras primero. <b>Los astros dicen que no.</b></p></div>
+  <div class="item"><h2>Salud</h2><p>Dormirás tranquilo si pagas con trado: la plata queda retenida hasta que recibes lo tuyo.</p></div>
+
+  <div class="extra">
+    <div><b>0</b><p><strong>Número de la suerte</strong>transferencias a ciegas</p></div>
+    <div><i></i><p><strong>Color de la suerte</strong>índigo, obvio</p></div>
+  </div>
+
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+</body>
+</html>

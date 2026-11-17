@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AH · Sopa de letras</title>
+<!-- Espalda AH: sopa de letras con las señales de estafa encerradas y "trado" destacada.
+     El relleno usa una semilla fija, así que siempre sale igual. Área 28 × 36 cm, fondo transparente.
+     Generar: node EtMday/Poleras/generar.mjs espalda-ah -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #8A8FA3; --c: 1.72cm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; padding: 0.9cm 1.2cm 0.8cm; }
+
+  h1 { font-size: 3cm; font-weight: 800; letter-spacing: -0.12cm; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+  h1 span { color: var(--indigo); }
+  .sub { margin-top: 0.2cm; font-size: 1.1cm; font-weight: 700; }
+
+  .sopa { margin-top: 0.6cm; position: relative; width: calc(var(--c) * 12 + 0.5cm); padding: 0.25cm;
+          border: 0.18cm solid var(--tinta); border-radius: 0.5cm; }
+  .grilla { display: grid; grid-template-columns: repeat(12, var(--c)); position: relative; z-index: 1; }
+  .grilla span { height: var(--c); display: grid; place-items: center; font-size: 1.1cm; font-weight: 700; color: #4A5068; }
+  .grilla span.w { color: var(--tinta); font-weight: 800; }
+  .grilla span.t { color: #fff; font-weight: 800; }
+  .marca { position: absolute; border: 0.14cm solid var(--violeta); border-radius: 99cm; }
+  .marca.t { background: var(--indigo); border-color: var(--indigo); }
+
+  .lista { margin-top: 0.5cm; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.2cm 0.45cm; font-size: 0.86cm; font-weight: 800; }
+  .lista s { text-decoration-color: var(--violeta); text-decoration-thickness: 0.12cm; }
+  .si { margin-top: 0.45cm; font-size: 1.15cm; font-weight: 700; text-align: center; }
+  .si b { color: var(--indigo); }
+
+  .firma { margin-top: auto; display: flex; align-items: center; gap: 0.7cm; }
+  .firma img { height: 2.1cm; }
+  .firma span { font-size: 1.15cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <h1>Sopa de <span>letras</span></h1>
+  <p class="sub">Encuentra las 6 señales de estafa</p>
+
+  <div class="sopa" id="sopa"><div class="grilla" id="grilla"></div></div>
+
+  <div class="lista"><s>CHAMULLO</s><s>LADRILLO</s><s>VISTO</s><s>CHANTA</s><s>PRIMERO</s><s>ALTIRO</s></div>
+  <p class="si">Y la palabra que sí: <b>TRADO</b></p>
+
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+<script>
+  const N = 12;
+  // [palabra, fila, columna, dirección (h = horizontal, v = vertical), es trado]
+  const palabras = [
+    ["CHAMULLO", 0, 0, "h"], ["LADRILLO", 2, 3, "h"], ["VISTO", 0, 11, "v"], ["CHANTA", 5, 2, "h"],
+    ["PRIMERO", 5, 0, "v"], ["TRADO", 8, 3, "h", true], ["ALTIRO", 10, 5, "h"],
+  ];
+  const g = Array.from({ length: N }, () => Array(N).fill(null));
+  const tipo = Array.from({ length: N }, () => Array(N).fill(""));
+  for (const [p, f, c, d, t] of palabras)
+    [...p].forEach((l, i) => { const ff = d === "v" ? f + i : f, cc = d === "h" ? c + i : c; g[ff][cc] = l; tipo[ff][cc] = t ? "t" : "w"; });
+  let s = 7; const azar = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  const relleno = "BCDEFGHJKMNPQRSUVXYZAEIOU";
+  let h = "";
+  for (let f = 0; f < N; f++) for (let c = 0; c < N; c++)
+    h += `<span class="${tipo[f][c]}">${g[f][c] || relleno[Math.floor(azar() * relleno.length)]}</span>`;
+  document.getElementById("grilla").innerHTML = h;
+  const sopa = document.getElementById("sopa"), cel = document.querySelector(".grilla span").getBoundingClientRect().width;
+  const off = parseFloat(getComputedStyle(sopa).paddingLeft), m = cel * 0.08;
+  for (const [p, f, c, d, t] of palabras) {
+    const el = document.createElement("div"); el.className = "marca" + (t ? " t" : "");
+    const w = d === "h" ? p.length * cel : cel, hh = d === "v" ? p.length * cel : cel;
+    Object.assign(el.style, { left: off + c * cel + m + "px", top: off + f * cel + m + "px", width: w - 2 * m + "px", height: hh - 2 * m + "px" });
+    sopa.appendChild(el);
+  }
+</script>
+</body>
+</html>

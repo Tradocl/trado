@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AI · Línea trado</title>
+<!-- Espalda AI: plano de una línea de metro con el recorrido de una compra entre desconocidos y
+     una estación cerrada ("transfiéreme primero"). Sin marcas de ningún metro real.
+     Área 28 × 36 cm, fondo transparente. Generar: node EtMday/Poleras/generar.mjs espalda-ai -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #8A8FA3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; padding: 0.9cm 1.2cm 0.8cm; }
+
+  .cab { display: flex; align-items: center; gap: 0.7cm; }
+  .cab .num { flex: none; width: 4.2cm; height: 4.2cm; border-radius: 50%; background: var(--indigo); color: #fff;
+              display: grid; place-items: center; font-size: 1cm; font-weight: 800; letter-spacing: 0.05cm; text-transform: uppercase; text-align: center; line-height: 1.1; }
+  .cab .num b { display: block; font-size: 2.2cm; letter-spacing: -0.08cm; line-height: 0.9; }
+  .cab h1 { font-size: 2.9cm; font-weight: 800; letter-spacing: -0.12cm; line-height: 0.95; }
+  .cab h1 span { color: var(--indigo); }
+  .cab p { margin-top: 0.2cm; font-size: 0.95cm; font-weight: 700; color: var(--gris); }
+
+  .mapa { margin-top: 0.8cm; position: relative; flex: 1; }
+  .linea { position: absolute; left: 1.8cm; top: 0.8cm; bottom: 0.8cm; width: 1cm; background: var(--indigo); border-radius: 99cm; }
+  .est { position: absolute; left: 1.15cm; display: flex; align-items: center; gap: 0.7cm; transform: translateY(-50%); }
+  .est i { flex: none; width: 2.3cm; height: 2.3cm; border-radius: 50%; background: #fff; border: 0.42cm solid var(--indigo); }
+  .est.grande i { border-color: var(--tinta); }
+  .est p { font-size: 1.5cm; font-weight: 800; line-height: 1.05; letter-spacing: -0.03cm; }
+  .est small { display: block; font-size: 0.9cm; font-weight: 700; color: var(--gris); letter-spacing: 0; }
+
+  .ramal { position: absolute; left: 2.8cm; height: 0.55cm; background: repeating-linear-gradient(90deg, var(--gris) 0 0.6cm, transparent 0.6cm 1cm); }
+  .cerrada { position: absolute; display: flex; align-items: center; gap: 0.5cm; transform: translateY(-50%); }
+  .cerrada i { flex: none; width: 2cm; height: 2cm; border-radius: 50%; background: #fff; border: 0.3cm solid var(--gris); display: grid; place-items: center;
+               font-style: normal; font-size: 1.3cm; font-weight: 800; color: var(--violeta); line-height: 1; }
+  .cerrada p { white-space: nowrap; font-size: 1.15cm; font-weight: 800; line-height: 1.1; color: var(--gris); }
+  .cerrada p s { color: var(--tinta); text-decoration-color: var(--violeta); text-decoration-thickness: 0.12cm; }
+  .cerrada p b { display: inline-block; margin-top: 0.15cm; background: var(--violeta); color: #fff; font-size: 0.75cm; letter-spacing: 0.08cm;
+                 padding: 0.08cm 0.3cm; border-radius: 0.2cm; text-transform: uppercase; }
+
+  .firma { display: flex; align-items: center; justify-content: center; gap: 0.7cm; margin-top: 0.3cm; }
+  .firma img { height: 2.1cm; }
+  .firma span { font-size: 1.15cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <div class="cab">
+    <div class="num"><span>Línea<b>T</b></span></div>
+    <div><h1>Línea <span>trado</span></h1><p>Recorrido de una compra entre desconocidos</p></div>
+  </div>
+
+  <div class="mapa" id="mapa">
+    <div class="linea"></div>
+  </div>
+
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+<script>
+  const est = [
+    ["Publicación", "Viste algo que te gusta"],
+    ["¿Disponible?", "Acuerdan el precio"],
+    ["Pagas por trado", null],
+    ["Plata retenida", "Nadie la toca todavía"],
+    ["Recibes y revisas", null],
+    ["Se le paga al vendedor", "Fin del recorrido", true],
+  ];
+  const mapa = document.getElementById("mapa"), H = mapa.clientHeight, top0 = 37.8 * 0.8 + 37.8 * 1.15 - 37.8 * 1.15, n = est.length;
+  const y = i => 37.8 * 1.95 + i * (H - 37.8 * 3.9) / (n - 1);
+  est.forEach(([t, s, fin], i) => {
+    const el = document.createElement("div"); el.className = "est" + (fin || i === 0 ? " grande" : ""); el.style.top = y(i) + "px";
+    el.innerHTML = `<i></i><p>${t}${s ? `<small>${s}</small>` : ""}</p>`; mapa.appendChild(el);
+  });
+  // ramal cerrado que sale entre "¿Disponible?" y "Pagas por trado"
+  const yr = (y(1) + y(2)) / 2, xr = 37.8 * 14.2;
+  const r = document.createElement("div"); r.className = "ramal"; Object.assign(r.style, { top: yr - 10 + "px", width: xr - 37.8 * 2.8 + "px" }); mapa.appendChild(r);
+  const c = document.createElement("div"); c.className = "cerrada"; Object.assign(c.style, { left: xr - 2 + "px", top: yr + "px" });
+  c.innerHTML = `<i>✕</i><p><s>Transfiéreme</s><br><s>primero</s><br><b>Estación cerrada</b></p>`; mapa.appendChild(c);
+</script>
+</body>
+</html>

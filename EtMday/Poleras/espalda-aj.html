@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AJ · Certificado</title>
+<!-- Espalda AJ: diploma/certificado para quien lleva la polera, con sello circular y firmas.
+     Área 28 × 36 cm, fondo transparente. Generar: node EtMday/Poleras/generar.mjs espalda-aj -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #8A8FA3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; padding: 0.8cm 1.1cm; }
+
+  .marco { flex: 1; border: 0.35cm solid var(--indigo); padding: 0.35cm; display: flex; }
+  .dentro { flex: 1; border: 0.1cm solid var(--tinta); display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0.9cm 1.3cm 0.7cm; position: relative; }
+  .dentro::before, .dentro::after { content: "✦"; position: absolute; top: 0.4cm; font-size: 1.1cm; color: var(--indigo); }
+  .dentro::before { left: 0.6cm; } .dentro::after { right: 0.6cm; }
+
+  .tipo { font-size: 0.9cm; font-weight: 800; letter-spacing: 0.3cm; text-transform: uppercase; color: var(--gris); }
+  h1 { margin-top: 0.2cm; font-size: 2.75cm; font-weight: 800; letter-spacing: -0.1cm; line-height: 0.95; text-transform: uppercase; color: var(--indigo); }
+  .otorga { margin-top: 0.5cm; font-size: 1.05cm; font-weight: 600; font-style: italic; color: var(--gris); }
+  .nombre { margin-top: 0.1cm; font-size: 1.6cm; font-weight: 800; letter-spacing: -0.05cm; border-bottom: 0.1cm solid var(--tinta); padding: 0 0.5cm 0.2cm; }
+  .por { margin-top: 0.5cm; font-size: 1.08cm; font-weight: 700; line-height: 1.3; }
+  .por b { color: var(--indigo); }
+
+  .sello { margin-top: 0.6cm; width: 9.6cm; height: 9.6cm; position: relative; }
+  .sello svg { width: 100%; height: 100%; }
+  .sello img { position: absolute; left: 50%; top: 50%; width: 5cm; transform: translate(-50%, -50%); }
+
+  .firmas { margin-top: auto; width: 100%; display: flex; justify-content: space-between; gap: 1.5cm; }
+  .firmas div { flex: 1; border-top: 0.08cm solid var(--tinta); padding-top: 0.25cm; font-size: 0.85cm; font-weight: 700; line-height: 1.25; }
+  .firmas small { display: block; font-size: 0.7cm; color: var(--gris); font-weight: 600; }
+  .firmas .garabato { display: block; height: 1.4cm; margin: -1.7cm auto 0.3cm; }
+  .pie { margin-top: 0.4cm; font-size: 0.85cm; font-weight: 800; }
+</style>
+</head>
+<body>
+  <div class="marco"><div class="dentro">
+    <p class="tipo">Certificado</p>
+    <h1>No transfiero<br>primero</h1>
+
+    <p class="otorga">Se otorga el presente a</p>
+    <p class="nombre">quien lleva esta polera</p>
+    <p class="por">por comprar y vender con desconocidos<br><b>dejando la plata en trado hasta recibir lo suyo.</b></p>
+
+    <div class="sello">
+      <svg viewBox="0 0 200 200">
+        <defs><path id="arco" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs>
+        <circle cx="100" cy="100" r="96" fill="none" stroke="#1F25C1" stroke-width="5"/>
+        <circle cx="100" cy="100" r="62" fill="none" stroke="#1F25C1" stroke-width="2.5"/>
+        <text font-family="Plus Jakarta Sans" font-weight="800" font-size="15" letter-spacing="3.2" fill="#1F25C1">
+          <textPath href="#arco">CERO CHAMULLO · CERO LADRILLOS · EtMday 2026 ·</textPath></text>
+      </svg>
+      <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    </div>
+
+    <div class="firmas">
+      <div><svg class="garabato" viewBox="0 0 120 30" fill="none" stroke="#1F25C1" stroke-width="2.5" stroke-linecap="round"><path d="M6 22 Q16 2 24 18 T44 14 Q52 4 58 20 Q66 28 76 10 Q84 2 90 18 L112 12"/></svg>
+        trado<small>Ente certificador</small></div>
+      <div><svg class="garabato" viewBox="0 0 120 30" fill="none" stroke="#8A8FA3" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 5"><path d="M10 20 Q30 6 50 18 Q70 28 100 12"/></svg>
+        El chanta<small>Lo intentó, no le resultó</small></div>
+    </div>
+    <p class="pie">trado.cl</p>
+  </div></div>
+</body>
+</html>

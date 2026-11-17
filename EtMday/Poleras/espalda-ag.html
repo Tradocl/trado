@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AG · Pronóstico</title>
+<!-- Espalda AG: pronóstico del tiempo del marketplace, con íconos de clima en SVG.
+     Área 28 × 36 cm, fondo transparente. Generar: node EtMday/Poleras/generar.mjs espalda-ag -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #8A8FA3; --claro: #ECEDF3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; padding: 0.9cm 1.2cm 0.8cm; }
+
+  .cab small { font-size: 0.85cm; font-weight: 800; letter-spacing: 0.12cm; text-transform: uppercase; color: var(--gris); }
+  h1 { font-size: 2.45cm; font-weight: 800; letter-spacing: -0.1cm; line-height: 1.05; white-space: nowrap; }
+  h1 span { color: var(--indigo); }
+
+  .hoy { margin-top: 0.5cm; background: var(--claro); border-radius: 0.8cm; padding: 0.8cm 1cm; display: flex; align-items: center; gap: 0.8cm; }
+  .hoy svg { width: 8cm; flex: none; }
+  .hoy small { font-size: 0.85cm; font-weight: 800; letter-spacing: 0.1cm; text-transform: uppercase; color: var(--indigo); }
+  .hoy p { margin-top: 0.15cm; font-size: 1.75cm; font-weight: 800; line-height: 1.02; letter-spacing: -0.05cm; }
+  .hoy em { display: block; margin-top: 0.3cm; font-style: normal; font-size: 0.9cm; font-weight: 700; color: var(--gris); }
+
+  .dias { margin-top: 0.6cm; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35cm; }
+  .dia { border: 0.1cm solid var(--tinta); border-radius: 0.5cm; padding: 0.4cm 0.3cm; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .dia b { font-size: 0.85cm; font-weight: 800; letter-spacing: 0.08cm; text-transform: uppercase; }
+  .dia svg { width: 3.6cm; height: 3cm; margin: 0.2cm 0; }
+  .dia p { font-size: 0.82cm; font-weight: 700; line-height: 1.18; }
+  .dia.bien { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+
+  .reco { margin-top: 0.6cm; border-left: 0.35cm solid var(--indigo); padding: 0.2cm 0 0.2cm 0.7cm; font-size: 1.2cm; font-weight: 700; line-height: 1.25; }
+  .reco b { color: var(--indigo); }
+
+  .firma { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 0.7cm; }
+  .firma img { height: 2.1cm; }
+  .firma span { font-size: 1.15cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <div class="cab">
+    <small>El tiempo en tu marketplace</small>
+    <h1>Pronóstico <span>extendido</span></h1>
+  </div>
+
+  <div class="hoy">
+    <svg viewBox="0 0 100 80" fill="none" stroke="#131924" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M24 46 Q10 46 10 34 Q10 22 24 22 Q28 8 44 8 Q60 8 64 22 Q80 20 82 34 Q84 46 70 46 Z" fill="#fff"/>
+      <g fill="#fff"><rect x="18" y="52" width="13" height="17" rx="1.5" transform="rotate(-12 24 60)"/><rect x="42" y="56" width="13" height="17" rx="1.5" transform="rotate(8 48 64)"/><rect x="66" y="52" width="13" height="17" rx="1.5" transform="rotate(-6 72 60)"/></g>
+      <path d="M21 58 H28 M21 62 H26 M45 62 H52 M45 66 H50 M69 58 H76 M69 62 H74" stroke="#8A8FA3" stroke-width="2" transform="rotate(0)"/>
+    </svg>
+    <div><small>Hoy</small><p>Lluvia de comprobantes falsos</p><em>Probabilidad: alta</em></div>
+  </div>
+
+  <div class="dias">
+    <div class="dia"><b>Mañana</b>
+      <svg viewBox="0 0 60 50" fill="none" stroke="#131924" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M16 30 Q6 30 6 22 Q6 14 16 14 Q19 5 30 5 Q41 5 44 14 Q54 14 54 22 Q54 30 44 30 Z"/><path d="M18 36 L15 44 M30 36 L27 44 M42 36 L39 44"/></svg>
+      <p>Chubascos de “te lo mando al tiro”</p></div>
+    <div class="dia"><b>Pasado</b>
+      <svg viewBox="0 0 60 50" fill="none" stroke="#131924" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M14 34 Q4 34 4 26 Q4 18 14 18 Q17 9 28 9 Q39 9 42 18 Q52 18 52 26 Q52 34 42 34 Z" fill="#ECEDF3"/><path d="M38 40 Q46 40 50 34" stroke="#8A8FA3"/><path d="M24 22 L28 26 L35 19 M30 24 L34 28 L41 21" stroke="#8A8FA3" stroke-width="2.2"/></svg>
+      <p>Nublado: te dejaron en visto</p></div>
+    <div class="dia"><b>Finde</b>
+      <svg viewBox="0 0 60 50" fill="none" stroke="#131924" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M6 16 H36 Q44 16 44 10 Q44 4 38 4 M6 26 H48 Q56 26 56 32 Q56 38 50 38 M6 36 H30"/></svg>
+      <p>Ventarrón de chamullo</p></div>
+    <div class="dia bien"><b>Con trado</b>
+      <svg viewBox="0 0 60 50" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round">
+        <circle cx="30" cy="25" r="10" fill="#fff"/><path d="M30 4 V9 M30 41 V46 M9 25 H14 M46 25 H51 M15 10 L18.5 13.5 M41.5 36.5 L45 40 M45 10 L41.5 13.5 M18.5 36.5 L15 40"/></svg>
+      <p>Despejado: la plata queda retenida</p></div>
+  </div>
+
+  <p class="reco">Recomendación: no salgas a transferir primero.<br><b>Sal con trado.</b></p>
+
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+</body>
+</html>
