@@ -50,6 +50,10 @@ android/app/build/
 # Notas de trabajo internas (análisis de riesgos, decisiones); el repo es público
 notas/
 
+# EtMday: contrato firmado y manual del expositor (RUT, domicilio, datos bancarios
+# y cláusula de confidencialidad). Quedan solo en cada computador, nunca en git.
+EtMday/documentos/
+
 # Generador de reels: archivos que se regeneran (no subir)
 [Ii]nstagram/_sistema/reels/**/__pycache__/
 [Ii]nstagram/_sistema/reels/**/*_vista_previa.png
