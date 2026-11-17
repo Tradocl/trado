@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda A · Yo no transfiero primero</title>
+<!-- Gráfica de la espalda, opción A. Área de estampado 28 × 36 cm, fondo transparente.
+     Colores planos (sin degradado) para que sirva con cualquier técnica de estampado.
+     Generar PNG a 300 dpi: node EtMday/Poleras/generar.mjs -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #ECEDF3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; padding: 1.2cm 0.6cm 0.8cm; justify-content: space-between; }
+
+  .chat { position: relative; align-self: flex-start; margin-left: 1.4cm; background: var(--gris);
+          border-radius: 1.1cm 1.1cm 1.1cm 0.25cm; padding: 0.75cm 1cm; font-size: 1.05cm; font-weight: 700;
+          line-height: 1.2; width: 14.5cm; }
+  .chat .hora { display: block; text-align: right; font-size: 0.55cm; font-weight: 600; color: #8A8FA3; margin-top: 0.2cm; }
+  .sello { position: absolute; right: -10.2cm; top: 1.1cm; transform: rotate(-12deg);
+           border: 0.32cm solid var(--violeta); color: var(--violeta); border-radius: 0.5cm;
+           padding: 0.1cm 0.7cm 0.2cm; font-size: 2.3cm; font-weight: 800; letter-spacing: -0.04cm; line-height: 1; }
+
+  h1 { text-align: center; font-weight: 800; text-transform: uppercase; line-height: 0.86; letter-spacing: -0.12cm; }
+  h1 span { display: block; }
+  .l1 { font-size: 5.2cm; }
+  .l2 { font-size: 4.25cm; }
+  .l3 { font-size: 4.95cm; color: var(--indigo); }
+
+  .bajada { margin-top: -1cm; font-size: 0.95cm; font-weight: 700; text-align: center; line-height: 1.3; max-width: 22cm; }
+  .bajada b { color: var(--indigo); }
+
+  .firma { display: flex; align-items: center; gap: 0.7cm; }
+  .firma img { height: 2.1cm; }
+  .firma span { font-size: 1.15cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <div class="chat">Transfiéreme primero y te lo mando al tiro 😉<span class="hora">23:47 ✓✓</span>
+    <div class="sello">NI AHÍ.</div>
+  </div>
+
+  <h1><span class="l1">Yo no</span><span class="l2">transfiero</span><span class="l3">primero.</span></h1>
+
+  <p class="bajada">Con <b>trado</b> la plata queda retenida<br>hasta que recibes lo tuyo.</p>
+
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20indigo.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+</body>
+</html>

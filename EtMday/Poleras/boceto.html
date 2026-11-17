@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Boceto poleras · Trado EtMday 2026</title>
+<!-- Vista de cómo quedan las poleras: frente + las dos opciones de espalda, a escala
+     (polera XXL de ~64 cm de ancho; espalda 28 × 36 cm; logo 9 cm). Usa los PNG que arma generar.mjs. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1800px; height: 800px; background: #F5F5FA; font-family: "Plus Jakarta Sans", sans-serif; color: #131924; padding: 50px 60px; }
+  h1 { font-size: 40px; font-weight: 800; letter-spacing: -1px; }
+  h1 + p { font-size: 20px; color: #5B6075; margin-top: 6px; }
+  .fila { display: flex; gap: 40px; margin-top: 40px; }
+  figure { flex: 1; text-align: center; }
+  figcaption { font-size: 22px; font-weight: 800; margin-top: 14px; }
+  figcaption small { display: block; font-size: 16px; font-weight: 600; color: #5B6075; margin-top: 4px; }
+  svg { width: 100%; height: auto; filter: drop-shadow(0 10px 18px rgba(19,25,36,.12)); }
+</style>
+</head>
+<body>
+  <h1>Poleras Trado · EtMday 2026</h1>
+  <p>Polera blanca XXL. Frente con el logo chico en el pecho; espalda con una de las dos gráficas (o una de cada).</p>
+  <div class="fila">
+    <figure>
+      <svg viewBox="0 0 100 88"><use href="#polera-frente"/>
+        <image href="frente-logo.png" x="56" y="15" width="9" height="3.16"/></svg>
+      <figcaption>Frente<small>Logo índigo de 9 cm, lado izquierdo del pecho</small></figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 100 88"><use href="#polera-espalda"/>
+        <image href="espalda-a.png" x="36" y="11" width="28" height="36"/></svg>
+      <figcaption>Espalda · opción A<small>“Yo no transfiero primero.”</small></figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 100 88"><use href="#polera-espalda"/>
+        <image href="espalda-b.png" x="36" y="11" width="28" height="36"/></svg>
+      <figcaption>Espalda · opción B<small>“Escanéame la espalda” con QR a trado.cl</small></figcaption>
+    </figure>
+  </div>
+
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <g id="polera-frente">
+        <path d="M37 3 Q50 13 63 3 L80 7 L99 27 L88 37 L82 31 L82 85 Q50 87 18 85 L18 31 L12 37 L1 27 L20 7 Z" fill="#fff" stroke="#D9DBE6" stroke-width=".35" stroke-linejoin="round"/>
+        <path d="M37 3 Q50 13 63 3" fill="none" stroke="#D9DBE6" stroke-width="1.6"/>
+        <path d="M18 31 L20 7 M82 31 L80 7" fill="none" stroke="#ECEDF3" stroke-width=".35"/>
+      </g>
+      <g id="polera-espalda">
+        <path d="M37 3 Q50 7 63 3 L80 7 L99 27 L88 37 L82 31 L82 85 Q50 87 18 85 L18 31 L12 37 L1 27 L20 7 Z" fill="#fff" stroke="#D9DBE6" stroke-width=".35" stroke-linejoin="round"/>
+        <path d="M37 3 Q50 7 63 3" fill="none" stroke="#D9DBE6" stroke-width="1.6"/>
+        <path d="M18 31 L20 7 M82 31 L80 7" fill="none" stroke="#ECEDF3" stroke-width=".35"/>
+      </g>
+    </defs>
+  </svg>
+</body>
+</html>

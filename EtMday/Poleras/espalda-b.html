@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda B · Escanéame la espalda</title>
+<!-- Gráfica de la espalda, opción B. Área de estampado 28 × 36 cm, fondo transparente.
+     El QR lleva a https://trado.cl (qr-polera.svg). Mide 11 cm: se lee bien a 2-3 metros.
+     Generar PNG a 300 dpi: node EtMday/Poleras/generar.mjs -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; padding: 1cm 0.6cm 0.8cm; text-align: center; }
+
+  .pre { font-size: 1.25cm; font-weight: 700; line-height: 1.2; }
+  .pre s { text-decoration-thickness: 0.14cm; text-decoration-color: var(--violeta); }
+
+  h1 { margin-top: 0.9cm; font-weight: 800; text-transform: uppercase; line-height: 0.86; letter-spacing: -0.11cm; }
+  h1 span { display: block; }
+  .l1 { font-size: 4.1cm; }
+  .l2 { font-size: 3.55cm; color: var(--indigo); }
+
+  .qr { position: relative; margin-top: 1cm; padding: 0.9cm; border: 0.3cm solid var(--tinta); border-radius: 1cm; }
+  .qr img { display: block; width: 11cm; height: 11cm; }
+  .flecha { position: absolute; left: -5cm; top: 1.2cm; font-size: 1cm; font-weight: 800; color: var(--violeta);
+            transform: rotate(-10deg); line-height: 1.05; text-align: right; }
+  .flecha svg { display: block; margin: 0.2cm 0 0 auto; }
+
+  .bajada { margin-top: 0.9cm; font-size: 0.9cm; font-weight: 700; line-height: 1.3; }
+  .bajada b { color: var(--indigo); }
+
+  .firma { margin-top: auto; display: flex; align-items: center; gap: 0.7cm; }
+  .firma img { height: 2cm; }
+  .firma span { font-size: 1.1cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <p class="pre">¿Te pidieron que <s>transfieras primero</s>?</p>
+
+  <h1><span class="l1">Escanéame</span><span class="l2">la espalda.</span></h1>
+
+  <div class="qr">
+    <img src="qr-polera.svg" alt="">
+    <div class="flecha">sí, aquí<br>mismo
+      <svg width="110" height="70" viewBox="0 0 110 70"><path d="M6 8 C 40 10, 70 30, 96 58" fill="none" stroke="#7B46D8" stroke-width="9" stroke-linecap="round"/><path d="M70 58 L98 60 L94 32" fill="none" stroke="#7B46D8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+
+  <p class="bajada">Antes de transferirle a un desconocido: <b>la plata queda<br>retenida hasta que recibes lo tuyo.</b></p>
+
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20indigo.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+</body>
+</html>
