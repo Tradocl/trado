@@ -28,7 +28,9 @@ let k = 0;
 async function pdf(query, w, h, preview) {
   await cdp("Emulation.setDeviceMetricsOverride", { width: px(w), height: px(h), deviceScaleFactor: 2, mobile: false });
   await cdp("Page.navigate", { url: url + "?" + query });
-  await espera(2500);
+  await espera(1500);
+  await cdp("Runtime.evaluate", { expression: "document.fonts.ready.then(() => true)", awaitPromise: true });
+  await espera(800);
   if (preview) {
     const p = await cdp("Page.captureScreenshot", { format: "png" });
     writeFileSync(join(aqui, preview), Buffer.from(p.result.data, "base64"));
@@ -48,10 +50,10 @@ const archivos = {
 };
 for (let c = 0; c < 2; c++) archivos["1-Trado-dado-circulos-15cm.pdf"].push(await pdf(`pieza=dado&cara=${c}`, 150 + 2 * B, 150 + 2 * B));
 
-archivos["2-Trado-tarjetas-adhesivas-8,56x5,4cm.pdf"] = [await pdf("ficha=tarjetas", 210, 297, "vista-tarjetas.png")];
-for (let n = 1; n <= 9; n++) archivos["2-Trado-tarjetas-adhesivas-8,56x5,4cm.pdf"].push(await pdf(`pieza=carta&n=${n}`, 85.6 + 2 * B, 54 + 2 * B));
-archivos["2-Trado-tarjetas-adhesivas-8,56x5,4cm.pdf"].push(await pdf("pieza=buena", 85.6 + 2 * B, 54 + 2 * B));
-archivos["2-Trado-tarjetas-adhesivas-8,56x5,4cm.pdf"].push(await pdf("pieza=reverso", 85.6 + 2 * B, 54 + 2 * B));
+archivos["2-Trado-tarjetas-moradas-8,56x5,4cm.pdf"] = [
+  await pdf("ficha=tarjetas", 210, 297, "vista-tarjetas.png"),
+  await pdf("pieza=morada", 85.6 + 2 * B, 54 + 2 * B),
+];
 
 archivos["3-Trado-stickers-extra-opcional.pdf"] = [
   await pdf("ficha=extra", 210, 297, "vista-extra.png"),

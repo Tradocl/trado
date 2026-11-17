@@ -78,6 +78,7 @@
   th { text-align: left; font-size: 2.7mm; text-transform: uppercase; letter-spacing: .3mm; color: var(--gris); padding: 1.6mm 2mm; border-bottom: .3mm solid #DADCE8; }
   td { padding: 2.2mm 2mm; border-bottom: .2mm solid #E6E7F0; vertical-align: top; line-height: 1.4; }
   td b { font-weight: 800; }
+  td:last-child { white-space: nowrap; }
   .specs { margin-top: 5mm; background: #F3F3F9; border-radius: 3mm; padding: 4mm 5mm; font-size: 3.4mm; line-height: 1.6; }
   .specs b { font-weight: 800; }
   h2 { font-size: 4.6mm; font-weight: 800; margin-top: 7mm; color: var(--azul); }
@@ -117,6 +118,9 @@
       <span class="luz" style="width:50mm;height:50mm;top:${-24 + b}mm;right:${-18 + b}mm"></span>
       <span class="in" style="inset:${2.4 + b}mm"></span><span class="num" style="top:${4.2 + b}mm;left:${5 + b}mm">10</span>
       <span class="ok">${CHECK}</span><span class="der"><img src="${LOGO_B}" alt="trado"><b>Esta es la buena</b><span>Acerca tu celular · trado.cl</span></span></div>`, 85.6 + 2 * b, 54 + 2 * b];
+  const morada = (b) => [`<div class="tj rev marca-g" style="width:${85.6 + 2 * b}mm;height:${54 + 2 * b}mm">
+      <span class="luz" style="width:60mm;height:60mm;top:${-28 + b}mm;right:${-22 + b}mm"></span>
+      <img src="${LOGO_B}" alt="trado" style="height:14mm;position:relative"><span class="mkt" style="position:relative;display:flex;align-items:center;gap:1.5mm;font-size:3.2mm;font-weight:800;margin-top:3mm;opacity:.95">${ONDAS.replace('class="ondas"', 'style="width:5mm;height:5mm"')} Acerca tu celular</span></div>`, 85.6 + 2 * b, 54 + 2 * b];
   const reverso = (b) => [`<div class="tj rev marca-g" style="width:${85.6 + 2 * b}mm;height:${54 + 2 * b}mm">
       <span class="luz" style="width:60mm;height:60mm;top:${-28 + b}mm;right:${-22 + b}mm"></span>
       <img src="${LOGO_B}" alt="trado"><span class="preg">¿Detectarías la estafa?</span><span class="mkt">No somos un marketplace · trado.cl</span></div>`, 85.6 + 2 * b, 54 + 2 * b];
@@ -138,7 +142,7 @@
   const pieza = q.get("pieza");
   if (pieza) {
     const n = Number(q.get("n") || 1), cara = Number(q.get("cara") || 0);
-    const [html, w, h] = pieza === "carta" ? carta(n, B) : pieza === "buena" ? buena(B) : pieza === "reverso" ? reverso(B)
+    const [html, w, h] = pieza === "carta" ? carta(n, B) : pieza === "buena" ? buena(B) : pieza === "reverso" ? reverso(B) : pieza === "morada" ? morada(B)
       : pieza === "dado" ? dado(cara, B) : pieza === "qr" ? qr(B) : logo(B);
     // el dado lleva fondo de color hasta el borde de la página (sangrado cuadrado alrededor del círculo, en blanco)
     todo.innerHTML = html; pagina(w, h);
@@ -153,34 +157,29 @@
     const f = q.get("ficha");
     let html = "";
     if (f === "dado") {
-      html = `${cab}<h1>Caras del dado · círculos de 15 cm</h1>
-        <p class="bajada">Un dado grande con 6 caras: <b>una gana</b> (trado con un check) y <b>cinco pierden</b> (todas iguales: “ESTAFA” con una X). Son <b>solo 2 diseños</b>, cada uno un <b>círculo autoadhesivo de 15 cm de diámetro</b>.</p>
+      html = `${cab}<h1>Dado · círculos de 15 cm</h1>
         <table><tr><th>Diseño</th><th>Medida</th><th>Cantidad</th></tr>
-          <tr><td><b>1 · trado ✓ ¡Ganaste!</b></td><td>Círculo de 15 cm de diámetro</td><td>1</td></tr>
-          <tr><td><b>2 · ESTAFA ✕</b></td><td>Círculo de 15 cm de diámetro</td><td>5</td></tr>
-          <tr><td colspan="2"><b>Total</b> (un dado completo)</td><td><b>6 stickers</b></td></tr></table>
-        <div class="specs"><b>Material:</b> adhesivo blanco (papel o vinilo), idealmente con laminado mate para que no se raye.<br>
-          <b>Corte:</b> circular, de 15 cm de diámetro (troquelado o a mano).<br>
-          <b>Archivo:</b> página 2 = diseño 1 y página 3 = diseño 2, a tamaño real, con <b>3 mm de sangrado</b> por lado (la página mide 15,6 × 15,6 cm; el corte va 3 mm hacia adentro).</div>
-        <h2>Cómo quedan, con sus medidas</h2>
-        <div class="guia">${conCota(dado(0, 0), 0.34, "15 cm", "15 cm", "Diseño 1 · trado (1 copia)")}${conCota(dado(1, 0), 0.34, "15 cm", "15 cm", "Diseño 2 · estafa (5 copias)")}</div>
-        <p class="escala">Las vistas de esta hoja están achicadas. Las páginas que siguen están a tamaño real: imprimir al 100 %.</p>`;
+          <tr><td><b>1 · trado ✓ ¡Ganaste!</b></td><td>Círculo de 15 cm de diámetro</td><td>4</td></tr>
+          <tr><td><b>2 · ESTAFA ✕</b></td><td>Círculo de 15 cm de diámetro</td><td>20</td></tr>
+          <tr><td colspan="2"><b>Total</b> (4 dados de 6 caras)</td><td><b>24 stickers</b></td></tr></table>
+        <div class="specs"><b>Material:</b> adhesivo (papel o vinilo), laminado mate.<br>
+          <b>Corte:</b> circular de 15 cm de diámetro.<br>
+          <b>Archivo:</b> página 2 = diseño 1, página 3 = diseño 2. Tamaño real con 3 mm de sangrado (página de 15,6 × 15,6 cm).</div>
+        <h2>Medidas</h2>
+        <div class="guia">${conCota(dado(0, 0), 0.34, "15 cm", "15 cm", "Diseño 1 · trado · 4 copias")}${conCota(dado(1, 0), 0.34, "15 cm", "15 cm", "Diseño 2 · estafa · 20 copias")}</div>
+        <p class="escala">Vistas achicadas. Las páginas que siguen están a tamaño real: imprimir al 100 %.</p>`;
     } else if (f === "tarjetas") {
-      html = `${cab}<h1>Tarjetas autoadhesivas · 8,56 × 5,4 cm</h1>
-        <p class="bajada">Se pegan sobre tarjetas NFC del tamaño de una tarjeta de crédito. Cada sticker mide <b>8,56 × 5,4 cm</b>, con las esquinas redondeadas (radio 3 mm). Hay 3 copias de cada una para tener repuesto.</p>
-        <table><tr><th>Pieza</th><th>Medida</th><th>Cantidad</th></tr>
-          <tr><td><b>Cartas 1 a 9</b> (“?” con su número)</td><td>8,56 × 5,4 cm cada una</td><td>3 de cada número · 27</td></tr>
-          <tr><td><b>Carta 10 · “Esta es la buena”</b></td><td>8,56 × 5,4 cm</td><td>3</td></tr>
-          <tr><td><b>Reverso</b> (igual para todas)</td><td>8,56 × 5,4 cm</td><td>30</td></tr>
-          <tr><td colspan="2"><b>Total</b></td><td><b>60 stickers</b></td></tr></table>
-        <div class="specs"><b>Material:</b> papel o vinilo adhesivo <b>no metalizado</b> (el metal bloquea el NFC), con laminado mate.<br>
-          <b>Corte:</b> rectangular de 8,56 × 5,4 cm con esquinas redondeadas de 3 mm (como una tarjeta de crédito).<br>
-          <b>Archivo:</b> cada diseño en su propia página a tamaño real, con <b>3 mm de sangrado</b> por lado (la página mide 9,16 × 6 cm). La cantidad de cada uno está en esta tabla.</div>
-        <h2>Cómo quedan, con sus medidas</h2>
-        <div class="guia">${conCota(carta(1, 0), 0.62, "8,56 cm", "5,4 cm", "Carta 1 (igual del 1 al 9, cambia el color y el número)")}
-          ${conCota(buena(0), 0.62, "8,56 cm", "5,4 cm", "Carta 10 · la buena")}
-          ${conCota(reverso(0), 0.62, "8,56 cm", "5,4 cm", "Reverso")}</div>
-        <p class="escala">Las vistas de esta hoja están achicadas. Las páginas que siguen están a tamaño real: imprimir al 100 %.</p>`;
+      html = `${cab}<h1>Sticker tarjeta · 8,56 × 5,4 cm</h1>
+        <table><tr><th>Diseño</th><th>Medida</th><th>Cantidad</th></tr>
+          <tr><td><b>Tarjeta morada trado</b></td><td>8,56 × 5,4 cm (tamaño tarjeta de crédito), esquinas redondeadas de 3 mm</td><td>20</td></tr>
+          <tr><td colspan="2"><b>Total</b></td><td><b>20 stickers</b></td></tr></table>
+        <div class="specs"><b>Uso:</b> se pega encima de una tarjeta blanca normal (NFC) para que quede morada.<br>
+          <b>Material:</b> papel o vinilo adhesivo <b>no metalizado</b> (el metal bloquea el NFC), laminado mate.<br>
+          <b>Corte:</b> rectangular de 8,56 × 5,4 cm con esquinas redondeadas de 3 mm.<br>
+          <b>Archivo:</b> página 2, tamaño real con 3 mm de sangrado (página de 9,16 × 6 cm).</div>
+        <h2>Medidas</h2>
+        <div class="guia">${conCota(morada(0), 0.9, "8,56 cm", "5,4 cm", "Tarjeta morada · 20 copias")}</div>
+        <p class="escala">Vista achicada. La página que sigue está a tamaño real: imprimir al 100 %.</p>`;
     } else {
       html = `${cab}<h1>Stickers extra (opcionales)</h1>
         <p class="bajada">Para marcar nuestras propias cosas en el stand: el notebook, la tablet, el atril o la caja. <b>No son para regalar ni pegar en el parque</b>: la organización cobra 2 UF por cada sticker pegado en el recinto.</p>
