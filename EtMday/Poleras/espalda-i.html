@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda I · El chat</title>
+<!-- Opción I: un celular gigante con el chat clásico; la respuesta es el link de trado y el QR
+     va dentro del chat como si fuera la tarjeta de la sala. 28 × 36 cm, fondo transparente. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --medio: #4B35D6; --violeta: #7B46D8; --tinta: #131924; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta); display: flex; justify-content: center; padding-top: 0.3cm; }
+  .cel { width: 20cm; height: 35.4cm; background: var(--tinta); border-radius: 3cm; padding: 0.7cm; }
+  .pant { width: 100%; height: 100%; background: #EFEAE2; border-radius: 2.4cm; overflow: hidden; display: flex; flex-direction: column; }
+  .bar { background: linear-gradient(120deg, var(--indigo), var(--violeta)); color: #fff; padding: 1.3cm 1.2cm 0.8cm; display: flex; align-items: center; gap: 0.6cm; }
+  .bar i { width: 2cm; height: 2cm; border-radius: 50%; background: rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center; font-style: normal; font-weight: 800; font-size: 1cm; }
+  .bar b { display: block; font-size: 1cm; }
+  .bar span { font-size: 0.6cm; opacity: .85; }
+  .chat { flex: 1; padding: 0.9cm 0.8cm; display: flex; flex-direction: column; gap: 0.6cm; }
+  .m { max-width: 80%; border-radius: 0.8cm; padding: 0.5cm 0.7cm; font-size: 0.95cm; font-weight: 700; line-height: 1.2; box-shadow: 0 0.08cm 0.15cm rgba(0,0,0,.08); }
+  .el { background: #fff; align-self: flex-start; border-bottom-left-radius: 0.15cm; }
+  .yo { background: #D9FDD3; align-self: flex-end; border-bottom-right-radius: 0.15cm; }
+  .grande { font-size: 1.9cm; font-weight: 800; line-height: 1; letter-spacing: -0.06cm; }
+  .sala { align-self: flex-end; width: 13cm; background: #fff; border-radius: 0.8cm; overflow: hidden; box-shadow: 0 0.1cm 0.3cm rgba(0,0,0,.12); border: 0.15cm solid #D9FDD3; }
+  .sala .cab { background: linear-gradient(120deg, var(--indigo), var(--violeta)); color: #fff; padding: 0.45cm 0.6cm; font-size: 0.7cm; font-weight: 800; letter-spacing: .05cm; }
+  .sala img { display: block; width: 9.6cm; height: 9.6cm; margin: 0.6cm auto 0.3cm; }
+  .sala p { text-align: center; font-size: 0.75cm; font-weight: 800; color: var(--indigo); padding-bottom: 0.5cm; }
+</style>
+</head>
+<body>
+  <div class="cel"><div class="pant">
+    <div class="bar"><i>?</i><div><b>Vendedor</b><span>en línea</span></div></div>
+    <div class="chat">
+      <div class="m el">Transfiéreme primero y te lo mando al tiro 🙏</div>
+      <div class="m yo"><span class="grande">Mejor por trado 😉</span></div>
+      <div class="sala">
+        <div class="cab">🔒 SALA PROTEGIDA · ESCANÉAME</div>
+        <img src="qr-polera.svg" alt="">
+        <p>trado.cl · la plata queda retenida</p>
+      </div>
+    </div>
+  </div></div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda L · ¿Y si no te llega?</title>
+<!-- Opción L: tipografía gigante y nada más. "¿Y SI NO TE LLEGA?" en tres líneas que crecen,
+     y el QR con una flecha. 28 × 36 cm, fondo transparente. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta); display: flex; flex-direction: column; align-items: center; padding: 0.8cm 0.6cm 0.6cm; }
+  h1 { text-align: center; font-weight: 800; text-transform: uppercase; line-height: 0.98; letter-spacing: -0.14cm; }
+  h1 span { display: block; }
+  .a { font-size: 3.3cm; }
+  .b { font-size: 4.7cm; }
+  .c { font-size: 6.6cm; background: linear-gradient(100deg, var(--indigo), var(--violeta)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: 0.2cm; }
+  .fila { margin-top: 1.2cm; display: flex; align-items: center; gap: 1cm; }
+  .fila p { width: 9cm; font-size: 1.25cm; font-weight: 800; line-height: 1.15; text-align: right; }
+  .fila p span { color: var(--violeta); }
+  .fila svg { display: block; margin: 0.4cm 0 0 auto; }
+  .qr { border: 0.3cm solid var(--tinta); border-radius: 0.9cm; padding: 0.6cm; }
+  .qr img { display: block; width: 10cm; height: 10cm; }
+  .firma { margin-top: auto; display: flex; align-items: center; gap: 0.7cm; }
+  .firma img { height: 1.9cm; }
+  .firma span { font-size: 1.05cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <h1><span class="a">¿Y si no</span><span class="b">te llega?</span><span class="c">Nada.</span></h1>
+  <div class="fila">
+    <p>Con trado la plata <span>vuelve a ti.</span>
+      <svg width="150" height="70" viewBox="0 0 150 70"><path d="M8 12 C 60 6, 105 18, 138 46" fill="none" stroke="#7B46D8" stroke-width="10" stroke-linecap="round"/><path d="M108 52 L140 50 L132 20" fill="none" stroke="#7B46D8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </p>
+    <div class="qr"><img src="qr-polera.svg" alt=""></div>
+  </div>
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+</body>
+</html>

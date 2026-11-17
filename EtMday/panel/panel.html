@@ -8,7 +8,8 @@
      se pega detrás del papel, justo bajo la carta (o la tarjeta física va encima, con su cara
      de tarjetas.html pegada). La carta N tiene grabado trado.cl/etm/N y abre siempre el mismo
      caso (orden en CARTAS, src/lib/casos-etm.ts); el link no delata de qué se trata.
-     El QR de respaldo abre trado.cl/etm/sorpresa (un caso al azar).
+     El QR de respaldo abre trado.cl/etm/sorpresa (un caso al azar). La carta 10, "la buena",
+     va a la vista con su tarjeta grabada con https://trado.cl (lleva directo a la landing).
      A3 vertical (297 × 420 mm). Las filas de cartas están ubicadas para que el corte a los
      210 mm caiga en el espacio entre la fila 1 y la 2: así se imprime en 2 hojas A4
      horizontales (panel-2xA4.pdf) sin partir ninguna carta.
@@ -63,17 +64,28 @@
   .c8 { background: radial-gradient(circle at 30% 25%, #2DD4BF, #134E4A 75%); }
   .c9 { background: radial-gradient(circle at 50% 30%, #818CF8, #1E1B4B 75%); }
 
-  .pasos { position: absolute; top: 352mm; left: 15mm; right: 15mm; display: flex; gap: 6mm; font-size: 5mm; font-weight: 700; }
+  /* Carta 10, "la buena": a la vista y grabada con trado.cl (lleva directo a la landing) */
+  .buena { background: linear-gradient(150deg, #2230C2 0%, #4B35D6 55%, #7C3AED 100%); color: #fff; display: flex; align-items: center; justify-content: center; gap: 5mm; position: relative; overflow: hidden; }
+  .buena::after { content: ""; position: absolute; width: 50mm; height: 50mm; border-radius: 50%; background: rgba(255,255,255,.1); top: -24mm; right: -18mm; }
+  .buena .ok { width: 20mm; height: 20mm; border-radius: 50%; background: #fff; color: #2230C2; display: flex; align-items: center; justify-content: center; box-shadow: 0 1.5mm 4mm rgba(10,15,60,.35); position: relative; z-index: 1; }
+  .buena .ok svg { width: 12mm; height: 12mm; }
+  .buena .der { display: flex; flex-direction: column; align-items: flex-start; position: relative; z-index: 1; }
+  .buena .der img { height: 9mm; }
+  .buena .der b { font-size: 4.6mm; font-weight: 800; margin-top: 1.2mm; }
+  .buena .der span { font-size: 2.8mm; font-weight: 700; opacity: .9; margin-top: .6mm; }
+  .buena .num { position: absolute; top: 4.2mm; left: 5mm; font-size: 4.6mm; font-weight: 800; opacity: .85; z-index: 1; }
+  .fila4 { top: 350mm; }
+  .pasos { display: none; position: absolute; top: 352mm; left: 15mm; right: 15mm; display: flex; gap: 6mm; font-size: 5mm; font-weight: 700; }
   .pasos span { flex: 1; background: rgba(255,255,255,.14); border: .4mm solid rgba(255,255,255,.3); border-radius: 4mm; padding: 2.6mm 4mm; }
   .pasos b { display: inline-flex; width: 7mm; height: 7mm; border-radius: 50%; background: #fff; color: var(--azul); align-items: center; justify-content: center; margin-right: 2mm; font-size: 4mm; }
 
-  footer { position: absolute; left: 15mm; right: 15mm; bottom: 12mm; display: flex; align-items: center; gap: 7mm; }
+  footer { position: absolute; left: 12mm; right: 103mm; top: 356mm; display: flex; align-items: center; gap: 7mm; }
   .qr { background: #fff; border-radius: 4mm; padding: 2mm; flex: none; }
   .qr img { width: 26mm; height: 26mm; display: block; }
   .pie { flex: 1; }
-  .pie b { display: block; font-size: 6mm; font-weight: 800; }
-  .pie span { display: block; font-size: 4.6mm; opacity: .85; margin-top: 1.5mm; }
-  .web { font-weight: 800; background: #fff; color: var(--azul); border-radius: 99mm; padding: 2.6mm 7mm; font-size: 6mm; flex: none; }
+  .pie b { display: block; font-size: 5.4mm; font-weight: 800; line-height: 1.2; }
+  .pie span { display: block; font-size: 4mm; opacity: .85; margin-top: 1.5mm; line-height: 1.3; }
+  .web { display: none; }
 </style>
 </head>
 <body>
@@ -89,11 +101,6 @@
 
   <div id="cartas"></div>
 
-  <div class="pasos">
-    <span><b>1</b>Acerca tu celular</span>
-    <span><b>2</b>Lee el chat</span>
-    <span><b>3</b>¿Lo detectaste?</span>
-  </div>
 
   <footer>
     <div class="qr"><img src="../../public/etm/qr-sorpresa.svg" alt=""></div>
@@ -106,6 +113,7 @@
 
 <script>
   const ondas = '<svg class="ondas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/><path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/><path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/><path d="M16.37 2a20.16 20.16 0 0 1 0 20"/></svg>';
+  const buena = `<span class="num">10</span><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="der"><img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado"><b>Esta es la buena</b><span>Acerca tu celular · trado.cl</span></span>`;
   document.getElementById("cartas").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `
     <div class="carta fila${Math.ceil(n / 3)} col${((n - 1) % 3) + 1}">
       <div class="cara c${n}">
@@ -113,7 +121,7 @@
         <span class="q">?</span>
         <span class="lado">${ondas}<span class="acerca">Acerca tu<br>celular</span></span>
       </div>
-    </div>`).join("");
+    </div>`).join("") + `<div class="carta fila4 col3"><div class="cara buena">${buena}</div></div>`;
 </script>
 </body>
 </html>

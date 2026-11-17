@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda J · Zona libre de estafas</title>
+<!-- Opción J: estilo señalética con cinta de peligro en los colores de la marca, "ZONA LIBRE DE
+     ESTAFAS" y el QR al centro. 28 × 36 cm, fondo transparente. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.9cm; }
+  .cinta { width: 30cm; height: 2.2cm; background: repeating-linear-gradient(-45deg, var(--violeta) 0 1.3cm, var(--tinta) 1.3cm 2.6cm);
+           display: flex; align-items: center; justify-content: center; }
+  .cinta span { background: #fff; font-size: 1cm; font-weight: 800; letter-spacing: .25cm; padding: 0.1cm 0.6cm; }
+  .c1 { transform: rotate(-4deg); } .c2 { transform: rotate(3deg); }
+  h1 { text-align: center; font-weight: 800; text-transform: uppercase; line-height: 0.88; letter-spacing: -0.12cm; }
+  h1 .a { display: block; font-size: 3.4cm; }
+  h1 .b { display: block; font-size: 5.6cm; color: var(--indigo); }
+  .qr { border: 0.3cm solid var(--tinta); border-radius: 0.8cm; padding: 0.6cm; position: relative; background: #fff; }
+  .qr img { display: block; width: 10cm; height: 10cm; }
+  .qr .tag { position: absolute; top: -0.9cm; left: 50%; transform: translateX(-50%); background: var(--violeta); color: #fff; font-size: 0.85cm; font-weight: 800; padding: 0.15cm 0.7cm; border-radius: 99cm; white-space: nowrap; }
+  .firma img { height: 1.8cm; display: block; }
+</style>
+</head>
+<body>
+  <div class="cinta c1"><span>ATENCIÓN</span></div>
+  <h1><span class="a">Zona libre de</span><span class="b">estafas</span></h1>
+  <div class="qr"><span class="tag">Escanéame antes de pagar</span><img src="qr-polera.svg" alt=""></div>
+  <div class="firma"><img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado"></div>
+  <div class="cinta c2"><span>TRADO.CL</span></div>
+</body>
+</html>

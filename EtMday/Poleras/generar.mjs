@@ -21,6 +21,11 @@ const piezas = [
   { html: "espalda-e.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
   { html: "espalda-f.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
   { html: "espalda-g.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "espalda-h.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "espalda-i.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "espalda-j.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "espalda-k.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "espalda-l.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
   { html: "frente-logo-morado.html", w: cm(9), h: cm(3.16), escala: DPI, transparente: true, pdf: [9, 3.16] },
   { html: "frente-logo.html", w: cm(9), h: cm(3.16), escala: DPI, transparente: true, pdf: [9, 3.16] },
   { html: "boceto.html", w: 2300, h: 1460, escala: 1, transparente: false },
@@ -39,7 +44,8 @@ ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pend.has(d.id)
 const cdp = (method, params = {}) => new Promise((r) => { const i = ++id; pend.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
 await cdp("Page.enable");
 
-for (const p of piezas) {
+const solo = process.argv.slice(2);
+for (const p of piezas.filter((x) => !solo.length || solo.some((s) => x.html.startsWith(s)))) {
   await cdp("Emulation.setDeviceMetricsOverride", { width: p.w, height: p.h, deviceScaleFactor: p.escala, mobile: false });
   await cdp("Emulation.setDefaultBackgroundColorOverride", p.transparente ? { color: { r: 0, g: 0, b: 0, a: 0 } } : {});
   await cdp("Page.navigate", { url: pathToFileURL(join(aqui, p.html)).href });

@@ -47,6 +47,16 @@
   .reverso img { height: 11mm; position: relative; }
   .reverso .preg { font-size: 4.2mm; font-weight: 800; margin-top: 3mm; position: relative; }
   .reverso .mkt { font-size: 2.5mm; font-weight: 600; opacity: .85; margin-top: 1.5mm; position: relative; }
+  /* Carta 10, "la buena": a la vista y grabada con trado.cl (lleva directo a la landing) */
+  .buena { background: linear-gradient(150deg, #2230C2 0%, #4B35D6 55%, #7C3AED 100%); color: #fff; display: flex; align-items: center; justify-content: center; gap: 5mm; position: relative; overflow: hidden; }
+  .buena::after { content: ""; position: absolute; width: 50mm; height: 50mm; border-radius: 50%; background: rgba(255,255,255,.1); top: -24mm; right: -18mm; }
+  .buena .ok { width: 20mm; height: 20mm; border-radius: 50%; background: #fff; color: #2230C2; display: flex; align-items: center; justify-content: center; box-shadow: 0 1.5mm 4mm rgba(10,15,60,.35); position: relative; z-index: 1; }
+  .buena .ok svg { width: 12mm; height: 12mm; }
+  .buena .der { display: flex; flex-direction: column; align-items: flex-start; position: relative; z-index: 1; }
+  .buena .der img { height: 9mm; }
+  .buena .der b { font-size: 4.6mm; font-weight: 800; margin-top: 1.2mm; }
+  .buena .der span { font-size: 2.8mm; font-weight: 700; opacity: .9; margin-top: .6mm; }
+  .buena .num { position: absolute; top: 4.2mm; left: 5mm; font-size: 4.6mm; font-weight: 800; opacity: .85; z-index: 1; }
   .nota { position: absolute; left: 12.1mm; right: 12.1mm; bottom: 7mm; display: flex; justify-content: space-between; align-items: center; font-size: 3.2mm; color: #4A5068; }
   .regla { display: flex; align-items: center; gap: 2mm; }
   .regla i { display: block; width: 50mm; height: 2.4mm; border: .3mm solid #0F1424; border-top: none; }
@@ -67,6 +77,13 @@
     <span class="regla"><i></i>debe medir 50 mm</span>
   </div>
 </div>
+<div class="hoja">
+  <div class="grilla" id="buena"></div>
+  <div class="nota">
+    <span><b>Carta 10, “la buena”</b> · va a la vista en el panel · su tarjeta NFC se graba con <b>https://trado.cl</b> · al lado, su reverso</span>
+    <span class="regla"><i></i>debe medir 50 mm</span>
+  </div>
+</div>
 <script>
   const ondas = '<svg class="ondas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/><path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/><path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/><path d="M16.37 2a20.16 20.16 0 0 1 0 20"/></svg>';
   document.getElementById("grilla").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `
@@ -76,12 +93,15 @@
       <span class="lado">${ondas}<span class="acerca">Acerca tu<br>celular</span></span>
       <span class="marca">trado</span>
     </div></div>`).join("");
+  const buena = `<span class="num">10</span><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="der"><img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado"><b>Esta es la buena</b><span>Acerca tu celular · trado.cl</span></span>`;
+  document.getElementById("buena").innerHTML = `<div class="corte"><div class="cara buena">${buena}</div></div>`;
   document.getElementById("reversos").innerHTML = Array.from({ length: 9 }, () => `
     <div class="corte"><div class="reverso">
       <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado">
       <span class="preg">¿Detectarías la estafa?</span>
       <span class="mkt">No somos un marketplace · trado.cl</span>
     </div></div>`).join("");
+  document.getElementById("buena").innerHTML += document.querySelector("#reversos .corte").outerHTML;
 </script>
 </body>
 </html>

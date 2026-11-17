@@ -66,7 +66,7 @@ Piezas en esta carpeta; todas se imprimen al **100 % / tamaño real**.
 
 - **Display de mesa** A3: `display/display-mesa.pdf`, con atril o base para que se pare sola.
 - **Panel de cartas**: `panel/panel-A3.pdf` (imprenta) o `panel/panel-2xA4.pdf` (2 hojas para unir), montado en cartón pluma. Como no se puede pegar nada al mesón, va apoyado en un atril.
-- **9 tarjetas NFC** grabadas con `trado.cl/etm/1` … `trado.cl/etm/9` y probadas con iPhone y con Android, con sus caras de `panel/tarjetas-A4.pdf` (hoja 1 es el frente y hoja 2 el reverso).
+- **10 tarjetas NFC**: de la 1 a la 9 grabadas con `trado.cl/etm/1` … `trado.cl/etm/9`, y la 10 ("la buena", a la vista) con `https://trado.cl`. Probarlas con iPhone y con Android. Caras en `panel/tarjetas-A4.pdf` (hoja 1 las 9 cartas, hoja 2 el reverso, hoja 3 la carta 10).
 - **Dado**: caras en `dados/dado-caras-5cm.pdf`, `-7cm` o `-10cm` según el dado, o `dados/dado-armable-6cm.pdf` en cartulina. Más el premio para quien saque la cara de trado.
 - **Poleras**: frente `Poleras/frente-logo-morado.pdf` y la espalda elegida (`Poleras/espalda-*.pdf`), con el boceto en `Poleras/boceto.png`.
 - Flyers A6 (`flyer/flyer.pdf`), one pager (`one-pager/one-pager.pdf`) para inversionistas y el pitch (`pitch/pitch-y-respuestas.pdf`).
