@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda N · El ladrillo</title>
+<!-- Opción N: QR grande a https://trado.cl (qr-polera.svg), "trado" grande en morado plano
+     (trado-morado.svg) y una frase sobre estafas en compraventa online. 28 × 36 cm, fondo transparente. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 0.9cm 0.8cm 0.8cm; text-align: center; }
+  .logo { display: block; }
+  .qr { border: 0.32cm solid var(--violeta); border-radius: 1cm; padding: 0.7cm; background: #fff; }
+  .qr img { display: block; width: 13cm; height: 13cm; }
+  .fr { font-weight: 800; letter-spacing: -0.08cm; line-height: 1; }
+  .fr .v { color: var(--violeta); }
+  .esc { font-size: 0.95cm; font-weight: 800; letter-spacing: 0.12cm; text-transform: uppercase; color: var(--violeta); margin-top: 0.4cm; }
+  .fr { font-size: 3cm; text-transform: uppercase; }
+  .sub { font-size: 1cm; font-weight: 700; margin-top: 0.4cm; }
+</style>
+</head>
+<body>
+  <img class="logo" src="trado-morado.svg" alt="trado" style="height:5.4cm">
+  <div><p class="fr">Que no te<br>vendan un <span class="v">ladrillo.</span></p><p class="sub">Compra y vende por redes con la plata protegida.</p></div>
+  <div class="qr"><img src="qr-polera.svg" alt=""></div>
+</body>
+</html>

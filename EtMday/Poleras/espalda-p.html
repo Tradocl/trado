@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda P · Por redes</title>
+<!-- Opción P: QR grande a https://trado.cl (qr-polera.svg), "trado" grande en morado plano
+     (trado-morado.svg) y una frase sobre estafas en compraventa online. 28 × 36 cm, fondo transparente. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 0.9cm 0.8cm 0.8cm; text-align: center; }
+  .logo { display: block; }
+  .qr { border: 0.32cm solid var(--violeta); border-radius: 1cm; padding: 0.7cm; background: #fff; }
+  .qr img { display: block; width: 13cm; height: 13cm; }
+  .fr { font-weight: 800; letter-spacing: -0.08cm; line-height: 1; }
+  .fr .v { color: var(--violeta); }
+  .esc { font-size: 0.95cm; font-weight: 800; letter-spacing: 0.12cm; text-transform: uppercase; color: var(--violeta); margin-top: 0.4cm; }
+  .fr { font-size: 2.6cm; text-transform: uppercase; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35cm; margin-top: 0.6cm; }
+  .chips span { font-size: 1.05cm; font-weight: 800; border: 0.12cm solid var(--tinta); border-radius: 99cm; padding: 0.15cm 0.6cm; text-decoration: line-through; text-decoration-color: var(--violeta); text-decoration-thickness: 0.14cm; }
+</style>
+</head>
+<body>
+  <div><p class="fr">¿Compras o vendes<br><span class="v">por redes?</span></p>
+  <div class="chips"><span>comprobante falso</span><span>te pago después</span><span>link falso</span></div></div>
+  <div class="qr"><img src="qr-polera.svg" alt=""></div>
+  <img class="logo" src="trado-morado.svg" alt="trado" style="height:4.6cm">
+</body>
+</html>

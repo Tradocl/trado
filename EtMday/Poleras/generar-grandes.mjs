@@ -22,7 +22,7 @@ const cdp = (method, params = {}) => new Promise((r) => { const i = ++id; pend.s
 await cdp("Page.enable");
 await cdp("Emulation.setDeviceMetricsOverride", { width: 1600, height: 1700, deviceScaleFactor: 1.5, mobile: false });
 const solo = process.argv.slice(2);
-for (const pieza of (solo.length ? solo : ["frente", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"])) {
+for (const pieza of (solo.length ? solo : ["frente", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"])) {
   await cdp("Page.navigate", { url: pathToFileURL(join(aqui, "vista-grande.html")).href + "?pieza=" + pieza });
   await espera(3000);
   const png = await cdp("Page.captureScreenshot", { format: "png" });
