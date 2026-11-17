@@ -72,3 +72,6 @@ Piezas en esta carpeta; todas se imprimen al **100 % / tamaño real**.
 - Flyers A6 (`flyer/flyer.pdf`), one pager (`one-pager/one-pager.pdf`) para inversionistas y el pitch (`pitch/pitch-y-respuestas.pdf`).
 - Notebook o tablet con `trado.cl/etm/pantalla` y el video `video/como-funciona-horizontal.mp4`, sus cargadores, una zapatilla **certificada SEC**, powerbank e internet propio (el parque es al aire libre).
 - Credencial y las 3 entradas nominativas, y turnos para que el stand nunca quede solo.
+- **Comprobante de recepción del manual** (su última hoja) firmado y subido a la plataforma de la postulación. Sin él no se puede participar.
+- Documentación de la empresa por si fiscalizan, y el Media Kit de la organización para redes.
+- No tapar la gráfica con el nombre que pone la organización, no repartir comida ni bebidas y no dejar equipos solos.

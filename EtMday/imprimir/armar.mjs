@@ -23,7 +23,7 @@ let id = 0; const pend = new Map();
 ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pend.has(d.id)) { pend.get(d.id)(d); pend.delete(d.id); } };
 const cdp = (method, params = {}) => new Promise((r) => { const i = ++id; pend.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
 await cdp("Page.enable");
-await cdp("Emulation.setDeviceMetricsOverride", { width: 794, height: 1123, deviceScaleFactor: 2, mobile: false });
+await cdp("Emulation.setDeviceMetricsOverride", { width: 794, height: 1123, deviceScaleFactor: 2, mobile: false }); // la vista previa es la hoja 1
 await cdp("Page.navigate", { url: pathToFileURL(join(aqui, "portada.html")).href });
 await espera(3500);
 const png = await cdp("Page.captureScreenshot", { format: "png" });

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda V · Gira contra las estafas</title>
+<!-- Opción V (Gira contra las estafas): estilo ropa urbana, distinto a las anteriores. QR a https://trado.cl
+     (qr-polera.svg). 28 × 36 cm, fondo transparente. Generar: node EtMday/Poleras/generar.mjs espalda-v -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Anton&family=Bungee&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --medio: #4B35D6; --violeta: #7B46D8; --tinta: #131924; --amarillo: #FCD34D; --lila: #C4B5FD; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta); position: relative; }
+
+  .wrap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 0.6cm 1cm 0.6cm; }
+  .logo { height: 5cm; display: block; }
+  .gira { font-family: "Anton", sans-serif; font-size: 1.55cm; white-space: nowrap; letter-spacing: .08cm; text-transform: uppercase; margin-top: 0.3cm; color: var(--violeta); }
+  .lista { width: 100%; margin-top: 0.5cm; font-family: "Anton", sans-serif; font-size: 1.05cm; text-transform: uppercase; letter-spacing: .04cm; }
+  .lista div { display: grid; grid-template-columns: 4.2cm 1fr auto; align-items: center; padding: 0.22cm 0; border-bottom: 0.08cm solid var(--tinta); }
+  .lista s { text-decoration-color: var(--violeta); text-decoration-thickness: 0.16cm; }
+  .lista b { font-weight: 400; color: #fff; background: var(--violeta); padding: 0 0.3cm; font-size: 0.85cm; }
+  .fin { display: flex; align-items: center; gap: 0.9cm; margin-top: 0.6cm; }
+  .fin .qr { border: 0.25cm solid var(--tinta); padding: 0.45cm; background: #fff; }
+  .fin .qr img { display: block; width: 9.6cm; height: 9.6cm; }
+  .fin p { font-family: "Anton", sans-serif; font-size: 1.9cm; line-height: 1; text-transform: uppercase; width: 8.6cm; }
+  .fin p span { color: var(--violeta); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="trado-morado.svg" alt="trado">
+  <p class="gira">Gira contra las estafas · 2026</p>
+  <div class="lista"><div><span>19 NOV</span><s>Comprobante falso</s><b>CANCELADO</b></div><div><span>20 NOV</span><s>Te pago después</s><b>CANCELADO</b></div><div><span>21 NOV</span><s>Link de pago falso</s><b>CANCELADO</b></div><div><span>22 NOV</span><s>Pagar por fuera</s><b>CANCELADO</b></div><div><span>23 NOV</span><s>El ladrillo en la caja</s><b>CANCELADO</b></div></div>
+  <div class="fin"><p>Entradas gratis en <span>trado.cl</span></p><div class="qr"><img src="qr-polera.svg" alt=""></div></div>
+</div>
+</body>
+</html>

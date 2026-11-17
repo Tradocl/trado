@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda X · Stickers</title>
+<!-- Opción X (Stickers): estilo ropa urbana, distinto a las anteriores. QR a https://trado.cl
+     (qr-polera.svg). 28 × 36 cm, fondo transparente. Generar: node EtMday/Poleras/generar.mjs espalda-x -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Anton&family=Bungee&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --medio: #4B35D6; --violeta: #7B46D8; --tinta: #131924; --amarillo: #FCD34D; --lila: #C4B5FD; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta); position: relative; }
+
+  .s { position: absolute; font-weight: 800; border: 0.22cm solid var(--tinta); border-radius: 0.6cm; padding: 0.35cm 0.7cm; box-shadow: 0.25cm 0.25cm 0 var(--tinta); white-space: nowrap; }
+  .tach { text-decoration: line-through; text-decoration-thickness: 0.18cm; text-decoration-color: var(--violeta); }
+  .qr { position: absolute; left: 50%; top: 14.6cm; transform: translateX(-50%) rotate(-3deg); background: #fff; border: 0.32cm solid var(--tinta); border-radius: 1cm; padding: 0.7cm; box-shadow: 0.4cm 0.4cm 0 var(--violeta); }
+  .qr img { display: block; width: 11cm; height: 11cm; }
+  .big { position: absolute; left: 50%; top: 0.8cm; transform: translateX(-50%) rotate(-4deg); font-family: "Permanent Marker", cursive; font-size: 3.4cm; line-height: 1; color: var(--violeta);
+         text-shadow: 0.15cm 0.15cm 0 var(--tinta); white-space: nowrap; }
+  .logo { position: absolute; left: 50%; bottom: 0.9cm; transform: translateX(-50%) rotate(2deg); background: var(--violeta); border: 0.25cm solid var(--tinta); border-radius: 99cm; padding: 0.5cm 1.4cm; box-shadow: 0.25cm 0.25cm 0 var(--tinta); }
+  .logo img { display: block; height: 2.6cm; }
+</style>
+</head>
+<body>
+<p class="big">¡No caigas!</p>
+<span class="s tach" style="left:0.8cm;top:6.4cm;font-size:1.15cm;background:#fff;transform:rotate(-7deg)">transfiéreme primero</span>
+<span class="s tach" style="right:0.8cm;top:8.4cm;font-size:1.15cm;background:var(--amarillo);transform:rotate(6deg)">te pago después</span>
+<span class="s tach" style="left:1.2cm;top:10.8cm;font-size:1.05cm;background:var(--lila);transform:rotate(4deg)">comprobante falso</span>
+<span class="s" style="right:1.4cm;top:11.6cm;font-size:1.1cm;background:var(--tinta);color:#fff;transform:rotate(-5deg)">ESCANÉAME ↓</span>
+<div class="qr"><img src="qr-polera.svg" alt=""></div>
+<span class="s tach" style="left:0.6cm;top:28.6cm;font-size:1cm;background:#fff;transform:rotate(-4deg)">link de pago falso</span>
+<span class="s" style="right:0.6cm;top:28.2cm;font-size:1.05cm;background:var(--amarillo);transform:rotate(5deg)">plata protegida ✓</span>
+<div class="logo"><img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20blanco.svg" alt="trado"></div>
+</body>
+</html>

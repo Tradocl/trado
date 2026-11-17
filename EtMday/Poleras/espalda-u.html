@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda U · Anti Estafa Club</title>
+<!-- Opción U (Anti Estafa Club): estilo ropa urbana, distinto a las anteriores. QR a https://trado.cl
+     (qr-polera.svg). 28 × 36 cm, fondo transparente. Generar: node EtMday/Poleras/generar.mjs espalda-u -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Anton&family=Bungee&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --medio: #4B35D6; --violeta: #7B46D8; --tinta: #131924; --amarillo: #FCD34D; --lila: #C4B5FD; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta); position: relative; }
+
+  .wrap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding-top: 0.8cm; }
+  .top { font-family: "Bungee", sans-serif; font-size: 2.6cm; line-height: .95; text-align: center; color: var(--violeta); letter-spacing: .05cm;
+         text-shadow: 0.18cm 0.18cm 0 var(--tinta); }
+  .sello { position: relative; width: 22.5cm; height: 22.5cm; margin-top: 0.5cm; }
+  .sello svg { position: absolute; inset: 0; }
+  .centro { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #fff; border-radius: 1cm; padding: 0.6cm; border: 0.3cm solid var(--tinta); }
+  .centro img { display: block; width: 9.6cm; height: 9.6cm; }
+  .est { font-family: "Bungee", sans-serif; font-size: 1.1cm; margin-top: 0.5cm; letter-spacing: .15cm; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="top">ANTI<br>ESTAFA CLUB</p>
+  <div class="sello">
+    <svg viewBox="0 0 250 250">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1F25C1"/><stop offset="1" stop-color="#7B46D8"/></linearGradient>
+        <path id="c" d="M125 125 m-98 0 a98 98 0 1 1 196 0 a98 98 0 1 1 -196 0"/></defs>
+      <circle cx="125" cy="125" r="122" fill="#131924"/>
+      <circle cx="125" cy="125" r="116" fill="url(#g)"/>
+      <circle cx="125" cy="125" r="84" fill="none" stroke="#FCD34D" stroke-width="2" stroke-dasharray="4 5"/>
+      <text font-family="Bungee" font-size="15" fill="#fff" letter-spacing="3"><textPath href="#c" startOffset="0">★ MIEMBRO OFICIAL ★ YO NO TRANSFIERO PRIMERO </textPath></text>
+    </svg>
+    <div class="centro"><img src="qr-polera.svg" alt=""></div>
+  </div>
+  <p class="est">★ EST. 2026 ★</p>
+  <img src="trado-morado.svg" alt="trado" style="height:3.4cm;display:block;margin-top:0.4cm">
+</div>
+</body>
+</html>
