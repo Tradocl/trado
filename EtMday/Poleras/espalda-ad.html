@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AD · Instrucciones de armado</title>
+<!-- Espalda AD: instrucciones de armado de un mueble, pero para comprarle a un desconocido.
+     Dibujos de línea en SVG. Área 28 × 36 cm, fondo transparente.
+     Generar: node EtMday/Poleras/generar.mjs espalda-ad -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #8A8FA3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: stretch; padding: 0.9cm 1.1cm 0.8cm; }
+
+  .arriba small { display: block; font-size: 0.85cm; font-weight: 800; letter-spacing: 0.12cm; text-transform: uppercase; color: var(--gris); }
+  h1 { margin-top: 0.2cm; font-size: 2.55cm; font-weight: 800; line-height: 0.92; letter-spacing: -0.1cm; text-transform: uppercase; }
+  h1 span { color: var(--indigo); }
+
+  .piezas { margin-top: 0.6cm; display: flex; gap: 0.4cm; }
+  .piezas div { flex: 1; border: 0.1cm solid var(--tinta); border-radius: 0.3cm; padding: 0.3cm 0.2cm; text-align: center;
+                font-size: 0.78cm; font-weight: 700; line-height: 1.15; }
+  .piezas b { display: block; font-size: 1.3cm; color: var(--indigo); }
+  .piezas .no b { color: var(--violeta); }
+
+  .pasos { margin-top: 0.5cm; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4cm; }
+  .paso { border: 0.12cm solid var(--tinta); border-radius: 0.5cm; padding: 0.45cm 0.5cm; display: flex; flex-direction: column; align-items: center; position: relative; }
+  .paso .n { position: absolute; top: 0.3cm; left: 0.45cm; font-size: 2cm; font-weight: 800; line-height: 1; color: var(--indigo); }
+  .paso svg { width: 6cm; height: 4.6cm; margin-top: 0.2cm; }
+  .paso p { margin-top: 0.3cm; font-size: 1cm; font-weight: 800; text-align: center; line-height: 1.15; }
+
+  .nunca { margin-top: 0.45cm; display: flex; align-items: center; gap: 0.6cm; border: 0.12cm solid var(--tinta); border-radius: 0.5cm; padding: 0.35cm 0.7cm; }
+  .nunca svg { width: 3.4cm; height: 2.6cm; flex: none; }
+  .nunca p { font-size: 1.05cm; font-weight: 800; line-height: 1.15; }
+  .nunca p span { color: var(--violeta); }
+
+  .firma { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 0.7cm; }
+  .firma img { height: 2cm; }
+  .firma span { font-size: 1.1cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <div class="arriba">
+    <small>Para comprarle a un desconocido</small>
+    <h1>Instrucciones<br><span>de armado</span></h1>
+  </div>
+
+  <div class="piezas">
+    <div><b>1×</b>comprador</div>
+    <div><b>1×</b>vendedor</div>
+    <div><b>1×</b>trado</div>
+    <div class="no"><b>0×</b>chamullo</div>
+  </div>
+
+  <div class="pasos">
+    <div class="paso"><span class="n">1</span>
+      <svg viewBox="0 0 80 70" fill="none" stroke="#131924" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+        <rect x="26" y="4" width="28" height="52" rx="5"/><path d="M36 9 H44"/>
+        <rect x="31" y="20" width="18" height="12" rx="2" fill="#1F25C1" stroke="#1F25C1"/>
+        <path d="M33 40 H47 M33 46 H43"/>
+        <path d="M8 62 Q40 72 72 62" stroke="#8A8FA3"/></svg>
+      <p>Pagas por trado</p></div>
+    <div class="paso"><span class="n">2</span>
+      <svg viewBox="0 0 80 70" fill="none" stroke="#131924" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+        <rect x="14" y="12" width="52" height="46" rx="4" fill="#ECEDF3"/><rect x="20" y="18" width="40" height="34" rx="3"/>
+        <circle cx="40" cy="35" r="9" fill="#1F25C1" stroke="#1F25C1"/><path d="M40 29 V41 M34 35 H46" stroke="#fff"/>
+        <path d="M20 58 V64 M60 58 V64"/></svg>
+      <p>La plata queda retenida</p></div>
+    <div class="paso"><span class="n">3</span>
+      <svg viewBox="0 0 80 70" fill="none" stroke="#131924" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M14 30 H66 V62 H14 Z" fill="#ECEDF3"/><path d="M14 30 L6 20 H58 L66 30"/><path d="M66 30 L74 20"/>
+        <circle cx="56" cy="16" r="11" fill="#1F25C1" stroke="#1F25C1"/><path d="M51 16 L55 20 L62 12" stroke="#fff"/></svg>
+      <p>Recibes y revisas</p></div>
+    <div class="paso"><span class="n">4</span>
+      <svg viewBox="0 0 80 70" fill="none" stroke="#131924" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M8 40 L22 30 L34 34 L46 28 L58 32 L72 40"/><path d="M22 30 L36 46 Q40 50 44 46 L58 32"/>
+        <path d="M8 40 L18 50 M72 40 L62 50"/>
+        <circle cx="40" cy="14" r="9" fill="#1F25C1" stroke="#1F25C1"/><text x="40" y="18.5" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="800" font-size="13" fill="#fff" stroke="none">$</text></svg>
+      <p>Confirmas y se le paga al vendedor</p></div>
+  </div>
+
+  <div class="nunca">
+    <svg viewBox="0 0 80 60" fill="none" stroke="#131924" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+      <rect x="6" y="14" width="18" height="32" rx="3"/><path d="M28 30 H54 M46 22 L54 30 L46 38"/>
+      <circle cx="66" cy="24" r="6"/><path d="M58 46 Q66 32 74 46"/>
+      <circle cx="40" cy="30" r="27" stroke="#7B46D8" stroke-width="3.5"/><path d="M21 49 L59 11" stroke="#7B46D8" stroke-width="3.5"/></svg>
+    <p>Si sobra una pieza llamada <span>“transfiéreme primero”</span>, no la uses.</p>
+  </div>
+
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+</body>
+</html>

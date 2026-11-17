@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AE · Prueba de alternativas</title>
+<!-- Espalda AE: una pregunta de prueba de alternativas con su hoja de respuestas (todas D).
+     Área 28 × 36 cm, fondo transparente. Generar: node EtMday/Poleras/generar.mjs espalda-ae -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #8A8FA3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; padding: 0.9cm 1.2cm 0.8cm; }
+
+  .cab { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 0.14cm solid var(--tinta); padding-bottom: 0.35cm; }
+  .cab small { font-size: 0.8cm; font-weight: 800; letter-spacing: 0.1cm; text-transform: uppercase; color: var(--gris); line-height: 1.3; }
+  .cab .pts { font-size: 0.8cm; font-weight: 800; border: 0.1cm solid var(--tinta); border-radius: 0.25cm; padding: 0.15cm 0.4cm; white-space: nowrap; }
+
+  .preg { margin-top: 0.7cm; font-size: 1.9cm; font-weight: 800; color: var(--indigo); letter-spacing: -0.05cm; }
+  .enun { margin-top: 0.3cm; font-size: 1.32cm; font-weight: 700; line-height: 1.25; }
+  .enun i { font-style: normal; font-weight: 800; }
+
+  ol { list-style: none; margin-top: 0.6cm; }
+  li { display: flex; align-items: center; gap: 0.7cm; padding: 0.4cm 0; font-size: 1.28cm; font-weight: 700; line-height: 1.15; }
+  li .l { flex: none; width: 1.7cm; height: 1.7cm; border-radius: 50%; border: 0.13cm solid var(--tinta); display: grid; place-items: center;
+          font-size: 0.95cm; font-weight: 800; }
+  li.ok { color: var(--indigo); font-weight: 800; }
+  li.ok .l { background: var(--indigo); border-color: var(--indigo); color: #fff; box-shadow: 0 0 0 0.25cm #fff, 0 0 0 0.42cm var(--violeta); }
+
+  .hoja { margin-top: 0.7cm; border: 0.12cm solid var(--tinta); border-radius: 0.5cm; padding: 0.5cm 0.8cm; display: flex; align-items: center; gap: 1cm; }
+  .hoja h2 { font-size: 0.85cm; font-weight: 800; letter-spacing: 0.08cm; text-transform: uppercase; line-height: 1.3; }
+  .hoja h2 b { display: block; margin-top: 0.2cm; font-size: 1.25cm; letter-spacing: -0.02cm; text-transform: none; color: var(--indigo); }
+  .grilla { margin-left: auto; display: grid; grid-template-columns: auto repeat(4, 1.05cm); gap: 0.2cm 0.35cm; align-items: center; font-size: 0.7cm; font-weight: 800; }
+  .grilla span { text-align: center; }
+  .grilla i { width: 1.05cm; height: 1.05cm; border-radius: 50%; border: 0.08cm solid var(--gris); }
+  .grilla i.x { background: var(--indigo); border-color: var(--indigo); }
+
+  .firma { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 0.7cm; }
+  .firma img { height: 2.1cm; }
+  .firma span { font-size: 1.15cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <div class="cab">
+    <small>Prueba de compras por redes<br>Forma EtMday 2026</small>
+    <span class="pts">Puntaje: tu plata</span>
+  </div>
+
+  <p class="preg">Pregunta 1</p>
+  <p class="enun">Un desconocido te vende unas zapatillas y te dice <i>“transfiéreme primero, tengo otro interesado”</i>. ¿Qué haces?</p>
+
+  <ol>
+    <li><span class="l">A</span>Transfiero al tiro, no vaya a ser</li>
+    <li><span class="l">B</span>Transfiero la mitad y rezo</li>
+    <li><span class="l">C</span>Le pido más fotos y después transfiero</li>
+    <li class="ok"><span class="l">D</span>Le propongo pagar por trado</li>
+  </ol>
+
+  <div class="hoja">
+    <h2>Hoja de respuestas<b>Clave: siempre D</b></h2>
+    <div class="grilla" id="grilla"></div>
+  </div>
+
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+<script>
+  let h = "<span></span>" + ["A", "B", "C", "D"].map(l => `<span>${l}</span>`).join("");
+  for (let n = 1; n <= 4; n++) h += `<span>${n}</span><i></i><i></i><i></i><i class="x"></i>`;
+  document.getElementById("grilla").innerHTML = h;
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda AC · Prospecto</title>
+<!-- Espalda AC: el papelito que viene dentro de la caja de un remedio, pero de trado.
+     Área 28 × 36 cm, fondo transparente. Generar: node EtMday/Poleras/generar.mjs espalda-ac -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #8A8FA3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; padding: 0.8cm 1.2cm; }
+
+  .hoja { flex: 1; border: 0.22cm solid var(--tinta); display: flex; flex-direction: column; padding: 1.1cm 1.3cm 0.9cm; position: relative; }
+  .tipo { font-size: 0.72cm; font-weight: 800; letter-spacing: 0.06cm; white-space: nowrap; text-transform: uppercase; color: var(--gris);
+          border-bottom: 0.08cm solid var(--tinta); padding-bottom: 0.35cm; }
+
+  .cabeza { display: flex; align-items: center; justify-content: space-between; gap: 0.8cm; margin-top: 0.6cm; }
+  .cabeza img { height: 3.2cm; display: block; }
+  .cabeza p { margin-top: 0.3cm; font-size: 1.1cm; white-space: nowrap; font-weight: 800; color: var(--indigo); }
+  .cabeza small { display: block; margin-top: 0.15cm; font-size: 0.8cm; font-weight: 600; color: var(--gris); }
+  .cabeza svg { width: 7.5cm; flex: none; }
+
+  .sec { padding: 0.4cm 0; border-top: 0.07cm dashed var(--gris); }
+  .sec:first-of-type { margin-top: 0.6cm; }
+  .sec h2 { font-size: 0.9cm; font-weight: 800; letter-spacing: 0.08cm; text-transform: uppercase; color: var(--indigo); }
+  .sec p { margin-top: 0.1cm; font-size: 1.06cm; font-weight: 700; line-height: 1.22; }
+  .sec p b { color: var(--violeta); }
+
+  .alcance { margin-top: auto; background: var(--indigo); color: #fff; text-align: center; font-size: 1.02cm; white-space: nowrap; font-weight: 800;
+             padding: 0.45cm; border-radius: 0.3cm; letter-spacing: -0.02cm; }
+  .pie { margin-top: 0.5cm; display: flex; justify-content: space-between; font-size: 0.8cm; font-weight: 700; color: var(--gris); }
+  .pie b { color: var(--tinta); }
+</style>
+</head>
+<body>
+  <div class="hoja">
+    <p class="tipo">Información al usuario · leer antes de comprar</p>
+
+    <div class="cabeza">
+      <div>
+        <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+        <p>Comprimidos de confianza</p>
+        <small>1 por compra</small>
+      </div>
+      <svg viewBox="0 0 120 80" aria-hidden="true">
+        <rect x="3" y="3" width="114" height="74" rx="8" fill="#ECEDF3" stroke="#131924" stroke-width="2.5"/>
+        <g stroke="#131924" stroke-width="2">
+          <ellipse cx="28" cy="25" rx="13" ry="10" fill="#1F25C1"/><ellipse cx="60" cy="25" rx="13" ry="10" fill="#1F25C1"/>
+          <ellipse cx="92" cy="25" rx="13" ry="10" fill="#1F25C1"/><ellipse cx="28" cy="55" rx="13" ry="10" fill="#1F25C1"/>
+          <ellipse cx="60" cy="55" rx="13" ry="10" fill="#fff" stroke-dasharray="3 3"/><ellipse cx="92" cy="55" rx="13" ry="10" fill="#1F25C1"/>
+        </g>
+        <g fill="#fff" opacity=".35"><ellipse cx="24" cy="21" rx="5" ry="2.5"/><ellipse cx="56" cy="21" rx="5" ry="2.5"/><ellipse cx="88" cy="21" rx="5" ry="2.5"/>
+          <ellipse cx="24" cy="51" rx="5" ry="2.5"/><ellipse cx="88" cy="51" rx="5" ry="2.5"/></g>
+      </svg>
+    </div>
+
+    <div class="sec"><h2>¿Para qué se usa?</h2>
+      <p>Comprar y vender por redes con gente que no conoces.</p></div>
+    <div class="sec"><h2>Modo de uso</h2>
+      <p>Paga por trado: la plata queda retenida <b>hasta que recibes lo tuyo.</b></p></div>
+    <div class="sec"><h2>Contraindicaciones</h2>
+      <p>No combinar con “transfiéreme primero”, comprobantes borrosos ni “te lo mando al tiro”.</p></div>
+    <div class="sec"><h2>Efectos secundarios</h2>
+      <p>Dormir tranquilo. Dejar de revisar el chat cada cinco minutos.</p></div>
+
+    <p class="alcance">Mantener fuera del alcance de los chantas.</p>
+    <div class="pie"><span>Lea las instrucciones en <b>trado.cl</b></span><span>Lote EtMday 2026</span></div>
+  </div>
+</body>
+</html>
