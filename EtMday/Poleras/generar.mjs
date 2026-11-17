@@ -1,6 +1,7 @@
 // Arma los archivos de las poleras con Chrome:
-// - espalda-a.png, espalda-b.png y frente-logo.png: fondo transparente, 300 dpi, tamaño real
-//   (estos son los que se llevan a estampar).
+// - espalda-a/b/c y frente-logo, en dos formatos, ambos a tamaño real y con fondo transparente:
+//   .pdf vectorial (texto y logo nítidos a cualquier tamaño; es el que conviene llevar a estampar)
+//   y .png a 600 dpi (por si el local pide imagen).
 // - boceto.png: vista de cómo quedan sobre la polera.
 // Uso: node EtMday/Poleras/generar.mjs
 import { spawn } from "node:child_process";
@@ -11,12 +12,13 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const cm = (v) => Math.round((v / 2.54) * 96); // px CSS
-const DPI = 300 / 96;
+const DPI = 600 / 96;
 const piezas = [
-  { html: "espalda-a.html", w: cm(28), h: cm(36), escala: DPI, transparente: true },
-  { html: "espalda-b.html", w: cm(28), h: cm(36), escala: DPI, transparente: true },
-  { html: "frente-logo.html", w: cm(9), h: cm(3.16), escala: DPI, transparente: true },
-  { html: "boceto.html", w: 1800, h: 800, escala: 1, transparente: false },
+  { html: "espalda-a.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "espalda-b.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "espalda-c.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "frente-logo.html", w: cm(9), h: cm(3.16), escala: DPI, transparente: true, pdf: [9, 3.16] },
+  { html: "boceto.html", w: 2300, h: 800, escala: 1, transparente: false },
 ];
 
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
@@ -39,6 +41,12 @@ for (const p of piezas) {
   await espera(3500);
   const png = await cdp("Page.captureScreenshot", { format: "png", captureBeyondViewport: false, clip: { x: 0, y: 0, width: p.w, height: p.h, scale: 1 } });
   writeFileSync(join(aqui, p.html.replace(/\.html$/, ".png")), Buffer.from(png.result.data, "base64"));
+  if (p.pdf) {
+    const [ancho, alto] = p.pdf.map((v) => v / 2.54); // pulgadas
+    const pdf = await cdp("Page.printToPDF", { paperWidth: ancho, paperHeight: alto, printBackground: true, preferCSSPageSize: false,
+      marginTop: 0, marginBottom: 0, marginLeft: 0, marginRight: 0, pageRanges: "1" });
+    writeFileSync(join(aqui, p.html.replace(/\.html$/, ".pdf")), Buffer.from(pdf.result.data, "base64"));
+  }
   console.log("listo:", p.html);
 }
 ws.close(); chrome.kill();
