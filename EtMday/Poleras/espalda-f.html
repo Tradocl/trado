@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Polera espalda F · Ni ahí + QR</title>
+<!-- Gráfica de la espalda, opción F: junta lo más fuerte de A y B. Arriba el chat sospechoso con
+     el sello "NI AHÍ.", al medio "Yo no transfiero primero." y abajo el QR grande a trado.cl
+     (qr-polera.svg, 10 cm: se lee a 2-3 metros). Área de estampado 28 × 36 cm, fondo transparente.
+     Generar: node EtMday/Poleras/generar.mjs -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --violeta: #7B46D8; --tinta: #131924; --gris: #ECEDF3; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: transparent; overflow: hidden; }
+  body { width: 28cm; height: 36cm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta);
+         display: flex; flex-direction: column; align-items: center; padding: 0.8cm 0.6cm 0.6cm; justify-content: space-between; }
+  .chat { position: relative; align-self: flex-start; margin-left: 1.6cm; background: var(--gris);
+          border-radius: 1cm 1cm 1cm 0.25cm; padding: 0.6cm 0.9cm; font-size: 0.95cm; font-weight: 700;
+          line-height: 1.2; width: 13cm; }
+  .chat .hora { display: block; text-align: right; font-size: 0.5cm; font-weight: 600; color: #8A8FA3; margin-top: 0.15cm; }
+  .sello { position: absolute; right: -9.4cm; top: 0.6cm; transform: rotate(-12deg);
+           border: 0.3cm solid var(--violeta); color: var(--violeta); border-radius: 0.5cm;
+           padding: 0.1cm 0.6cm 0.2cm; font-size: 2.1cm; font-weight: 800; letter-spacing: -0.04cm; line-height: 1; }
+  h1 { text-align: center; font-weight: 800; text-transform: uppercase; line-height: 0.86; letter-spacing: -0.1cm; }
+  h1 span { display: block; }
+  .l1 { font-size: 3.6cm; }
+  .l2 { font-size: 3.6cm; color: var(--indigo); }
+  .qr-fila { display: flex; align-items: center; gap: 1.1cm; }
+  .qr { padding: 0.7cm; border: 0.28cm solid var(--tinta); border-radius: 0.9cm; }
+  .qr img { display: block; width: 10cm; height: 10cm; }
+  .lado { width: 8.6cm; text-align: left; }
+  .lado .esc { font-size: 1.45cm; font-weight: 800; line-height: 0.95; letter-spacing: -0.05cm; color: var(--violeta); text-transform: uppercase; }
+  .lado p { font-size: 0.85cm; font-weight: 700; line-height: 1.3; margin-top: 0.5cm; }
+  .lado p b { color: var(--indigo); }
+  .lado svg { display: block; margin-top: 0.4cm; }
+  .firma { display: flex; align-items: center; gap: 0.7cm; }
+  .firma img { height: 2cm; }
+  .firma span { font-size: 1.1cm; font-weight: 800; border-left: 0.12cm solid var(--tinta); padding-left: 0.7cm; }
+</style>
+</head>
+<body>
+  <div class="chat">Transfiéreme primero y te lo mando al tiro<span class="hora">23:47 ✓✓</span>
+    <div class="sello">NI AHÍ.</div>
+  </div>
+  <h1><span class="l1">Yo no transfiero</span><span class="l2">primero.</span></h1>
+  <div class="qr-fila">
+    <div class="lado">
+      <p class="esc">Escanéame la espalda</p>
+      <p>La plata queda <b>retenida hasta que recibes lo tuyo.</b></p>
+      <svg width="150" height="80" viewBox="0 0 150 80"><path d="M8 14 C 50 10, 95 22, 132 52" fill="none" stroke="#7B46D8" stroke-width="10" stroke-linecap="round"/><path d="M104 58 L136 56 L128 26" fill="none" stroke="#7B46D8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="qr"><img src="qr-polera.svg" alt=""></div>
+  </div>
+  <div class="firma">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>trado.cl</span>
+  </div>
+</body>
+</html>

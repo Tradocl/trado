@@ -1,5 +1,5 @@
 // Arma los archivos de las poleras con Chrome:
-// - espalda-a a espalda-e y frente-logo, en dos formatos, ambos a tamaño real y con fondo transparente:
+// - espalda-a a espalda-f, frente-logo y frente-logo-morado, en dos formatos, ambos a tamaño real y con fondo transparente:
 //   .pdf vectorial (texto y logo nítidos a cualquier tamaño; es el que conviene llevar a estampar)
 //   y .png a 600 dpi (por si el local pide imagen).
 // - boceto.png: vista de cómo quedan sobre la polera.
@@ -19,6 +19,8 @@ const piezas = [
   { html: "espalda-c.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
   { html: "espalda-d.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
   { html: "espalda-e.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "espalda-f.html", w: cm(28), h: cm(36), escala: DPI, transparente: true, pdf: [28, 36] },
+  { html: "frente-logo-morado.html", w: cm(9), h: cm(3.16), escala: DPI, transparente: true, pdf: [9, 3.16] },
   { html: "frente-logo.html", w: cm(9), h: cm(3.16), escala: DPI, transparente: true, pdf: [9, 3.16] },
   { html: "boceto.html", w: 2300, h: 1460, escala: 1, transparente: false },
 ];
