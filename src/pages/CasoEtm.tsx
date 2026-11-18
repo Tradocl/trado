@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, CheckCheck, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, Plus, RotateCcw, Share2, ShieldCheck, Smartphone, XCircle } from "lucide-react";
+import { ArrowRight, CheckCheck, ChevronDown, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, Plus, RotateCcw, Share2, ShieldCheck, Smartphone, XCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { casoAlAzar, casoPorSlug, CASOS, TOTAL_CASOS, esDiaDelEvento, guardarRespuesta, introVista, marcarIntroVista, sesionEtm, leerAvance, type Avance, type Caso, type Comprobante as DatosComprobante, type Mensaje } from "@/lib/casos-etm";
 import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
@@ -295,6 +295,7 @@ const CasoEtm = () => {
   const caso = esSorpresa ? alAzar : casoPorSlug(slug) ?? alAzar;
   const [etapa, setEtapa] = useState<Etapa>(() => (introVista() ? "intro" : "previa"));
   const [acerto, setAcerto] = useState<boolean | null>(null);
+  const [verOtros, setVerOtros] = useState(false);
   // La carta que se saca ahora: si ya jugó este caso no suma
   const carta = Math.min(TOTAL_CASOS, CASOS.filter((c) => c.slug in avance && c.slug !== caso.slug).length + 1);
 
@@ -303,7 +304,7 @@ const CasoEtm = () => {
   }, [esSorpresa, caso.slug, navigate]);
   useEffect(() => { window.scrollTo(0, 0); }, [etapa]);
   // "Sacar otra carta" reutiliza esta misma página: al cambiar de caso, parte de cero
-  useEffect(() => { setEtapa((e) => (e === "previa" ? e : "intro")); setAcerto(null); }, [caso.slug]);
+  useEffect(() => { setEtapa((e) => (e === "previa" ? e : "intro")); setAcerto(null); setVerOtros(false); }, [caso.slug]);
   const seguirPrevia = () => { marcarIntroVista(); setEtapa("intro"); };
 
   const adivinar = caso.formato === "adivinar";
@@ -446,98 +447,94 @@ const CasoEtm = () => {
         {etapa === "final" && acerto !== null && (
           <div className="flex-1 bg-[#f5f5fa] pb-10">
             {acerto && <Confeti key={caso.slug} mucho={!quedan && aciertos === TOTAL_CASOS} />}
-            {/* Resultado: qué pasó, por qué es tan común y por qué existe Trado */}
-            <div className={`chat-pop px-6 pt-7 pb-16 text-center relative overflow-hidden ${acerto ? "bg-emerald-500 text-white" : "bg-[#FF6B4A] text-[#0F1424]"}`}>
+            {/* Resultado: todo lo importante en la primera pantalla, sin bajar */}
+            <div className={`chat-pop px-5 pt-5 pb-11 relative overflow-hidden ${acerto ? "bg-emerald-500 text-white" : "bg-[#FF6B4A] text-[#0F1424]"}`}>
               <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/15 rounded-full blur-2xl pointer-events-none" />
-              <span className={`relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-extrabold ${acerto ? "bg-white/20" : "bg-[#0F1424]/10"}`}>
-                {acerto ? <ShieldCheck className="h-4 w-4" /> : <XCircle className="h-4 w-4" />} {acerto ? "La detectaste" : "Caíste"}
-              </span>
-              <div className="relative mx-auto mt-4 w-24 h-24 rounded-3xl bg-white shadow-xl flex items-center justify-center text-6xl rotate-[-4deg]">{caso.emoji}</div>
-              <p className="relative text-[2.1rem] font-black tracking-tight leading-[1.05] mt-4">{acerto ? caso.bien.titulo : caso.mal.titulo}</p>
-              <p className="relative text-lg mt-2 leading-snug opacity-90">{acerto ? caso.bien.texto : caso.mal.texto}</p>
-            </div>
-
-            <div className="relative z-10 px-5 -mt-10 space-y-4">
-              <div className="chat-pop bg-white rounded-3xl shadow-xl p-5" style={{ animationDelay: "0.15s" }}>
-                <p className="text-xs font-extrabold uppercase tracking-wider text-[#FF6B4A] flex items-center gap-1.5">
-                  <Flag className="h-3.5 w-3.5" /> Ojo: esto pasa todos los días en Chile
-                </p>
-                <p className="text-xl font-black text-[#0F1424] mt-1.5 leading-tight">{caso.titulo}</p>
-                <p className="text-[15px] text-[#0F1424]/75 leading-snug mt-1.5">{caso.comun}</p>
-              </div>
-              <div className={`chat-pop ${DEGRADADO} rounded-3xl shadow-xl p-5 text-white relative overflow-hidden`} style={{ animationDelay: "0.3s" }}>
-                <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-                <p className="text-xs font-extrabold uppercase tracking-wider text-white/75 flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Por eso existe Trado</p>
-                <p className="relative text-xl font-extrabold leading-snug mt-2">{caso.conTrado}</p>
-                <div className="relative grid grid-cols-3 gap-2 mt-4 text-center text-[11px] font-bold">
-                  {["Pagas en Trado", "La plata queda retenida", "Se libera al recibir"].map((t, i) => (
-                    <div key={t} className="rounded-2xl bg-white/15 border border-white/20 px-2 py-2.5">
-                      <span className="mx-auto mb-1 w-6 h-6 rounded-full bg-white text-[#2230C2] flex items-center justify-center text-xs font-black">{i + 1}</span>
-                      {t}
-                    </div>
-                  ))}
+              <div className="relative flex items-center gap-3.5">
+                <div className="w-16 h-16 shrink-0 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl rotate-[-4deg]">{caso.emoji}</div>
+                <div className="min-w-0">
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-extrabold ${acerto ? "bg-white/20" : "bg-[#0F1424]/10"}`}>
+                    {acerto ? <ShieldCheck className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />} {acerto ? "La detectaste" : "Caíste"}
+                  </span>
+                  <p className="text-[1.7rem] font-black tracking-tight leading-[1.05] mt-1">{acerto ? caso.bien.titulo : caso.mal.titulo}</p>
                 </div>
               </div>
+              <p className="relative text-[15px] mt-2.5 leading-snug opacity-90">{acerto ? caso.bien.texto : caso.mal.texto}</p>
             </div>
 
-            <div className="relative z-10 px-5 mt-4 space-y-4">
-              {/* Terminó las 9 cartas: el gran final, para mostrarlo en el stand */}
-              {!quedan && <GranFinal aciertos={aciertos} avance={avance} onCompartir={compartir} onReiniciar={reiniciar} />}
-              {/* Lo primero y más grande: crear la sala y seguir en Instagram */}
-              <div className="bg-white rounded-3xl shadow-xl p-5 space-y-3">
+            <div className="relative z-10 px-4 -mt-7 space-y-3">
+              <div className="chat-pop bg-white rounded-3xl shadow-xl p-4" style={{ animationDelay: "0.15s" }}>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#FF6B4A] flex items-center gap-1.5">
+                  <Flag className="h-3.5 w-3.5" /> Ojo: esto pasa todos los días en Chile
+                </p>
+                <p className="text-[14px] text-[#0F1424]/80 leading-snug mt-1.5">{caso.comun}</p>
+              </div>
+              <div className={`chat-pop ${DEGRADADO} rounded-3xl shadow-xl p-4 text-white relative overflow-hidden`} style={{ animationDelay: "0.3s" }}>
+                <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-white/75 flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Por eso existe Trado</p>
+                <p className="relative text-[17px] font-extrabold leading-snug mt-1.5">{caso.conTrado}</p>
+              </div>
+              {/* Registrarse y seguir en Instagram, a la vista */}
+              <div className="chat-pop grid gap-2" style={{ animationDelay: "0.45s" }}>
                 <button
                   onClick={crearSala}
-                  className={`w-full h-16 rounded-2xl ${DEGRADADO} text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition`}
+                  className={`w-full h-14 rounded-2xl ${DEGRADADO} text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg ring-2 ring-white active:scale-[0.98] transition`}
                 >
                   <Plus className="h-5 w-5" /> Crear mi sala gratis
                 </button>
-                <p className="text-center text-sm text-[#0F1424]/60 -mt-1">
-                  Tu primera sala va sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.
-                </p>
                 <a
                   href="https://www.instagram.com/trado_cl/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full h-16 rounded-2xl bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition"
+                  className="w-full h-14 rounded-2xl bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition"
                 >
                   <Instagram className="h-6 w-6" /> Seguir a @trado_cl
                 </a>
-                <p className="text-center text-sm text-[#0F1424]/60 -mt-1">Más casos y tips para que no te estafen.</p>
+                <p className="text-center text-xs text-[#0F1424]/55">Tu primera sala va sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.</p>
               </div>
+            </div>
 
-              {/* Después: el avance y volver al panel (cuando terminó las 9, va el gran final de arriba) */}
-              {quedan && <div className="bg-white rounded-3xl shadow-xl p-5">
-                {quedan ? (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <p className="font-extrabold text-[#0F1424] text-lg">Llevas {jugados} de {TOTAL_CASOS}</p>
-                      <p className="text-sm font-semibold text-[#0F1424]/60">{aciertos} detectado{aciertos === 1 ? "" : "s"}</p>
-                    </div>
-                    <div className="flex gap-1.5 mt-3">
-                      {CASOS.map((c) => (
-                        <span
-                          key={c.slug}
-                          className={`h-2.5 flex-1 rounded-full ${!(c.slug in avance) ? "bg-[#0F1424]/10" : avance[c.slug] ? "bg-emerald-500" : "bg-[#FF6B4A]"} ${c.slug === caso.slug ? "ring-2 ring-offset-2 ring-[#2230C2]/40" : ""}`}
-                        />
-                      ))}
-                    </div>
-                    {/* Lo que sigue es volver al panel: un celular que se acerca a una carta */}
-                    <div className={`mt-4 rounded-2xl ${DEGRADADO} text-white p-4 flex items-center gap-4 relative overflow-hidden`}>
-                      <div className="relative w-20 h-20 shrink-0">
-                        <div className="acerca-carta absolute right-0 top-1 w-12 h-16 rounded-lg bg-[#0F1424] border-2 border-white/80 flex items-center justify-center text-2xl font-black">?</div>
-                        <Smartphone className="acerca-celular absolute left-0 top-3 h-14 w-14 text-white drop-shadow" />
+            <div className="relative z-10 px-4 mt-4 space-y-4">
+              {/* Terminó las 9 cartas: el gran final, para mostrarlo en el stand */}
+              {!quedan && <GranFinal aciertos={aciertos} avance={avance} onCompartir={compartir} onReiniciar={reiniciar} />}
+
+              {/* Opcional: ver los demás casos (se abre al tocar) */}
+              {quedan && (
+                <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+                  <button onClick={() => setVerOtros((v) => !v)} className="w-full p-4 flex items-center gap-3 text-left">
+                    <span className="flex-1">
+                      <span className="block font-extrabold text-[#0F1424]">Ver los demás casos</span>
+                      <span className="block text-sm text-[#0F1424]/60">Llevas {jugados} de {TOTAL_CASOS} · {aciertos} detectado{aciertos === 1 ? "" : "s"}</span>
+                    </span>
+                    <ChevronDown className={`h-5 w-5 text-[#2230C2] transition-transform ${verOtros ? "rotate-180" : ""}`} />
+                  </button>
+                  {verOtros && (
+                    <div className="px-4 pb-4 chat-pop">
+                      <div className="flex gap-1.5">
+                        {CASOS.map((c) => (
+                          <span
+                            key={c.slug}
+                            className={`h-2.5 flex-1 rounded-full ${!(c.slug in avance) ? "bg-[#0F1424]/10" : avance[c.slug] ? "bg-emerald-500" : "bg-[#FF6B4A]"} ${c.slug === caso.slug ? "ring-2 ring-offset-2 ring-[#2230C2]/40" : ""}`}
+                          />
+                        ))}
                       </div>
-                      <div>
-                        <p className="font-extrabold text-lg leading-tight">Acerca tu celular a otra carta del panel</p>
-                        <p className="text-sm text-white/80 mt-1">Cada carta te da una estafa distinta 👀</p>
+                      <div className={`mt-4 rounded-2xl ${DEGRADADO} text-white p-4 flex items-center gap-4 relative overflow-hidden`}>
+                        <div className="relative w-20 h-20 shrink-0">
+                          <div className="acerca-carta absolute right-0 top-1 w-12 h-16 rounded-lg bg-[#0F1424] border-2 border-white/80 flex items-center justify-center text-2xl font-black">?</div>
+                          <Smartphone className="acerca-celular absolute left-0 top-3 h-14 w-14 text-white drop-shadow" />
+                        </div>
+                        <div>
+                          <p className="font-extrabold text-lg leading-tight">Acerca tu celular a otra carta del panel</p>
+                          <p className="text-sm text-white/80 mt-1">Cada carta te da una estafa distinta 👀</p>
+                        </div>
                       </div>
+                      <button onClick={otraCarta} className="mt-3 w-full h-12 rounded-2xl border-2 border-[#2230C2]/20 text-[#2230C2] font-bold">
+                        ¿No estás en el stand? Juega otro aquí
+                      </button>
                     </div>
-                    <button onClick={otraCarta} className="mt-3 w-full text-center text-sm font-semibold text-[#2230C2]">
-                      ¿No estás en el stand? Juega otro aquí
-                    </button>
-                  </>
-                ) : null}
-              </div>}
+                  )}
+                </div>
+              )}
 
               <div className="bg-white rounded-3xl shadow-xl p-5">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#FF6B4A] flex items-center gap-1.5">
