@@ -387,7 +387,7 @@ export const CASOS: Caso[] = [
       { de: "yo", texto: "Oye, en la entrada me dicen que los QR ya se usaron 😰 ¿Qué pasó?" },
     ],
     revelado: [
-      { de: "narra", texto: "Tu mensaje nunca le llegó: te bloqueó en WhatsApp y en Instagram." },
+      { de: "narra", texto: "Lo leyó y nunca contestó: te bloqueó en WhatsApp y en Instagram." },
       { de: "narra", texto: "Le había vendido el mismo PDF a 4 personas más." },
     ],
     pregunta: "¿Qué crees que va a pasar?",
