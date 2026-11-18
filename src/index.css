@@ -245,3 +245,8 @@ All colors MUST be HSL.
   .hero-badge, .hero-h1, .hero-sub, .hero-cta, .hero-hint, .hero-card, .animate-float, .chat-pop { animation: none; }
   .insignia-brillo::after { animation: none; display: none; }
 }
+
+/* EtMday: el anillo del puntaje final se llena */
+@keyframes anillo-puntaje { from { stroke-dashoffset: var(--largo); } }
+.anillo-puntaje { animation: anillo-puntaje 1.6s cubic-bezier(.2,.8,.2,1) .3s both; }
+@media (prefers-reduced-motion: reduce) { .anillo-puntaje { animation: none; } }

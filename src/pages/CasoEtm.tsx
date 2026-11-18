@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, CheckCheck, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, Plus, RotateCcw, Share2, ShieldCheck, Smartphone, Trophy, XCircle } from "lucide-react";
+import { ArrowRight, CheckCheck, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, Plus, RotateCcw, Share2, ShieldCheck, Smartphone, XCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { casoAlAzar, casoPorSlug, CASOS, TOTAL_CASOS, esDiaDelEvento, guardarRespuesta, introVista, marcarIntroVista, sesionEtm, leerAvance, type Avance, type Caso, type Comprobante as DatosComprobante, type Mensaje } from "@/lib/casos-etm";
 import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
@@ -205,6 +205,61 @@ const Previa = ({ onSeguir }: { onSeguir: () => void }) => (
   </div>
 );
 
+/** Nivel según cuántas detectó de las 9 */
+const nivelDe = (a: number) =>
+  a === TOTAL_CASOS ? { titulo: "Detector experto", emoji: "🕵️", frase: "No te pasan gato por liebre." }
+  : a >= 7 ? { titulo: "Ojo de lince", emoji: "👀", frase: "Casi perfecto: se te pasó muy poco." }
+  : a >= 4 ? { titulo: "Buen olfato", emoji: "🐶", frase: "Vas bien, pero alguna se te pasó." }
+  : { titulo: "Presa fácil", emoji: "😅", frase: "Mejor que te pase acá y no con tu plata." };
+
+/** El final cuando ya jugó las 9 cartas: puntaje gigante, nivel, premio y desafío */
+const GranFinal = ({ aciertos, avance, onCompartir, onReiniciar }: { aciertos: number; avance: Avance; onCompartir: () => void; onReiniciar: () => void }) => {
+  const nivel = nivelDe(aciertos);
+  const r = 54, c = 2 * Math.PI * r;
+  return (
+    <div className={`chat-pop rounded-3xl ${DEGRADADO} text-white shadow-2xl p-6 text-center relative overflow-hidden`}>
+      <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-20 -left-16 w-56 h-56 bg-amber-300/25 rounded-full blur-3xl pointer-events-none" />
+      <p className="relative text-xs font-extrabold uppercase tracking-[0.2em] text-white/75">Terminaste las {TOTAL_CASOS} cartas</p>
+      <div className="relative mx-auto mt-4 w-44 h-44">
+        <svg viewBox="0 0 128 128" className="w-full h-full -rotate-90">
+          <circle cx="64" cy="64" r={r} fill="none" stroke="rgba(255,255,255,.18)" strokeWidth="12" />
+          <circle cx="64" cy="64" r={r} fill="none" stroke="#FCD34D" strokeWidth="12" strokeLinecap="round"
+            strokeDasharray={c} strokeDashoffset={c * (1 - aciertos / TOTAL_CASOS)} className="anillo-puntaje" style={{ ["--largo" as string]: `${c}` }} />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-6xl font-black leading-none">{aciertos}<span className="text-3xl text-white/70">/{TOTAL_CASOS}</span></span>
+          <span className="text-xs font-bold text-white/75 mt-1">detectadas</span>
+        </div>
+      </div>
+      <p className="relative mt-4 text-4xl">{nivel.emoji}</p>
+      <p className="relative text-3xl font-black tracking-tight leading-tight">{nivel.titulo}</p>
+      <p className="relative text-white/85 mt-1">{nivel.frase}</p>
+      <div className="relative flex gap-1.5 mt-5">
+        {CASOS.map((c) => (
+          <span key={c.slug} className={`h-3 flex-1 rounded-full ${avance[c.slug] ? "bg-[#FCD34D]" : "bg-white/25"}`} />
+        ))}
+      </div>
+      {esDiaDelEvento() && (
+        <div className="relative mt-5 rounded-2xl bg-[#FCD34D] text-[#0F1424] p-4 shadow-lg">
+          <p className="text-2xl">🎁</p>
+          <p className="font-black text-lg leading-tight">¡Tienes premio!</p>
+          <p className="text-sm font-semibold mt-1">Muéstrale esta pantalla al equipo de Trado en el stand.</p>
+        </div>
+      )}
+      <button
+        onClick={onCompartir}
+        className="relative mt-5 w-full h-16 rounded-2xl bg-white text-[#2230C2] text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition"
+      >
+        <Share2 className="h-5 w-5" /> Desafía a alguien
+      </button>
+      <button onClick={onReiniciar} className="relative mt-3 text-sm font-semibold text-white/85 inline-flex items-center gap-1.5">
+        <RotateCcw className="h-4 w-4" /> Jugar de nuevo
+      </button>
+    </div>
+  );
+};
+
 /** La carta boca abajo que se da vuelta y muestra el caso que tocó */
 const Carta = ({ caso }: { caso: Caso }) => {
   const [vuelta, setVuelta] = useState(reducido());
@@ -398,6 +453,8 @@ const CasoEtm = () => {
             </div>
 
             <div className="relative z-10 px-5 -mt-8 space-y-4">
+              {/* Terminó las 9 cartas: el gran final, para mostrarlo en el stand */}
+              {!quedan && <GranFinal aciertos={aciertos} avance={avance} onCompartir={compartir} onReiniciar={reiniciar} />}
               {/* Lo primero y más grande: crear la sala y seguir en Instagram */}
               <div className="bg-white rounded-3xl shadow-xl p-5 space-y-3">
                 <button
@@ -420,8 +477,8 @@ const CasoEtm = () => {
                 <p className="text-center text-sm text-[#0F1424]/60 -mt-1">Más casos y tips para que no te estafen.</p>
               </div>
 
-              {/* Después: el avance y volver al panel */}
-              <div className="bg-white rounded-3xl shadow-xl p-5">
+              {/* Después: el avance y volver al panel (cuando terminó las 9, va el gran final de arriba) */}
+              {quedan && <div className="bg-white rounded-3xl shadow-xl p-5">
                 {quedan ? (
                   <>
                     <div className="flex items-center justify-between">
@@ -451,36 +508,8 @@ const CasoEtm = () => {
                       ¿No estás en el stand? Juega otro aquí
                     </button>
                   </>
-                ) : (
-                  <div className="text-center">
-                    <Trophy className="h-12 w-12 mx-auto text-amber-500" />
-                    <p className="font-black text-2xl text-[#0F1424] mt-2">Detectaste {aciertos} de {TOTAL_CASOS}</p>
-                    <p className="text-sm text-[#0F1424]/65 mt-1">
-                      {aciertos === TOTAL_CASOS ? "No te pasan gato por liebre 😎" : aciertos >= TOTAL_CASOS / 2 ? "Bien, pero alguno se te pasó 👀" : "Mejor que te pase acá y no con tu plata 😅"}
-                    </p>
-                    <div className="flex gap-1.5 mt-4">
-                      {CASOS.map((c) => (
-                        <span key={c.slug} className={`h-2.5 flex-1 rounded-full ${avance[c.slug] ? "bg-emerald-500" : "bg-[#FF6B4A]"}`} />
-                      ))}
-                    </div>
-                    <button
-                      onClick={compartir}
-                      className={`mt-4 w-full h-16 rounded-2xl ${DEGRADADO} text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition`}
-                    >
-                      <Share2 className="h-5 w-5" /> Desafía a alguien
-                    </button>
-                    {esDiaDelEvento() && (
-                      <div className="mt-4 rounded-2xl bg-amber-50 border-2 border-dashed border-amber-400 p-3.5 text-[#0F1424]">
-                        <p className="font-extrabold">🎁 ¿Estás en el EtMday?</p>
-                        <p className="text-sm mt-0.5">Muéstrale esta pantalla al equipo de Trado en el stand y llévate tu premio.</p>
-                      </div>
-                    )}
-                    <button onClick={reiniciar} className="mt-2 text-sm font-semibold text-[#2230C2] inline-flex items-center gap-1.5">
-                      <RotateCcw className="h-4 w-4" /> Jugar de nuevo
-                    </button>
-                  </div>
-                )}
-              </div>
+                ) : null}
+              </div>}
 
               <div className="bg-white rounded-3xl shadow-xl p-5">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#FF6B4A] flex items-center gap-1.5">
