@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Poleras Trado · ficha para estampar</title>
+<!-- Hoja A4 que va primero en la carpeta para la imprenta: qué va en cada polera, medidas y ubicación.
+     Se arma con: node EtMday/imprenta-poleras/armar.mjs -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --indigo: #1F25C1; --tinta: #131924; --gris: #5B6075; --linea: #E3E5EE; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 210mm; height: 297mm; padding: 13mm 14mm; font-family: "Plus Jakarta Sans", sans-serif; color: var(--tinta); background: #fff;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .cab { display: flex; justify-content: space-between; align-items: center; }
+  .cab img { height: 9mm; }
+  .cab span { font-size: 3.2mm; font-weight: 700; color: var(--gris); }
+  h1 { font-size: 8.5mm; font-weight: 800; letter-spacing: -.3mm; margin-top: 5mm; line-height: 1.05; }
+  .bajada { font-size: 3.7mm; color: var(--gris); margin-top: 1.5mm; line-height: 1.45; }
+
+  .vistas { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3mm; margin-top: 5mm; }
+  .vistas figure { border: .3mm solid var(--linea); border-radius: 3mm; overflow: hidden; background: #F4F5F9; }
+  .vistas img { display: block; width: 100%; height: 78mm; object-fit: cover; object-position: center 45%; }
+  .vistas figcaption { font-size: 3.1mm; font-weight: 800; padding: 2mm 2.5mm; background: #fff; }
+  .vistas figcaption span { display: block; font-weight: 600; color: var(--gris); font-size: 2.7mm; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 5mm; font-size: 3.3mm; }
+  th { text-align: left; font-size: 2.6mm; text-transform: uppercase; letter-spacing: .3mm; color: var(--gris); padding: 1.5mm 2mm; border-bottom: .3mm solid #D3D6E3; }
+  td { padding: 2.2mm 2mm; border-bottom: .2mm solid var(--linea); vertical-align: top; line-height: 1.4; }
+  td b { font-weight: 800; }
+  td:nth-child(2) { white-space: nowrap; }
+  td code { font-family: inherit; font-weight: 700; color: var(--indigo); }
+
+  h2 { font-size: 4.3mm; font-weight: 800; margin-top: 5.5mm; }
+  ul { margin-top: 1.5mm; padding-left: 5mm; font-size: 3.4mm; line-height: 1.5; }
+  li + li { margin-top: .8mm; }
+  .ojo { margin-top: 5mm; padding: 3mm 4mm; border-radius: 2.5mm; background: #EEF0FF; font-size: 3.4mm; line-height: 1.45; }
+  .ojo b { color: var(--indigo); }
+</style>
+</head>
+<body>
+  <div class="cab">
+    <img src="../../Instagram/4%20Logos/1%20Logo%20trado/SVG%20(vectorial)/trado%20degradado.svg" alt="trado">
+    <span>EtMday 2026 · poleras del stand</span>
+  </div>
+
+  <h1>2 poleras blancas XXL, estampado DTF</h1>
+  <p class="bajada">Las dos llevan el mismo logo adelante y una gráfica distinta atrás. Todos los archivos vienen a tamaño real y con fondo transparente.</p>
+
+  <div class="vistas">
+    <figure><img src="../Poleras/grande/polera-frente.png" alt=""><figcaption>Frente (las dos)<span>Logo 9 × 3,16 cm</span></figcaption></figure>
+    <figure><img src="../Poleras/grande/polera-espalda-a.png" alt=""><figcaption>Polera 1 · espalda<span>“Yo no transfiero primero” · 31,1 × 40 cm</span></figcaption></figure>
+    <figure><img src="../Poleras/grande/polera-espalda-z.png" alt=""><figcaption>Polera 2 · espalda<span>Señal de PARE · 31,1 × 40 cm</span></figcaption></figure>
+  </div>
+
+  <table>
+    <tr><th>Pieza</th><th>Medida</th><th>Ubicación</th><th>Archivo</th></tr>
+    <tr><td><b>Frente</b><br>las 2 poleras</td><td>9 × 3,16 cm</td><td>Pecho izquierdo de quien la usa. Borde de arriba ~8 cm bajo la costura del hombro.</td><td><code>1-frente-logo-9x3,16cm.pdf</code></td></tr>
+    <tr><td><b>Espalda polera 1</b><br>“Yo no transfiero primero”</td><td>31,1 × 40 cm</td><td>Centrada a lo ancho. Borde de arriba a 8 cm bajo la costura del cuello.</td><td><code>2-polera1-espalda-31,1x40cm.pdf</code></td></tr>
+    <tr><td><b>Espalda polera 2</b><br>Señal de PARE</td><td>31,1 × 40 cm</td><td>Centrada a lo ancho. Borde de arriba a 8 cm bajo la costura del cuello.</td><td><code>3-polera2-espalda-31,1x40cm.pdf</code></td></tr>
+  </table>
+
+  <h2>Sobre los archivos</h2>
+  <ul>
+    <li>Los <b>PDF son vectoriales</b> (texto y logo nítidos): son los que conviene usar. Cada uno trae también un <b>PNG a 600 dpi</b> por si la máquina pide imagen.</li>
+    <li><b>Fondo transparente:</b> no agregar fondo blanco ni recuadro; solo se estampa lo que tiene color.</li>
+    <li>Las medidas son las de la página del archivo. Si la plancha o el film no alcanzan 40 cm de alto, se puede <b>achicar proporcionalmente</b> hasta 28 × 36 cm como mínimo. Nunca estirar ni deformar.</li>
+    <li>El logo va con su degradado azul a morado. Colores principales: índigo #1F25C1 y negro #131924.</li>
+  </ul>
+
+  <div class="ojo"><b>Antes de estampar:</b> la vista de cada polera (archivos 4) muestra cómo deben quedar. Cualquier duda, avisar antes de imprimir.</div>
+</body>
+</html>

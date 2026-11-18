@@ -60,7 +60,7 @@
     f: ["Espalda · opción F", "“Ni ahí” + “Yo no transfiero primero” + QR grande a trado.cl"],
   };
   document.getElementById("t").textContent = TXT[pieza][0];
-  document.getElementById("s").textContent = TXT[pieza][1] + " · polera blanca, gráfica a tamaño real (28 × 36 cm)";
+  document.getElementById("s").textContent = TXT[pieza][1] + " · polera blanca, gráfica a tamaño real (" + (pieza === "frente" ? "9 × 3,16 cm" : "31,1 × 40 cm") + ")";
   const frente = pieza === "frente";
   const cuello = frente ? "M37 3 Q50 13 63 3" : "M37 3 Q50 7 63 3";
   document.getElementById("polera").innerHTML = `
@@ -69,7 +69,7 @@
     <path d="M18 31 L20 7 M82 31 L80 7" fill="none" stroke="#ECEDF3" stroke-width=".3"/>
     ${frente
       ? '<image href="frente-logo.png" x="56" y="15" width="9" height="3.16"/>'
-      : `<image href="espalda-${pieza}.png" x="36" y="17" width="28" height="36"/>`}`;
+      : `<image href="espalda-${pieza}.png" x="34.45" y="17" width="31.1" height="40"/>`}`;
 </script>
 </body>
 </html>

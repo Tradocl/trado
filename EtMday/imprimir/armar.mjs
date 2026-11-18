@@ -56,37 +56,27 @@ print(len(w.pages), "páginas")
 const r = spawnSync("python", ["-c", py, join(aqui, "Trado-EtMday-todo.pdf"), ...piezas], { encoding: "utf8" });
 console.log(r.status === 0 ? "Trado-EtMday-todo.pdf: " + r.stdout.trim() : r.stderr);
 
-// 2) Carpeta + zip para la estampadora y los dados
+// 2) Carpeta + zip para la estampadora y los dados (las poleras salen de ../imprenta-poleras)
 const env = join(aqui, "Trado-poleras-y-dados");
 rmSync(env, { recursive: true, force: true });
 mkdirSync(env);
 const pol = join(et, "Poleras");
 for (const [de, a] of [
-  [join(pol, "frente-logo.pdf"), "1-polera-frente-logo-9cm.pdf"],
-  [join(pol, "frente-logo.png"), "1-polera-frente-logo-9cm-600dpi.png"],
-  [join(pol, "espalda-b.pdf"), "2a-polera1-espalda-QR-28x36cm.pdf"],
-  [join(pol, "espalda-b.png"), "2a-polera1-espalda-QR-28x36cm-600dpi.png"],
-  [join(pol, "espalda-z.pdf"), "2b-polera2-espalda-PARE-28x36cm.pdf"],
-  [join(pol, "espalda-z.png"), "2b-polera2-espalda-PARE-28x36cm-600dpi.png"],
-  [join(pol, "grande", "polera-frente.png"), "3-como-queda-frente.png"],
-  [join(pol, "grande", "polera-espalda-b.png"), "3a-como-queda-espalda-polera1.png"],
-  [join(pol, "grande", "polera-espalda-z.png"), "3b-como-queda-espalda-polera2.png"],
+  // Poleras: los archivos finales los arma EtMday/imprenta-poleras/armar.mjs (correrlo antes)
+  ...["0-LEER-PRIMERO-ficha-poleras.pdf", "1-frente-logo-9x3,16cm.pdf", "1-frente-logo-9x3,16cm-600dpi.png",
+      "2-polera1-espalda-31,1x40cm.pdf", "2-polera1-espalda-31,1x40cm-600dpi.png",
+      "3-polera2-espalda-31,1x40cm.pdf", "3-polera2-espalda-31,1x40cm-600dpi.png",
+      "4-como-queda-frente.png", "4-como-queda-polera1-espalda.png", "4-como-queda-polera2-espalda.png",
+  ].map((f) => [join(et, "imprenta-poleras", "Trado-poleras-para-imprenta", f), "polera-" + f]),
   [join(et, "dados", "dado-circulos-15cm-A4.pdf"), "4-dados-circulos-15cm-A4.pdf"],
 ]) copyFileSync(de, join(env, a));
 writeFileSync(join(env, "LEEME.txt"), [
   "Trado · poleras y dados para el EtMday 2026",
   "",
-  "POLERAS (blancas, estampado DTF):",
-  "- Son 2 poleras talla XXL. Las dos llevan el mismo frente y cada una una espalda distinta.",
-  "- Frente (las dos): logo trado degradado (azul a morado), 9 cm de ancho, lado izquierdo del pecho, ~8 cm bajo el hombro.",
-  "  Archivo: 1-polera-frente-logo-9cm.pdf (vectorial) o el .png a 600 dpi.",
-  "- Espalda polera 1: 2a-polera1-espalda-QR-28x36cm.pdf (QR \"Escaneame la espalda\").",
-  "- Espalda polera 2: 2b-polera2-espalda-PARE-28x36cm.pdf (senal de PARE).",
-  "  Grafica de 28 x 36 cm, centrada a lo ancho, ~8 cm bajo el cuello. Fondo transparente.",
-  "  Los PDF son vectoriales: si la maquina permite un formato mas grande, se pueden agrandar",
-  "  proporcionalmente (por ejemplo 31 x 40 cm) para que se lean mejor de lejos. Nunca deformar.",
-  "- El QR lleva a https://trado.cl. Por favor no achicarlo ni cambiarle el color.",
-  "- 3-como-queda-*.png muestran como deben quedar.",
+  "POLERAS (2 blancas XXL, estampado DTF):",
+  "- Todo lo de las poleras empieza con polera-. Leer primero polera-0-LEER-PRIMERO-ficha-poleras.pdf",
+  "  (medidas, ubicacion y que va en cada polera).",
+  "- Frente (las dos): logo 9 x 3,16 cm. Espaldas: 31,1 x 40 cm, centradas, 8 cm bajo el cuello.",
   "",
   "DADOS:",
   "- 4-dados-circulos-15cm-A4.pdf: 6 circulos de 15 cm de diametro, uno por hoja A4.",
