@@ -378,7 +378,7 @@ const CasoEtm = () => {
               <Carta caso={caso} />
               <div key={caso.slug} className="frase-previa text-center mt-8" style={{ animationDelay: "1.3s" }}>
                 <p className="text-xl text-white/95 leading-snug">{caso.escena}</p>
-                <p className="text-white/70 mt-2">{adivinar ? "Mira el chat y adivina qué te van a mandar." : "Mira el chat y decide qué harías."}</p>
+                <p className="text-white/70 mt-2">{adivinar ? "Mira el chat y adivina qué pasa." : "Mira el chat y decide qué harías."}</p>
               </div>
             </div>
             <button
@@ -430,7 +430,7 @@ const CasoEtm = () => {
             {etapa === "revela" && reveladoListo && acerto !== null && (
               <div className={`shrink-0 rounded-t-3xl px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] animate-in slide-in-from-bottom duration-500 ${acerto ? "bg-emerald-500 text-white" : "bg-[#FF6B4A] text-[#0F1424]"}`}>
                 <p className="text-2xl font-black">{acerto ? "¡Le achuntaste! 🎯" : "No era ese 😬"}</p>
-                <p className="mt-1 opacity-90">{acerto ? "Era justo el mensaje que te iban a mandar." : "Este es el mensaje que te mandaron."}</p>
+                <p className="mt-1 opacity-90">{acerto ? "Eso es justo lo que pasó." : "Mira lo que pasó."}</p>
                 <button
                   onClick={() => setEtapa("final")}
                   className="mt-4 w-full h-14 rounded-2xl bg-white text-[#0F1424] font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition"
