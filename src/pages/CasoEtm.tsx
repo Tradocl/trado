@@ -446,13 +446,41 @@ const CasoEtm = () => {
         {etapa === "final" && acerto !== null && (
           <div className="flex-1 bg-[#f5f5fa] pb-10">
             {acerto && <Confeti key={caso.slug} mucho={!quedan && aciertos === TOTAL_CASOS} />}
-            <div className={`chat-pop px-6 pt-8 pb-14 text-center ${acerto ? "bg-emerald-500" : "bg-[#FF6B4A]"} ${acerto ? "text-white" : "text-[#0F1424]"}`}>
-              {acerto ? <ShieldCheck className="h-16 w-16 mx-auto" /> : <XCircle className="h-16 w-16 mx-auto" />}
-              <p className="text-4xl font-black tracking-tight mt-3">{acerto ? caso.bien.titulo : caso.mal.titulo}</p>
-              <p className="text-lg mt-3 leading-snug opacity-90">{acerto ? caso.bien.texto : caso.mal.texto}</p>
+            {/* Resultado: qué pasó, por qué es tan común y por qué existe Trado */}
+            <div className={`chat-pop px-6 pt-7 pb-16 text-center relative overflow-hidden ${acerto ? "bg-emerald-500 text-white" : "bg-[#FF6B4A] text-[#0F1424]"}`}>
+              <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/15 rounded-full blur-2xl pointer-events-none" />
+              <span className={`relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-extrabold ${acerto ? "bg-white/20" : "bg-[#0F1424]/10"}`}>
+                {acerto ? <ShieldCheck className="h-4 w-4" /> : <XCircle className="h-4 w-4" />} {acerto ? "La detectaste" : "Caíste"}
+              </span>
+              <div className="relative mx-auto mt-4 w-24 h-24 rounded-3xl bg-white shadow-xl flex items-center justify-center text-6xl rotate-[-4deg]">{caso.emoji}</div>
+              <p className="relative text-[2.1rem] font-black tracking-tight leading-[1.05] mt-4">{acerto ? caso.bien.titulo : caso.mal.titulo}</p>
+              <p className="relative text-lg mt-2 leading-snug opacity-90">{acerto ? caso.bien.texto : caso.mal.texto}</p>
             </div>
 
-            <div className="relative z-10 px-5 -mt-8 space-y-4">
+            <div className="relative z-10 px-5 -mt-10 space-y-4">
+              <div className="chat-pop bg-white rounded-3xl shadow-xl p-5" style={{ animationDelay: "0.15s" }}>
+                <p className="text-xs font-extrabold uppercase tracking-wider text-[#FF6B4A] flex items-center gap-1.5">
+                  <Flag className="h-3.5 w-3.5" /> Ojo: esto pasa todos los días en Chile
+                </p>
+                <p className="text-xl font-black text-[#0F1424] mt-1.5 leading-tight">{caso.titulo}</p>
+                <p className="text-[15px] text-[#0F1424]/75 leading-snug mt-1.5">{caso.comun}</p>
+              </div>
+              <div className={`chat-pop ${DEGRADADO} rounded-3xl shadow-xl p-5 text-white relative overflow-hidden`} style={{ animationDelay: "0.3s" }}>
+                <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                <p className="text-xs font-extrabold uppercase tracking-wider text-white/75 flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Por eso existe Trado</p>
+                <p className="relative text-xl font-extrabold leading-snug mt-2">{caso.conTrado}</p>
+                <div className="relative grid grid-cols-3 gap-2 mt-4 text-center text-[11px] font-bold">
+                  {["Pagas en Trado", "La plata queda retenida", "Se libera al recibir"].map((t, i) => (
+                    <div key={t} className="rounded-2xl bg-white/15 border border-white/20 px-2 py-2.5">
+                      <span className="mx-auto mb-1 w-6 h-6 rounded-full bg-white text-[#2230C2] flex items-center justify-center text-xs font-black">{i + 1}</span>
+                      {t}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="relative z-10 px-5 mt-4 space-y-4">
               {/* Terminó las 9 cartas: el gran final, para mostrarlo en el stand */}
               {!quedan && <GranFinal aciertos={aciertos} avance={avance} onCompartir={compartir} onReiniciar={reiniciar} />}
               {/* Lo primero y más grande: crear la sala y seguir en Instagram */}
@@ -528,19 +556,6 @@ const CasoEtm = () => {
                 </ol>
               </div>
 
-              <div className={`${DEGRADADO} rounded-3xl shadow-xl p-5 text-white relative overflow-hidden`}>
-                <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-emerald-400/30 rounded-full blur-3xl pointer-events-none" />
-                <p className="text-xs font-bold uppercase tracking-wider text-white/70 flex items-center gap-1.5">
-                  <Lock className="h-3.5 w-3.5" /> Con Trado
-                </p>
-                <p className="text-xl font-extrabold leading-snug mt-2 relative">{caso.conTrado}</p>
-                <button
-                  onClick={crearSala}
-                  className="relative mt-5 w-full h-14 rounded-2xl bg-white text-[#2230C2] font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition"
-                >
-                  Crear mi sala gratis <ArrowRight className="h-5 w-5" />
-                </button>
-              </div>
 
               <button
                 onClick={compartir}

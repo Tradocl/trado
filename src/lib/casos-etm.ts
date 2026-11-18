@@ -40,6 +40,8 @@ export type Caso = {
   bien: { titulo: string; texto: string };
   mal: { titulo: string; texto: string };
   senales: { titulo: string; texto: string }[];
+  /** Cómo funciona esta estafa y por qué pasa tanto (sin cifras inventadas) */
+  comun: string;
   conTrado: string;
 };
 
@@ -85,6 +87,7 @@ export const CASOS: Caso[] = [
       { titulo: "La excusa del otro banco", texto: "Las transferencias entre bancos en Chile llegan en minutos, no al día siguiente." },
       { titulo: "El apuro con historia", texto: "\"Es para mi hijo, mándala hoy\": la urgencia está para que no alcances a revisar." },
     ],
+    comun: "Es una de las estafas más repetidas al vender por redes en Chile: te mandan un pantallazo de transferencia editado y te apuran para que despaches antes de revisar tu cuenta.",
     conTrado:
       "El comprador paga en Trado y tú ves «Pago retenido» en la sala antes de enviar. Ninguna captura reemplaza eso.",
   },
@@ -131,6 +134,7 @@ export const CASOS: Caso[] = [
       { titulo: "La cuenta está a nombre de otro", texto: "Si el nombre no calza con quien te vende, no transfieras. \"Es de mi primo\" es la excusa más vieja." },
       { titulo: "Reseñas que no puedes comprobar", texto: "Una captura de comentarios se inventa en un minuto, igual que las cuentas que los escriben." },
     ],
+    comun: "Cuentas nuevas con precios demasiado buenos, reseñas inventadas y pago solo por transferencia. Cuando pagas, te bloquean y la cuenta desaparece.",
     conTrado:
       "Pagas en Trado y la plata queda retenida hasta que te llegan las zapatillas. Si no llegan o no son lo acordado, lo reportas y la plata no se mueve.",
   },
@@ -165,6 +169,7 @@ export const CASOS: Caso[] = [
       { titulo: "Te lleva a donde no hay protección", texto: "Una transferencia directa no se puede reclamar si el producto nunca llega." },
       { titulo: "\"Soy de confianza\"", texto: "Quien es de confianza no tiene problema en que la plata quede retenida." },
     ],
+    comun: "Quedan en usar un método seguro y a última hora te ofrecen un descuento por pagar “por fuera”. Al salirte del método seguro pierdes toda la protección.",
     conTrado:
       "Si la venta es real, al vendedor le da lo mismo cobrar por Trado: su plata le llega igual. El que insiste en salirse es el que no quiere que quede retenida.",
   },
@@ -200,6 +205,7 @@ export const CASOS: Caso[] = [
       { titulo: "Lejos para no poder revisarlo", texto: "Si no puedes verlo antes de pagar, necesitas poder revisarlo antes de que la plata se libere." },
       { titulo: "Si ya pagaste, no le importa", texto: "Con la plata en su cuenta, el vendedor ya no tiene por qué responderte." },
     ],
+    comun: "Al comprarle a alguien de otra región a veces llega algo distinto o en peor estado. Si ya transferiste, reclamar es casi imposible.",
     conTrado: `Tienes ${REVIEW_HOURS.producto_envio} horas desde que lo marcas como recibido para revisarlo. Si no es lo acordado, lo reportas y la plata queda retenida hasta resolverlo.`,
   },
   {
@@ -232,6 +238,7 @@ export const CASOS: Caso[] = [
       { titulo: "Sin plata, pero con apuro", texto: "No tiene para el anticipo, pero lo necesita para el viernes." },
       { titulo: "Una promesa no es un pago", texto: "\"Palabra\" no te sirve de nada cuando deja de contestar." },
     ],
+    comun: "Es de lo más común entre freelancers: el cliente pide el trabajo terminado antes de pagar y, cuando lo recibe, deja de responder.",
     conTrado: `El cliente deposita en Trado antes de que empieces: ves «Pago retenido» y trabajas tranquilo. Al entregar, tiene ${REVIEW_HOURS.servicio} horas para revisar; si no responde, se libera solo.`,
   },
   {
@@ -269,6 +276,7 @@ export const CASOS: Caso[] = [
       { titulo: "El apuro por irse", texto: "\"Viene mi metro\": para que entregues antes de poder revisar." },
       { titulo: "Plata en la mano, discusión en la calle", texto: "Andar con efectivo o discutir un pago en persona también es un riesgo." },
     ],
+    comun: "En los encuentros en persona circulan apps que simulan una transferencia en la pantalla. Te muestran el “comprobante”, se llevan el producto y la plata nunca llega.",
     conTrado:
       "El comprador deja la plata en Trado antes de juntarse. Revisa el celular ahí mismo, confirma desde su teléfono y se libera: nadie anda con efectivo ni depende de una pantalla.",
   },
@@ -315,6 +323,7 @@ export const CASOS: Caso[] = [
       { titulo: "Te pide que le devuelvas plata", texto: "La estafa no es el sillón: son los $100.000 que le transfieres de vuelta." },
       { titulo: "Apuro con drama", texto: "\"Es la plata del arriendo\": para que devuelvas antes de revisar tu cuenta." },
     ],
+    comun: "Te dicen que te transfirieron de más y te piden devolver la diferencia. La transferencia nunca existió: lo que devuelves sale de tu bolsillo.",
     conTrado:
       "En Trado el comprador paga el monto exacto de la sala y la plata queda retenida. No hay transferencias entre ustedes, así que no hay nada que \"devolver\".",
   },
@@ -354,6 +363,7 @@ export const CASOS: Caso[] = [
       { titulo: "Cambia las reglas después del sí", texto: "Primero acepta el precio y las condiciones, y recién ahí pide otra cosa." },
       { titulo: "\"Soy de confianza\"", texto: "Lo dice alguien que conociste hace cinco minutos." },
     ],
+    comun: "Le pasa a muchos emprendedores que trabajan por encargo: compras los materiales, haces el trabajo y el cliente que iba a pagar al retirar nunca aparece.",
     conTrado:
       "La clienta deposita en Trado al encargar: tú ves «Pago retenido» antes de comprar los ingredientes, y la plata se libera cuando entregas la torta.",
   },
@@ -393,6 +403,7 @@ export const CASOS: Caso[] = [
       { titulo: "Para recibir plata nunca das tu clave", texto: "Ninguna plataforma de pagos te pide la clave del banco ni códigos para pagarte." },
       { titulo: "\"Ya pagué\" antes de que haya venta", texto: "El pago tiene que aparecer en la sala que se creó en trado.cl, no en un link que te mandan." },
     ],
+    comun: "Se volvió muy común en Marketplace: el “comprador” te manda un link que imita una plataforma de pagos o a tu banco, y al poner tu clave te vacían la cuenta.",
     conTrado:
       "En Trado la sala se crea en trado.cl y el pago aparece ahí. Trado nunca te va a pedir la clave de tu banco ni códigos por mensaje.",
   },
