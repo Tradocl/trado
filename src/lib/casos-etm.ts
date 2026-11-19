@@ -248,15 +248,20 @@ export const CASOS: Caso[] = [
     escena: "Vendes tu celular en $250.000 y quedan de juntarse en una estación de metro.",
     contacto: { nombre: "Comprador", inicial: "C", rol: "quiere tu celular" },
     chat: [
+      { de: "ellos", texto: "Hola! ¿Sigue disponible el celular? Lo puedo ir a buscar hoy" },
+      { de: "yo", texto: "Sí! ¿Nos juntamos en el metro Baquedano a las 13:00?" },
+      { de: "ellos", texto: "Perfecto, ahí nos vemos 👍" },
       { de: "ellos", texto: "Llegué, estoy en el andén 🚇" },
-      { de: "narra", texto: "Se juntan. Revisa el celular y saca su teléfono." },
+      { de: "narra", texto: "Se juntan. Revisa el celular, le gusta y saca su teléfono." },
       { de: "ellos", texto: "No ando con efectivo, te transfiero altiro" },
+      { de: "yo", texto: "Ya, dale" },
       {
         de: "ellos",
         comprobante: { titulo: "Transferencia en proceso", monto: 250_000, filas: [["Estado", "Procesando…"], ["Hora", "13:08"]], enProceso: true },
       },
-      { de: "ellos", texto: "Listo, ya está. A veces se demora unos minutos en llegar" },
-      { de: "ellos", texto: "Me tengo que ir, viene mi metro 🏃" },
+      { de: "ellos", texto: "Listo, ya está. Mira la pantalla 👆" },
+      { de: "yo", texto: "Mmm, a mí todavía no me llega nada" },
+      { de: "ellos", texto: "A veces se demora unos minutos. Me tengo que ir, viene mi metro 🏃" },
     ],
     pregunta: "¿Qué haces?",
     opciones: [
