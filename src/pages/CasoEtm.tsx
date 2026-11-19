@@ -121,6 +121,12 @@ const Chat = ({ caso, mensajes, onTermino }: { caso: Caso; mensajes: Mensaje[]; 
       </div>
       <div ref={fondo} className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-2">
         {mensajes.slice(0, n).map((m, i) => {
+          if (m.de === "narra" && m.texto.startsWith("🚩"))
+            return (
+              <p key={i} className="chat-pop self-center my-1 max-w-[92%] text-center text-[14px] font-bold text-[#0F1424] bg-[#FF6B4A] rounded-2xl px-4 py-2.5 shadow-md">
+                {m.texto}
+              </p>
+            );
           if (m.de === "narra")
             return (
               <p key={i} className="chat-pop self-center my-1 max-w-[85%] text-center text-[13px] font-semibold text-[#0F1424]/70 bg-white/70 rounded-full px-4 py-1.5">
