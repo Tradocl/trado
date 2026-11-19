@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, CheckCheck, ChevronDown, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, Plus, RotateCcw, Share2, ShieldCheck, Smartphone, XCircle } from "lucide-react";
+import { ArrowRight, CheckCheck, ChevronDown, Play, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, Plus, RotateCcw, Share2, ShieldCheck, Smartphone, XCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { casoAlAzar, casoPorSlug, CASOS, TOTAL_CASOS, esDiaDelEvento, guardarRespuesta, introVista, marcarIntroVista, sesionEtm, leerAvance, type Avance, type Caso, type Comprobante as DatosComprobante, type Mensaje } from "@/lib/casos-etm";
+import { casoAlAzar, casoPorSlug, CASOS, TOTAL_CASOS, guardarRespuesta, introVista, marcarIntroVista, sesionEtm, leerAvance, type Avance, type Caso, type Comprobante as DatosComprobante, type Mensaje, type SalaTrado } from "@/lib/casos-etm";
 import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { Confeti } from "@/components/Confeti";
@@ -11,7 +11,7 @@ import { Confeti } from "@/components/Confeti";
 // Lo que se abre al acercar el celular a una tarjeta NFC del stand del EtMday: una escena,
 // el chat de la estafa andando, una decisión y la revelación con las señales y cómo lo evita Trado.
 
-type Etapa = "previa" | "intro" | "chat" | "decision" | "revela" | "final";
+type Etapa = "previa" | "intro" | "chat" | "decision" | "revela" | "final" | "trado";
 
 const reducido = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const DEGRADADO = "bg-gradient-to-br from-[#2230C2] via-[#4B35D6] via-55% to-[#7C3AED]";
@@ -77,6 +77,26 @@ const VistaLink = ({ l }: { l: { dominio: string; titulo: string; detalle: strin
   </div>
 );
 
+const ESTADO_SALA: Record<SalaTrado["estado"], { texto: string; clase: string }> = {
+  creada: { texto: "Sala creada · esperando el pago", clase: "bg-[#0F1424]/8 text-[#0F1424]/70" },
+  retenido: { texto: "🔒 Pago retenido", clase: "bg-[#2230C2] text-white" },
+  liberado: { texto: "✓ Pago liberado al vendedor", clase: "bg-[#7C3AED] text-white" },
+  reportado: { texto: "⚠ Reportado · la plata no se mueve", clase: "bg-[#FF6B4A] text-[#0F1424]" },
+};
+const Sala = ({ s }: { s: SalaTrado }) => (
+  <div className="w-64 rounded-2xl bg-white overflow-hidden shadow-md border border-[#2230C2]/15">
+    <div className={`${DEGRADADO} px-3 py-2 flex items-center justify-between`}>
+      <Logo variant="white" height={16} />
+      <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">Sala protegida</span>
+    </div>
+    <div className="px-3 pt-2 pb-3">
+      <p className="text-[13px] font-semibold text-[#0F1424]/70 leading-tight">{s.titulo}</p>
+      <p className="text-xl font-black text-[#0F1424]">${formatCLP(s.monto)}</p>
+      <p className={`mt-1.5 rounded-lg px-2 py-1 text-[12px] font-extrabold text-center ${ESTADO_SALA[s.estado].clase}`}>{ESTADO_SALA[s.estado].texto}</p>
+    </div>
+  </div>
+);
+
 const Chat = ({ caso, mensajes, onTermino }: { caso: Caso; mensajes: Mensaje[]; onTermino: () => void }) => {
   const [n, setN] = useState(reducido() ? mensajes.length : 0);
   const [escribiendo, setEscribiendo] = useState(false);
@@ -121,6 +141,8 @@ const Chat = ({ caso, mensajes, onTermino }: { caso: Caso; mensajes: Mensaje[]; 
       </div>
       <div ref={fondo} className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-2">
         {mensajes.slice(0, n).map((m, i) => {
+          if (m.de === "trado")
+            return <div key={i} className="chat-pop self-center my-1"><Sala s={m.sala} /></div>;
           if (m.de === "narra" && m.texto.startsWith("🚩"))
             return (
               <p key={i} className="chat-pop self-center my-1 max-w-[92%] text-center text-[14px] font-bold text-[#0F1424] bg-[#FF6B4A] rounded-2xl px-4 py-2.5 shadow-md">
@@ -218,7 +240,7 @@ const nivelDe = (a: number) =>
   : a >= 4 ? { titulo: "Buen olfato", emoji: "🐶", frase: "Vas bien, pero alguna se te pasó." }
   : { titulo: "Presa fácil", emoji: "😅", frase: "Mejor que te pase acá y no con tu plata." };
 
-/** El final cuando ya jugó las 9 cartas: puntaje gigante, nivel, premio y desafío */
+/** El final cuando ya jugó las 9 cartas: puntaje gigante, nivel y desafío */
 const GranFinal = ({ aciertos, avance, onCompartir, onReiniciar }: { aciertos: number; avance: Avance; onCompartir: () => void; onReiniciar: () => void }) => {
   const nivel = nivelDe(aciertos);
   const r = 54, c = 2 * Math.PI * r;
@@ -246,13 +268,6 @@ const GranFinal = ({ aciertos, avance, onCompartir, onReiniciar }: { aciertos: n
           <span key={c.slug} className={`h-3 flex-1 rounded-full ${avance[c.slug] ? "bg-[#FCD34D]" : "bg-white/25"}`} />
         ))}
       </div>
-      {esDiaDelEvento() && (
-        <div className="relative mt-5 rounded-2xl bg-[#FCD34D] text-[#0F1424] p-4 shadow-lg">
-          <p className="text-2xl">🎁</p>
-          <p className="font-black text-lg leading-tight">¡Tienes premio!</p>
-          <p className="text-sm font-semibold mt-1">Muéstrale esta pantalla al equipo de Trado en el stand.</p>
-        </div>
-      )}
       <button
         onClick={onCompartir}
         className="relative mt-5 w-full h-16 rounded-2xl bg-white text-[#2230C2] text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition"
@@ -302,13 +317,15 @@ const CasoEtm = () => {
   const [etapa, setEtapa] = useState<Etapa>(() => (introVista() ? "intro" : "previa"));
   const [acerto, setAcerto] = useState<boolean | null>(null);
   const [verOtros, setVerOtros] = useState(false);
+  const [tradoListo, setTradoListo] = useState(false);
+  const terminoTrado = useCallback(() => setTradoListo(true), []);
   // La carta que se saca ahora: si ya jugó este caso no suma
   const carta = Math.min(TOTAL_CASOS, CASOS.filter((c) => c.slug in avance && c.slug !== caso.slug).length + 1);
 
   useEffect(() => {
     if (esSorpresa) navigate(`/etm/${caso.slug}`, { replace: true });
   }, [esSorpresa, caso.slug, navigate]);
-  useEffect(() => { window.scrollTo(0, 0); }, [etapa]);
+  useEffect(() => { window.scrollTo(0, 0); if (etapa === "trado") setTradoListo(false); }, [etapa]);
   // "Sacar otra carta" reutiliza esta misma página: al cambiar de caso, parte de cero
   useEffect(() => { setEtapa((e) => (e === "previa" ? e : "intro")); setAcerto(null); setVerOtros(false); }, [caso.slug]);
   const seguirPrevia = () => { marcarIntroVista(); setEtapa("intro"); };
@@ -449,6 +466,31 @@ const CasoEtm = () => {
           </div>
         )}
 
+        {/* ── La misma historia con Trado en medio ── */}
+        {etapa === "trado" && (
+          <div className="fixed inset-0 flex justify-center bg-[#0F1424]">
+            <div className="w-full max-w-md h-full flex flex-col">
+              <div className={`${DEGRADADO} text-white text-center text-xs font-extrabold uppercase tracking-wider py-1.5`}>Así habría sido con Trado en medio</div>
+              <Chat key={`trado-${caso.slug}`} caso={caso} mensajes={caso.conTradoChat} onTermino={terminoTrado} />
+              {tradoListo && (
+                <div className={`shrink-0 ${DEGRADADO} text-white rounded-t-3xl px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] animate-in slide-in-from-bottom duration-500`}>
+                  <p className="text-xs font-extrabold uppercase tracking-wider text-white/75 flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> Con Trado, la estafa no funciona</p>
+                  <p className="text-xl font-extrabold leading-snug mt-1">{caso.conTradoFin}</p>
+                  <button
+                    onClick={crearSala}
+                    className="mt-4 w-full h-14 rounded-2xl bg-white text-[#2230C2] text-lg font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition"
+                  >
+                    <Plus className="h-5 w-5" /> Crear mi sala gratis
+                  </button>
+                  <button onClick={() => setEtapa("final")} className="mt-2 w-full text-center text-sm font-semibold text-white/85">
+                    Volver al resultado
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ── Revelación ── */}
         {etapa === "final" && acerto !== null && (
           <div className="flex-1 bg-[#f5f5fa] pb-10">
@@ -480,6 +522,12 @@ const CasoEtm = () => {
                 <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
                 <p className="text-[11px] font-extrabold uppercase tracking-wider text-white/75 flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Por eso existe Trado</p>
                 <p className="relative text-[17px] font-extrabold leading-snug mt-1.5">{caso.conTrado}</p>
+                <button
+                  onClick={() => setEtapa("trado")}
+                  className="relative mt-3 w-full h-12 rounded-2xl bg-white text-[#2230C2] font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition"
+                >
+                  <Play className="h-4 w-4 fill-current" /> Míralo con Trado en medio
+                </button>
               </div>
               {/* Registrarse y seguir en Instagram, a la vista */}
               <div className="chat-pop grid gap-2" style={{ animationDelay: "0.45s" }}>

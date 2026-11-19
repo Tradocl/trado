@@ -16,7 +16,11 @@ export type Mensaje =
   /** Un link con vista previa, como los que se ven en WhatsApp */
   | { de: "ellos"; link: { dominio: string; titulo: string; detalle: string } }
   /** Lo que pasa fuera del chat, contado en una línea */
-  | { de: "narra"; texto: string };
+  | { de: "narra"; texto: string }
+  /** La sala de Trado en el chat (para la versión "con Trado en medio") */
+  | { de: "trado"; sala: SalaTrado };
+
+export type SalaTrado = { titulo: string; monto: number; estado: "creada" | "retenido" | "liberado" | "reportado" };
 
 export type Caso = {
   slug: string;
@@ -43,6 +47,10 @@ export type Caso = {
   /** Cómo funciona esta estafa y por qué pasa tanto (sin cifras inventadas) */
   comun: string;
   conTrado: string;
+  /** La misma historia, pero con la plata en una sala de Trado */
+  conTradoChat: Mensaje[];
+  /** La frase con que termina esa versión */
+  conTradoFin: string;
 };
 
 export const CASOS: Caso[] = [
@@ -90,6 +98,15 @@ export const CASOS: Caso[] = [
     comun: "Es una de las estafas más repetidas al vender por redes en Chile: te mandan un pantallazo de transferencia editado y te apuran para que despaches antes de revisar tu cuenta.",
     conTrado:
       "El comprador paga en Trado y tú ves «Pago retenido» en la sala antes de enviar. Ninguna captura reemplaza eso.",
+    conTradoChat: [
+      { de: "ellos", texto: "Hola! ¿Sigue disponible la bici? 🚲" },
+      { de: "yo", texto: "Sí! Para que estemos tranquilos los dos, la pagamos por Trado. Te mando la sala 👇" },
+      { de: "trado", sala: { titulo: "Bicicleta", monto: 180_000, estado: "creada" } },
+      { de: "ellos", texto: "¿Y no te puedo transferir nomás? Te mando el comprobante" },
+      { de: "yo", texto: "Por Trado no más 🙂 La envío apenas vea «Pago retenido» en la sala" },
+      { de: "narra", texto: "Nunca pagó en la sala. Sin «Pago retenido», la bici no salió de tu casa." },
+    ],
+    conTradoFin: "Un comprobante no sirve de nada: lo único que cuenta es ver «Pago retenido» en la sala.",
   },
   {
     slug: "zapatillas-baratas",
@@ -137,6 +154,14 @@ export const CASOS: Caso[] = [
     comun: "Cuentas nuevas con precios demasiado buenos, reseñas inventadas y pago solo por transferencia. Cuando pagas, te bloquean y la cuenta desaparece.",
     conTrado:
       "Pagas en Trado y la plata queda retenida hasta que te llegan las zapatillas. Si no llegan o no son lo acordado, lo reportas y la plata no se mueve.",
+    conTradoChat: [
+      { de: "yo", texto: "Hola! Las quiero a $90.000. ¿Las pagamos por Trado? Te mando la sala 👇" },
+      { de: "trado", sala: { titulo: "Zapatillas edición limitada", monto: 90_000, estado: "creada" } },
+      { de: "ellos", texto: "No, solo transferencia, así trabajamos 🙅" },
+      { de: "narra", texto: "Una tienda de verdad no tiene problema con que la plata quede retenida hasta que te lleguen." },
+      { de: "narra", texto: "No pagaste nada. A la semana, la cuenta ya no existía." },
+    ],
+    conTradoFin: "Si alguien no acepta que la plata quede retenida hasta que te llegue lo tuyo, ya sabes por qué.",
   },
   {
     slug: "reserva-del-auto",
@@ -174,6 +199,14 @@ export const CASOS: Caso[] = [
     ],
     comun: "Se repite mucho en Marketplace en Chile: autos a precio de ganga con fotos sacadas de otros avisos, y un \"abono para reservar\" que se pierde apenas lo transfieres.",
     conTrado: "Con Trado el abono queda retenido y no le llega al vendedor. Si al ir a verlo el auto no existe o no es lo acordado, lo reportas y la plata no se mueve.",
+    conTradoChat: [
+      { de: "ellos", texto: "Si quieres que te lo guarde, transfiéreme $300.000 de abono" },
+      { de: "yo", texto: "Te pago el abono por Trado: queda retenido hasta que vea el auto 👇" },
+      { de: "trado", sala: { titulo: "Abono sedán 2018", monto: 300_000, estado: "creada" } },
+      { de: "ellos", texto: "No, tiene que ser transferencia y hoy" },
+      { de: "narra", texto: "Dejó de responder. El auto nunca existió, y tú no perdiste ni un peso." },
+    ],
+    conTradoFin: "Un abono retenido no le sirve a nadie que vende algo que no existe.",
   },
   {
     slug: "llego-otra-cosa",
@@ -219,6 +252,18 @@ export const CASOS: Caso[] = [
     ],
     comun: "Pasa seguido al comprarle a alguien de otra región: pagas por adelantado y el paquete llega con algo que pesa lo mismo, hasta un ladrillo. Si ya transferiste, no hay a quién reclamar.",
     conTrado: `Tienes ${REVIEW_HOURS.producto_envio} horas desde que lo marcas como recibido para revisarlo. Si no es lo acordado, lo reportas y la plata queda retenida hasta resolverlo.`,
+    conTradoChat: [
+      { de: "yo", texto: "Me interesa! ¿Lo pagamos por Trado? Te mando la sala 👇" },
+      { de: "trado", sala: { titulo: "iPhone 13 · 128 GB", monto: 280_000, estado: "creada" } },
+      { de: "narra", texto: "Pagas en la sala: la plata queda retenida, no le llega al vendedor." },
+      { de: "trado", sala: { titulo: "iPhone 13 · 128 GB", monto: 280_000, estado: "retenido" } },
+      { de: "ellos", foto: { emoji: "🚚", titulo: "Envío en camino", detalle: "N° de seguimiento 7741 2290 8815" } },
+      { de: "narra", texto: "Llega el paquete. Lo abres y es un ladrillo 🧱" },
+      { de: "yo", texto: "Es un ladrillo. Lo reporto en la sala" },
+      { de: "trado", sala: { titulo: "iPhone 13 · 128 GB", monto: 280_000, estado: "reportado" } },
+      { de: "narra", texto: `Tenías ${REVIEW_HOURS.producto_envio} horas para revisarlo. La plata sigue retenida y el vendedor no la puede tocar.` },
+    ],
+    conTradoFin: "Abres la caja antes de que la plata se mueva.",
   },
   {
     slug: "maestro-adelanto",
@@ -255,6 +300,18 @@ export const CASOS: Caso[] = [
     ],
     comun: "Le pasa a mucha gente al contratar maestros o servicios por redes: piden la mitad por adelantado \"para los materiales\" y el día acordado no llega nadie.",
     conTrado: "Con Trado el adelanto queda retenido: el maestro ve «Pago retenido» y sabe que la plata está, pero no le llega hasta que hace el trabajo. Si no aparece, lo reportas y la plata no se mueve.",
+    conTradoChat: [
+      { de: "ellos", texto: "Necesito la mitad por adelantado para comprar la pintura: $175.000" },
+      { de: "yo", texto: "Se la pago por Trado: queda retenida y le llega cuando termine el trabajo 👇" },
+      { de: "trado", sala: { titulo: "Adelanto pintura depto", monto: 175_000, estado: "creada" } },
+      { de: "narra", texto: "Pagas en la sala. El maestro ve «Pago retenido»: sabe que la plata está." },
+      { de: "trado", sala: { titulo: "Adelanto pintura depto", monto: 175_000, estado: "retenido" } },
+      { de: "narra", texto: "El lunes no llega nadie." },
+      { de: "yo", texto: "No llegó. Lo reporto en la sala" },
+      { de: "trado", sala: { titulo: "Adelanto pintura depto", monto: 175_000, estado: "reportado" } },
+      { de: "narra", texto: "El adelanto sigue retenido mientras se revisa: él no lo puede tocar." },
+    ],
+    conTradoFin: "El maestro serio ve que la plata está; el que junta adelantos no se lleva nada.",
   },
   {
     slug: "venta-en-persona",
@@ -299,6 +356,17 @@ export const CASOS: Caso[] = [
     comun: "En los encuentros en persona circulan apps que simulan una transferencia en la pantalla. Te muestran el “comprobante”, se llevan el producto y la plata nunca llega.",
     conTrado:
       "El comprador deja la plata en Trado antes de juntarse. Revisa el celular ahí mismo, confirma desde su teléfono y se libera: nadie anda con efectivo ni depende de una pantalla.",
+    conTradoChat: [
+      { de: "ellos", texto: "Hola! ¿Sigue disponible el celular? Lo puedo ir a buscar hoy" },
+      { de: "yo", texto: "Sí! Págalo en esta sala de Trado antes de juntarnos y ahí te lo paso 👇" },
+      { de: "trado", sala: { titulo: "Celular", monto: 250_000, estado: "creada" } },
+      { de: "ellos", texto: "Listo, pagué 👍" },
+      { de: "trado", sala: { titulo: "Celular", monto: 250_000, estado: "retenido" } },
+      { de: "narra", texto: "Se juntan en el metro. Revisa el celular y lo confirma desde su teléfono." },
+      { de: "trado", sala: { titulo: "Celular", monto: 250_000, estado: "liberado" } },
+      { de: "narra", texto: "La plata te llega a ti. Sin efectivo y sin pantallas que se puedan fabricar." },
+    ],
+    conTradoFin: "Ves «Pago retenido» antes de juntarte: nadie anda con efectivo ni depende de una pantalla.",
   },
   {
     slug: "cabana-de-verano",
@@ -342,6 +410,17 @@ export const CASOS: Caso[] = [
     ],
     comun: "Pasa cada verano en Chile: cuentas con fotos de cabañas reales, sacadas de otros avisos, piden transferir la reserva. Cuando llegas, no hay nada.",
     conTrado: "La reserva se paga en Trado y queda retenida: no le llega al dueño mientras tú no llegas. Si la cabaña no existe o no es la de las fotos, lo reportas y la plata no se mueve.",
+    conTradoChat: [
+      { de: "yo", texto: "Hola! Me interesa del 10 al 14 de febrero. ¿Pagamos la reserva por Trado?" },
+      { de: "trado", sala: { titulo: "Reserva cabaña · 10 al 14 feb", monto: 120_000, estado: "creada" } },
+      { de: "narra", texto: "Pagas la reserva en la sala: queda retenida y no le llega al dueño." },
+      { de: "trado", sala: { titulo: "Reserva cabaña · 10 al 14 feb", monto: 120_000, estado: "retenido" } },
+      { de: "narra", texto: "10 de febrero. Llegas a la dirección y no hay ninguna cabaña." },
+      { de: "yo", texto: "Aquí no hay nada. Lo reporto en la sala" },
+      { de: "trado", sala: { titulo: "Reserva cabaña · 10 al 14 feb", monto: 120_000, estado: "reportado" } },
+      { de: "narra", texto: "La reserva sigue retenida mientras se revisa: el falso dueño no la puede tocar." },
+    ],
+    conTradoFin: "La reserva no le llega a nadie mientras tú no llegas y ves que la cabaña existe.",
   },
   {
     slug: "te-pago-despues",
@@ -383,6 +462,14 @@ export const CASOS: Caso[] = [
     comun: "Le pasa a muchos emprendedores que trabajan por encargo: compras los materiales, haces el trabajo y el cliente que iba a pagar al retirar nunca aparece.",
     conTrado:
       "La clienta deposita en Trado al encargar: tú ves «Pago retenido» antes de comprar los ingredientes, y la plata se libera cuando entregas la torta.",
+    conTradoChat: [
+      { de: "ellos", texto: "¿Te puedo pagar cuando la retire? Este mes ando corta 🙏" },
+      { de: "yo", texto: "Te mando una sala de Trado: pagas ahora, la plata queda retenida y me llega cuando retires la torta 🎂" },
+      { de: "trado", sala: { titulo: "Torta para 30 personas", monto: 45_000, estado: "creada" } },
+      { de: "narra", texto: "Si de verdad la quería, pagaba en la sala. No pagó y dejó de escribir." },
+      { de: "narra", texto: "No compraste ingredientes ni trabajaste una noche gratis." },
+    ],
+    conTradoFin: "Ves «Pago retenido» antes de comprar un solo ingrediente.",
   },
   {
     slug: "entradas-falsas",
@@ -428,6 +515,19 @@ export const CASOS: Caso[] = [
     ],
     comun: "Pasa en cada concierto agotado en Chile: venden entradas en PDF o en pantallazo, y el mismo QR se lo venden a varias personas. Solo entra el primero que llega.",
     conTrado: `Pagas en Trado y la plata queda retenida: no le llega al vendedor. Cuando recibes la entrada tienes ${REVIEW_HOURS.producto_digital} horas para revisarla; si no es válida, lo reportas y la plata no se mueve.`,
+    conTradoChat: [
+      { de: "yo", texto: "Hola! Me interesan las 2 entradas. ¿Las pagamos por Trado? Te mando la sala" },
+      { de: "trado", sala: { titulo: "2 entradas · cancha general", monto: 120_000, estado: "creada" } },
+      { de: "narra", texto: "Pagas en la sala. La plata queda retenida: no le llega al vendedor." },
+      { de: "trado", sala: { titulo: "2 entradas · cancha general", monto: 120_000, estado: "retenido" } },
+      { de: "ellos", foto: { emoji: "📄", titulo: "Entradas.pdf", detalle: "2 códigos QR · listo para imprimir" } },
+      { de: "yo", texto: "Para confirmar, ¿me las transfieres a mi nombre en la ticketera? 🙏" },
+      { de: "ellos", texto: "Eh… no se puede, usa el PDF nomás" },
+      { de: "yo", texto: "Entonces lo reporto en la sala" },
+      { de: "trado", sala: { titulo: "2 entradas · cancha general", monto: 120_000, estado: "reportado" } },
+      { de: "narra", texto: "La plata sigue retenida mientras se revisa: el vendedor no la puede tocar." },
+    ],
+    conTradoFin: "Con la plata retenida tienes tiempo de revisar las entradas antes de que al vendedor le llegue un peso.",
   },
 ];
 
@@ -452,7 +552,7 @@ export const casoPorSlug = (slug: string | undefined) => {
 };
 export const numeroDe = (caso: Caso) => CASOS.indexOf(caso) + 1;
 
-// Días del evento (hora de Chile): ahí se muestra lo del premio en el stand
+// Días del evento (hora de Chile)
 const INICIO_EVENTO = Date.parse("2026-11-19T00:00:00-03:00");
 const FIN_EVENTO = Date.parse("2026-11-21T23:59:59-03:00");
 export const esDiaDelEvento = () => { const t = Date.now(); return t >= INICIO_EVENTO && t <= FIN_EVENTO; };
