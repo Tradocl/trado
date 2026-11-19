@@ -323,7 +323,7 @@ const CasoEtm = () => {
   const carta = Math.min(TOTAL_CASOS, CASOS.filter((c) => c.slug in avance && c.slug !== caso.slug).length + 1);
 
   useEffect(() => {
-    if (esSorpresa) navigate(rutaDe(caso), { replace: true });
+    if (esSorpresa) navigate(rutaDe(caso) + window.location.search, { replace: true });
   }, [esSorpresa, caso.slug, navigate]);
   useEffect(() => { window.scrollTo(0, 0); if (etapa === "trado") setTradoListo(false); }, [etapa]);
   // "Sacar otra carta" reutiliza esta misma página: al cambiar de caso, parte de cero
@@ -379,7 +379,7 @@ const CasoEtm = () => {
   return (
     <div className="min-h-[100dvh] bg-[#0F1424] flex justify-center">
       <Helmet>
-        <title>{`¿Lo detectarías? ${caso.titulo} | Trado`}</title>
+        <title>¿Lo detectarías? | Trado</title>
         <meta name="robots" content="noindex" />
       </Helmet>
       <div className="w-full max-w-md min-h-[100dvh] flex flex-col relative overflow-hidden">
