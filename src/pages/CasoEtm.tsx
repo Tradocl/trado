@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, CheckCheck, ChevronDown, Play, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, Plus, RotateCcw, Share2, ShieldCheck, Smartphone, XCircle } from "lucide-react";
+import { ArrowRight, CheckCheck, ChevronDown, Play, UserPlus, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, RotateCcw, Share2, ShieldCheck, Smartphone, XCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { casoAlAzar, casoPorSlug, CASOS, TOTAL_CASOS, guardarRespuesta, rutaDe, introVista, marcarIntroVista, sesionEtm, leerAvance, type Avance, type Caso, type Comprobante as DatosComprobante, type Mensaje, type SalaTrado } from "@/lib/casos-etm";
-import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
+import { formatCLP } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { Confeti } from "@/components/Confeti";
 
@@ -362,9 +362,9 @@ const CasoEtm = () => {
     setAvance({});
     navigate(rutaDe(casoAlAzar({}, caso.slug)));
   };
-  // Lo que más nos importa al final: que cree su sala y que siga la cuenta de Instagram
-  const crearSala = () => {
-    try { sessionStorage.setItem("redirectAfterLogin", "/create-transaction"); } catch { /* sin almacenamiento */ }
+  // Lo que más nos importa al final: que se registre (nadie está vendiendo en ese momento)
+  // y que siga la cuenta de Instagram
+  const registrarse = () => {
     navigate(`/auth?tab=register&utm_source=etm&utm_medium=nfc&utm_campaign=${caso.slug}`);
   };
   const compartir = () => {
@@ -477,10 +477,10 @@ const CasoEtm = () => {
                   <p className="text-xs font-extrabold uppercase tracking-wider text-white/75 flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> Con Trado, la estafa no funciona</p>
                   <p className="text-xl font-extrabold leading-snug mt-1">{caso.conTradoFin}</p>
                   <button
-                    onClick={crearSala}
+                    onClick={registrarse}
                     className="mt-4 w-full h-14 rounded-2xl bg-white text-[#2230C2] text-lg font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition"
                   >
-                    <Plus className="h-5 w-5" /> Crear mi sala gratis
+                    <UserPlus className="h-5 w-5" /> Regístrate gratis
                   </button>
                   <button onClick={() => setEtapa("final")} className="mt-2 w-full text-center text-sm font-semibold text-white/85">
                     Volver al resultado
@@ -532,10 +532,10 @@ const CasoEtm = () => {
               {/* Registrarse y seguir en Instagram, a la vista */}
               <div className="chat-pop grid gap-2" style={{ animationDelay: "0.45s" }}>
                 <button
-                  onClick={crearSala}
+                  onClick={registrarse}
                   className={`w-full h-14 rounded-2xl ${DEGRADADO} text-white text-lg font-extrabold flex items-center justify-center gap-2 shadow-lg ring-2 ring-white active:scale-[0.98] transition`}
                 >
-                  <Plus className="h-5 w-5" /> Crear mi sala gratis
+                  <UserPlus className="h-5 w-5" /> Regístrate gratis
                 </button>
                 <a
                   href="https://www.instagram.com/trado_cl/"
@@ -545,7 +545,7 @@ const CasoEtm = () => {
                 >
                   <Instagram className="h-6 w-6" /> Seguir a @trado_cl
                 </a>
-                <p className="text-center text-xs text-[#0F1424]/55">Tu primera sala va sin comisión, hasta ${formatCLP(PRIMERA_SALA_GRATIS_HASTA)}.</p>
+                <p className="text-center text-xs text-[#0F1424]/55">Toma un minuto. Así lo tienes listo para tu próxima compra o venta.</p>
               </div>
             </div>
 
