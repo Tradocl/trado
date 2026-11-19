@@ -367,7 +367,7 @@ const CasoEtm = () => {
         {etapa === "intro" && (
           <div className={`flex-1 flex flex-col ${DEGRADADO} text-white px-6 pt-8 pb-10 relative`}>
             <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-10 -left-24 w-72 h-72 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-10 -left-24 w-72 h-72 bg-[#7C3AED]/30 rounded-full blur-3xl pointer-events-none" />
             <div className="flex items-center justify-between relative">
               <Logo variant="white" height={28} />
               <span className="text-xs font-bold bg-white/15 border border-white/25 rounded-full px-3 py-1">
@@ -428,7 +428,7 @@ const CasoEtm = () => {
             </div>
             )}
             {etapa === "revela" && reveladoListo && acerto !== null && (
-              <div className={`shrink-0 rounded-t-3xl px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] animate-in slide-in-from-bottom duration-500 ${acerto ? "bg-emerald-500 text-white" : "bg-[#FF6B4A] text-[#0F1424]"}`}>
+              <div className={`shrink-0 rounded-t-3xl px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] animate-in slide-in-from-bottom duration-500 ${acerto ? `${DEGRADADO} text-white` : "bg-[#FF6B4A] text-[#0F1424]"}`}>
                 <p className="text-2xl font-black">{acerto ? "¡Le achuntaste! 🎯" : "No era ese 😬"}</p>
                 <p className="mt-1 opacity-90">{acerto ? "Eso es justo lo que pasó." : "Mira lo que pasó."}</p>
                 <button
@@ -448,18 +448,19 @@ const CasoEtm = () => {
           <div className="flex-1 bg-[#f5f5fa] pb-10">
             {acerto && <Confeti key={caso.slug} mucho={!quedan && aciertos === TOTAL_CASOS} />}
             {/* Resultado: todo lo importante en la primera pantalla, sin bajar */}
-            <div className={`chat-pop px-5 pt-5 pb-11 relative overflow-hidden ${acerto ? "bg-emerald-500 text-white" : "bg-[#FF6B4A] text-[#0F1424]"}`}>
-              <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/15 rounded-full blur-2xl pointer-events-none" />
+            <div className="chat-pop px-5 pt-5 pb-11 relative overflow-hidden bg-[#0F1424] text-white">
+              <div className={`absolute -top-16 -right-16 w-56 h-56 rounded-full blur-3xl pointer-events-none ${acerto ? "bg-[#7C3AED]/45" : "bg-[#FF6B4A]/35"}`} />
+              <div className="absolute -bottom-20 -left-16 w-48 h-48 bg-[#2230C2]/40 rounded-full blur-3xl pointer-events-none" />
               <div className="relative flex items-center gap-3.5">
                 <div className="w-16 h-16 shrink-0 rounded-2xl bg-white shadow-xl flex items-center justify-center text-4xl rotate-[-4deg]">{caso.emoji}</div>
                 <div className="min-w-0">
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-extrabold ${acerto ? "bg-white/20" : "bg-[#0F1424]/10"}`}>
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-extrabold ${acerto ? "bg-[#FCD34D] text-[#0F1424]" : "bg-[#FF6B4A] text-[#0F1424]"}`}>
                     {acerto ? <ShieldCheck className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />} {acerto ? "La detectaste" : "Caíste"}
                   </span>
                   <p className="text-[1.7rem] font-black tracking-tight leading-[1.05] mt-1">{acerto ? caso.bien.titulo : caso.mal.titulo}</p>
                 </div>
               </div>
-              <p className="relative text-[15px] mt-2.5 leading-snug opacity-90">{acerto ? caso.bien.texto : caso.mal.texto}</p>
+              <p className="relative text-[15px] mt-2.5 leading-snug text-white/85">{acerto ? caso.bien.texto : caso.mal.texto}</p>
             </div>
 
             <div className="relative z-10 px-4 -mt-7 space-y-3">
@@ -514,7 +515,7 @@ const CasoEtm = () => {
                         {CASOS.map((c) => (
                           <span
                             key={c.slug}
-                            className={`h-2.5 flex-1 rounded-full ${!(c.slug in avance) ? "bg-[#0F1424]/10" : avance[c.slug] ? "bg-emerald-500" : "bg-[#FF6B4A]"} ${c.slug === caso.slug ? "ring-2 ring-offset-2 ring-[#2230C2]/40" : ""}`}
+                            className={`h-2.5 flex-1 rounded-full ${!(c.slug in avance) ? "bg-[#0F1424]/10" : avance[c.slug] ? "bg-[#2230C2]" : "bg-[#FF6B4A]"} ${c.slug === caso.slug ? "ring-2 ring-offset-2 ring-[#2230C2]/40" : ""}`}
                           />
                         ))}
                       </div>
