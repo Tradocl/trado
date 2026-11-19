@@ -210,7 +210,7 @@ export const CASOS: Caso[] = [
   },
   {
     slug: "te-mando-un-uber",
-    emoji: "🚗",
+    emoji: "🎮",
     formato: "adivinar",
     titulo: "\"Te mando un Uber\"",
     escena: "Vendes tu PlayStation 5 en $320.000 por Marketplace y te escribe alguien interesado.",
