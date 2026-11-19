@@ -551,6 +551,11 @@ export const casoPorSlug = (slug: string | undefined) => {
   return CASOS.find((c) => c.slug === slug);
 };
 export const numeroDe = (caso: Caso) => CASOS.indexOf(caso) + 1;
+/** La dirección de un caso con el número de su carta (no delata de qué se trata) */
+export const rutaDe = (caso: Caso) => {
+  const n = CARTAS.indexOf(caso.slug) + 1;
+  return `/etm/${n > 0 ? n : caso.slug}`;
+};
 
 // Días del evento (hora de Chile)
 const INICIO_EVENTO = Date.parse("2026-11-19T00:00:00-03:00");

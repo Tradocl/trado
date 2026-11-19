@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, CheckCheck, ChevronDown, Play, CheckCircle2, Clock, Flag, Globe, Instagram, Lock, Plus, RotateCcw, Share2, ShieldCheck, Smartphone, XCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { casoAlAzar, casoPorSlug, CASOS, TOTAL_CASOS, guardarRespuesta, introVista, marcarIntroVista, sesionEtm, leerAvance, type Avance, type Caso, type Comprobante as DatosComprobante, type Mensaje, type SalaTrado } from "@/lib/casos-etm";
+import { casoAlAzar, casoPorSlug, CASOS, TOTAL_CASOS, guardarRespuesta, rutaDe, introVista, marcarIntroVista, sesionEtm, leerAvance, type Avance, type Caso, type Comprobante as DatosComprobante, type Mensaje, type SalaTrado } from "@/lib/casos-etm";
 import { formatCLP, PRIMERA_SALA_GRATIS_HASTA } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { Confeti } from "@/components/Confeti";
@@ -323,7 +323,7 @@ const CasoEtm = () => {
   const carta = Math.min(TOTAL_CASOS, CASOS.filter((c) => c.slug in avance && c.slug !== caso.slug).length + 1);
 
   useEffect(() => {
-    if (esSorpresa) navigate(`/etm/${caso.slug}`, { replace: true });
+    if (esSorpresa) navigate(rutaDe(caso), { replace: true });
   }, [esSorpresa, caso.slug, navigate]);
   useEffect(() => { window.scrollTo(0, 0); if (etapa === "trado") setTradoListo(false); }, [etapa]);
   // "Sacar otra carta" reutiliza esta misma página: al cambiar de caso, parte de cero
@@ -356,11 +356,11 @@ const CasoEtm = () => {
   const jugados = CASOS.filter((c) => c.slug in avance).length;
   const aciertos = CASOS.filter((c) => avance[c.slug]).length;
   const quedan = jugados < TOTAL_CASOS;
-  const otraCarta = () => navigate(`/etm/${casoAlAzar(avance, caso.slug).slug}`);
+  const otraCarta = () => navigate(rutaDe(casoAlAzar(avance, caso.slug)));
   const reiniciar = () => {
     try { localStorage.removeItem("trado_etm_avance"); } catch { /* sin almacenamiento */ }
     setAvance({});
-    navigate(`/etm/${casoAlAzar({}, caso.slug).slug}`);
+    navigate(rutaDe(casoAlAzar({}, caso.slug)));
   };
   // Lo que más nos importa al final: que cree su sala y que siga la cuenta de Instagram
   const crearSala = () => {
