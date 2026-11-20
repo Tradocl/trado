@@ -75,3 +75,9 @@ Piezas en esta carpeta; todas se imprimen al **100 % / tamaño real**.
 - **Comprobante de recepción del manual** (su última hoja) firmado y subido a la plataforma de la postulación. Sin él no se puede participar.
 - Documentación de la empresa por si fiscalizan, y el Media Kit de la organización para redes.
 - No tapar la gráfica con el nombre que pone la organización, no repartir comida ni bebidas y no dejar equipos solos.
+
+## Fotos, videos y reels del evento
+
+- **Material**: `fotos-y-videos/dia-N-.../` (fotos y videos, con nombres que dicen qué muestran). No va a git: tiene caras de ganadores y público.
+- **Reel día 1**: `Instagram/2 Reels/18 EtMday dia 1/` (con y sin música, caption y portada). Se arma con `npm run final -- EtmDia1` desde `Instagram/_sistema/remotion` (código en `src/reels/EtmDia1.tsx`; el material va copiado a `public/material/etmday-dia1/`).
+

@@ -53,6 +53,8 @@ notas/
 # EtMday: contrato firmado y manual del expositor (RUT, domicilio, datos bancarios
 # y cláusula de confidencialidad). Quedan solo en cada computador, nunca en git.
 EtMday/documentos/
+# Fotos y videos del stand: caras de ganadores y del público, nunca al repo público
+EtMday/fotos-y-videos/
 
 # Generador de reels: archivos que se regeneran (no subir)
 [Ii]nstagram/_sistema/reels/**/__pycache__/
@@ -70,4 +72,6 @@ Instagram/2 Reels/15 Venta en el metro/*.mp4
 # remotion/scripts/final.py. Caption y portada sí se suben, como en los demás.
 [Ii]nstagram/2 Reels/16 Desde donde quieras/*.mp4
 [Ii]nstagram/2 Reels/17 En persona/*.mp4
+[Ii]nstagram/2 Reels/18 EtMday dia 1/*.mp4
+[Ii]nstagram/2 Reels/18 EtMday dia 1/*.jpg
 [Ii]nstagram/_sistema/remotion/**/__pycache__/
