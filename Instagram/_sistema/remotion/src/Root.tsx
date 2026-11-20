@@ -4,6 +4,7 @@ import { loadFont } from "@remotion/fonts";
 import { FPS, FUENTE, H, W } from "./marca";
 import * as DesdeDondeQuieras from "./reels/DesdeDondeQuieras";
 import * as EnPersona from "./reels/EnPersona";
+import * as EtmDia1 from "./reels/EtmDia1";
 
 loadFont({ family: FUENTE, url: staticFile("fuentes/PlusJakartaSans.ttf"), weight: "200 800" });
 
@@ -14,5 +15,7 @@ export const Root: React.FC = () => (
       durationInFrames={DesdeDondeQuieras.DURACION} fps={FPS} width={W} height={H} />
     <Composition id="EnPersona" component={EnPersona.EnPersona} defaultProps={{ musica: true }}
       durationInFrames={EnPersona.DURACION} fps={FPS} width={W} height={H} />
+    <Composition id="EtmDia1" component={EtmDia1.EtmDia1} defaultProps={{ musica: true }}
+      durationInFrames={EtmDia1.DURACION} fps={FPS} width={W} height={H} />
   </>
 );
