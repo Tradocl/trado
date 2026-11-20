@@ -34,13 +34,13 @@ def medir(entrada, previo=""):
     return json.loads(err[err.rindex("{"):err.rindex("}") + 1])
 
 
-def normalizar(entrada, salida):
+def normalizar(entrada, salida, margen=2.5):
     m = medir(entrada)
     subir = LUFS - float(m["input_i"])
     previo = ""
     if float(m["input_tp"]) + subir > PICO - 0.3:
-        # Picos 2,5 dB bajo lo que permite la subida: el AAC después los empuja hacia arriba
-        tope = 10 ** ((PICO - 2.5 - subir) / 20)
+        # Picos `margen` dB bajo lo que permite la subida: el AAC después los empuja hacia arriba
+        tope = 10 ** ((PICO - margen - subir) / 20)
         previo = f"alimiter=limit={max(0.0625, min(1, tope)):.4f}:attack=5:release=60:level=false"
         m = medir(entrada, previo)
     filtro = ((previo + ",") if previo else "") + (
@@ -50,7 +50,11 @@ def normalizar(entrada, salida):
     subprocess.run([FF, "-hide_banner", "-loglevel", "error", "-y", "-i", entrada, "-c:v", "copy", "-af", filtro,
                     "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", salida], check=True)
     f = medir(salida)
-    print(f"{salida}: {float(f['input_i']):.1f} LUFS, pico {float(f['input_tp']):.1f} dBFS")
+    pico = float(f["input_tp"])
+    if pico > PICO + 0.3 and margen < 12:
+        # Una mezcla densa (p. ej. rock con distorsión) se pasa igual: más margen y de nuevo
+        return normalizar(entrada, salida, margen + pico - PICO + 0.5)
+    print(f"{salida}: {float(f['input_i']):.1f} LUFS, pico {pico:.1f} dBFS")
 
 
 def main():
